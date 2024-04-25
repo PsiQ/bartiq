@@ -1,14 +1,16 @@
-"""
-..  Copyright © 2022-2024 PsiQuantum Corp.  All rights reserved.
-    PSIQUANTUM CORP. CONFIDENTIAL
-    This file includes unpublished proprietary source code of PsiQuantum Corp.
-    The copyright notice above does not evidence any actual or intended publication
-    of such source code. Disclosure of this source code or any related proprietary
-    information is strictly prohibited without the express written permission of
-    PsiQuantum Corp.
-
-Tests for routing module.
-"""
+# Copyright 2024 PsiQuantum, Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import pytest
 
@@ -131,10 +133,14 @@ def _nested_routine():
     "parent_path, port_name, source_port_path, routine",
     [
         ("a", "in_0", "#in_0", _simple_routine()),  # Input connected to root
-        ("", "out_0", "b.#out_0", _simple_routine()),  # Root output connected to a child
-        ("b", "in_0", "a.#out_0", _simple_routine()),  # Input connected to another sibling
-        ("", "out_0", "b.d.#out_0", _nested_routine()),  # Root output connected to a grand child
-        ("a.c", "in_0", "#in_0", _nested_routine()),  # Input connected to root through parent
+        # Root output connected to a child
+        ("", "out_0", "b.#out_0", _simple_routine()),
+        # Input connected to another sibling
+        ("b", "in_0", "a.#out_0", _simple_routine()),
+        # Root output connected to a grand child
+        ("", "out_0", "b.d.#out_0", _nested_routine()),
+        # Input connected to root through parent
+        ("a.c", "in_0", "#in_0", _nested_routine()),
         (
             "b.d",
             "in_0",
@@ -159,10 +165,14 @@ def test_get_port_source(parent_path, port_name, source_port_path, routine):
     "parent_path, port_name, target_port_path, routine",
     [
         ("b", "out_0", "#out_0", _simple_routine()),  # Output connected to root
-        ("", "in_0", "a.#in_0", _simple_routine()),  # Root output connected to a child
-        ("a", "out_0", "b.#in_0", _simple_routine()),  # Output connected to another sibling
-        ("", "in_0", "a.c.#in_0", _nested_routine()),  # Root input connected to a grand child
-        ("b.d", "out_0", "#out_0", _nested_routine()),  # Output connected to root through parent
+        # Root output connected to a child
+        ("", "in_0", "a.#in_0", _simple_routine()),
+        # Output connected to another sibling
+        ("a", "out_0", "b.#in_0", _simple_routine()),
+        # Root input connected to a grand child
+        ("", "in_0", "a.c.#in_0", _nested_routine()),
+        # Output connected to root through parent
+        ("b.d", "out_0", "#out_0", _nested_routine()),
         (
             "a.c",
             "out_0",
