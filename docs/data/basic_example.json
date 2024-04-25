@@ -1,0 +1,146 @@
+{
+    "name": "",
+    "type": null,
+    "ports": {
+        "in": {
+            "name": "in",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "N"
+            },
+            "meta": {}
+        },
+        "out": {
+            "name": "out",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        }
+    },
+    "children": {
+        "a": {
+            "name": "a",
+            "type": null,
+            "ports": {
+                "in": {
+                    "name": "in",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N_a"
+                    },
+                    "meta": {}
+                },
+                "out": {
+                    "name": "out",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N_a"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "2*N_a"
+                    }
+                }
+            },
+            "input_params": [
+                "N_a"
+            ],
+            "local_variables": [],
+            "linked_params": {},
+            "meta": {}
+        },
+        "b": {
+            "name": "b",
+            "type": null,
+            "ports": {
+                "in": {
+                    "name": "in",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N_b"
+                    },
+                    "meta": {}
+                },
+                "out": {
+                    "name": "out",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N_b"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "N_b*ceil(log_2(N_b))"
+                    }
+                }
+            },
+            "input_params": [
+                "N_b"
+            ],
+            "local_variables": [],
+            "linked_params": {},
+            "meta": {}
+        }
+    },
+    "connections": [
+        {
+            "source": "a.out",
+            "target": "b.in"
+        },
+        {
+            "source": "b.out",
+            "target": "out"
+        },
+        {
+            "source": "in",
+            "target": "a.in"
+        }
+    ],
+    "resources": {
+        "T_gates": {
+            "name": "T_gates",
+            "type": "additive",
+            "value": {
+                "type": "str",
+                "value": "sum(a.T_gates,b.T_gates)"
+            }
+        }
+    },
+    "input_params": [],
+    "local_variables": [],
+    "linked_params": {
+        "N": [
+            [
+                "a",
+                "N_a"
+            ],
+            [
+                "b",
+                "N_b"
+            ]
+        ]
+    },
+    "meta": {}
+}

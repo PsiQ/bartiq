@@ -1,0 +1,15 @@
+__pycache__
+*.DS_Store
+*.egg-info
+*.swp
+*.pyc
+dist/
+jupyter_execute/
+build/
+.tox/
+tox.ini
+.coverage
+coverage.xml
+.mypy_cache/
+.benchmarks/
+.ipynb_checkpoints/

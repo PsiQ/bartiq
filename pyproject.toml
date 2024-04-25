@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "bartiq"
+version = "0.1.0"
+description = "Symbolic Quantum Resource Estimation compilation"
+authors = ["PsiQuantum, Corp."]
+license = "Apache 2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^2.7"
+sympy = "^1.12"
+pyparsing ="~3.1.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+mypy = "^1.9.0"
+flake8 = "^7.0.0"
+black = "^24.4.1"
+isort = "^5.13.2"
+
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.3"
+mkdocs-link-marker = "^0.1.3"
+mkdocs-material = "^9.5.15"
+mkdocs-open-in-new-tab = "^1.0.3"
+mkdocstrings = {version = "^0.24.2", extras = ["python"]}
+mkdocs-jupyter = "^0.24.7"
+mike = "^2.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py39']

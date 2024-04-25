@@ -1,0 +1,3249 @@
+[
+    [
+        {
+            "name": "root",
+            "type": null
+        },
+        {
+            "name": "root",
+            "type": null
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "x + y"
+                    }
+                }
+            },
+            "input_params": [
+                "x",
+                "y"
+            ]
+        },
+        {
+            "name": "root",
+            "type": null,
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "x + y"
+                    }
+                }
+            },
+            "input_params": [
+                "x",
+                "y"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x + y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x + y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x",
+                        "y"
+                    ]
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "x + y"
+                    }
+                }
+            },
+            "input_params": [
+                "x",
+                "y"
+            ]
+        },
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x + y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x",
+                        "y"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x + y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x",
+                        "y"
+                    ]
+                }
+            },
+            "resources": {
+                "a.z": {
+                    "name": "a.z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.x + a.y"
+                    }
+                },
+                "b.z": {
+                    "name": "b.z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "b.x + b.y"
+                    }
+                },
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "x + y"
+                    }
+                }
+            },
+            "input_params": [
+                "a.x",
+                "a.y",
+                "b.x",
+                "b.y",
+                "x",
+                "y"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.z + b.z"
+                    }
+                }
+            }
+        },
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.x + a.y + b.x + b.y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "a.x",
+                        "a.y",
+                        "b.x",
+                        "b.y"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.x + a.y + b.x + b.y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "a.x",
+                        "a.y",
+                        "b.x",
+                        "b.y"
+                    ]
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y"
+                    }
+                }
+            },
+            "input_params": [
+                "a.a.x",
+                "a.a.y",
+                "a.b.x",
+                "a.b.y",
+                "b.a.x",
+                "b.a.y",
+                "b.b.x",
+                "b.b.y"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.z + b.z"
+                    }
+                }
+            },
+            "input_params": [
+                "x_aa",
+                "y_aa",
+                "x_ab",
+                "y_ab",
+                "x_ba",
+                "y_ba",
+                "x_bb",
+                "y_bb"
+            ],
+            "linked_params": {
+                "x_aa": [
+                    [
+                        "a.a",
+                        "x"
+                    ]
+                ],
+                "y_aa": [
+                    [
+                        "a.a",
+                        "y"
+                    ]
+                ],
+                "x_ab": [
+                    [
+                        "a.b",
+                        "x"
+                    ]
+                ],
+                "y_ab": [
+                    [
+                        "a.b",
+                        "y"
+                    ]
+                ],
+                "x_ba": [
+                    [
+                        "b.a",
+                        "x"
+                    ]
+                ],
+                "y_ba": [
+                    [
+                        "b.a",
+                        "y"
+                    ]
+                ],
+                "x_bb": [
+                    [
+                        "b.b",
+                        "x"
+                    ]
+                ],
+                "y_bb": [
+                    [
+                        "b.b",
+                        "y"
+                    ]
+                ]
+            }
+        },
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x_aa + y_aa"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_aa",
+                                "y_aa"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x_ab + y_ab"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_ab",
+                                "y_ab"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x_aa + x_ab + y_aa + y_ab"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x_aa",
+                        "x_ab",
+                        "y_aa",
+                        "y_ab"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x_ba + y_ba"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_ba",
+                                "y_ba"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x_bb + y_bb"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_bb",
+                                "y_bb"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "x_ba + x_bb + y_ba + y_bb"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x_ba",
+                        "x_bb",
+                        "y_ba",
+                        "y_bb"
+                    ]
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba + y_bb"
+                    }
+                }
+            },
+            "input_params": [
+                "x_aa",
+                "x_ab",
+                "x_ba",
+                "x_bb",
+                "y_aa",
+                "y_ab",
+                "y_ba",
+                "y_bb"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "foo": {
+                    "name": "foo",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_bar": {
+                    "name": "out_bar",
+                    "direction": "output",
+                    "size": null
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": null
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": null
+                        }
+                    },
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y + N"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y + N"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "a.out_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "a.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": null
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": null
+                        }
+                    },
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y + N"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y + N"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "a.out_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "a.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                },
+                {
+                    "source": "b.out_0",
+                    "target": "out_bar"
+                },
+                {
+                    "source": "foo",
+                    "target": "a.in_0"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.z + b.z"
+                    }
+                }
+            },
+            "input_params": [
+                "x_aa",
+                "y_aa",
+                "x_ab",
+                "y_ab",
+                "x_ba",
+                "y_ba",
+                "x_bb",
+                "y_bb"
+            ],
+            "linked_params": {
+                "x_aa": [
+                    [
+                        "a.a",
+                        "x"
+                    ]
+                ],
+                "y_aa": [
+                    [
+                        "a.a",
+                        "y"
+                    ]
+                ],
+                "x_ab": [
+                    [
+                        "a.b",
+                        "x"
+                    ]
+                ],
+                "y_ab": [
+                    [
+                        "a.b",
+                        "y"
+                    ]
+                ],
+                "x_ba": [
+                    [
+                        "b.a",
+                        "x"
+                    ]
+                ],
+                "y_ba": [
+                    [
+                        "b.a",
+                        "y"
+                    ]
+                ],
+                "x_bb": [
+                    [
+                        "b.b",
+                        "x"
+                    ]
+                ],
+                "y_bb": [
+                    [
+                        "b.b",
+                        "y"
+                    ]
+                ]
+            }
+        },
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "foo": {
+                    "name": "foo",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_bar": {
+                    "name": "out_bar",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        }
+                    },
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "N + x_aa + y_aa"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_aa",
+                                "y_aa"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "N + x_ab + y_ab"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_ab",
+                                "y_ab"
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "a.out_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "a.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "2*N + x_aa + x_ab + y_aa + y_ab"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x_aa",
+                        "x_ab",
+                        "y_aa",
+                        "y_ab"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        }
+                    },
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "N + x_ba + y_ba"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_ba",
+                                "y_ba"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "N + x_bb + y_bb"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x_bb",
+                                "y_bb"
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "a.out_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "a.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "2*N + x_ba + x_bb + y_ba + y_bb"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x_ba",
+                        "x_bb",
+                        "y_ba",
+                        "y_bb"
+                    ]
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                },
+                {
+                    "source": "b.out_0",
+                    "target": "out_bar"
+                },
+                {
+                    "source": "foo",
+                    "target": "a.in_0"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba + y_bb"
+                    }
+                }
+            },
+            "input_params": [
+                "x_aa",
+                "x_ab",
+                "x_ba",
+                "x_bb",
+                "y_aa",
+                "y_ab",
+                "y_ba",
+                "y_bb"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "k"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ],
+                            "local_variables": [
+                                "i = x + y",
+                                "j = x - y",
+                                "k = (i + j) / 2 + (i - j) / 2"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "k"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ],
+                            "local_variables": [
+                                "i = x + y",
+                                "j = x - y",
+                                "k = (i + j) / 2 + (i - j) / 2"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "k"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ],
+                            "local_variables": [
+                                "i = x + y",
+                                "j = x - y",
+                                "k = (i + j) / 2 + (i - j) / 2"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "k"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ],
+                            "local_variables": [
+                                "i = x + y",
+                                "j = x - y",
+                                "k = (i + j) / 2 + (i - j) / 2"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.z + b.z"
+                            }
+                        }
+                    }
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.z + b.z"
+                    }
+                }
+            }
+        },
+        {
+            "name": "",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.x + a.y + b.x + b.y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "a.x",
+                        "a.y",
+                        "b.x",
+                        "b.y"
+                    ]
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "children": {
+                        "a": {
+                            "name": "a",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        },
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x",
+                                "y"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "a.x + a.y + b.x + b.y"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "a.x",
+                        "a.y",
+                        "b.x",
+                        "b.y"
+                    ]
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y"
+                    }
+                }
+            },
+            "input_params": [
+                "a.a.x",
+                "a.a.y",
+                "a.b.x",
+                "a.b.y",
+                "b.a.x",
+                "b.a.y",
+                "b.b.x",
+                "b.b.y"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "children": {
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "x"
+                            }
+                        }
+                    }
+                },
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                }
+            ]
+        },
+        {
+            "name": "",
+            "type": null,
+            "children": {
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                },
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                }
+            ]
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "3 * M"
+                    }
+                }
+            },
+            "local_variables": [
+                "M = 2 * N"
+            ]
+        },
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                }
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "6*N"
+                    }
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "M"
+                            }
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "M"
+                            }
+                        }
+                    },
+                    "resources": {
+                        "y": {
+                            "name": "y",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "N + M"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.y"
+                    }
+                }
+            }
+        },
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        }
+                    },
+                    "resources": {
+                        "y": {
+                            "name": "y",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "3"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "3"
+                    }
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        }
+                    },
+                    "resources": {
+                        "y": {
+                            "name": "y",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "2*N"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.y"
+                    }
+                }
+            }
+        },
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "2"
+                            }
+                        }
+                    },
+                    "resources": {
+                        "y": {
+                            "name": "y",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "4"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ],
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "4"
+                    }
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": null
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                },
+                {
+                    "source": "b.out_0",
+                    "target": "out_0"
+                }
+            ]
+        },
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                },
+                "b": {
+                    "name": "b",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "b.in_0"
+                },
+                {
+                    "source": "b.out_0",
+                    "target": "out_0"
+                }
+            ]
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "X"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": null
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "Y"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": null
+                        }
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "Z"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "Z"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "B": {
+                                    "name": "B",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "b.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "A": {
+                            "name": "A",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "b.B"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                }
+            ],
+            "resources": {
+                "N": {
+                    "name": "N",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "a.A"
+                    }
+                }
+            }
+        },
+        {
+            "name": "",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "X"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "X"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "X"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "X"
+                            }
+                        }
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "X"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "X"
+                                    }
+                                }
+                            },
+                            "resources": {
+                                "B": {
+                                    "name": "B",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "X"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "b.in_0"
+                        }
+                    ],
+                    "resources": {
+                        "A": {
+                            "name": "A",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "X"
+                            }
+                        }
+                    }
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                }
+            ],
+            "resources": {
+                "N": {
+                    "name": "N",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "X"
+                    }
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "children": {
+                                "c": {
+                                    "name": "c",
+                                    "type": null,
+                                    "resources": {
+                                        "Q": {
+                                            "name": "Q",
+                                            "type": "other",
+                                            "value": {
+                                                "type": "str",
+                                                "value": "5 * x"
+                                            }
+                                        }
+                                    },
+                                    "input_params": [
+                                        "x"
+                                    ]
+                                }
+                            },
+                            "resources": {
+                                "Q": {
+                                    "name": "Q",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "4 * c.Q"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x"
+                            ],
+                            "linked_params": {
+                                "x": [
+                                    [
+                                        "c",
+                                        "x"
+                                    ]
+                                ]
+                            }
+                        }
+                    },
+                    "resources": {
+                        "Q": {
+                            "name": "Q",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "3 * b.Q"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x"
+                    ],
+                    "linked_params": {
+                        "x": [
+                            [
+                                "b",
+                                "x"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "resources": {
+                "Q": {
+                    "name": "Q",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "2 * a.Q"
+                    }
+                }
+            },
+            "input_params": [
+                "x"
+            ],
+            "linked_params": {
+                "x": [
+                    [
+                        "a",
+                        "x"
+                    ]
+                ]
+            }
+        },
+        {
+            "name": "root",
+            "type": null,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "children": {
+                                "c": {
+                                    "name": "c",
+                                    "type": null,
+                                    "resources": {
+                                        "Q": {
+                                            "name": "Q",
+                                            "type": "other",
+                                            "value": {
+                                                "type": "str",
+                                                "value": "5*x"
+                                            }
+                                        }
+                                    },
+                                    "input_params": [
+                                        "x"
+                                    ]
+                                }
+                            },
+                            "resources": {
+                                "Q": {
+                                    "name": "Q",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "20*x"
+                                    }
+                                }
+                            },
+                            "input_params": [
+                                "x"
+                            ]
+                        }
+                    },
+                    "resources": {
+                        "Q": {
+                            "name": "Q",
+                            "type": "other",
+                            "value": {
+                                "type": "str",
+                                "value": "60*x"
+                            }
+                        }
+                    },
+                    "input_params": [
+                        "x"
+                    ]
+                }
+            },
+            "resources": {
+                "Q": {
+                    "name": "Q",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "120*x"
+                    }
+                }
+            },
+            "input_params": [
+                "x"
+            ]
+        }
+    ],
+    [
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": null
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": null
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": null
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": null
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": null
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": null
+                        }
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": null
+                                },
+                                "in_1": {
+                                    "name": "in_1",
+                                    "direction": "input",
+                                    "size": null
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": null
+                                },
+                                "out_1": {
+                                    "name": "out_1",
+                                    "direction": "output",
+                                    "size": null
+                                }
+                            },
+                            "children": {
+                                "c": {
+                                    "name": "c",
+                                    "type": null,
+                                    "ports": {
+                                        "in_0": {
+                                            "name": "in_0",
+                                            "direction": "input",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "1"
+                                            }
+                                        },
+                                        "in_1": {
+                                            "name": "in_1",
+                                            "direction": "input",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "P"
+                                            }
+                                        },
+                                        "out_0": {
+                                            "name": "out_0",
+                                            "direction": "output",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "1"
+                                            }
+                                        },
+                                        "out_1": {
+                                            "name": "out_1",
+                                            "direction": "output",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "P"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "connections": [
+                                {
+                                    "source": "c.out_0",
+                                    "target": "out_0"
+                                },
+                                {
+                                    "source": "c.out_1",
+                                    "target": "out_1"
+                                },
+                                {
+                                    "source": "in_0",
+                                    "target": "c.in_0"
+                                },
+                                {
+                                    "source": "in_1",
+                                    "target": "c.in_1"
+                                }
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "b.out_1",
+                            "target": "out_1"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "in_1",
+                            "target": "b.in_1"
+                        }
+                    ]
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ]
+        },
+        {
+            "name": "root",
+            "type": null,
+            "ports": {
+                "in_0": {
+                    "name": "in_0",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "in_1": {
+                    "name": "in_1",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                },
+                "out_0": {
+                    "name": "out_0",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    }
+                },
+                "out_1": {
+                    "name": "out_1",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    }
+                }
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        },
+                        "in_1": {
+                            "name": "in_1",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "1"
+                            }
+                        },
+                        "out_1": {
+                            "name": "out_1",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "N"
+                            }
+                        }
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "ports": {
+                                "in_0": {
+                                    "name": "in_0",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "1"
+                                    }
+                                },
+                                "in_1": {
+                                    "name": "in_1",
+                                    "direction": "input",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                },
+                                "out_0": {
+                                    "name": "out_0",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "1"
+                                    }
+                                },
+                                "out_1": {
+                                    "name": "out_1",
+                                    "direction": "output",
+                                    "size": {
+                                        "type": "str",
+                                        "value": "N"
+                                    }
+                                }
+                            },
+                            "children": {
+                                "c": {
+                                    "name": "c",
+                                    "type": null,
+                                    "ports": {
+                                        "in_0": {
+                                            "name": "in_0",
+                                            "direction": "input",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "1"
+                                            }
+                                        },
+                                        "in_1": {
+                                            "name": "in_1",
+                                            "direction": "input",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "N"
+                                            }
+                                        },
+                                        "out_0": {
+                                            "name": "out_0",
+                                            "direction": "output",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "1"
+                                            }
+                                        },
+                                        "out_1": {
+                                            "name": "out_1",
+                                            "direction": "output",
+                                            "size": {
+                                                "type": "str",
+                                                "value": "N"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "connections": [
+                                {
+                                    "source": "c.out_0",
+                                    "target": "out_0"
+                                },
+                                {
+                                    "source": "c.out_1",
+                                    "target": "out_1"
+                                },
+                                {
+                                    "source": "in_0",
+                                    "target": "c.in_0"
+                                },
+                                {
+                                    "source": "in_1",
+                                    "target": "c.in_1"
+                                }
+                            ]
+                        }
+                    },
+                    "connections": [
+                        {
+                            "source": "b.out_0",
+                            "target": "out_0"
+                        },
+                        {
+                            "source": "b.out_1",
+                            "target": "out_1"
+                        },
+                        {
+                            "source": "in_0",
+                            "target": "b.in_0"
+                        },
+                        {
+                            "source": "in_1",
+                            "target": "b.in_1"
+                        }
+                    ]
+                }
+            },
+            "connections": [
+                {
+                    "source": "a.out_0",
+                    "target": "out_0"
+                },
+                {
+                    "source": "a.out_1",
+                    "target": "out_1"
+                },
+                {
+                    "source": "in_0",
+                    "target": "a.in_0"
+                },
+                {
+                    "source": "in_1",
+                    "target": "a.in_1"
+                }
+            ]
+        }
+    ]
+]

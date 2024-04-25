@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+site_name: Bartiq
+site_description: Symbolic compilation for QRE
+site_author: PsiQuantum Corp.
+copyright: Copyright © 2023-2024 PsiQuantum Corp.
+theme:
+  name: material
+  palette:
+    primary: custom
+    accent: custom
+  features:
+    - content.code.copy
+extra_css:
+  - psidocs.css
+
+plugins:
+  - search
+  - mkdocstrings
+  - mkdocs-jupyter:
+      include_source: True
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+
+nav:
+  - index.md
+  - Tutorials:
+      - tutorials/index.md
+      - tutorials/01_basic_example.ipynb
+      - tutorials/02_alias_sampling_basic.ipynb
+  - Concepts:
+      - concepts/index.md
+      - concepts/compilation.md
+      - concepts/data_format.md
+      - concepts/evaluation.md
+      - concepts/precompilation.md
+      - concepts/symbolics.md
+  - reference.md
+  - troubleshooting.md
+  - limitations.md

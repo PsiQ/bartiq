@@ -1,0 +1,627 @@
+{
+    "name": "",
+    "type": null,
+    "ports": {
+        "in_0": {
+            "name": "in_0",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "R"
+            },
+            "meta": {}
+        },
+        "in_1": {
+            "name": "in_1",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "mu"
+            },
+            "meta": {}
+        },
+        "in_2": {
+            "name": "in_2",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "mu"
+            },
+            "meta": {}
+        },
+        "in_3": {
+            "name": "in_3",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "mu"
+            },
+            "meta": {}
+        },
+        "in_4": {
+            "name": "in_4",
+            "direction": "input",
+            "size": {
+                "type": "str",
+                "value": "1"
+            },
+            "meta": {}
+        },
+        "out_0": {
+            "name": "out_0",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        },
+        "temp_0": {
+            "name": "temp_0",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        },
+        "temp_1": {
+            "name": "temp_1",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        },
+        "temp_2": {
+            "name": "temp_2",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        },
+        "temp_3": {
+            "name": "temp_3",
+            "direction": "output",
+            "size": null,
+            "meta": {}
+        }
+    },
+    "children": {
+        "usp": {
+            "name": "usp",
+            "type": null,
+            "ports": {
+                "in": {
+                    "name": "in",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                },
+                "out": {
+                    "name": "out",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "8*ceiling(log_2(N))"
+                    }
+                },
+                "rotations": {
+                    "name": "rotations",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "2"
+                    }
+                }
+            },
+            "input_params": [
+                "L"
+            ],
+            "local_variables": [
+                "N=L/multiplicity(2,L)",
+                "R=ceiling(log_2(L))"
+            ],
+            "linked_params": {},
+            "meta": {}
+        },
+        "had": {
+            "name": "had",
+            "type": null,
+            "ports": {
+                "in": {
+                    "name": "in",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    },
+                    "meta": {}
+                },
+                "out": {
+                    "name": "out",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "N"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {},
+            "input_params": [],
+            "local_variables": [],
+            "linked_params": {},
+            "meta": {}
+        },
+        "qrom": {
+            "name": "qrom",
+            "type": null,
+            "ports": {
+                "in_l": {
+                    "name": "in_l",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                },
+                "in_alt": {
+                    "name": "in_alt",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                },
+                "in_keep": {
+                    "name": "in_keep",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                },
+                "out_l": {
+                    "name": "out_l",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                },
+                "out_alt": {
+                    "name": "out_alt",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "R"
+                    },
+                    "meta": {}
+                },
+                "out_keep": {
+                    "name": "out_keep",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "4*L-4"
+                    }
+                }
+            },
+            "input_params": [
+                "L",
+                "mu"
+            ],
+            "local_variables": [
+                "R=ceiling(log_2(L))"
+            ],
+            "linked_params": {},
+            "meta": {}
+        },
+        "compare": {
+            "name": "compare",
+            "type": null,
+            "ports": {
+                "in_sigma": {
+                    "name": "in_sigma",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                },
+                "in_keep": {
+                    "name": "in_keep",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                },
+                "in_flag": {
+                    "name": "in_flag",
+                    "direction": "input",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    },
+                    "meta": {}
+                },
+                "out_sigma": {
+                    "name": "out_sigma",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                },
+                "out_keep": {
+                    "name": "out_keep",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "mu"
+                    },
+                    "meta": {}
+                },
+                "out_flag": {
+                    "name": "out_flag",
+                    "direction": "output",
+                    "size": {
+                        "type": "str",
+                        "value": "1"
+                    },
+                    "meta": {}
+                }
+            },
+            "children": {},
+            "connections": [],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "4*mu-4"
+                    }
+                }
+            },
+            "input_params": [
+                "mu"
+            ],
+            "local_variables": [],
+            "linked_params": {},
+            "meta": {}
+        },
+        "swap": {
+            "name": "swap",
+            "type": null,
+            "ports": {
+                "in_control": {
+                    "name": "in_control",
+                    "direction": "input",
+                    "size": null,
+                    "meta": {}
+                },
+                "in_target_0": {
+                    "name": "in_target_0",
+                    "direction": "input",
+                    "size": null,
+                    "meta": {}
+                },
+                "in_target_1": {
+                    "name": "in_target_1",
+                    "direction": "input",
+                    "size": null,
+                    "meta": {}
+                },
+                "out_control": {
+                    "name": "out_control",
+                    "direction": "output",
+                    "size": null,
+                    "meta": {}
+                },
+                "out_target_0": {
+                    "name": "out_target_0",
+                    "direction": "output",
+                    "size": null,
+                    "meta": {}
+                },
+                "out_target_1": {
+                    "name": "out_target_1",
+                    "direction": "output",
+                    "size": null,
+                    "meta": {}
+                }
+            },
+            "children": {
+                "passthrough_0": {
+                    "name": "passthrough_0",
+                    "type": "passthrough",
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "P_0"
+                            },
+                            "meta": {}
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "P_0"
+                            },
+                            "meta": {}
+                        }
+                    },
+                    "children": {},
+                    "connections": [],
+                    "resources": {},
+                    "input_params": [],
+                    "local_variables": [],
+                    "linked_params": {},
+                    "meta": {}
+                },
+                "passthrough_1": {
+                    "name": "passthrough_1",
+                    "type": "passthrough",
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "P_1"
+                            },
+                            "meta": {}
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "P_1"
+                            },
+                            "meta": {}
+                        }
+                    },
+                    "children": {},
+                    "connections": [],
+                    "resources": {},
+                    "input_params": [],
+                    "local_variables": [],
+                    "linked_params": {},
+                    "meta": {}
+                },
+                "passthrough_2": {
+                    "name": "passthrough_2",
+                    "type": "passthrough",
+                    "ports": {
+                        "in_0": {
+                            "name": "in_0",
+                            "direction": "input",
+                            "size": {
+                                "type": "str",
+                                "value": "P_2"
+                            },
+                            "meta": {}
+                        },
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": {
+                                "type": "str",
+                                "value": "P_2"
+                            },
+                            "meta": {}
+                        }
+                    },
+                    "children": {},
+                    "connections": [],
+                    "resources": {},
+                    "input_params": [],
+                    "local_variables": [],
+                    "linked_params": {},
+                    "meta": {}
+                }
+            },
+            "connections": [
+                {
+                    "source": "in_control",
+                    "target": "passthrough_0.in_0"
+                },
+                {
+                    "source": "in_target_0",
+                    "target": "passthrough_1.in_0"
+                },
+                {
+                    "source": "in_target_1",
+                    "target": "passthrough_2.in_0"
+                },
+                {
+                    "source": "passthrough_0.out_0",
+                    "target": "out_control"
+                },
+                {
+                    "source": "passthrough_1.out_0",
+                    "target": "out_target_0"
+                },
+                {
+                    "source": "passthrough_2.out_0",
+                    "target": "out_target_1"
+                }
+            ],
+            "resources": {
+                "T_gates": {
+                    "name": "T_gates",
+                    "type": "additive",
+                    "value": {
+                        "type": "str",
+                        "value": "O(log_2(X))"
+                    }
+                }
+            },
+            "input_params": [
+                "X"
+            ],
+            "local_variables": [],
+            "linked_params": {},
+            "meta": {}
+        }
+    },
+    "connections": [
+        {
+            "source": "compare.out_flag",
+            "target": "swap.in_control"
+        },
+        {
+            "source": "compare.out_keep",
+            "target": "temp_2"
+        },
+        {
+            "source": "compare.out_sigma",
+            "target": "temp_0"
+        },
+        {
+            "source": "had.out",
+            "target": "compare.in_sigma"
+        },
+        {
+            "source": "in_0",
+            "target": "usp.in"
+        },
+        {
+            "source": "in_1",
+            "target": "had.in"
+        },
+        {
+            "source": "in_2",
+            "target": "qrom.in_alt"
+        },
+        {
+            "source": "in_3",
+            "target": "qrom.in_keep"
+        },
+        {
+            "source": "in_4",
+            "target": "compare.in_flag"
+        },
+        {
+            "source": "qrom.out_alt",
+            "target": "swap.in_target_1"
+        },
+        {
+            "source": "qrom.out_keep",
+            "target": "compare.in_keep"
+        },
+        {
+            "source": "qrom.out_l",
+            "target": "swap.in_target_0"
+        },
+        {
+            "source": "swap.out_control",
+            "target": "temp_3"
+        },
+        {
+            "source": "swap.out_target_0",
+            "target": "out_0"
+        },
+        {
+            "source": "swap.out_target_1",
+            "target": "temp_1"
+        },
+        {
+            "source": "usp.out",
+            "target": "qrom.in_l"
+        }
+    ],
+    "resources": {
+        "T_gates": {
+            "name": "T_gates",
+            "type": "additive",
+            "value": {
+                "type": "str",
+                "value": "sum(usp.T_gates,qrom.T_gates,compare.T_gates,swap.T_gates)"
+            }
+        },
+        "rotations": {
+            "name": "rotations",
+            "type": "additive",
+            "value": {
+                "type": "str",
+                "value": "sum(usp.rotations)"
+            }
+        }
+    },
+    "input_params": [
+        "L",
+        "mu"
+    ],
+    "local_variables": [
+        "R=ceiling(log_2(L))"
+    ],
+    "linked_params": {
+        "L": [
+            [
+                "usp",
+                "L"
+            ],
+            [
+                "qrom",
+                "L"
+            ],
+            [
+                "swap",
+                "X"
+            ]
+        ],
+        "mu": [
+            [
+                "had",
+                "mu"
+            ],
+            [
+                "qrom",
+                "mu"
+            ],
+            [
+                "compare",
+                "mu"
+            ]
+        ]
+    },
+    "meta": {}
+}
