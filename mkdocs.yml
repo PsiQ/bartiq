@@ -13,7 +13,31 @@ theme:
 extra_css:
   - psidocs.css
 
+nav:
+  - index.md
+  - installation.md
+  - Tutorials:
+      - tutorials/index.md
+      - tutorials/01_basic_example.ipynb
+      - tutorials/02_alias_sampling_basic.ipynb
+  - Concepts:
+      - concepts/compilation.md
+      - concepts/data_format.md
+      - concepts/evaluation.md
+      - concepts/precompilation.md
+      - concepts/symbolics.md
+  - reference.md
+  - troubleshooting.md
+  - limitations.md
+
+
 plugins:
+  - autorefs
+  - mike:
+      version_selector: true
+      canonical_version: latest
+  - link-marker
+  - open-in-new-tab
   - search
   - mkdocstrings
   - mkdocs-jupyter:
@@ -24,19 +48,6 @@ markdown_extensions:
   - attr_list
   - md_in_html
 
-nav:
-  - index.md
-  - Tutorials:
-      - tutorials/index.md
-      - tutorials/01_basic_example.ipynb
-      - tutorials/02_alias_sampling_basic.ipynb
-  - Concepts:
-      - concepts/index.md
-      - concepts/compilation.md
-      - concepts/data_format.md
-      - concepts/evaluation.md
-      - concepts/precompilation.md
-      - concepts/symbolics.md
-  - reference.md
-  - troubleshooting.md
-  - limitations.md
+extra:
+  version:
+    provider: mike
