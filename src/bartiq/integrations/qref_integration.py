@@ -14,22 +14,22 @@
 
 from typing import Any, Union
 
-from qart import SchemaV1
+from qref import SchemaV1
 
 from .. import Port, Routine
 
 
-def bartiq_to_qart(routine: Routine, version: str = "v1") -> SchemaV1:
-    """Convert Bartiq routine to QART object."""
+def bartiq_to_qref(routine: Routine, version: str = "v1") -> SchemaV1:
+    """Convert Bartiq routine to QREF object."""
     if version != "v1":
-        raise ValueError(f"Unsupported QART schema version {version}")
-    return SchemaV1.model_validate({"version": "v1", "program": _bartiq_routine_to_qart_v1_dict(routine)})
+        raise ValueError(f"Unsupported QREF schema version {version}")
+    return SchemaV1.model_validate({"version": "v1", "program": _bartiq_routine_to_qref_v1_dict(routine)})
 
 
-def qart_to_bartiq(qart_obj: Union[SchemaV1, dict]) -> Routine:
-    """Convert QART object to a Bartiq routine."""
-    qart_obj = SchemaV1.model_validate(qart_obj)
-    return _routine_v1_to_bartiq_routine(qart_obj.program)
+def qref_to_bartiq(qref_obj: Union[SchemaV1, dict]) -> Routine:
+    """Convert QREF object to a Bartiq routine."""
+    qref_obj = SchemaV1.model_validate(qref_obj)
+    return _routine_v1_to_bartiq_routine(qref_obj.program)
 
 
 def _scoped_port_name_from_op_port(port: Port, parent: Routine) -> str:
@@ -42,11 +42,11 @@ def _ensure_primitive_type(value: Any) -> Union[int, float, str, None]:
     return value if value is None or isinstance(value, (int, float, str)) else str(value)
 
 
-def _bartiq_routine_to_qart_v1_dict(routine: Routine) -> dict:
+def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
     return {
         "name": routine.name,
         "type": routine.type,
-        "children": [_bartiq_routine_to_qart_v1_dict(child) for child in routine.children.values()],
+        "children": [_bartiq_routine_to_qref_v1_dict(child) for child in routine.children.values()],
         "resources": [
             {
                 "name": resource.name,
@@ -83,7 +83,7 @@ def _bartiq_routine_to_qart_v1_dict(routine: Routine) -> dict:
     }
 
 
-# Untypes because RoutineV1 is not public in QART
+# Untypes because RoutineV1 is not public in QREF
 def _routine_v1_to_bartiq_routine(routine_v1) -> Routine:
     return Routine(
         name=routine_v1.name,

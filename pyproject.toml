@@ -11,6 +11,7 @@ python = "^3.9"
 pydantic = "^2.7"
 sympy = "^1.12"
 pyparsing ="~3.1.2"
+qref = "0.1.0"
 
 
 [tool.poetry.group.dev.dependencies]

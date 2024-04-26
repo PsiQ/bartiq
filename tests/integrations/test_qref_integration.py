@@ -12,17 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bartiq import Routine
-
-try:
-    from bartiq.integrations import bartiq_to_qart, qart_to_bartiq
-
-    QART_UNAVAILABLE = False
-except ImportError:
-    QART_UNAVAILABLE = True
-
 import pytest
 from pytest import fixture
+
+from bartiq import Routine
+from bartiq.integrations import bartiq_to_qref, qref_to_bartiq
 
 # Note: fixture example_routine has to be synced with
 # the example_schema_v1 fixture further in this module.
@@ -76,7 +70,7 @@ def example_routine():
 
 
 @fixture
-def example_serialized_qart_v1_object():
+def example_serialized_qref_v1_object():
     return {
         "version": "v1",
         "program": {
@@ -119,17 +113,14 @@ def example_serialized_qart_v1_object():
     }
 
 
-@pytest.mark.skipif(QART_UNAVAILABLE, reason="QART is not installed")
-def test_converting_routine_to_qart_v1_gives_correct_output(example_routine, example_serialized_qart_v1_object):
-    assert bartiq_to_qart(example_routine).model_dump(exclude_unset=True) == example_serialized_qart_v1_object
+def test_converting_routine_to_qref_v1_gives_correct_output(example_routine, example_serialized_qref_v1_object):
+    assert bartiq_to_qref(example_routine).model_dump(exclude_unset=True) == example_serialized_qref_v1_object
 
 
-@pytest.mark.skipif(QART_UNAVAILABLE, reason="QART is not installed")
-def test_converting_qart_v1_object_to_routine_give_correct_output(example_routine, example_serialized_qart_v1_object):
-    assert qart_to_bartiq(example_serialized_qart_v1_object) == example_routine
+def test_converting_qref_v1_object_to_routine_give_correct_output(example_routine, example_serialized_qref_v1_object):
+    assert qref_to_bartiq(example_serialized_qref_v1_object) == example_routine
 
 
-@pytest.mark.skipif(QART_UNAVAILABLE, reason="QART is not installed")
-def test_conversion_from_bartiq_to_qart_raises_an_error_if_version_is_unsupported(example_routine):
+def test_conversion_from_bartiq_to_qref_raises_an_error_if_version_is_unsupported(example_routine):
     with pytest.raises(ValueError):
-        bartiq_to_qart(example_routine, version="v3")
+        bartiq_to_qref(example_routine, version="v3")
