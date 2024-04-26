@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .qart_integration import bartiq_to_qart, qart_to_bartiq
+from .qref_integration import bartiq_to_qref, qref_to_bartiq
 
-__all__ = ["bartiq_to_qart", "qart_to_bartiq"]
+__all__ = ["bartiq_to_qref", "qref_to_bartiq"]
