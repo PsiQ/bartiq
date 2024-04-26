@@ -360,8 +360,7 @@ class Routine(BaseModel):
             return self.name
         else:
             try:
-                # type: ignore
-                return f"{self.parent.relative_path_from(ancestor)}.{self.name}"
+                return f"{self.parent.relative_path_from(ancestor)}.{self.name}"  # type: ignore
             except (ValueError, AttributeError) as e:
                 raise ValueError("Ancestor not found.") from e
 
