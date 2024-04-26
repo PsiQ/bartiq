@@ -40,7 +40,7 @@ T_expr = Expr
 
 
 @singledispatch
-def _as_expression(value: str | int | float) -> T_expr:
+def _as_expression(value: Union[str | int | float]) -> T_expr:
     return sympify(value)
 
 
@@ -49,7 +49,7 @@ def _parse(value: str) -> T_expr:
     return parse_to_sympy(value)
 
 
-def as_expression(value: str | int | float) -> T_expr:
+def as_expression(value: Union[str | int | float]) -> T_expr:
     """Convert numerical or textual value into an expression."""
     return _as_expression(value)
 
