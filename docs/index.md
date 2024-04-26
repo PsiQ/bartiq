@@ -6,9 +6,7 @@ Bartiq is a library that allows to analyze a quantum algorithms and calculate sy
 
 ## Installation
 
-To install `bartiq` run: `pip install bartiq`.
-
-In order to install it from source run `pip install .` from the main directory.
+To install `bartiq` run: `pip install bartiq`. For more details follow instructions on the [installation page](installation.md).
 
 ## Quick start
 
@@ -56,6 +54,6 @@ To go step by step through the process and see how you can use Bartiq for your a
 ## Next steps
 
 - For a more comprehensive examples please see [tutorials](tutorials/index.md)!
-- If you are interested in learning more about how `bartiq` works under the hood, please check out [concepts](concepts/index.md) page.
+- If you are interested in learning more about how `bartiq` works under the hood, please check out concepts tab in the menu.
 - For common issues, please check [troubleshooting](troubleshooting.md) section.
 - You can find reference documation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
