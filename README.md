@@ -31,11 +31,12 @@ In order to quickly get started with `bartiq`, you can load Alias Sampling as an
 ```python
 import json
 from bartiq import Routine, compile_routine, evaluate
+from bartiq.integrations import qref_to_bartiq
 
 with open("alias_sampling_basic.json", "r") as f:
     routine_dict = json.load(f)
 
-uncompiled_routine = Routine(**routine_dict)
+uncompiled_routine = qref_to_bartiq(routine_dict)
 compiled_routine = compile_routine(uncompiled_routine)
 
 assignments = ["L=100", "mu=10"]
@@ -53,8 +54,8 @@ print(evaluated_routine.resources["T_gates"].value)
 which returns both symbolic the expression for the T-count as well as result for specific values of `L` and `mu`:
 
 ```
-4*L + 4*mu + swap.O(log2(L)) + 8*ceiling(log2(L/multiplicity(2, L))) - 8
-swap.O(log2(100)) + 480
+4*L + 8*L/multiplicity(2, L) + 4*mu + swap.O(log2(L)) - 8
+swap.O(log2(100)) + 832
 ```
 
 To go step by step through the process and see how you can use bartiq for your algorithms, please take a look at our tutorials, starting with [basic_usage](basic_usage.md). 

@@ -1,6 +1,5 @@
 # Known limitations
 
-On this page we'd like to list some most prominent limitations and missing features. Please keep in mind that bartiq is under constant development, so some of these might soon be resolved. We keep track of them in the [issues tab on our GitHub](https://github.com/PsiQ/bartiq/issues). For more detailed and most up-to-date discussion please go there.
-
+On this page we will list the most prominent limitations and features yet to be added. Bartiq is under constant development, so some of these might soon be actioned. For more detailed information and the most up-to-date discussion please go to the [issues tab on GitHub](https://github.com/PsiQ/bartiq/issues).
 
 
