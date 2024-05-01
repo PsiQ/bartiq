@@ -204,6 +204,7 @@ def _merge_functions(
                 raise BartiqCompilationError(
                     "Merging functions may only have same outputs if the outputs share the same expression; "
                     f"found conflict {output_1_variable} and {outputs_new_variable}."
+                    "Perhaps size of a port should be derived (i.e. set to None), but it's already set to some value."
                 )
 
         outputs_new[output_1_symbol] = output_1_variable

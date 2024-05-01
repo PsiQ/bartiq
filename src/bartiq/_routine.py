@@ -92,7 +92,7 @@ def _parse_connection_dict(connection: dict[str, str], children: dict[str, Routi
     except KeyError as e:
         raise ValueError(
             "Inconsistent children data when parsing connections. Most probably some of the "
-            "child routine failed to validate."
+            "child routine failed to validate or the names used in connections don't match the routines."
         ) from e
 
 
@@ -112,7 +112,7 @@ def _parse_linked_param_list(linked_param: list[tuple[str, Symbol]], children: d
     except KeyError as e:
         raise ValueError(
             "Inconsistent children data when parsing linked param. Most probably some of the "
-            "child routine failed to validate."
+            "child routine failed to validate or the names used in connections don't match the routines."
         ) from e
 
 

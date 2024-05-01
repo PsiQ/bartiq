@@ -422,7 +422,9 @@ def _resolve_target_param(target: Port) -> str:
     assert target_routine is not None
     if not target_routine.is_leaf:
         # In the case the target port isn't on a leaf, it will be a root output, so use port's path (e.g. #out_0)
-        assert target_routine.is_root, "Shouldn't ever find non-root non-leaf target."
+        assert (
+            target_routine.is_root
+        ), "Shouldn't ever find non-root non-leaf target. Most likely ports are connected incorrectly"
         return target.absolute_path
 
     if target.size is None or target.size == "":
