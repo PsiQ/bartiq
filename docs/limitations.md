@@ -1,6 +1,6 @@
 # Known limitations
 
-On this page we'd like to list some most prominent limitations and missing features. Please keep in mind that bartiq is under constant development, so some of these might soon be resolved. We keep track of them in the [issues tab on our GitHub](https://github.com/PsiQ/bartiq/issues). For more detailed and most up-to-date discussion please go there.
+This page lists some prominent limitations and missing features. Please keep in mind that `bartiq` is currently under active development, so some of these might soon be resolved. For an up-to-date list of all planned features, please see the [GitHub issues page](https://github.com/PsiQ/bartiq/issues).
 
 
 ## Balance between exact and approximate costs
@@ -11,19 +11,19 @@ For some quantum algorithms, the expression for their cost might depend on the i
 - using user-defined functions instead of sympy expressions
 
 
-However, all these methods introduce additional complexities. In the end, a person writing the algorithm needs to make a call, whether they want to have an expression that's very complicated and accurate or rather one that might have some minor issues, but is much easier for a human to understand and analyze.
+However, all these methods introduce additional complexities which may or may not be appropriate for a given use-case. Ultimately, bartiq does not provide any native approach for dynamic definition of estimators based on circuit topologies, so users are responsible for such decision-making prior to compilation.
 
 
 ## Non-trivial port sizes
 
-Right now bartiq does not support expressions for port sizes, only constants and symbols. It can be somewhat circumvented by introducing `local_variables`, but it's not elegant solution and might cause some unforseen issues in the compilation process.
+Right now bartiq does not support use of arbitrary expressions for input port sizes, but rather requires input port sizes to be constant or defined by as a single parameter. In the case that this isn't sufficient, it can be somewhat circumvented by introducing `local_variables`, but it's not elegant solution and might cause some unforeseen issues in the compilation process. Please reach out to a `bartiq` core developer if you are interested in this use-case and we will support you as needed.
 
 ## Qubit counts
 
-While getting a size of a particular register in bartiq is simple, getting the full qubit count needed for a given algorithm is currently not something that bartiq natively supports. There are subtelties involving counting ancilla qubits, deciding which qubits need to be allocated at the same time, etc., which need to be taken into account. 
+While finding the size of a particular port/register in bartiq is simple, getting the full qubit count needed for a given algorithm is currently not something that bartiq natively supports, and rather requires such expressions to be defined by user-provided expressions. This is because there are typically subtleties involving counting ancillary qubits which are difficult or impossible to automate, such as algorithmic design choices concerning clean or dirty qubit reuse, etc. 
 
-You might have noticed that we have `qubits` as one of the cost types, but unfortunately, it's not being used in any meaningful way yet.
+(N.B. we hope to support automatic qubit cost tabulation in the future, and so have included `qubits` as one of the native cost types, although at present it's not being used in any meaningful way.)
 
 ## Keeping track of where given register is being used
 
-Bartiq operates on "ports and connections" and it does not have a concept of "qubits registers". This gives more flexibility in connecting routines and not having to deal with qubits allocation and deallocation. However, it also means that answering a question like: "Tell me which subroutines used given qubit register" is impossible with bartiq.
+Bartiq operates purely on ports and connections between routines and hence does not have a concept of persistent qubits registers which exist beyond a single connection. This gives more flexibility in connecting routines and not having to deal with qubits allocation and deallocation. However, it also means that it is not natively possible to query whether the qubits referenced by a given connection correspond to any persistent quantum register or variable.
