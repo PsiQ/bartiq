@@ -20,5 +20,9 @@
 }
 
 .md-typeset a {
-    color: blue;
+    color: #7030A0;
+}
+
+.md-typeset a:hover {
+    color: #6D677D;
 }

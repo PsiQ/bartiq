@@ -2,7 +2,6 @@
 
 This page lists some prominent limitations and missing features. Please keep in mind that `bartiq` is currently under active development, so some of these might soon be resolved. For an up-to-date list of all planned features, please see the [GitHub issues page](https://github.com/PsiQ/bartiq/issues).
 
-
 ## Balance between exact and approximate costs
 
 For some quantum algorithms, the expression for their cost might depend on the inputs. For example, the uncontrolled SWAP gate can be implemented with just 3 CNOTs (no T gates), but the controlled version requires using T gates, depending on the number of controls. This effectively introduces a conditional cost. It can be modelled using bartiq in a couple of ways:

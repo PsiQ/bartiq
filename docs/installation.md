@@ -4,7 +4,9 @@
 
 To install `bartiq` run: `pip install bartiq`.
 
-In order to install it from source clone the repo by running `git clone git@github.com:PsiQ/qref.git` and then run `pip install .` from the main directory.
+## From Source
+
+Clone the repo by running `git clone git@github.com:PsiQ/qref.git` and then run `pip install .` from the main directory.
 
 ```bash
 # Clone bartiq repo (you can use HTTP link as well)
@@ -24,4 +26,4 @@ pip install poetry
 poetry install
 ```
 
-This should install all the dev and docs dependencies.
+This will install all the dev and docs dependencies.

@@ -10,9 +10,9 @@ To install `bartiq` run: `pip install bartiq`. For more details follow instructi
 
 ## Quick start
 
-In Bartiq we can take a quantum algorithm expressed as a collection of subroutines, each with it's costs expressed as symbolic expressions, and compile it to get cost expression for the whole algorithm.
+In Bartiq we take a quantum algorithm expressed as a collection of subroutines, each with it's costs expressed as symbolic expressions, and compile it to get cost expression for the whole algorithm.
 
-As an example we can use Alias Sampling – an algorithm proposed by [Babbush et al.](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). Here's how it's depicted in the paper:
+As an example we use Alias Sampling – an algorithm proposed by [Babbush et al.](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). Here's how it's depicted in the paper:
 
 ![Alias Sampling](images/alias_sampling_paper.png)
 
@@ -22,11 +22,12 @@ In order to quickly get started with `bartiq`, you can load Alias Sampling as an
 ```python
 import json
 from bartiq import Routine, compile_routine, evaluate
+from bartiq.integrations import qref_to_bartiq
 
 with open("alias_sampling_basic.json", "r") as f:
     routine_dict = json.load(f)
 
-uncompiled_routine = Routine(**routine_dict)
+uncompiled_routine = qref_to_bartiq(routine_dict)
 compiled_routine = compile_routine(uncompiled_routine)
 
 assignments = ["L=100", "mu=10"]
@@ -41,19 +42,16 @@ print(compiled_routine.resources["T_gates"].value)
 print(evaluated_routine.resources["T_gates"].value)
 ```
 
-which returns both symbolic the expression for the T-count as well as result for specific values of `L` and `mu`:
+which returns both the symbolic expression for the T-count as well as the specific values of `L` and `mu`:
 
 ```
-4*L + 4*mu + swap.O(log2(L)) + 8*ceiling(log2(L/multiplicity(2, L))) - 8
-swap.O(log2(100)) + 480
+4*L + 8*L/multiplicity(2, L) + 4*mu + swap.O(log2(L)) - 8
+swap.O(log2(100)) + 832
 ```
-
-To go step by step through the process and see how you can use Bartiq for your algorithms, please take a look at [our tutorials](tutorials/index.md). 
-
 
 ## Next steps
 
-- For a more comprehensive examples please see [tutorials](tutorials/index.md)!
-- If you are interested in learning more about how `bartiq` works under the hood, please check out concepts tab in the menu.
+- For a more comprehensive step-by-step examples, please see [tutorials](tutorials/index.md).
+- If you are interested in learning more about how `bartiq` works under the hood, please see the concepts tab in the menu.
 - For common issues, please check [troubleshooting](troubleshooting.md) section.
 - You can find reference documation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
