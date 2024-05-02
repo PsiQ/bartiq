@@ -6,7 +6,7 @@ This page lists some prominent limitations and missing features. Please keep in 
 ## Balance between exact and approximate costs
 
 For some quantum algorithms, the expression for their cost might depend on the inputs. For example, the uncontrolled SWAP gate can be implemented with just 3 CNOTs (no T gates), but the controlled version requires using T gates, depending on the number of controls. This effectively introduces a conditional cost. It can be modelled using bartiq in a couple of ways:
-- using Heaviside theta
+- using a step function (Heaviside theta) allows to model cases where the cost has different values depending if given parameter is below or above certain threshold.
 - using [piecewise sympy function](https://docs.sympy.org/latest/modules/functions/elementary.html#piecewise)
 - using user-defined functions instead of sympy expressions
 
