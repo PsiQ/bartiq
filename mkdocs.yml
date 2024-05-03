@@ -33,7 +33,17 @@ plugins:
   - link-marker
   - open-in-new-tab
   - search
-  - mkdocstrings
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+            separate_signature: true
+            line_length: 60
+            modernize_annotations: true
+            show_signature_annotations: true
+            show_root_heading: true
   - mkdocs-jupyter:
       include_source: True
 
