@@ -64,11 +64,3 @@ To go step by step through the process and see how you can use bartiq for your a
 ## Documentation
 
 Documentation for `bartiq` can be found [here](TODO).
-
-To run docs locally install it with `docs` option: `pip install ".[docs]"` and then run `mkdocs serve`. 
-
-## Development
-
-To run tests please run `pytest .`. 
-To run linter please run `TODO`.
-
