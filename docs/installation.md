@@ -2,11 +2,15 @@
 
 ## Basic
 
-To install `bartiq` run: `pip install bartiq`.
+To install `bartiq` run: 
+
+```bash
+pip install bartiq
+```
 
 ## From Source
 
-Clone the repo by running `git clone git@github.com:PsiQ/qref.git` and then run `pip install .` from the main directory.
+For a source install run:
 
 ```bash
 # Clone bartiq repo (you can use HTTP link as well)
@@ -17,7 +21,7 @@ pip install .
 
 ## Development
 
-For development we recommend using `poetry`. In order to install all the dev dependencies using poetry please run:
+For development we recommend installing using `poetry`: 
 
 ```bash
 git clone git@github.com:PsiQ/bartiq.git
@@ -26,4 +30,28 @@ pip install poetry
 poetry install
 ```
 
-This will install all the dev and docs dependencies.
+This will create a virtual environment for you and install all developer and docs dependencies within it.
+
+To enter this environment run:
+
+```bash
+poetry shell
+```
+
+### Tests
+
+To run the test suite, from the project root directory run:
+
+```bash
+poetry shell  # If not already in the venv
+pytest
+```
+
+### Documentation
+
+To build docs, from the project root directory run:
+
+```bash
+poetry shell  # If not already in the venv
+mkdocs serve
+```
