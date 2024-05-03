@@ -54,4 +54,4 @@ swap.O(log2(100)) + 832
 - For a more comprehensive step-by-step examples, please see [tutorials](tutorials/index.md).
 - If you are interested in learning more about how `bartiq` works under the hood, please see the concepts tab in the menu.
 - For common issues, please check [troubleshooting](troubleshooting.md) section.
-- You can find reference documation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
+- You can find reference documentation for the public API of `bartiq`'s python package, please go to [reference](reference.md).

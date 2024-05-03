@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Debugging `bartiq` is not always straightforward, so please see below for a number of best practices and common issues to help:
+Debugging `bartiq` is not always straightforward, so please see below for a number of best practices and common issues:
 
 
 - Bartiq routines can get pretty complicated very quickly, especially if nested subroutines are involved. Therefore when you get an error, try isolating the issue and work on a smaller example:
