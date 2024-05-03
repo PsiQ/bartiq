@@ -46,7 +46,7 @@ evaluated_routine = evaluate(compiled_routine, assignments)
 
 Now in order to inspect the results you can do: TODO
 
-```
+```python
 print(compiled_routine.resources["T_gates"].value)
 print(evaluated_routine.resources["T_gates"].value)
 ```
