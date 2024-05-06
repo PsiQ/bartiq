@@ -29,4 +29,5 @@ Bartiq operates purely on ports and connections between routines and hence does 
 
 ## Repeated subroutines
 
-Currently bartiq does not support a case where a particular subroutine is repeated multiple times, which is a common case in many algorithms, such as trotterization. It is definitely an important feature which will be added in future releases.
+Currently bartiq has limited capability to support a case where a particular subroutine is repeated multiple times.
+It can be done for a simple case where all the repetitions act on the same qubit registers. However, routines where target register change or we have a recursive definition (such as controlled unitaries in QPE) are not something one can natively support in Bartiq.
