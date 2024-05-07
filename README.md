@@ -25,7 +25,7 @@ As an example we can use Alias Sampling – an algorithm proposed by [Babbush e
 
 ![Alias Sampling](https://raw.githubusercontent.com/PsiQ/bartiq/main/docs/images/alias_sampling_paper.png?token=GHSAT0AAAAAACFPHUU4MIKWTFLBJ5PLG2MCZRMBP4Q)
 
-In order to quickly get started with `bartiq`, you can load Alias Sampling as an example routine and use it as follows (click here to download <a href="/docs/data/alias_sampling_basic.json" download>`alias_sampling_basic.json`</a>):
+In order to quickly get started with `bartiq`, you can load Alias Sampling as an example routine and use it as follows (click here to download <a href="https://raw.githubusercontent.com/PsiQ/bartiq/main/docs/data/alias_sampling_basic.json" download>`alias_sampling_basic.json`</a>):
 
 
 ```python
