@@ -44,7 +44,7 @@ assignments = ["L=100", "mu=10"]
 evaluated_routine = evaluate(compiled_routine, assignments)
 ```
 
-Now in order to inspect the results you can do: TODO
+Now in order to inspect the results you can do:
 
 ```python
 print(compiled_routine.resources["T_gates"].value)
@@ -63,12 +63,4 @@ To go step by step through the process and see how you can use bartiq for your a
 
 ## Documentation
 
-Documentation for `bartiq` can be found [here](TODO).
-
-To run docs locally install it with `docs` option: `pip install ".[docs]"` and then run `mkdocs serve`. 
-
-## Development
-
-To run tests please run `pytest .`. 
-To run linter please run `TODO`.
-
+Documentation for `bartiq` can be found [here](https://psiq.github.io/bartiq/).
