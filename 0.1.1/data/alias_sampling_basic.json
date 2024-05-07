@@ -1,0 +1,358 @@
+{
+    "version": "v1",
+    "program": {
+        "name": "alias_sampling",
+        "children": [
+            {
+                "name": "usp",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in",
+                        "direction": "input",
+                        "size": "R"
+                    },
+                    {
+                        "name": "out",
+                        "direction": "output",
+                        "size": "R"
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "8*L/multiplicity(2,L)"
+                    },
+                    {
+                        "name": "rotations",
+                        "type": "additive",
+                        "value": "2"
+                    }
+                ],
+                "input_params": [
+                    "L"
+                ],
+                "local_variables": [
+                    "R=ceiling(log_2(L))"
+                ]
+            },
+            {
+                "name": "had",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in",
+                        "direction": "input",
+                        "size": "N"
+                    },
+                    {
+                        "name": "out",
+                        "direction": "output",
+                        "size": "N"
+                    }
+                ]
+            },
+            {
+                "name": "qrom",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in_l",
+                        "direction": "input",
+                        "size": "R"
+                    },
+                    {
+                        "name": "in_alt",
+                        "direction": "input",
+                        "size": "R"
+                    },
+                    {
+                        "name": "in_keep",
+                        "direction": "input",
+                        "size": "mu"
+                    },
+                    {
+                        "name": "out_l",
+                        "direction": "output",
+                        "size": "R"
+                    },
+                    {
+                        "name": "out_alt",
+                        "direction": "output",
+                        "size": "R"
+                    },
+                    {
+                        "name": "out_keep",
+                        "direction": "output",
+                        "size": "mu"
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "4*L-4"
+                    }
+                ],
+                "input_params": [
+                    "L",
+                    "mu"
+                ],
+                "local_variables": [
+                    "R=ceiling(log_2(L))"
+                ]
+            },
+            {
+                "name": "compare",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in_sigma",
+                        "direction": "input",
+                        "size": "mu"
+                    },
+                    {
+                        "name": "in_keep",
+                        "direction": "input",
+                        "size": "mu"
+                    },
+                    {
+                        "name": "in_flag",
+                        "direction": "input",
+                        "size": "1"
+                    },
+                    {
+                        "name": "out_sigma",
+                        "direction": "output",
+                        "size": "mu"
+                    },
+                    {
+                        "name": "out_keep",
+                        "direction": "output",
+                        "size": "mu"
+                    },
+                    {
+                        "name": "out_flag",
+                        "direction": "output",
+                        "size": "1"
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "4*mu-4"
+                    }
+                ],
+                "input_params": [
+                    "mu"
+                ]
+            },
+            {
+                "name": "swap",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in_control",
+                        "direction": "input",
+                        "size": "1"
+                    },
+                    {
+                        "name": "in_target_0",
+                        "direction": "input",
+                        "size": "X"
+                    },
+                    {
+                        "name": "in_target_1",
+                        "direction": "input",
+                        "size": "X"
+                    },
+                    {
+                        "name": "out_control",
+                        "direction": "output",
+                        "size": null
+                    },
+                    {
+                        "name": "out_target_0",
+                        "direction": "output",
+                        "size": null
+                    },
+                    {
+                        "name": "out_target_1",
+                        "direction": "output",
+                        "size": null
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "O(log_2(X))"
+                    }
+                ],
+                "connections": [
+                    {
+                        "source": "in_control",
+                        "target": "out_control"
+                    },
+                    {
+                        "source": "in_target_0",
+                        "target": "out_target_0"
+                    },
+                    {
+                        "source": "in_target_1",
+                        "target": "out_target_1"
+                    }
+                ],
+                "input_params": [
+                    "X"
+                ]
+            }
+        ],
+        "type": null,
+        "ports": [
+            {
+                "name": "in_0",
+                "direction": "input",
+                "size": "R"
+            },
+            {
+                "name": "in_1",
+                "direction": "input",
+                "size": "mu"
+            },
+            {
+                "name": "in_2",
+                "direction": "input",
+                "size": "R"
+            },
+            {
+                "name": "in_3",
+                "direction": "input",
+                "size": "mu"
+            },
+            {
+                "name": "in_4",
+                "direction": "input",
+                "size": "1"
+            },
+            {
+                "name": "out_0",
+                "direction": "output",
+                "size": null
+            },
+            {
+                "name": "temp_0",
+                "direction": "output",
+                "size": null
+            },
+            {
+                "name": "temp_1",
+                "direction": "output",
+                "size": null
+            },
+            {
+                "name": "temp_2",
+                "direction": "output",
+                "size": null
+            },
+            {
+                "name": "temp_3",
+                "direction": "output",
+                "size": null
+            }
+        ],
+        "connections": [
+            {
+                "source": "in_0",
+                "target": "usp.in"
+            },
+            {
+                "source": "in_1",
+                "target": "had.in"
+            },
+            {
+                "source": "in_2",
+                "target": "qrom.in_alt"
+            },
+            {
+                "source": "in_3",
+                "target": "qrom.in_keep"
+            },
+            {
+                "source": "in_4",
+                "target": "compare.in_flag"
+            },
+            {
+                "source": "usp.out",
+                "target": "qrom.in_l"
+            },
+            {
+                "source": "had.out",
+                "target": "compare.in_sigma"
+            },
+            {
+                "source": "qrom.out_l",
+                "target": "swap.in_target_0"
+            },
+            {
+                "source": "qrom.out_alt",
+                "target": "swap.in_target_1"
+            },
+            {
+                "source": "qrom.out_keep",
+                "target": "compare.in_keep"
+            },
+            {
+                "source": "compare.out_flag",
+                "target": "swap.in_control"
+            },
+            {
+                "source": "swap.out_target_0",
+                "target": "out_0"
+            },
+            {
+                "source": "compare.out_sigma",
+                "target": "temp_0"
+            },
+            {
+                "source": "swap.out_target_1",
+                "target": "temp_1"
+            },
+            {
+                "source": "compare.out_keep",
+                "target": "temp_2"
+            },
+            {
+                "source": "swap.out_control",
+                "target": "temp_3"
+            }
+        ],
+        "input_params": [
+            "mu",
+            "L"
+        ],
+        "local_variables": [
+            "R=ceiling(log_2(L))"
+        ],
+        "linked_params": [
+            {
+                "source": "L",
+                "targets": [
+                    "usp.L",
+                    "qrom.L",
+                    "swap.X"
+                ]
+            },
+            {
+                "source": "mu",
+                "targets": [
+                    "had.mu",
+                    "qrom.mu",
+                    "compare.mu"
+                ]
+            }
+        ]
+    }
+}
