@@ -15,7 +15,7 @@ However, all these methods introduce additional complexities which may or may no
 
 ## Non-trivial port sizes
 
-Right now bartiq does not support use of arbitrary expressions for input port sizes, but rather requires input port sizes to be constant or defined by as a single parameter. In the case that this isn't sufficient, it can be somewhat circumvented by introducing `local_variables`, but it's not elegant solution and might cause some unforeseen issues in the compilation process. Please reach out to a `bartiq` core developer if you are interested in this use-case and we will support you as needed.
+Right now bartiq does not support use of arbitrary expressions for input port sizes, but rather requires input port sizes to be constant or defined by as a single parameter. In the case that this isn't sufficient, it can be somewhat circumvented by introducing `local_variables`, but it's not elegant solution and might cause some unforeseen issues in the compilation process. Please reach out to a `bartiq` core developers if you are interested in this use-case and we will support you as needed.
 
 ## Qubit counts
 
@@ -26,3 +26,8 @@ While finding the size of a particular port/register in bartiq is simple, gettin
 ## Keeping track of where given register is being used
 
 Bartiq operates purely on ports and connections between routines and hence does not have a concept of persistent qubits registers which exist beyond a single connection. This gives more flexibility in connecting routines and not having to deal with qubits allocation and deallocation. However, it also means that it is not natively possible to query whether the qubits referenced by a given connection correspond to any persistent quantum register or variable.
+
+## Repeated subroutines
+
+Currently bartiq has limited capability to support a case where a particular subroutine is repeated multiple times.
+It can be done for a simple case where all the repetitions act on the same qubit registers. However, routines where target register change or we have a recursive definition (such as controlled unitaries in QPE) are not something one can natively support in Bartiq.

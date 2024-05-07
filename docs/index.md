@@ -16,7 +16,7 @@ As an example we use Alias Sampling – an algorithm proposed by [Babbush et al
 
 ![Alias Sampling](images/alias_sampling_paper.png)
 
-In order to quickly get started with `bartiq`, you can load Alias Sampling as an example routine and use it as follows (click here to download <a href="/data/alias_sampling_basic.json" download>`alias_sampling_basic.json`</a>):
+In order to quickly get started with `bartiq`, you can load Alias Sampling as an example routine and use it as follows (click here to download <a href="https://raw.githubusercontent.com/PsiQ/bartiq/main/docs/data/alias_sampling_basic.json" download>`alias_sampling_basic.json`</a>):
 
 
 ```python
@@ -54,4 +54,4 @@ swap.O(log2(100)) + 832
 - For a more comprehensive step-by-step examples, please see [tutorials](tutorials/index.md).
 - If you are interested in learning more about how `bartiq` works under the hood, please see the concepts tab in the menu.
 - For common issues, please check [troubleshooting](troubleshooting.md) section.
-- You can find reference documation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
+- You can find reference documentation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
