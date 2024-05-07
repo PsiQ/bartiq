@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bartiq"
-version = "0.1.0"
+version = "0.0.0"
 description = "Symbolic Quantum Resource Estimation compilation"
 authors = ["PsiQuantum, Corp."]
 license = "Apache 2.0"
@@ -35,9 +35,14 @@ mkdocs-jupyter = "^0.24.7"
 mike = "^2.0.0"
 
 
+[tool.poetry-dynamic-versioning]
+enable = true
+pattern = "default-unprefixed"
+
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 
 [tool.black]
