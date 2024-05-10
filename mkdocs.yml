@@ -3,6 +3,10 @@ site_name: Bartiq
 site_description: Symbolic compilation for QRE
 site_author: PsiQuantum Corp.
 copyright: Copyright © 2023-2024 PsiQuantum Corp.
+repo_url: https://github.com/PsiQ/bartiq
+repo_name: 'bartiq'
+edit_uri: edit/main/docs/
+
 theme:
   name: material
   palette:
@@ -10,6 +14,11 @@ theme:
     accent: custom
   features:
     - content.code.copy
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
 extra_css:
   - psidocs.css
 
@@ -46,6 +55,12 @@ plugins:
             show_root_heading: true
   - mkdocs-jupyter:
       include_source: True
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+  - git-committers:
+      repository: PsiQ/bartiq
+      branch: main
 
 markdown_extensions:
   - admonition
