@@ -9,236 +9,270 @@
 
 Tests for Estimators' LaTeX rendering.
 """
+
 import pytest
 
 from bartiq import Routine
 from bartiq.latex import represent_routine_in_latex
 
-# TODO: convert test cases from make_estimator to Routine
+
 # TODO: convert expected outputs having in mind that now we have:
 # - resources instead of costs
 # - ports/port sizes instead of registers/register sizes
 # - linked_params instead of inherited params
 # - local variables instead of local parameters
-@pytest.mark.parametrize("routine, kwargs, expected_latex", [
-    # Null case
-    (
-        Routine(), 
-        {},
-        "\n\n",
-    ),
-    # Only input parameters
-    (
-        Routine(input_params=["x", "y"]),
-        {},
-        r"""
+@pytest.mark.parametrize(
+    "routine, kwargs, expected_latex",
+    [
+        # Null case
+        (
+            Routine(name="root"),
+            {},
+            "\n\n",
+        ),
+        # Only input parameters
+        (
+            Routine(name="root", input_params=["x", "y"]),
+            {},
+            r"""
 &\bf\text{Input parameters:}\\
 &x, y
-"""
-    ),
-    # Path-prefixed input parameters
-    (
-        # Possibly upgrade to include children
-        Routine(
-            name="root",
-            input_params=["subroutine.x_a", "y_b"],
-            children={"subroutine": {"name": "subroutine", "input_params": "x_a"}}
+""",
         ),
-        {},
-        r"""
+        # Path-prefixed input parameters
+        (
+            Routine(
+                name="root",
+                input_params=["subroutine.x_a", "y_b"],
+                children={"subroutine": {"name": "subroutine", "input_params": ["x_a"]}},
+            ),
+            {},
+            r"""
 &\bf\text{Input parameters:}\\
 &\text{subroutine}.\!x_{\text{a}}, y_{\text{b}}
-"""
-    ),
-    # Only inherited_params
-    (
-        # Likewise, consider adding children
-        Routine(
-            name="root",
-            linked_params={
-                "x": ["a.i_0", "c.j_1"],
-                "y": ["d.k_2", "e.l_3"],
-            },
-            children={
-                "a": {"name": "a", "input_params": ["i_0"]},
-                "c": {"name": "c", "input_params": ["j_1"]},
-                "d": {"name": "d", "input_params": ["k_2"]},
-                "e": {"name": "e", "input_params": ["l_3"]}
-            }
+""",
         ),
-        {},
-        r"""
-&\bf\text{Inherited parameters:}\\
-&x: \text{a_bish.b_bash}.\!i_{\text{0}}, \text{c_bosh}.\!j_{\text{1}}\\
-&y: \text{d_hip}.\!k_{\text{2}}, \text{e_hip.f_hooray}.\!l_{\text{3}}
-"""
-    ),
-    # Only input register sizes
-    (
-        Routine(
-            name="root",
-            ports={
-                "0": {"name": "0", "size": "a", "direction": "input"},
-                "b": {"name": "b", "size": "b", "direction": "input"}
-            }
+        # Only inherited_params
+        (
+            Routine(
+                name="root",
+                linked_params={
+                    "x": [("a", "i_0"), ("c", "j_1")],
+                    "y": [("d", "k_2"), ("e", "l_3")],
+                },
+                children={
+                    "a": {"name": "a", "input_params": ["i_0"]},
+                    "c": {"name": "c", "input_params": ["j_1"]},
+                    "d": {"name": "d", "input_params": ["k_2"]},
+                    "e": {"name": "e", "input_params": ["l_3"]},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Linked parameters:}\\
+&x: \text{a}.\!i_{\text{0}}, \text{c}.\!j_{\text{1}}\\
+&y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}
+""",
         ),
-        {},
-        r"""
-&\bf\text{Input registers:}\\
-&\text{#in_0}.\!a, \text{#in_b}.\!b
-"""
-    ),
-    # Only local parameters
-    (
-        Routine(
-            name="root",
-            input_params=["a", "b", "c", "y"],
-            local_variables=[
-                "x_foo = y + a",
-                "y_bar = b * c",
-            ],
+        # Only input register sizes
+        (
+            Routine(
+                name="root",
+                ports={
+                    "0": {"name": "0", "size": "a", "direction": "input"},
+                    "b": {"name": "b", "size": "b", "direction": "input"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Input ports:}\\
+&\text{0}.\!a, \text{b}.\!b
+""",
         ),
-        {},
-        r"""
+        # Only local parameters
+        (
+            Routine(
+                name="root",
+                input_params=["a", "b"],
+                local_variables=[
+                    "x_foo = y + a",
+                    "y_bar = b * c",
+                ],
+            ),
+            {},
+            r"""
 &\bf\text{Input parameters:}\\
 &a, b\\
-&\bf\text{Subcosts:}\\
-&\text{bish_bash_bosh}.\!N_{\text{noshes}}, \text{clip_clap_clop}.\!N_{\text{horses}}\\
-&\bf\text{Local parameters:}\\
-&x_{\text{foo}} = a + \text{bish_bash_bosh}.\!N_{\text{noshes}}\\
-&y_{\text{bar}} = b \cdot \text{clip_clap_clop}.\!N_{\text{horses}}
-"""
-    ),
-    # Only output registers
-    (
-        Routine(
-            name="root",
-            ports={
-                "0": {"name": "0", "size": "2", "direction": "output"},
-                "b": {"name": "b", "size": "3", "direction": "output"}
-            },
-            output_register_sizes={"0": "2", "b": "3"},
+&\bf\text{Local variables:}\\
+&x_{\text{foo}} = a + y\\
+&y_{\text{bar}} = b \cdot c
+""",
         ),
-        {},
-        r"""
-&\bf\text{Output registers:}\\
-&\text{#out_0} = 2\\
-&\text{#out_b} = 3
-"""
-    ),
-    # Only costs
-    (
-        make_estimator(
-            costs=["x = 0", "y = 1"],
+        # Only output ports
+        (
+            Routine(
+                name="root",
+                ports={
+                    "0": {"name": "0", "size": "2", "direction": "output"},
+                    "b": {"name": "b", "size": "3", "direction": "output"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Output ports:}\\
+&\text{0} = 2\\
+&\text{b} = 3
+""",
         ),
-        {},
-        r"""
-&\bf\text{Costs:}\\
+        # Only costs
+        (
+            Routine(
+                name="root",
+                resources={
+                    "x": {"name": "x", "value": 0, "type": "additive"},
+                    "y": {"name": "y", "value": 1, "type": "additive"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Resources:}\\
 &x = 0\\
 &y = 1
-"""
-    ),
-    # The whole shebang
-    (
-        make_estimator(
-            input_params=["x", "y"],
-            inherited_params={
-                "x": ["a_bish.b_bash.i_0", "c_bosh.j_1"],
-                "y": ["d_hip.k_2", "e_hip.f_hooray.l_3"],
-            },
-            subcosts=["wig_wam.N_tents", "ping_pong.N_serves"],
-            input_register_sizes={"0": "a", "b": "b"},
-            local_params=[
-                "x_foo = bish_bash_bosh.N_noshes + a",
-                "y_bar = b * clip_clap_clop.N_horses",
-            ],
-            costs=["x = 0", "y = 1"],
-            output_register_sizes={"0": "2", "b": "3"},
+""",
         ),
-        {},
-        r"""
+        # The whole shebang
+        (
+            Routine(
+                name="root",
+                input_params=["x", "y"],
+                ports={
+                    "in_0": {"name": "in_0", "size": "a", "direction": "input"},
+                    "in_b": {"name": "in_b", "size": "b", "direction": "input"},
+                    "out_0": {"name": "out_0", "size": "2", "direction": "output"},
+                    "out_b": {"name": "out_b", "size": "3", "direction": "output"},
+                },
+                linked_params={
+                    "x": [("a", "i_0"), ("c", "j_1")],
+                    "y": [("d", "k_2"), ("e", "l_3")],
+                },
+                children={
+                    "a": {"name": "a", "input_params": ["i_0"]},
+                    "c": {"name": "c", "input_params": ["j_1"]},
+                    "d": {"name": "d", "input_params": ["k_2"]},
+                    "e": {"name": "e", "input_params": ["l_3"]},
+                },
+                local_variables=[
+                    "x_foo = a.i_0 + a",
+                    "y_bar = b * c.j_1",
+                ],
+                resources={
+                    "t": {"name": "t", "value": 0, "type": "additive"},
+                },
+            ),
+            {},
+            r"""
 &\bf\text{Input parameters:}\\
 &x, y\\
-&\bf\text{Inherited parameters:}\\
-&x: \text{a_bish.b_bash}.\!i_{\text{0}}, \text{c_bosh}.\!j_{\text{1}}\\
-&y: \text{d_hip}.\!k_{\text{2}}, \text{e_hip.f_hooray}.\!l_{\text{3}}\\
-&\bf\text{Subcosts:}\\
-&\text{wig_wam}.\!N_{\text{tents}}, \text{ping_pong}.\!N_{\text{serves}}\\
-&\bf\text{Input registers:}\\
-&\text{#in_0}.\!a, \text{#in_b}.\!b\\
-&\bf\text{Local parameters:}\\
-&x_{\text{foo}} = a + \text{bish_bash_bosh}.\!N_{\text{noshes}}\\
-&y_{\text{bar}} = b \cdot \text{clip_clap_clop}.\!N_{\text{horses}}\\
-&\bf\text{Output registers:}\\
-&\text{#out_0} = 2\\
-&\text{#out_b} = 3\\
-&\bf\text{Costs:}\\
-&x = 0\\
-&y = 1
-"""
-    ),
-    # Different whitespace around operands in assignment string
-    (
-        make_estimator(
-            local_params=['a=1+2', 'b = 3+4'],
-            costs=['c=a + b', 'd = a - b'],
+&\bf\text{Linked parameters:}\\
+&x: \text{a}.\!i_{\text{0}}, \text{c}.\!j_{\text{1}}\\
+&y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}\\
+&\bf\text{Input ports:}\\
+&\text{in_0}.\!a, \text{in_b}.\!b\\
+&\bf\text{Output ports:}\\
+&\text{out_0} = 2\\
+&\text{out_b} = 3\\
+&\bf\text{Local variables:}\\
+&x_{\text{foo}} = a + \text{a}.\!i_{\text{0}}\\
+&y_{\text{bar}} = b \cdot \text{c}.\!j_{\text{1}}\\
+&\bf\text{Resources:}\\
+&t = 0
+""",
         ),
-        {},
-        r"""
-&\bf\text{Local parameters:}\\
+        # Different whitespace around operands in assignment string
+        (
+            Routine(
+                name="root",
+                local_variables=[
+                    "a=1+2",
+                    "b = 3+4",
+                ],
+                resources={
+                    "c": {"name": "c", "value": "a + b", "type": "additive"},
+                    "d": {"name": "d", "value": "a-b", "type": "additive"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Local variables:}\\
 &a = 3\\
 &b = 7\\
-&\bf\text{Costs:}\\
+&\bf\text{Resources:}\\
 &c = a + b\\
 &d = a - b
-"""
-    ),
-    # Don't hide non-root costs (default)
-    # Add children, make sure you include them in implementation
-    (
-        make_estimator(
-            costs=[
-                'a = 1',
-                'a.b = 2',
-            ],
+""",
         ),
-        {},
-        r"""
-&\bf\text{Costs:}\\
-&a = 1\\
-&\text{a}.\!b = 2
-"""
-    ),
-    # Hide non-root costs
-    (
-        make_estimator(
-            costs=[
-                'a = 1',
-                'a.b = 2',
-            ],
+        # Don't hide non-root costs (default)
+        # Add children, make sure you include them in implementation
+        (
+            Routine(
+                name="root",
+                children={
+                    "a": {
+                        "name": "a",
+                        "resources": {
+                            "y": {"name": "y", "value": "2", "type": "additive"},
+                        },
+                    },
+                },
+                resources={
+                    "x": {"name": "x", "value": "1", "type": "additive"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Resources:}\\
+&x = 1\\
+&\text{a}.\!y = 2
+""",
         ),
-        {'show_non_root_costs': False},
-        r"""
-&\bf\text{Costs:}\\
-&a = 1
-"""
-    ),
-    # Sum over all subcosts
-    (
-        make_estimator(
-            costs=[
-                'N_x = sum(~.N_x)'
-            ],
+        # Hide non-root costs
+        (
+            Routine(
+                name="root",
+                children={
+                    "a": {
+                        "name": "a",
+                        "resources": {
+                            "y": {"name": "y", "value": "2", "type": "additive"},
+                        },
+                    },
+                },
+                resources={
+                    "x": {"name": "x", "value": "1", "type": "additive"},
+                },
+            ),
+            {"show_non_root_resources": False},
+            r"""
+&\bf\text{Resources:}\\
+&x = 1
+""",
         ),
-        {},
-        r"""
-&\bf\text{Subcosts:}\\
-&\text{~}.\!N_{\text{x}}\\
-&\bf\text{Costs:}\\
+        # Sum over all subcosts
+        (
+            Routine(
+                name="root",
+                resources={
+                    "N_x": {"name": "N_x", "value": "sum(~.N_x)", "type": "additive"},
+                },
+            ),
+            {},
+            r"""
+&\bf\text{Resources:}\\
 &N_{\text{x}} = \operatorname{sum}{\left(\text{~}.\!N_{\text{x}} \right)}
-"""
-    ),
-])
+""",
+        ),
+    ],
+)
 def test_represent_routine_in_latex(routine, kwargs, expected_latex):
     expected_string = rf"\begin{{align}}{expected_latex}\end{{align}}"
     assert represent_routine_in_latex(routine, **kwargs) == expected_string
