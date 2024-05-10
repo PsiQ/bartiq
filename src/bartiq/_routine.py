@@ -218,7 +218,7 @@ class Routine(BaseModel):
     """
 
     name: str
-    type: Optional[str]
+    type: Optional[str] = None
     ports: dict[str, Port] = Field(default_factory=dict)
     parent: Optional[Self] = Field(exclude=True, default=None)
     children: dict[str, Routine] = Field(default_factory=dict)
