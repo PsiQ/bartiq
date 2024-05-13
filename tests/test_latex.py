@@ -16,11 +16,6 @@ from bartiq import Routine
 from bartiq.latex import represent_routine_in_latex
 
 
-# TODO: convert expected outputs having in mind that now we have:
-# - resources instead of costs
-# - ports/port sizes instead of registers/register sizes
-# - linked_params instead of inherited params
-# - local variables instead of local parameters
 @pytest.mark.parametrize(
     "routine, kwargs, expected_latex",
     [
