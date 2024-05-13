@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utilities for rendering estimators in LaTeX."""
-
-from typing import Optional
-
 from sympy import latex, symbols
 
 from ._routine import Routine
