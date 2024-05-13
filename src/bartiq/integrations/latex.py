@@ -11,38 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Utilities for rendering estimators in LaTeX."""
 from sympy import latex, symbols
 
 from .._routine import Routine
 from ..compilation._utilities import split_equation
 from ..symbolics.sympy_interpreter import parse_to_sympy
-
-
-def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
-    """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
-
-    Args:
-        routine: The routine to render.
-        show_non_root_costs: If ``True`` (default), displays all costs, otherwise only includes costs
-        from the root node.
-
-    Returns:
-        A LaTeX snippet of the routine.
-    """
-    lines = [_format_object_header(routine)]
-    lines.extend([format_line(data) for attr_name, format_line in SECTIONS if (data := getattr(routine, attr_name))])
-
-    # We deal with resources separately due to show_non_root_resources option
-    if resource_section := _format_resources(routine, show_non_root_resources):
-        lines.append(resource_section)
-
-    return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
-
-
-def _format_object_header(routine: Routine) -> str:
-    """Formats the standard object repr as a header."""
-    cls = type(routine)
-    return rf"&\text{{{cls.__name__} \textrm{{({routine.name})}}}}".replace("_", r"\_")
 
 
 def _format_input_params(input_params: list[str]):
@@ -63,19 +37,19 @@ def _format_linked_params(linked_params):
 
 
 def _format_input_port_sizes(ports):
-    return _format_port_sizes(ports, "Input")
+    values = []
+    for port in ports.values():
+        values.append(rf"{_format_param_text(port.name)}.\!{_format_param_math(port.size)}")
+    return _format_section_one_line("Input ports", values)
 
 
 def _format_output_port_sizes(ports):
-    return _format_port_sizes(ports, "Output")
-
-
-def _format_port_sizes(ports, label):
+    """Returns the output register sizes formatted in LaTeX."""
     lines = []
     for port in ports.values():
         port_name = port.name
-        lines.append(f"&{_format_name_text(port_name)} = {_latex_expression(port.size)}")
-    return _format_section_multi_line(f"{label} ports", lines)
+        lines.append(f"&{_format_param_text(port_name)} = {_latex_expression(port.size)}")
+    return _format_section_multi_line("Output ports", lines)
 
 
 def _format_local_variables(local_variables):
@@ -88,6 +62,9 @@ def _format_local_variables(local_variables):
 
 
 SECTIONS = [
+    # pairs of the form (get_line_data, format_line_data)
+    # TODO: actually implement the functions listed below, base on the estimator-based ones further in this file
+    # TODO: ordering of this list matters, make sure it is correct
     ("input_params", _format_input_params),
     ("linked_params", _format_linked_params),
     ("input_ports", _format_input_port_sizes),
@@ -96,14 +73,34 @@ SECTIONS = [
 ]
 
 
+def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
+    """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
+
+    Args:
+        routine: The routine to render.
+        show_non_root_costs: If ``True`` (default), displays all costs, otherwise only includes costs
+        from the root node.
+
+    Returns:
+        A LaTeX snippet of the routine.
+    """
+    lines = [format_line(data) for attr_name, format_line in SECTIONS if (data := getattr(routine, attr_name))]
+
+    # We deal with resources separately due to show_non_root_resources option
+    if resource_section := _format_resources(routine, show_non_root_resources):
+        lines.append(resource_section)
+
+    return "\\begin{align}\n" + "\\\\\n".join(lines) + "\n\\end{align}"
+
+
 def _format_section_one_line(header, entries):
     """Formats a parameter section into a bolded header followed by a comma-separated list of entries."""
-    return f"&\\underline{{\\text{{{header}:}}}}\\\\\n&" + ", ".join(entries)
+    return f"&\\bf\\text{{{header}:}}\\\\\n&" + ", ".join(entries)
 
 
 def _format_section_multi_line(header, lines):
     """Formats a parameter section into a bolded header followed by a series of lines."""
-    return f"&\\underline{{\\text{{{header}:}}}}\\\\\n" + "\\\\\n".join(lines)
+    return f"&\\bf\\text{{{header}:}}\\\\\n" + "\\\\\n".join(lines)
 
 
 def _format_param(param):
@@ -120,19 +117,7 @@ def _format_local_param(param):
 
 def _format_param_text(param):
     """Formats a param as text."""
-    if param.count("_") == 0:
-        return rf"\text{{{param}}}"
-    elif param.count("_") == 1:
-        symbol, subscript = param.split("_")
-        return rf"\text{{{symbol}}}_\text{{{subscript}}}"
-    else:
-        symbol, *subscripts = param.split("_")
-        sanitized_subscripts = r"\_".join(subscripts)
-        return rf"\text{{{symbol}}}_\text{{{sanitized_subscripts}}}"
-
-
-def _format_name_text(name):
-    return rf"\text{{{name}}}".replace("_", r"\_")
+    return rf"\text{{{param}}}"
 
 
 def _format_param_math(param):
