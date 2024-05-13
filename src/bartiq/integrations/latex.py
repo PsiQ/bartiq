@@ -14,9 +14,9 @@
 """Utilities for rendering estimators in LaTeX."""
 from sympy import latex, symbols
 
-from ._routine import Routine
-from .compilation._utilities import split_equation
-from .symbolics.sympy_interpreter import parse_to_sympy
+from .._routine import Routine
+from ..compilation._utilities import split_equation
+from ..symbolics.sympy_interpreter import parse_to_sympy
 
 
 def _format_input_params(input_params: list[str]):

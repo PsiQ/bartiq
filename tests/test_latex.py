@@ -16,7 +16,7 @@
 import pytest
 
 from bartiq import Routine
-from bartiq.latex import represent_routine_in_latex
+from bartiq.integrations.latex import represent_routine_in_latex
 
 
 @pytest.mark.parametrize(
