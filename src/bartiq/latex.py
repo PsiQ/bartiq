@@ -76,7 +76,7 @@ SECTIONS = [
 ]
 
 
-def represent_routine_in_latex(routine: Routine, show_non_root_resources: Optional[bool] = True) -> str:
+def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
@@ -156,8 +156,9 @@ def _latex_expression(expression: str) -> str:
 def _format_resources(routine: Routine, show_non_root_resources: bool):
     lines = []
     lines += _get_resources_lines(routine.resources)
-    for subroutine in routine.walk():
-        if subroutine != routine and show_non_root_resources:
+    if show_non_root_resources:
+        subroutines_to_process = [r for r in routine.walk() if r is not routine]
+        for subroutine in subroutines_to_process:
             lines += _get_resources_lines(subroutine.resources, subroutine.name)
     if len(lines) > 0:
         return _format_section_multi_line("Resources", lines)
