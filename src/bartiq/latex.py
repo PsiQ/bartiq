@@ -1,14 +1,17 @@
-"""
-..  Copyright © 2022-2024 PsiQuantum Corp.  All rights reserved.
-    PSIQUANTUM CORP. CONFIDENTIAL
-    This file includes unpublished proprietary source code of PsiQuantum Corp.
-    The copyright notice above does not evidence any actual or intended publication
-    of such source code. Disclosure of this source code or any related proprietary
-    information is strictly prohibited without the express written permission of
-    PsiQuantum Corp.
-
-Utilities for rendering estimators in LaTeX.
-"""
+# Copyright 2024 PsiQuantum, Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Utilities for rendering estimators in LaTeX."""
 
 from typing import Optional
 
@@ -19,14 +22,6 @@ from .compilation._utilities import split_equation
 from .symbolics.sympy_interpreter import parse_to_sympy
 
 
-# TODO: the functions below should almost work, but they previously accepted an estimator
-# They have to be changd so they accept precisely the data they operate on.
-# other differences would be in naming of the sections:
-# costs -> resources
-# inherited params -> linked params
-# local parameters -> local variables
-# register sizes -> port sizes
-# TODO: add return types
 def _format_input_params(input_params: list[str]):
     """Formats estimator input parameters to LaTeX."""
     input_params = [_format_param(input_param) for input_param in input_params]
