@@ -19,60 +19,6 @@ from ..compilation._utilities import split_equation
 from ..symbolics.sympy_interpreter import parse_to_sympy
 
 
-def _format_input_params(input_params: list[str]):
-    """Formats estimator input parameters to LaTeX."""
-    input_params = [_format_param(input_param) for input_param in input_params]
-    return _format_section_one_line("Input parameters", input_params)
-
-
-def _format_linked_params(linked_params):
-    """Formats estimator inherited parameters to LaTeX."""
-    lines = []
-    for param, children_links in linked_params.items():
-        key = _format_param_math(param)
-        param_names = [".".join([link[0].name, link[1]]) for link in children_links]
-        values = [_format_param(param) for param in param_names]
-        lines.append(f"&{key}: " + ", ".join(values))
-    return _format_section_multi_line("Linked parameters", lines)
-
-
-def _format_input_port_sizes(ports):
-    values = []
-    for port in ports.values():
-        values.append(rf"{_format_param_text(port.name)}.\!{_format_param_math(port.size)}")
-    return _format_section_one_line("Input ports", values)
-
-
-def _format_output_port_sizes(ports):
-    """Returns the output register sizes formatted in LaTeX."""
-    lines = []
-    for port in ports.values():
-        port_name = port.name
-        lines.append(f"&{_format_param_text(port_name)} = {_latex_expression(port.size)}")
-    return _format_section_multi_line("Output ports", lines)
-
-
-def _format_local_variables(local_variables):
-    """Formats estimator local parameters to LaTeX."""
-    lines = []
-    for variable in local_variables:
-        assignment, expression = split_equation(variable)
-        lines.append(f"&{_format_param_math(assignment)} = {_latex_expression(expression)}")
-    return _format_section_multi_line("Local variables", lines)
-
-
-SECTIONS = [
-    # pairs of the form (get_line_data, format_line_data)
-    # TODO: actually implement the functions listed below, base on the estimator-based ones further in this file
-    # TODO: ordering of this list matters, make sure it is correct
-    ("input_params", _format_input_params),
-    ("linked_params", _format_linked_params),
-    ("input_ports", _format_input_port_sizes),
-    ("output_ports", _format_output_port_sizes),
-    ("local_variables", _format_local_variables),
-]
-
-
 def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
@@ -91,6 +37,57 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
         lines.append(resource_section)
 
     return "\\begin{align}\n" + "\\\\\n".join(lines) + "\n\\end{align}"
+
+
+def _format_input_params(input_params: list[str]):
+    """Formats estimator input parameters to LaTeX."""
+    input_params = [_format_param(input_param) for input_param in input_params]
+    return _format_section_one_line("Input parameters", input_params)
+
+
+def _format_linked_params(linked_params):
+    """Formats estimator inherited parameters to LaTeX."""
+    lines = []
+    for param, children_links in linked_params.items():
+        key = _format_param_math(param)
+        param_names = [".".join([link[0].name, link[1]]) for link in children_links]
+        values = [_format_param(param) for param in param_names]
+        lines.append(f"&{key}: " + ", ".join(values))
+    return _format_section_multi_line("Linked parameters", lines)
+
+
+def _format_input_port_sizes(ports):
+    _format_port_sizes(ports, "Input")
+
+
+def _format_output_port_sizes(ports):
+    _format_port_sizes(ports, "Output")
+
+
+def _format_port_sizes(ports, label):
+    lines = []
+    for port in ports.values():
+        port_name = port.name
+        lines.append(f"&{_format_param_text(port_name)} = {_latex_expression(port.size)}")
+    return _format_section_multi_line(f"{label} ports", lines)
+
+
+def _format_local_variables(local_variables):
+    """Formats estimator local parameters to LaTeX."""
+    lines = []
+    for variable in local_variables:
+        assignment, expression = split_equation(variable)
+        lines.append(f"&{_format_param_math(assignment)} = {_latex_expression(expression)}")
+    return _format_section_multi_line("Local variables", lines)
+
+
+SECTIONS = [
+    ("input_params", _format_input_params),
+    ("linked_params", _format_linked_params),
+    ("input_ports", _format_input_port_sizes),
+    ("output_ports", _format_output_port_sizes),
+    ("local_variables", _format_local_variables),
+]
 
 
 def _format_section_one_line(header, entries):
@@ -117,7 +114,14 @@ def _format_local_param(param):
 
 def _format_param_text(param):
     """Formats a param as text."""
-    return rf"\text{{{param}}}"
+    if param.count("_") == 0:
+        return rf"\text{{{param}}}"
+    elif param.count("_") == 1:
+        splitted_param = param.split("_")
+        return rf"\text{{{splitted_param[0]}}}_\text{{{splitted_param[1]}}}"
+    else:
+        # TODO: add test case with more underscores to test it
+        return rf"\text{{{param}}}"  # .replace("_", "\\_")
 
 
 def _format_param_math(param):
