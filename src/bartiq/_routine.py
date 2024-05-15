@@ -194,7 +194,7 @@ class Routine(BaseModel):
     Attributes:
         name: Name of the subroutine.
         type: Type of the subroutine, might be None.
-        ports: Dicionary mapping port name to corresponding Port object with the same name.
+        ports: Dictionary mapping port name to corresponding Port object with the same name.
         parent: A Routine whose this routine is subroutine of. Might be None, in which
             case the routine is considered to be root of computation.
         children: Dictionary mapping name of subroutine of this routine into routine
@@ -204,7 +204,7 @@ class Routine(BaseModel):
             Importantly, by convention, connection objects cannot descend further then one
             generation (i.e. there might not be a connection between routine and its
             grandchild).
-        resources: Dictionary mapping name of the resource to corrresponding Resource object.
+        resources: Dictionary mapping name of the resource to corresponding Resource object.
         input_params: Sequence of symbols determining inputs for this routine.
         local_variables: Convenience aliases to expressions commonly used within this Routine.
             For instance, for a Routine with input parameter d one of the local variables
@@ -368,6 +368,11 @@ class Routine(BaseModel):
     def absolute_path(self) -> str:
         """Returns a path from root."""
         return self.relative_path_from(None).removeprefix(".")
+
+    def _repr_markdown_(self):
+        from .integrations.latex import represent_routine_in_latex
+
+        return represent_routine_in_latex(self)
 
 
 class Resource(BaseModel):

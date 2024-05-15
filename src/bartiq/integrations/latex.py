@@ -30,13 +30,20 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
     Returns:
         A LaTeX snippet of the routine.
     """
-    lines = [format_line(data) for attr_name, format_line in SECTIONS if (data := getattr(routine, attr_name))]
+    lines = [_format_object_header(routine)]
+    lines.extend([format_line(data) for attr_name, format_line in SECTIONS if (data := getattr(routine, attr_name))])
 
     # We deal with resources separately due to show_non_root_resources option
     if resource_section := _format_resources(routine, show_non_root_resources):
         lines.append(resource_section)
 
-    return "\\begin{align}\n" + "\\\\\n".join(lines) + "\n\\end{align}"
+    return "$\\begin{align}\n" + "\\newline \n".join(lines) + "\n\\end{align}$"
+
+
+def _format_object_header(routine: Routine) -> str:
+    """Formats the standard object repr as a header."""
+    cls = type(routine)
+    return rf"&\text{{{cls.__name__} \textrm{{({routine.name.replace('_', r'\_')})}}}}"
 
 
 def _format_input_params(input_params: list[str]):
@@ -92,12 +99,12 @@ SECTIONS = [
 
 def _format_section_one_line(header, entries):
     """Formats a parameter section into a bolded header followed by a comma-separated list of entries."""
-    return f"&\\bf\\text{{{header}:}}\\\\\n&" + ", ".join(entries)
+    return f"&\\underline{{\\text{{{header}:}}}}\\\\\n&" + ", ".join(entries)
 
 
 def _format_section_multi_line(header, lines):
     """Formats a parameter section into a bolded header followed by a series of lines."""
-    return f"&\\bf\\text{{{header}:}}\\\\\n" + "\\\\\n".join(lines)
+    return f"&\\underline{{\\text{{{header}:}}}}\\\\\n" + "\\\\\n".join(lines)
 
 
 def _format_param(param):
