@@ -129,11 +129,11 @@ def _sort_children_topologically(routine: T) -> Iterable[T]:
 
     Topological order is not unique, but guarantees that if two children a and b
     are joined by the edge a->b, then a will appear in the order before b
-    (but not neccessarily just before).
+    (but not necessarily just before).
     """
     # Extract connections that are relevant to children ordering, i.e. only the ones
-    # that connect two childeren (and not children with parent).
-    # For each such connetion we only preserve the name of the source and target child,
+    # that connect two children (and not children with parent).
+    # For each such connection we only preserve the name of the source and target child,
     # the names of children will serves as names of nodes in graph.
     graph_edges = set(
         (cn.source.parent.name, cn.target.parent.name)  # type: ignore
