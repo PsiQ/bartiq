@@ -75,7 +75,7 @@ def _format_port_sizes(ports, label):
     lines = []
     for port in ports.values():
         port_name = port.name
-        lines.append(f"&{_format_param_text(port_name)} = {_latex_expression(port.size)}")
+        lines.append(f"&{_format_name_text(port_name)} = {_latex_expression(port.size)}")
     return _format_section_multi_line(f"{label} ports", lines)
 
 
@@ -124,11 +124,15 @@ def _format_param_text(param):
     if param.count("_") == 0:
         return rf"\text{{{param}}}"
     elif param.count("_") == 1:
-        splitted_param = param.split("_")
-        return rf"\text{{{splitted_param[0]}}}_\text{{{splitted_param[1]}}}"
+        symbol, subscript = param.split("_")
+        return rf"\text{{{symbol}}}_\text{{{subscript}}}"
     else:
-        # TODO: add test case with more underscores to test it
-        return rf"\text{{{param}}}"  # .replace("_", "\\_")
+        symbol, *subscripts = param.split("_")
+        return rf"\text{{{symbol}}}_\text{{{r'\_'.join(subscripts)}}}"
+
+
+def _format_name_text(name):
+    return rf"\text{{{name.replace('_', r'\_')}}}"
 
 
 def _format_param_math(param):
