@@ -57,11 +57,11 @@ def _format_linked_params(linked_params):
 
 
 def _format_input_port_sizes(ports):
-    _format_port_sizes(ports, "Input")
+    return _format_port_sizes(ports, "Input")
 
 
 def _format_output_port_sizes(ports):
-    _format_port_sizes(ports, "Output")
+    return _format_port_sizes(ports, "Output")
 
 
 def _format_port_sizes(ports, label):
