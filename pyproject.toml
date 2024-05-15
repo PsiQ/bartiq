@@ -14,6 +14,14 @@ sympy = "^1.12"
 pyparsing ="~3.1.2"
 qref = "0.1.0"
 
+# A list of all of the optional dependencies, some of which are included in the
+# below `extras`. They can be opted into by apps.
+ipytree = { version = "^0.2.2", optional = true }
+ipywidgets = { version = "^8.1.2", optional = true }
+traitlets = { version = "^5.14.3", optional = true }
+
+[tool.poetry.extras]
+jupyter = ["ipytree", "ipywidgets", "traitlets"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
