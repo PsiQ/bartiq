@@ -37,13 +37,13 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
     if resource_section := _format_resources(routine, show_non_root_resources):
         lines.append(resource_section)
 
-    return "$\\begin{align}\n" + "\\newline \n".join(lines) + "\n\\end{align}$"
+    return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 
 
 def _format_object_header(routine: Routine) -> str:
     """Formats the standard object repr as a header."""
     cls = type(routine)
-    return rf"&\text{{{cls.__name__} \textrm{{({routine.name.replace('_', r'\_')})}}}}"
+    return rf"&\text{{{cls.__name__} \textrm{{({routine.name})}}}}".replace("_", r"\_")
 
 
 def _format_input_params(input_params: list[str]):
@@ -128,11 +128,12 @@ def _format_param_text(param):
         return rf"\text{{{symbol}}}_\text{{{subscript}}}"
     else:
         symbol, *subscripts = param.split("_")
-        return rf"\text{{{symbol}}}_\text{{{r'\_'.join(subscripts)}}}"
+        sanitized_subscripts = r"\_".join(subscripts)
+        return rf"\text{{{symbol}}}_\text{{{sanitized_subscripts}}}"
 
 
 def _format_name_text(name):
-    return rf"\text{{{name.replace('_', r'\_')}}}"
+    return rf"\text{{{name}}}".replace("_", r"\_")
 
 
 def _format_param_math(param):
