@@ -25,7 +25,7 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
     Args:
         routine: The routine to render.
         show_non_root_costs: If ``True`` (default), displays all costs, otherwise only includes costs
-        from the root node.
+            from the root node.
 
     Returns:
         A LaTeX snippet of the routine.
