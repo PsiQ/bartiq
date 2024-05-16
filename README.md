@@ -58,7 +58,7 @@ which returns both symbolic the expression for the T-count as well as result for
 swap.O(log2(100)) + 832
 ```
 
-To go step by step through the process and see how you can use bartiq for your algorithms, please take a look at our tutorials, starting with [basic_usage](basic_usage.md). 
+To go step by step through the process and see how you can use bartiq for your algorithms, please take a look at our tutorials, starting with [basic example](https://psiq.github.io/bartiq/latest/tutorials/01_basic_example/). 
 
 
 ## Documentation
