@@ -1,0 +1,6 @@
+.gitlab
+.github
+.venv
+docs
+requirements
+.gitignore

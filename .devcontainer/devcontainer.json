@@ -1,0 +1,27 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "../"
+  },
+  "customizations": {
+    "forwardedPorts": [],
+    "vscode": {
+      "extensions": [
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-renderers",
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig",
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "yzhang.markdown-all-in-one",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  }
+}
+
