@@ -26,7 +26,7 @@ For development we recommend installing using `poetry`:
 ```bash
 git clone git@github.com:PsiQ/bartiq.git
 cd bartiq
-pip install poetry
+pip install poetry "poetry-dynamic-versioning[plugin]"
 poetry install
 ```
 
