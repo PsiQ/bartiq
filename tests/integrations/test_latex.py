@@ -23,14 +23,15 @@ LATEX_TEST_CASES = [
     (
         Routine(name="root"),
         {},
-        "\n\n",
+        "\n&\\text{Routine \\textrm{(root)}}\n",
     ),
     # Only input parameters
     (
         Routine(name="root", input_params=["x", "y"]),
         {},
         r"""
-&\bf\text{Input parameters:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Input parameters:}}\\
 &x, y
 """,
     ),
@@ -43,7 +44,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Input parameters:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Input parameters:}}\\
 &\text{subroutine}.\!x_{\text{a}}, y_{\text{b}}
 """,
     ),
@@ -64,7 +66,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Linked parameters:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Linked parameters:}}\\
 &x: \text{a}.\!i_{\text{0}}, \text{c}.\!j_{\text{1}}\\
 &y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}
 """,
@@ -80,8 +83,10 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Input ports:}\\
-&\text{0}.\!a, \text{b}.\!b
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Input ports:}}\\
+&\text{0} = a\\
+&\text{b} = b
 """,
     ),
     # Only local parameters
@@ -96,9 +101,10 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Input parameters:}\\
-&a, b\\
-&\bf\text{Local variables:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Input parameters:}}\\
+&a, b\newline
+&\underline{\text{Local variables:}}\\
 &x_{\text{foo}} = a + y\\
 &y_{\text{bar}} = b \cdot c
 """,
@@ -114,7 +120,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Output ports:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Output ports:}}\\
 &\text{0} = 2\\
 &\text{b} = 3
 """,
@@ -130,7 +137,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Resources:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Resources:}}\\
 &x = 0\\
 &y = 1
 """,
@@ -166,20 +174,22 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Input parameters:}\\
-&x, y\\
-&\bf\text{Linked parameters:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Input parameters:}}\\
+&x, y\newline
+&\underline{\text{Linked parameters:}}\\
 &x: \text{a}.\!i_{\text{0}}, \text{c}.\!j_{\text{1}}\\
-&y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}\\
-&\bf\text{Input ports:}\\
-&\text{in_0}.\!a, \text{in_b}.\!b\\
-&\bf\text{Output ports:}\\
-&\text{out_0} = 2\\
-&\text{out_b} = 3\\
-&\bf\text{Local variables:}\\
+&y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}\newline
+&\underline{\text{Input ports:}}\\
+&\text{in\_0} = a\\
+&\text{in\_b} = b\newline
+&\underline{\text{Output ports:}}\\
+&\text{out\_0} = 2\\
+&\text{out\_b} = 3\newline
+&\underline{\text{Local variables:}}\\
 &x_{\text{foo}} = a + \text{a}.\!i_{\text{0}}\\
-&y_{\text{bar}} = b \cdot \text{c}.\!j_{\text{1}}\\
-&\bf\text{Resources:}\\
+&y_{\text{bar}} = b \cdot \text{c}.\!j_{\text{1}}\newline
+&\underline{\text{Resources:}}\\
 &t = 0
 """,
     ),
@@ -198,10 +208,11 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Local variables:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Local variables:}}\\
 &a = 3\\
-&b = 7\\
-&\bf\text{Resources:}\\
+&b = 7\newline
+&\underline{\text{Resources:}}\\
 &c = a + b\\
 &d = a - b
 """,
@@ -225,7 +236,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Resources:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Resources:}}\\
 &x = 1\\
 &\text{a}.\!y = 2
 """,
@@ -248,7 +260,8 @@ LATEX_TEST_CASES = [
         ),
         {"show_non_root_resources": False},
         r"""
-&\bf\text{Resources:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Resources:}}\\
 &x = 1
 """,
     ),
@@ -262,7 +275,8 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\bf\text{Resources:}\\
+&\text{Routine \textrm{(root)}}\newline
+&\underline{\text{Resources:}}\\
 &N_{\text{x}} = \operatorname{sum}{\left(\text{~}.\!N_{\text{x}} \right)}
 """,
     ),
@@ -271,5 +285,5 @@ LATEX_TEST_CASES = [
 
 @pytest.mark.parametrize("routine, kwargs, expected_latex", LATEX_TEST_CASES)
 def test_represent_routine_in_latex(routine, kwargs, expected_latex):
-    expected_string = rf"\begin{{align}}{expected_latex}\end{{align}}"
+    expected_string = rf"$\begin{{align}}{expected_latex}\end{{align}}$"
     assert represent_routine_in_latex(routine, **kwargs) == expected_string

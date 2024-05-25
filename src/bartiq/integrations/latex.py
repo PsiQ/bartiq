@@ -37,7 +37,7 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
     if resource_section := _format_resources(routine, show_non_root_resources):
         lines.append(resource_section)
 
-    return "$\\begin{align}\n" + "\\newline \n".join(lines) + "\n\\end{align}$"
+    return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 
 
 def _format_object_header(routine: Routine) -> str:
