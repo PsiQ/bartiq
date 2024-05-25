@@ -46,7 +46,7 @@ jobs:
         uses: abatilo/actions-poetry@v2
       - name: Run checks
         run: |
-          poetry install
+          poetry install -E jupyter
           pip install pre-commit
           pre-commit install
           pre-commit run -a
