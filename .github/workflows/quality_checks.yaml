@@ -82,7 +82,7 @@ jobs:
         uses: abatilo/actions-poetry@v2
       - name: Install package and deps
         run: |
-          poetry install --with docs
+          poetry install --with docs -E jupyter
       - name: Convert notebooks to scripts and run them
         run: |
           jupyter nbconvert --to python docs/tutorials/*.ipynb --execute
