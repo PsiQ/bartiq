@@ -2,11 +2,15 @@
 
 ## Basic
 
-To install `bartiq` run: 
+To install `bartiq` run:
 
 ```bash
 pip install bartiq
 ```
+
+!!! info
+
+    If you wish to use the package's jupyter integrations, run `pip install "bartiq[jupyter]"` instead.
 
 ## From Source
 
@@ -19,9 +23,13 @@ cd bartiq
 pip install .
 ```
 
+!!! info
+
+    If you wish to use the package's jupyter integrations, run `pip install ".[jupyter]"` instead.
+
 ## Development
 
-For development we recommend installing using `poetry`: 
+For development we recommend installing using `poetry`:
 
 ```bash
 git clone git@github.com:PsiQ/bartiq.git
@@ -30,7 +38,12 @@ pip install poetry
 poetry install
 ```
 
-This will create a virtual environment for you and install all developer and docs dependencies within it.
+!!! info
+
+    If you wish to use the package's jupyter integrations, run `poetry install -E jupyter` instead.
+
+This will create a virtual environment for you and install all developer and
+docs dependencies within it.
 
 To enter this environment run:
 
