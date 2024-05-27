@@ -16,7 +16,7 @@
 import pytest
 
 from bartiq import Routine
-from bartiq.integrations.latex import represent_routine_in_latex
+from bartiq.integrations.latex import routine_to_latex
 
 LATEX_TEST_CASES = [
     # Null case
@@ -286,4 +286,4 @@ LATEX_TEST_CASES = [
 @pytest.mark.parametrize("routine, kwargs, expected_latex", LATEX_TEST_CASES)
 def test_represent_routine_in_latex(routine, kwargs, expected_latex):
     expected_string = rf"$\begin{{align}}{expected_latex}\end{{align}}$"
-    assert represent_routine_in_latex(routine, **kwargs) == expected_string
+    assert routine_to_latex(routine, **kwargs) == expected_string

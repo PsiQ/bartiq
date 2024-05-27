@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utilities for rendering estimators in LaTeX."""
+
 from sympy import latex, symbols
 
 from .._routine import Routine
@@ -19,7 +19,7 @@ from ..compilation._utilities import split_equation
 from ..symbolics.sympy_interpreter import parse_to_sympy
 
 
-def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
+def routine_to_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
