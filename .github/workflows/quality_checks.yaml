@@ -68,3 +68,22 @@ jobs:
           poetry install --with docs
       - name: Build docs
         run: poetry run mkdocs build
+
+
+  test_tutorials_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - uses: actions/checkout@v2
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Install package and deps
+        run: |
+          poetry install --with docs
+      - name: Convert notebooks to scripts and run them
+        run: |
+          jupyter nbconvert --to python docs/tutorials/*.ipynb --execute
+
