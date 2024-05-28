@@ -85,5 +85,5 @@ jobs:
           poetry install -E jupyter
       - name: Convert notebooks to scripts and run them
         run: |
-          jupyter nbconvert --to python docs/tutorials/*.ipynb --execute
+          poetry run jupyter nbconvert --to python docs/tutorials/*.ipynb --execute
 
