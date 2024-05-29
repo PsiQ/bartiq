@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import deque
+
 import ipywidgets as widgets
 from ipytree import Node, Tree
 from traitlets import Unicode
@@ -21,13 +23,14 @@ from bartiq import Routine
 from ..latex import routine_to_latex
 
 DEFAULT_ROOT_NAME = ""
-EVENTS_LOG = []
 
 
 class _RoutineTree(Tree):
     """Tree object representing Routine."""
 
     selected_routine_resources = Unicode(default_value="Please select a routine")
+    # NOTE: the choice of 1000 here is arbitrary,
+    EVENTS_LOG: deque = deque([], maxlen=1000)
 
     def __init__(self, routine: Routine, debug_mode: bool = False):
         super().__init__(multiple_selection=False)
@@ -62,7 +65,7 @@ class _RoutineTree(Tree):
         node.observe(self.handle_click, "selected")
 
     def handle_click(self, event: dict) -> None:
-        EVENTS_LOG.append(event)
+        self.EVENTS_LOG.append(event)
         if event["new"]:
             node = event["owner"]
             routine = self._node_routine_lookup[node]
