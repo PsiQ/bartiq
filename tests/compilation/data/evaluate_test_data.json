@@ -14,6 +14,42 @@
         {
             "name": "",
             "type": null,
+            "input_params": [
+                "x"
+            ],
+            "resources": {
+                "Q": {
+                    "name": "Q",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "log2(x)"
+                    }
+                }
+            }
+        },
+        [
+            "x=120"
+        ],
+        {
+            "name": "",
+            "type": null,
+            "resources": {
+                "Q": {
+                    "name": "Q",
+                    "type": "other",
+                    "value": {
+                        "type": "str",
+                        "value": "6.90689059560852"
+                    }
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
             "ports": {
                 "out_0": {
                     "name": "out_0",
@@ -1800,7 +1836,10 @@
                                 "value": "N"
                             }
                         }
-                    }
+                    },
+                    "input_params": [
+                        "y"
+                    ]
                 }
             },
             "connections": [
@@ -1810,13 +1849,20 @@
                 }
             ],
             "input_params": [
-                "x"
+                "x",
+                "y"
             ],
             "linked_params": {
                 "x": [
                     [
                         "a",
                         "x"
+                    ]
+                ],
+                "y": [
+                    [
+                        "b",
+                        "y"
                     ]
                 ]
             }
@@ -1854,7 +1900,10 @@
                                 "value": "0"
                             }
                         }
-                    }
+                    },
+                    "input_params": [
+                        "y"
+                    ]
                 }
             },
             "connections": [
@@ -1862,7 +1911,18 @@
                     "source": "a.out_0",
                     "target": "b.in_0"
                 }
-            ]
+            ],
+            "input_params": [
+                "y"
+            ],
+            "linked_params": {
+                "y": [
+                    [
+                        "b",
+                        "y"
+                    ]
+                ]
+            }
         }
     ],
     [
@@ -1933,6 +1993,128 @@
                     "name": "T_gates",
                     "type": "additive",
                     "value": "32"
+                }
+            }
+        }
+    ],
+    [
+        {
+            "name": "",
+            "type": null,
+            "input_params": [
+                "x",
+                "y"
+            ],
+            "linked_params": {
+                "x": [
+                    [
+                        "a",
+                        "x"
+                    ]
+                ],
+                "y": [
+                    [
+                        "a",
+                        "y"
+                    ]
+                ]
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "input_params": [
+                        "x",
+                        "y"
+                    ],
+                    "linked_params": {
+                        "x": [
+                            [
+                                "b",
+                                "x"
+                            ]
+                        ],
+                        "y": [
+                            [
+                                "b",
+                                "y"
+                            ]
+                        ]
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "input_params": [
+                                "x",
+                                "y"
+                            ],
+                            "resources": {
+                                "Q": {
+                                    "name": "Q",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "x + y"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        [
+            "x=10"
+        ],
+        {
+            "name": "",
+            "type": null,
+            "input_params": [
+                "y"
+            ],
+            "linked_params": {
+                "y": [
+                    [
+                        "a",
+                        "y"
+                    ]
+                ]
+            },
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": null,
+                    "input_params": [
+                        "y"
+                    ],
+                    "linked_params": {
+                        "y": [
+                            [
+                                "b",
+                                "y"
+                            ]
+                        ]
+                    },
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": null,
+                            "input_params": [
+                                "y"
+                            ],
+                            "resources": {
+                                "Q": {
+                                    "name": "Q",
+                                    "type": "other",
+                                    "value": {
+                                        "type": "str",
+                                        "value": "y + 10"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
