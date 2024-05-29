@@ -370,9 +370,9 @@ class Routine(BaseModel):
         return self.relative_path_from(None).removeprefix(".")
 
     def _repr_markdown_(self):
-        from .integrations.latex import represent_routine_in_latex
+        from .integrations.latex import routine_to_latex
 
-        return represent_routine_in_latex(self)
+        return routine_to_latex(self)
 
 
 class Resource(BaseModel):

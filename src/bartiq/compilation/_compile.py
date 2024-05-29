@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
+"""Bartiq compilation module.
 Glossary:
 
 - Routine: a topological definition of a quantum circuit. In this definition, each quantum subroutine is represented

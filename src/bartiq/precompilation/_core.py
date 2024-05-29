@@ -27,7 +27,9 @@ from .stages import (
 PrecompilationStage = Callable[[Routine, SymbolicBackend], Routine]
 
 
-def precompile(routine: Routine, backend, precompilation_stages: Optional[list[PrecompilationStage]] = None) -> Routine:
+def precompile(
+    routine: Routine, backend: SymbolicBackend, precompilation_stages: Optional[list[PrecompilationStage]] = None
+) -> Routine:
     """A precompilation stage that transforms a routine prior to estimate compilation.
 
     If no precompilation stages are specified, the following precompilation stages are performed by default (in order):
@@ -41,6 +43,7 @@ def precompile(routine: Routine, backend, precompilation_stages: Optional[list[P
 
     Args:
         routine: A uncompiled routine.
+        backend: Backend used to perform expression manipulation.
         precompilation_stages: A list of functions that modify routine and all it's sub-routines in place.
     """
     # Define the transforms to apply to each routine

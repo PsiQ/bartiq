@@ -147,10 +147,13 @@ def unroll_wildcarded_costs(routine: Routine, backend: SymbolicBackend) -> None:
 
 
 class AddPassthroughPlaceholder:
+    """Adds placeholder routines whenever passthrough is detected.
+
+    Contrary to other precompilation methods, this one is stateful (and therefore implemented as a class),
+    to ensure unique name and register size for each passhtrough.
+    """
+
     def __init__(self) -> None:
-        """Contrary to other precompilation methods, this one is stateful (and therefore implemented as a class),
-        to ensure unique name and register size for each passhtrough.
-        """
         self.index = 0
 
     def add_passthrough_placeholders(self, routine: Routine, _backend: SymbolicBackend) -> None:

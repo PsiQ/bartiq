@@ -8,11 +8,11 @@ Bartiq is a library that allows to analyze a quantum routines and calculate symb
 
 To install `bartiq` run: `pip install bartiq`.
 
-In order to install it from source clone the repo by running `git clone git@github.com:PsiQ/qref.git` and then run `pip install .` from the main directory.
+In order to install it from source clone the repo by running `git clone https://github.com/PsiQ/bartiq.git` and then run `pip install .` from the main directory.
 
 ```bash
-# Clone bartiq repo (you can use HTTP link as well)
-git clone git@github.com:PsiQ/bartiq.git
+# Clone bartiq repo (you can use SSH link as well)
+git clone https://github.com/PsiQ/bartiq.git
 cd bartiq
 pip install .
 ```
