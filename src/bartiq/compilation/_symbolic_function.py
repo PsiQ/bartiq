@@ -693,6 +693,10 @@ def update_routine_with_symbolic_function(routine: Routine, function: SymbolicFu
     input_params, input_register_sizes_from_inputs = _parse_function_inputs(function)
     costs, registers_sizes_from_outputs = _parse_function_outputs(function, input_register_sizes_from_inputs)
     routine.input_params = sorted(input_params)
+    linked_params_to_remove = set(routine.linked_params.keys()) - set(input_params)
+    for param in linked_params_to_remove:
+        del routine.linked_params[param]
+
     for port_name, port_size in input_register_sizes_from_inputs.items():
         routine.input_ports[port_name].size = str(port_size)
     for port_name, port_size in registers_sizes_from_outputs.items():
@@ -769,6 +773,10 @@ def _parse_function_outputs(function, input_register_sizes_from_inputs):
                     f"got {type(output_variable)}"
                 )
         else:
-            costs.append(f"{output_symbol} = {output_variable.evaluated_expression}")
+            cost_value = (
+                output_variable.evaluated_expression if output_variable.value is None else output_variable.value
+            )
+
+            costs.append(f"{output_symbol} = {cost_value}")
 
     return costs, register_sizes
