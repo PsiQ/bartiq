@@ -19,9 +19,9 @@ from bartiq.precompilation import precompile
 from bartiq.precompilation.stages import (
     AddPassthroughPlaceholder,
     BartiqPrecompilationError,
-    add_default_additive_costs,
+    add_default_additive_resources,
     add_default_properties,
-    unroll_wildcarded_costs,
+    unroll_wildcarded_resources,
 )
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
@@ -306,7 +306,7 @@ PRECOMP_TEST_CASES = [
             ],
         },
     ),
-    # Checks if default additive costs are being added correctly
+    # Checks if default additive resources are being added correctly
     (
         {
             "name": "",
@@ -358,7 +358,7 @@ PRECOMP_TEST_CASES = [
                 }
             },
         },
-        [add_default_additive_costs],
+        [add_default_additive_resources],
         {
             "name": "",
             "type": None,
@@ -424,7 +424,7 @@ PRECOMP_TEST_CASES = [
 
 
 @pytest.mark.parametrize("input_dict, precompilation_stages, expected_dict", PRECOMP_TEST_CASES)
-def test_precompile_adds_additive_costs(input_dict, precompilation_stages, expected_dict, backend):
+def test_precompile_adds_additive_resources(input_dict, precompilation_stages, expected_dict, backend):
     input_routine = Routine(**input_dict)
     precompiled_routine = precompile(input_routine, precompilation_stages=precompilation_stages, backend=backend)
     assert precompiled_routine.model_dump(exclude_unset=True) == expected_dict
@@ -728,11 +728,13 @@ WILDCARD_TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("input_dict, expected_cost", WILDCARD_TEST_CASES)
-def test_precompile_handles_wildcards(input_dict, expected_cost, backend):
+@pytest.mark.parametrize("input_dict, expected_resource", WILDCARD_TEST_CASES)
+def test_precompile_handles_wildcards(input_dict, expected_resource, backend):
     input_routine = Routine(**input_dict)
-    precompiled_routine = precompile(input_routine, precompilation_stages=[unroll_wildcarded_costs], backend=backend)
-    assert precompiled_routine.resources[expected_cost[0]].value == expected_cost[1]
+    precompiled_routine = precompile(
+        input_routine, precompilation_stages=[unroll_wildcarded_resources], backend=backend
+    )
+    assert precompiled_routine.resources[expected_resource[0]].value == expected_resource[1]
 
 
 def test_precompile_handles_passthroughs(backend):
@@ -863,10 +865,10 @@ KNOWN_BUGGY_WILDCARD_CASES = [
 ]
 
 
-@pytest.mark.parametrize("input_dict, expected_cost, failure_message", KNOWN_BUGGY_WILDCARD_CASES)
-def test_precompile_with_wildcard_fails(input_dict, expected_cost, failure_message):
+@pytest.mark.parametrize("input_dict, expected_resource, failure_message", KNOWN_BUGGY_WILDCARD_CASES)
+def test_precompile_with_wildcard_fails(input_dict, expected_resource, failure_message):
     pytest.xfail(failure_message)
     input_routine = Routine(**input_dict)
 
-    precompiled_routine = precompile(input_routine, precompilation_stages=[unroll_wildcarded_costs])
-    assert precompiled_routine.resources["total_cost"].value == expected_cost
+    precompiled_routine = precompile(input_routine, precompilation_stages=[unroll_wildcarded_resources])
+    assert precompiled_routine.resources["total_cost"].value == expected_resource
