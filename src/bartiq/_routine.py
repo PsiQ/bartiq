@@ -442,7 +442,7 @@ class Connection(BaseModel):
     parent: Optional[Routine] = Field(exclude=True, default=None)
 
     def __repr__(self):
-        return f'{self.parent.name}.#{self.source.name} -> {self.parent.name}.{self.target.name}'
+        return f'{self.parent.name}.#{self.source.name} -> {self.parent.name}.#{self.target.name}'
 
     @field_serializer("source", "target")
     def _serialize_port(self, port):
