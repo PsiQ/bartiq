@@ -1,0 +1,51 @@
+name: Build and Publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write # IMPORTANT: this permission is mandatory for trusted publishing
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install pypa/build
+        run: python -m pip install build --user
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.8.3
+      - name: Install the packages required
+        run: poetry install --with docs
+      - name: Build the package
+        run: poetry build
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://upload.pypi.org/legacy/
+      - name: Install mike
+        run: poetry run mkdocs build
+      # https://github.com/jimporter/mike/blob/master/README.md#deploying-via-ci
+      - name: Configure git and fetch origin
+        run: |
+          git config user.name PsiQ-bartiq
+          git config user.email bartiq-ci-bot@psiquantum.com
+          git fetch origin gh-pages --depth=1
+      - name: Build docs
+        run: poetry run mike deploy --update-aliases $RELEASE_VERSION latest 
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+      - name: Push docs
+        run: git push origin gh-pages:gh-pages
+
+
