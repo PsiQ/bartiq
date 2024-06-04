@@ -1,0 +1,3 @@
+# config for release-please bot
+primaryBranch: main
+handleGHRelease: true
