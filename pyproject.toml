@@ -12,7 +12,7 @@ python = "^3.9"
 pydantic = "^2.7"
 sympy = "^1.12"
 pyparsing ="~3.1.2"
-qref = "0.1.0"
+qref = "0.3.0"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.
@@ -63,5 +63,5 @@ target-version = ['py39']
 
 
 [[tool.mypy.overrides]]
-module = ["qref.*", "ipywidgets.*", "ipytree.*"]
+module = ["ipywidgets.*", "ipytree.*"]
 ignore_missing_imports = true
