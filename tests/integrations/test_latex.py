@@ -264,7 +264,7 @@ LATEX_TEST_CASES = [
 &x = 1
 """,
     ),
-    # Sum over all subcosts
+    # Sum over all subresources
     (
         Routine(
             name="root",

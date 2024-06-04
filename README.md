@@ -2,7 +2,7 @@
 
 ## What is bartiq
 
-Bartiq is a library that allows to analyze a quantum routines and calculate symbolic expressions for quantum resource estimates (QRE).
+Bartiq is a library that allows one to analyze quantum algorithms and calculate symbolic expressions for quantum resource estimates (QRE).
 
 ## Installation
 
@@ -19,7 +19,7 @@ pip install .
 
 ## Quick start
 
-In bartiq we can take a quantum algorithm expressed as a collection of subroutines, each with it's costs expressed as symbolic expressions, and compile it to get cost expression for the whole algorithm.
+In bartiq we can take a quantum algorithm expressed as a collection of subroutines, each with its costs expressed as symbolic expressions, and compile it to get cost expression for the whole algorithm.
 
 As an example we can use Alias Sampling – an algorithm proposed by [Babbush et al.](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). Here's how it's depicted in the paper:
 

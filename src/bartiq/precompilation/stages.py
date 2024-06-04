@@ -17,7 +17,7 @@ from copy import copy
 from typing import Any, Callable, Iterable, Optional
 
 from .. import Connection, Resource, ResourceType, Routine
-from ..compilation._symbolic_function import infer_subcosts
+from ..compilation._symbolic_function import infer_subresources
 from ..errors import BartiqPrecompilationError
 from ..symbolics.backend import SymbolicBackend
 
@@ -72,14 +72,14 @@ def _add_register_sizes_to_merge(routine):
     output_port.size = new_size
 
 
-def add_default_additive_costs(routine: Routine, _backend: SymbolicBackend) -> None:
+def add_default_additive_resources(routine: Routine, _backend: SymbolicBackend) -> None:
     """Adds an additive resources to routine if any of the children contains them.
 
     If given routine:
     - has children,
     - children have defined some additive resources
     - is missing some these resources,
-    it adds the resource which is sum of the costs in subroutines.
+    it adds the resource which is sum of the resources in subroutines.
     """
     if routine.is_leaf:
         return
@@ -102,48 +102,48 @@ def add_default_additive_costs(routine: Routine, _backend: SymbolicBackend) -> N
             )
 
 
-def unroll_wildcarded_costs(routine: Routine, backend: SymbolicBackend) -> None:
+def unroll_wildcarded_resources(routine: Routine, backend: SymbolicBackend) -> None:
     """Unrolls wildcarded expressions in the resources using information from its children.
     Right now it supports only non-nested expressions.
     """
-    subcosts = infer_subcosts(routine, backend)
-    wildcard_subcosts = {}
+    subresources = infer_subresources(routine, backend)
+    wildcard_subresources = {}
 
-    for subcost in subcosts:
-        if "~" in subcost:
-            subcost_parts = subcost.split(".")
-            if len(subcost_parts) > 2:
+    for subresource in subresources:
+        if "~" in subresource:
+            subresource_parts = subresource.split(".")
+            if len(subresource_parts) > 2:
                 raise BartiqPrecompilationError("Wildcard parsing supported only for expressions without nesting.")
-            pattern = subcost_parts[0].replace("~", ".*")
-            cost_type = subcost_parts[1]
+            pattern = subresource_parts[0].replace("~", ".*")
+            resource_type = subresource_parts[1]
 
-            if "~" in cost_type:
+            if "~" in resource_type:
                 raise BartiqPrecompilationError("Cost cannot contain wildcard symbol.")
             matching_strings = []
             for child_name in routine.children.keys():
                 if re.search(pattern, child_name):
                     child_resources = routine.children[child_name].resources
                     for resource in child_resources.values():
-                        if resource.name == cost_type:
+                        if resource.name == resource_type:
                             matching_strings.append(child_name)
                             break
-            wildcard_subcosts[subcost] = [string + "." + cost_type for string in matching_strings]
+            wildcard_subresources[subresource] = [string + "." + resource_type for string in matching_strings]
 
-    new_costs = {}
+    new_resources = {}
     for resource in routine.resources.values():
         resource_expr = resource.value
         if isinstance(resource_expr, str) and "~" in resource_expr:
             new_cost_expression = resource_expr
-            for pattern_to_replace in wildcard_subcosts:
+            for pattern_to_replace in wildcard_subresources:
                 if pattern_to_replace in resource_expr:
-                    substitution = ",".join(wildcard_subcosts[pattern_to_replace])
+                    substitution = ",".join(wildcard_subresources[pattern_to_replace])
                     new_cost_expression = new_cost_expression.replace(pattern_to_replace, substitution)
             if resource_expr != new_cost_expression:
-                new_costs[resource.name] = new_cost_expression
+                new_resources[resource.name] = new_cost_expression
 
     for resource_name in routine.resources:
-        if resource_name in new_costs:
-            routine.resources[resource_name].value = new_costs[resource_name]
+        if resource_name in new_resources:
+            routine.resources[resource_name].value = new_resources[resource_name]
 
 
 class AddPassthroughPlaceholder:
