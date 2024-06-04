@@ -277,7 +277,7 @@ COMPILE_ERRORS_TEST_CASES = [
         "Can only pull in size parameters from the root routine, but source is a non-root non-leaf routine; "
         "attempted to pull a.#in_0 in to a.b.#in_0.",
     ),
-    # Attempt to assign estimators with inconsistent constant register sizes
+    # Attempt to assign inconsistent constant register sizes
     (
         Routine(
             name="root",
@@ -335,7 +335,7 @@ COMPILE_ERRORS_TEST_CASES = [
         "Input registers cannot be constant-sized; "
         "attempted to merge register size a.#out_foo = a.M + a.N with b.#in_bar.1",
     ),
-    # Attempt to connect a two different sizes to an estimator which has both inputs of the same size
+    # Attempt to connect two different sizes to routine which has both inputs of the same size
     (
         Routine(
             name="root",

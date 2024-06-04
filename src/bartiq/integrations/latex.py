@@ -48,13 +48,13 @@ def _format_object_header(routine: Routine) -> str:
 
 
 def _format_input_params(input_params: list[str]):
-    """Formats estimator input parameters to LaTeX."""
+    """Formats input parameters to LaTeX."""
     input_params = [_format_param(input_param) for input_param in input_params]
     return _format_section_one_line("Input parameters", input_params)
 
 
 def _format_linked_params(linked_params):
-    """Formats estimator inherited parameters to LaTeX."""
+    """Formats linked parameters to LaTeX."""
     lines = []
     for param, children_links in linked_params.items():
         key = _format_param_math(param)
@@ -81,7 +81,7 @@ def _format_port_sizes(ports, label):
 
 
 def _format_local_variables(local_variables):
-    """Formats estimator local parameters to LaTeX."""
+    """Formats routine's local variables to LaTeX."""
     lines = []
     for variable in local_variables:
         assignment, expression = split_equation(variable)
@@ -180,7 +180,7 @@ def _format_resources(routine: Routine, show_non_root_resources: bool):
 
 
 def _get_resources_lines(resources, path=None):
-    """Formats estimator costs to LaTeX."""
+    """Formats resources to LaTeX."""
     lines = []
     for resource in resources.values():
         if path is None:
