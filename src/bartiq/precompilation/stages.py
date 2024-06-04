@@ -17,7 +17,7 @@ from copy import copy
 from typing import Any, Callable, Iterable, Optional
 
 from .. import Connection, Resource, ResourceType, Routine
-from ..compilation._symbolic_function import infer_subcosts
+from ..compilation._symbolic_function import infer_subresources
 from ..errors import BartiqPrecompilationError
 from ..symbolics.backend import SymbolicBackend
 
@@ -106,16 +106,16 @@ def unroll_wildcarded_resources(routine: Routine, backend: SymbolicBackend) -> N
     """Unrolls wildcarded expressions in the resources using information from its children.
     Right now it supports only non-nested expressions.
     """
-    subcosts = infer_subcosts(routine, backend)
-    wildcard_subcosts = {}
+    subresources = infer_subresources(routine, backend)
+    wildcard_subresources = {}
 
-    for subcost in subcosts:
-        if "~" in subcost:
-            subcost_parts = subcost.split(".")
-            if len(subcost_parts) > 2:
+    for subresource in subresources:
+        if "~" in subresource:
+            subresource_parts = subresource.split(".")
+            if len(subresource_parts) > 2:
                 raise BartiqPrecompilationError("Wildcard parsing supported only for expressions without nesting.")
-            pattern = subcost_parts[0].replace("~", ".*")
-            resource_type = subcost_parts[1]
+            pattern = subresource_parts[0].replace("~", ".*")
+            resource_type = subresource_parts[1]
 
             if "~" in resource_type:
                 raise BartiqPrecompilationError("Cost cannot contain wildcard symbol.")
@@ -127,16 +127,16 @@ def unroll_wildcarded_resources(routine: Routine, backend: SymbolicBackend) -> N
                         if resource.name == resource_type:
                             matching_strings.append(child_name)
                             break
-            wildcard_subcosts[subcost] = [string + "." + resource_type for string in matching_strings]
+            wildcard_subresources[subresource] = [string + "." + resource_type for string in matching_strings]
 
     new_resources = {}
     for resource in routine.resources.values():
         resource_expr = resource.value
         if isinstance(resource_expr, str) and "~" in resource_expr:
             new_cost_expression = resource_expr
-            for pattern_to_replace in wildcard_subcosts:
+            for pattern_to_replace in wildcard_subresources:
                 if pattern_to_replace in resource_expr:
-                    substitution = ",".join(wildcard_subcosts[pattern_to_replace])
+                    substitution = ",".join(wildcard_subresources[pattern_to_replace])
                     new_cost_expression = new_cost_expression.replace(pattern_to_replace, substitution)
             if resource_expr != new_cost_expression:
                 new_resources[resource.name] = new_cost_expression

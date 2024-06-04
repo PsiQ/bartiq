@@ -21,7 +21,7 @@ from pydantic import Field
 from .. import Port, Resource, ResourceType, Routine
 from ..errors import BartiqCompilationError
 from ..symbolics.backend import SymbolicBackend, T_expr
-from ..symbolics.utilities import infer_subcosts
+from ..symbolics.utilities import infer_subresources
 from ..symbolics.variables import DependentVariable, IndependentVariable
 from ._utilities import is_constant_int, is_single_parameter, split_equation
 from .types import FunctionsMap, Number
@@ -522,8 +522,8 @@ def to_symbolic_function(routine: Routine, backend: SymbolicBackend[T_expr]) -> 
         routine: The routine to be mapped to a symbolic function.
         backend: A backend used for manipulating symbolic expressions.
     """
-    subcosts = infer_subcosts(routine, backend)
-    inputs = [IndependentVariable.from_str(input_symbol) for input_symbol in list(routine.input_params) + subcosts]
+    subresources = infer_subresources(routine, backend)
+    inputs = [IndependentVariable.from_str(input_symbol) for input_symbol in list(routine.input_params) + subresources]
 
     # NOTE: since multiple ports can have the same input size, this map defines a substitution for size parameters to
     # the variable corresponding to the first register with said size. Given that such variables are suffixed by the

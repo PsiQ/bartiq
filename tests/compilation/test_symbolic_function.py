@@ -130,17 +130,17 @@ TO_SYMBOLIC_FUNCTION_TEST_CASES = [
         ),
         (["#in_0.N", "#in_1.N", "a", "b"], ["#out_0 = 2*#in_0.N"]),
     ),
-    # Only inputs are subcosts
+    # Only inputs are subresources
     (
         _make_routine(resources=_dummy_resources(["x = a.N + a.b.N"])),
         (["a.N", "a.b.N"], ["x = a.N + a.b.N"]),
     ),
-    # Input params and subcosts
+    # Input params and subresources
     (
         _make_routine(input_params=["N"], resources=_dummy_resources(["x = N + a.N + a.b.N"])),
         (["N", "a.N", "a.b.N"], ["x = N + a.N + a.b.N"]),
     ),
-    # Input params, subcosts, and local parameters
+    # Input params, subresources, and local parameters
     (
         _make_routine(
             input_params=["N"],
