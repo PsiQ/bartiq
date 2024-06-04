@@ -48,8 +48,9 @@ jobs:
         uses: abatilo/actions-poetry@v2
       - name: Run quality checks
         run: |
-          poetry install
+          poetry install -E jupyter
           pip install pre-commit 
+          pre-commit install
           pre-commit install --hook-type commit-msg
           pre-commit run -a
       - name: Run mypy
@@ -61,7 +62,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
+          python-version: "3.9"
       - uses: actions/checkout@v2
       - name: Setup poetry
         uses: abatilo/actions-poetry@v2
@@ -70,3 +71,20 @@ jobs:
           poetry install --with docs
       - name: Build docs
         run: poetry run mkdocs build
+
+  test_tutorials_run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.9"
+      - uses: actions/checkout@v2
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2
+      - name: Install package and deps
+        run: |
+          poetry install -E jupyter
+      - name: Convert notebooks to scripts and run them
+        run: |
+          poetry run jupyter nbconvert --to python docs/tutorials/*.ipynb --execute
