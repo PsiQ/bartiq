@@ -413,7 +413,8 @@ class Port(BaseModel):
     meta: Optional[dict[str, Any]] = Field(default_factory=dict)
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.parent.name}.#{self.name}, ({self.direction}) size="{self.size}")'
+        parent_name = "none" if self.parent is None else self.parent.name
+        return f'{self.__class__.__name__}({parent_name}.#{self.name}, size="{self.size}", {self.direction})'
 
     @property
     def absolute_path(self) -> str:
@@ -442,7 +443,8 @@ class Connection(BaseModel):
     parent: Optional[Routine] = Field(exclude=True, default=None)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.parent.name}.#{self.source.name} -> {self.parent.name}.#{self.target.name})"
+        parent_name = "none" if self.parent is None else self.parent.name
+        return f"{self.__class__.__name__}({parent_name}.#{self.source.name} -> {parent_name}.#{self.target.name})"
 
     @field_serializer("source", "target")
     def _serialize_port(self, port):
