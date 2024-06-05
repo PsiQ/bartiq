@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import re
 from pathlib import Path
 
 import pytest
+import yaml
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
@@ -31,8 +31,8 @@ BACKEND = sympy_backend
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data.json") as f:
-        return [(Routine(**original), Routine(**expected)) for original, expected in json.load(f)]
+    with open(Path(__file__).parent / "data/compile_test_data.yaml") as f:
+        return [(Routine(**original), Routine(**expected)) for original, expected in yaml.safe_load(f)]
 
 
 COMPILE_TEST_DATA = load_compile_test_data()
