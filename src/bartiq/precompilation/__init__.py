@@ -15,10 +15,10 @@
 from ._core import default_precompilation_stages, precompile
 from .stages import (
     AddPassthroughPlaceholder,
-    add_default_additive_costs,
+    add_default_additive_resources,
     add_default_properties,
     remove_non_root_container_input_register_sizes,
-    unroll_wildcarded_costs,
+    unroll_wildcarded_resources,
 )
 
 __all__ = [
@@ -26,7 +26,7 @@ __all__ = [
     "default_precompilation_stages",
     "remove_non_root_container_input_register_sizes",
     "add_default_properties",
-    "add_default_additive_costs",
-    "unroll_wildcarded_costs",
+    "add_default_additive_resources",
+    "unroll_wildcarded_resources",
     "AddPassthroughPlaceholder",
 ]

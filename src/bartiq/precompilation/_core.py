@@ -18,13 +18,13 @@ from .. import Routine
 from ..symbolics.backend import SymbolicBackend
 from .stages import (
     AddPassthroughPlaceholder,
-    add_default_additive_costs,
+    add_default_additive_resources,
     add_default_properties,
     remove_non_root_container_input_register_sizes,
-    unroll_wildcarded_costs,
+    unroll_wildcarded_resources,
 )
 
-PrecompilationStage = Callable[[Routine, SymbolicBackend], Routine]
+PrecompilationStage = Callable[[Routine, SymbolicBackend], None]
 
 
 def precompile(
@@ -33,9 +33,9 @@ def precompile(
     """A precompilation stage that transforms a routine prior to estimate compilation.
 
     If no precompilation stages are specified, the following precompilation stages are performed by default (in order):
-    1. Adds default costs and register sizes for the following routine types:
+    1. Adds default resources and register sizes for the following routine types:
       - `merge`
-    2. Adds additive costs to routines if there's an additive cost in any of the children.
+    2. Adds additive resources to routines if there's an additive resources in any of the children.
     3. Adds "fake routines" when passthrough is detected.
     4. Removes input register sizes from non-root routines as they will be derived from the connected output ports
         in the compilation process.
@@ -61,8 +61,8 @@ def default_precompilation_stages():
     """Default suite of precompilation stages."""
     return [
         add_default_properties,
-        add_default_additive_costs,
+        add_default_additive_resources,
         AddPassthroughPlaceholder().add_passthrough_placeholders,
         remove_non_root_container_input_register_sizes,
-        unroll_wildcarded_costs,
+        unroll_wildcarded_resources,
     ]
