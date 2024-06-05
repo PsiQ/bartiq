@@ -1,5 +1,7 @@
+# Null case
 - - {name: root, type: null}
   - {name: root, type: null}
+# One routine, only resource
 - - name: root
     type: null
     resources:
@@ -16,6 +18,7 @@
         type: other
         value: {type: str, value: x + y}
     input_params: [x, y]
+# Children with independent resources, unlinked params,  no ports
 - - name: root
     type: null
     children:
@@ -78,6 +81,7 @@
         type: other
         value: {type: str, value: x + y}
     input_params: [a.x, a.y, b.x, b.y, x, y]
+# Children and grandchildren, resources dependent on children, no ports, no input params
 - - name: root
     type: null
     children:
@@ -206,6 +210,7 @@
         value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y +
             b.b.x + b.b.y}
     input_params: [a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y]
+# Children and grandchildren, resources dependent on children, no ports, with input params and params linking
 - - name: root
     type: null
     children:
@@ -352,6 +357,7 @@
         value: {type: str, value: x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba +
             y_bb}
     input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
+# Children and grandchildren, resources dependent on children, with ports, with input params and params linking
 - - name: ''
     type: null
     ports:
@@ -633,6 +639,7 @@
         value: {type: str, value: 4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab +
             y_ba + y_bb}
     input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
+# Children and grandchildren, resources dependent on children, no ports, local variables in leaves
 - - name: ''
     type: null
     children:
@@ -765,6 +772,8 @@
         value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y +
             b.b.x + b.b.y}
     input_params: [a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y]
+# Tests whether children are compiled in topological order, rather than order of definition.
+# It's legacy test, it should not matter anymore, as children are defined as a dictionary, so the order shouldn't matter?
 - - name: ''
     type: null
     children:
@@ -807,6 +816,7 @@
             size: {type: str, value: '1'}
     connections:
     - {source: a.out_0, target: b.in_0}
+# Root only, with resource depending on port sizes and local variables.
 - - name: root
     type: null
     ports:
@@ -840,6 +850,7 @@
         name: z
         type: other
         value: {type: str, value: 6*N}
+# Constant input register sizes
 - - name: root
     type: null
     ports:
@@ -950,6 +961,7 @@
         name: z
         type: other
         value: {type: str, value: '3'}
+# Constant input register size with children inputs being described by the same variable
 - - name: root
     type: null
     ports:
@@ -1060,6 +1072,7 @@
         name: z
         type: other
         value: {type: str, value: '4'}
+# Constant register size comes from non-root
 - - name: ''
     type: null
     ports:
@@ -1119,6 +1132,7 @@
     connections:
     - {source: a.out_0, target: b.in_0}
     - {source: b.out_0, target: out_0}
+# Parent's and child's ports are connected and the port sizes are defined in both cases (not None)
 - - name: ''
     type: null
     ports:
@@ -1229,6 +1243,7 @@
         name: N
         type: other
         value: {type: str, value: X}
+# Pass down params to deep descendant and then costs back up
 - - name: root
     type: null
     children:
@@ -1314,6 +1329,7 @@
         type: other
         value: {type: str, value: 120*x}
     input_params: [x]
+# Child's port with symbolic size ge resolved through multiple levels of hierarchy.
 - - name: root
     type: null
     ports:

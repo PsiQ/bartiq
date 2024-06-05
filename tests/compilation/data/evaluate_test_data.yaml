@@ -1,6 +1,8 @@
+# Null case
 - - {name: '', type: null}
   - []
   - {name: '', type: null}
+# Resource defined as a function of a single input param
 - - name: ''
     type: null
     input_params: [x]
@@ -17,19 +19,18 @@
         name: Q
         type: other
         value: {type: str, value: '6.90689059560852'}
+# Port size is a function of input params, value of one param is provided for evaluation
 - - name: ''
     type: null
     ports:
-      out_0:
-        name: out_0
-        direction: input
-        size: {type: str, value: '1'}
       in_0:
         name: in_0
         direction: output
         size: {type: str, value: x + y}
-    connections:
-    - {source: out_0, target: in_0}
+      out_0:
+        name: out_0
+        direction: input
+        size: {type: str, value: '1'}
     resources:
       Q:
         name: Q
@@ -48,14 +49,13 @@
         name: in_0
         direction: output
         size: {type: str, value: y + 42}
-    connections:
-    - {source: out_0, target: in_0}
     resources:
       Q:
         name: Q
         type: other
         value: {type: str, value: 42*y}
     input_params: [y]
+# Simple root-only case (both input param and register size is set, but other params remain)
 - - name: ''
     type: null
     ports:
@@ -99,6 +99,7 @@
         type: other
         value: {type: str, value: 6*M*y}
     input_params: [y]
+# Simple root-only case (both input param and register size is set and share the name, but other params remain)
 - - name: ''
     type: null
     ports:
@@ -142,6 +143,7 @@
         type: other
         value: {type: str, value: 9*M*y}
     input_params: [y]
+# Circuit with single child, register sizes being propagated.
 - - name: ''
     type: null
     ports:
@@ -239,6 +241,7 @@
         type: other
         value: {type: str, value: 24*M*y}
     input_params: [y]
+# Circuit with child and grandchild, registers being propagated
 - - name: ''
     type: null
     ports:
@@ -418,6 +421,7 @@
         type: other
         value: {type: str, value: 96*M*y}
     input_params: [y]
+# Chain of components (root -> a -> b -> c -> root), register sizes are propagated
 - - name: ''
     type: null
     ports:
@@ -571,6 +575,9 @@
         type: other
         value: {type: str, value: 24*y}
     input_params: [y]
+# Case with no root inputs or outputs
+# NOTE: because both a_0 and a_1 depend on x, this tests the case when a component requires multiple input register
+# size updates for a single initial parameter assignment (i.e. x).
 - - name: ''
     type: null
     children:
@@ -653,6 +660,7 @@
     connections:
     - {source: a_0.out_0, target: b.in_0}
     - {source: a_1.out_0, target: b.in_1}
+# Check that expressions are simplified (for input param assignment)
 - - name: ''
     type: null
     resources:
@@ -669,6 +677,7 @@
         name: Q
         type: other
         value: {type: str, value: '2'}
+# Check that expressions are simplified (for input register size assignment)
 - - name: ''
     type: null
     ports:
@@ -694,6 +703,11 @@
         name: Q
         type: other
         value: {type: str, value: '2'}
+# Check all upstream evaluations have happened before a given downstream leaf is reached
+# NOTE: the reason for this topology is because of the perculiarities of the legacy implementation of the walk function.
+# In this case, the walk order was: a.b, x, a.c, a, then the root. Hence, x was visited before all its upstream
+# components have been (i.e. a), which would cause an error.
+# This is a legacy test case.
 - - name: ''
     type: null
     ports:
@@ -835,6 +849,7 @@
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
     - {source: a.out_0, target: x.in_0}
+# Check that zero-sized registers are allowed
 - - name: ''
     type: null
     children:
@@ -891,6 +906,7 @@
     linked_params:
       y:
       - [b, y]
+# Make sure evaluation doesn't fail in presence of constant size register
 - - name: ''
     type: null
     ports:
@@ -907,18 +923,20 @@
         name: in_0
         direction: input
         size: {type: str, value: '1'}
-- - name: usp
+# Check evaluation works when local_variables contains non-trivial expression.
+- - name: root
     type: null
     input_params: [L]
     local_variables: ['N=L/multiplicity(2,L)']
     resources:
       T_gates: {name: T_gates, type: additive, value: 8*ceiling(log_2(N))}
   - [L = 10]
-  - name: usp
+  - name: root
     type: null
     local_variables: ['N=L/multiplicity(2,L)']
     resources:
       T_gates: {name: T_gates, type: additive, value: '32'}
+# Linked params through multiple generations
 - - name: ''
     type: null
     input_params: [x, y]
