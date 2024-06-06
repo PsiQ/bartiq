@@ -414,7 +414,8 @@ class Port(BaseModel):
 
     def __repr__(self):
         parent_name = "none" if self.parent is None else self.parent.name
-        return f'{self.__class__.__name__}({parent_name}.#{self.name}, size="{self.size}", {self.direction})'
+        size_value = "None" if self.size is None else f'"{self.size}"'
+        return f"{self.__class__.__name__}({parent_name}.#{self.name}, size={size_value}, {self.direction})"
 
     @property
     def absolute_path(self) -> str:
