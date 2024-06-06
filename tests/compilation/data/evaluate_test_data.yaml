@@ -704,7 +704,7 @@
         type: other
         value: {type: str, value: '2'}
 # Check all upstream evaluations have happened before a given downstream leaf is reached
-# NOTE: the reason for this topology is because of the perculiarities of the legacy implementation of the walk function.
+# NOTE: the reason for this topology is because of the peculiarities of the legacy implementation of the walk function.
 # In this case, the walk order was: a.b, x, a.c, a, then the root. Hence, x was visited before all its upstream
 # components have been (i.e. a), which would cause an error.
 # This is a legacy test case.

@@ -772,8 +772,10 @@
         value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y +
             b.b.x + b.b.y}
     input_params: [a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y]
-# Tests whether children are compiled in topological order, rather than order of definition.
-# It's legacy test, it should not matter anymore, as children are defined as a dictionary, so the order shouldn't matter?
+  # Test whether port sizes propagate between two topologically connected children.
+  # This is a legacy test case which used to verify if children are compiled in
+  # topological rather than definition order. This is of little relevance now,
+  # as children are stored as dictionaries rather than list.
 - - name: ''
     type: null
     children:
