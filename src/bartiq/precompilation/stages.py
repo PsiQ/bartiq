@@ -239,7 +239,7 @@ def _propagate_linked_params(routine: Routine) -> None:
                 child_path, further_path = parts
                 child = routine.children[child_path]
                 new_input_param = f"{further_path}.{target_param}"
-                child.input_params.append(new_input_param)
+                child.input_params = [*child.input_params, new_input_param]
                 # Note that in this case there won't be more than one element
                 # in a link, as it would signify that two parameters link to the
                 # same param
