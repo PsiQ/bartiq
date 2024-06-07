@@ -367,7 +367,15 @@ def _pass_on_inherited_params(routine: RoutineWithFunction[T_expr]) -> None:
     """Overwrites childrens' parameters."""
     for local_ancestor_param, links in routine.linked_params.items():
         global_ancestor_param = join_paths(routine.absolute_path, local_ancestor_param)
-        for inheritor, param_name in links:
+        for inheritor_path, param_name in links:
+            try:
+                inheritor = routine.children[inheritor_path]
+            except KeyError:
+                raise ValueError(
+                    "Error when passing inherited params. "
+                    f"The inheritor {inheritor_path} is not a direct descendant of {routine.name}. "
+                    "Make sure the parameter linkage happen only one level deep."
+                )
             # Define ancestor-to-inheritor parameter map
             param_map = {join_paths(inheritor.absolute_path, param_name): global_ancestor_param}
 
