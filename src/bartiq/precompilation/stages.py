@@ -209,6 +209,16 @@ def _get_passthrough_routine(index):
 
 
 def propagate_linked_params(routine: Routine, _backend: SymbolicBackend) -> None:
+    """Propagate linked params, flattening deep linkages into a series of direct links.
+
+    Note:
+        This funcion needs to visit routines from top to bottom, which is a reverse
+        of the order in which the precompilation proceeds. Therefore, it detects
+        being at the root level, and only does nontrivial work then.
+
+        If any other such stages are added, we should think about splitting precompilation
+        process into a top-down and bottom-up parts.
+    """
     if routine.is_root:
         _propagate_linked_params(routine)
 
@@ -230,7 +240,7 @@ def _propagate_linked_params(routine: Routine) -> None:
                 child = routine.children[child_path]
                 new_input_param = f"{further_path}.{target_param}"
                 child.input_params.append(new_input_param)
-                # Note that in this case there shouldn't be more than one element
+                # Note that in this case there won't be more than one element
                 # in a link, as it would signify that two parameters link to the
                 # same param
                 child.linked_params[new_input_param] = [(further_path, target_param)]
