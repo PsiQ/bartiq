@@ -230,7 +230,6 @@ def _propagate_linked_params(routine: Routine) -> None:
         for path, target_param in targets:
             parts = path.split(".", 1)
             if len(parts) == 2:  # There is descendancy of more than one level
-                print(parts)
                 # Inroduce new, one level linkage to intermediate parameter
                 # E.g. having a link x -> a.b#x we:
                 # 1. Introduce input param b.x to a
