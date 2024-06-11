@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
@@ -24,8 +24,8 @@ from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
 
 def load_evaluate_test_data():
-    with open(Path(__file__).parent / "data/evaluate_test_data.json") as f:
-        return json.load(f)
+    with open(Path(__file__).parent / "data/evaluate_test_data.yaml") as f:
+        return yaml.safe_load(f)
 
 
 EVALUTE_TEST_CASES = load_evaluate_test_data()

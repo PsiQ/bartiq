@@ -206,3 +206,51 @@ def _get_passthrough_routine(index):
             },
         }
     )
+
+
+def propagate_linked_params(routine: Routine, _backend: SymbolicBackend) -> None:
+    """Propagate linked params, flattening deep linkages into a series of direct links.
+
+    Note:
+        This funcion needs to visit routines from top to bottom, which is a reverse
+        of the order in which the precompilation proceeds. Therefore, it detects
+        being at the root level, and only does nontrivial work then.
+
+        If any other such stages are added, we should think about splitting precompilation
+        process into a top-down and bottom-up parts.
+    """
+    if routine.is_root:
+        _propagate_linked_params(routine)
+
+
+def _propagate_linked_params(routine: Routine) -> None:
+    new_linked_params = {}
+    for source_param, targets in routine.linked_params.items():
+        current_links = []
+        for path, target_param in targets:
+            parts = path.split(".", 1)
+            if len(parts) == 2:  # There is descendancy of more than one level
+                # Inroduce new, one level linkage to intermediate parameter
+                # E.g. having a link x -> a.b#x we:
+                # 1. Introduce input param b.x to a
+                # 2. Link x -> a#b.x
+                # 3. Link b.x -> b#x
+                child_path, further_path = parts
+                child = routine.children[child_path]
+                new_input_param = f"{further_path}.{target_param}"
+                child.input_params = [*child.input_params, new_input_param]
+                # Note that in this case there won't be more than one element
+                # in a link, as it would signify that two parameters link to the
+                # same param
+                child.linked_params[new_input_param] = [(further_path, target_param)]
+                # Lastly, add new link to routine
+                current_links.append((child_path, new_input_param))
+            else:
+                current_links.append((path, target_param))
+        new_linked_params[source_param] = current_links
+    for child in routine.children.values():
+        _propagate_linked_params(child)
+
+    # Avoid marking linked_params as set if there was no change
+    if new_linked_params != routine.linked_params:
+        routine.linked_params = new_linked_params

@@ -20,6 +20,7 @@ from .stages import (
     AddPassthroughPlaceholder,
     add_default_additive_resources,
     add_default_properties,
+    propagate_linked_params,
     remove_non_root_container_input_register_sizes,
     unroll_wildcarded_resources,
 )
@@ -65,4 +66,5 @@ def default_precompilation_stages():
         AddPassthroughPlaceholder().add_passthrough_placeholders,
         remove_non_root_container_input_register_sizes,
         unroll_wildcarded_resources,
+        propagate_linked_params,
     ]

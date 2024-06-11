@@ -58,7 +58,7 @@ def _format_linked_params(linked_params):
     lines = []
     for param, children_links in linked_params.items():
         key = _format_param_math(param)
-        param_names = [".".join([link[0].name, link[1]]) for link in children_links]
+        param_names = [".".join([path, target_param]) for path, target_param in children_links]
         values = [_format_param(param) for param in param_names]
         lines.append(f"&{key}: " + ", ".join(values))
     return _format_section_multi_line("Linked parameters", lines)

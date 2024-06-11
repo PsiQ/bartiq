@@ -105,17 +105,6 @@ def _find_descendant(selector, children):
         raise ValueError("Child {selector} not found.") from e
 
 
-def _parse_linked_param_list(linked_param: list[tuple[str, Symbol]], children: dict) -> list[tuple[Routine, Symbol]]:
-    try:
-        return [(_find_descendant(selector, children), symbol) for selector, symbol in linked_param]
-    # If we wouldn't re-raise KeyError as ValueError, pydantic validation would have confusing error message.
-    except KeyError as e:
-        raise ValueError(
-            "Inconsistent children data when parsing linked param. Most probably some of the "
-            "child routine failed to validate or the names used in connections don't match the routines."
-        ) from e
-
-
 def _update_parent(children, parent: Routine) -> None:
     for child in children:
         child.parent = parent
@@ -226,7 +215,7 @@ class Routine(BaseModel):
     resources: dict[str, Resource] = Field(default_factory=dict)
     input_params: Sequence[Symbol] = Field(default_factory=list)
     local_variables: list[str] = Field(default_factory=list)
-    linked_params: dict[Symbol, list[tuple[Routine, Symbol]]] = Field(default_factory=dict)
+    linked_params: dict[Symbol, list[tuple[str, Symbol]]] = Field(default_factory=dict)
     meta: Optional[dict[str, Any]] = Field(default_factory=dict)
 
     def __init__(self, **data: Any):
@@ -302,27 +291,6 @@ class Routine(BaseModel):
     @field_serializer("input_params")
     def _serialize_input_params(self, input_params):
         return sorted(input_params)
-
-    @field_validator("linked_params", mode="before")
-    @classmethod
-    def _validate_linked_params(cls, v, values) -> dict[Symbol, list[tuple[Routine, Symbol]]]:
-        return {
-            symbol: (
-                linked_param
-                if isinstance(linked_param[0], Routine)
-                else _parse_linked_param_list(linked_param, values.data.get("children", {}))
-            )
-            for symbol, linked_param in v.items()
-        }
-
-    @field_serializer("linked_params")
-    def _serialize_linked_params(self, linked_params):
-        return {
-            str(symbol): [
-                (routine.relative_path_from(self), str(routine_symbol)) for routine, routine_symbol in linked_param
-            ]
-            for symbol, linked_param in linked_params.items()
-        }
 
     def find_descendant(self, selector: str) -> Routine:
         """Given a selector of a child, return the corresponding routine.
