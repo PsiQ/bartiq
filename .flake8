@@ -23,6 +23,9 @@ ignore =
     # Line break after the binary operator
     W503,
     W504,
+    # Docstrings for public modules and packages
+    D100,
+    D104,
 per-file-ignores =
-    tests/**/test_*.py:D103,D102,D101
+    tests/*:D100,D101,D102,D103,D104
     __init__.py:F401

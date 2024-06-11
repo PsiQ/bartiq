@@ -130,17 +130,17 @@ TO_SYMBOLIC_FUNCTION_TEST_CASES = [
         ),
         (["#in_0.N", "#in_1.N", "a", "b"], ["#out_0 = 2*#in_0.N"]),
     ),
-    # Only inputs are subcosts
+    # Only inputs are subresources
     (
         _make_routine(resources=_dummy_resources(["x = a.N + a.b.N"])),
         (["a.N", "a.b.N"], ["x = a.N + a.b.N"]),
     ),
-    # Input params and subcosts
+    # Input params and subresources
     (
         _make_routine(input_params=["N"], resources=_dummy_resources(["x = N + a.N + a.b.N"])),
         (["N", "a.N", "a.b.N"], ["x = N + a.N + a.b.N"]),
     ),
-    # Input params, subcosts, and local parameters
+    # Input params, subresources, and local parameters
     (
         _make_routine(
             input_params=["N"],
@@ -242,15 +242,15 @@ TO_SYMBOLIC_FUNCTION_TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("estimator, expected_function", TO_SYMBOLIC_FUNCTION_TEST_CASES)
-def test_to_symbolic_function(estimator, expected_function, backend):
+@pytest.mark.parametrize("routine, expected_function", TO_SYMBOLIC_FUNCTION_TEST_CASES)
+def test_to_symbolic_function(routine, expected_function, backend):
     expected_function = SymbolicFunction.from_str(*expected_function, backend)
 
-    assert to_symbolic_function(estimator, backend) == expected_function
+    assert to_symbolic_function(routine, backend) == expected_function
 
 
 @pytest.mark.parametrize(
-    "estimator, expected_error",
+    "routine, expected_error",
     [
         # Non-trivial expressions for input register sizes
         (
@@ -279,12 +279,12 @@ def test_to_symbolic_function(estimator, expected_function, backend):
         ),
     ],
 )
-def test_to_symbolic_function_errors(estimator, expected_error, backend):
+def test_to_symbolic_function_errors(routine, expected_error, backend):
     with pytest.raises(BartiqCompilationError, match=expected_error):
-        to_symbolic_function(estimator, backend)
+        to_symbolic_function(routine, backend)
 
 
-TO_ESTIMATOR_TEST_CASES = [
+UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES = [
     # Null case
     (
         _make_routine(),
@@ -383,7 +383,7 @@ TO_ESTIMATOR_TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("routine, function, expected_routine", TO_ESTIMATOR_TEST_CASES)
+@pytest.mark.parametrize("routine, function, expected_routine", UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES)
 def test_update_routine_with_symbolic_function(routine, function, expected_routine, backend):
     function = SymbolicFunction.from_str(*function, backend)
 
@@ -407,7 +407,7 @@ def test_update_routine_with_symbolic_function(routine, function, expected_routi
         ),
     ],
 )
-def test_to_estimator_fails(routine, function, expected_error, backend):
+def test_update_routine_with_symbolic_function_fails(routine, function, expected_error, backend):
     function = SymbolicFunction.from_str(*function, backend)
     with pytest.raises(BartiqCompilationError, match=expected_error):
         update_routine_with_symbolic_function(routine, function)

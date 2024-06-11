@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .qref_integration import bartiq_to_qref, qref_to_bartiq
+try:
+    from .jupyter.routine_explorer import explore_routine
 
-__all__ = ["bartiq_to_qref", "qref_to_bartiq"]
+    additional_all = ["explore_routine"]
+except ImportError:
+    additional_all = []
+
+from .latex import routine_to_latex
+from .qref import bartiq_to_qref, qref_to_bartiq
+
+__all__ = ["bartiq_to_qref", "qref_to_bartiq", "rotine_to_latex"] + additional_all

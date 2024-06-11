@@ -21,7 +21,7 @@ from pydantic import Field
 from .. import Port, Resource, ResourceType, Routine
 from ..errors import BartiqCompilationError
 from ..symbolics.backend import SymbolicBackend, T_expr
-from ..symbolics.utilities import infer_subcosts
+from ..symbolics.utilities import infer_subresources
 from ..symbolics.variables import DependentVariable, IndependentVariable
 from ._utilities import is_constant_int, is_single_parameter, split_equation
 from .types import FunctionsMap, Number
@@ -522,8 +522,8 @@ def to_symbolic_function(routine: Routine, backend: SymbolicBackend[T_expr]) -> 
         routine: The routine to be mapped to a symbolic function.
         backend: A backend used for manipulating symbolic expressions.
     """
-    subcosts = infer_subcosts(routine, backend)
-    inputs = [IndependentVariable.from_str(input_symbol) for input_symbol in list(routine.input_params) + subcosts]
+    subresources = infer_subresources(routine, backend)
+    inputs = [IndependentVariable.from_str(input_symbol) for input_symbol in list(routine.input_params) + subresources]
 
     # NOTE: since multiple ports can have the same input size, this map defines a substitution for size parameters to
     # the variable corresponding to the first register with said size. Given that such variables are suffixed by the
@@ -693,6 +693,10 @@ def update_routine_with_symbolic_function(routine: Routine, function: SymbolicFu
     input_params, input_register_sizes_from_inputs = _parse_function_inputs(function)
     costs, registers_sizes_from_outputs = _parse_function_outputs(function, input_register_sizes_from_inputs)
     routine.input_params = sorted(input_params)
+    linked_params_to_remove = set(routine.linked_params.keys()) - set(input_params)
+    for param in linked_params_to_remove:
+        del routine.linked_params[param]
+
     for port_name, port_size in input_register_sizes_from_inputs.items():
         routine.input_ports[port_name].size = str(port_size)
     for port_name, port_size in registers_sizes_from_outputs.items():
@@ -769,6 +773,10 @@ def _parse_function_outputs(function, input_register_sizes_from_inputs):
                     f"got {type(output_variable)}"
                 )
         else:
-            costs.append(f"{output_symbol} = {output_variable.evaluated_expression}")
+            cost_value = (
+                output_variable.evaluated_expression if output_variable.value is None else output_variable.value
+            )
+
+            costs.append(f"{output_symbol} = {cost_value}")
 
     return costs, register_sizes

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import re
 from pathlib import Path
 
 import pytest
+import yaml
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
@@ -31,8 +31,8 @@ BACKEND = sympy_backend
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data.json") as f:
-        return [(Routine(**original), Routine(**expected)) for original, expected in json.load(f)]
+    with open(Path(__file__).parent / "data/compile_test_data.yaml") as f:
+        return [(Routine(**original), Routine(**expected)) for original, expected in yaml.safe_load(f)]
 
 
 COMPILE_TEST_DATA = load_compile_test_data()
@@ -277,7 +277,7 @@ COMPILE_ERRORS_TEST_CASES = [
         "Can only pull in size parameters from the root routine, but source is a non-root non-leaf routine; "
         "attempted to pull a.#in_0 in to a.b.#in_0.",
     ),
-    # Attempt to assign estimators with inconsistent constant register sizes
+    # Attempt to assign inconsistent constant register sizes
     (
         Routine(
             name="root",
@@ -335,7 +335,7 @@ COMPILE_ERRORS_TEST_CASES = [
         "Input registers cannot be constant-sized; "
         "attempted to merge register size a.#out_foo = a.M + a.N with b.#in_bar.1",
     ),
-    # Attempt to connect a two different sizes to an estimator which has both inputs of the same size
+    # Attempt to connect two different sizes to routine which has both inputs of the same size
     (
         Routine(
             name="root",

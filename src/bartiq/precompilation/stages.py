@@ -17,7 +17,7 @@ from copy import copy
 from typing import Any, Callable, Iterable, Optional
 
 from .. import Connection, Resource, ResourceType, Routine
-from ..compilation._symbolic_function import infer_subcosts
+from ..compilation._symbolic_function import infer_subresources
 from ..errors import BartiqPrecompilationError
 from ..symbolics.backend import SymbolicBackend
 
@@ -72,14 +72,14 @@ def _add_register_sizes_to_merge(routine):
     output_port.size = new_size
 
 
-def add_default_additive_costs(routine: Routine, _backend: SymbolicBackend) -> None:
+def add_default_additive_resources(routine: Routine, _backend: SymbolicBackend) -> None:
     """Adds an additive resources to routine if any of the children contains them.
 
     If given routine:
     - has children,
     - children have defined some additive resources
     - is missing some these resources,
-    it adds the resource which is sum of the costs in subroutines.
+    it adds the resource which is sum of the resources in subroutines.
     """
     if routine.is_leaf:
         return
@@ -102,55 +102,58 @@ def add_default_additive_costs(routine: Routine, _backend: SymbolicBackend) -> N
             )
 
 
-def unroll_wildcarded_costs(routine: Routine, backend: SymbolicBackend) -> None:
+def unroll_wildcarded_resources(routine: Routine, backend: SymbolicBackend) -> None:
     """Unrolls wildcarded expressions in the resources using information from its children.
     Right now it supports only non-nested expressions.
     """
-    subcosts = infer_subcosts(routine, backend)
-    wildcard_subcosts = {}
+    subresources = infer_subresources(routine, backend)
+    wildcard_subresources = {}
 
-    for subcost in subcosts:
-        if "~" in subcost:
-            subcost_parts = subcost.split(".")
-            if len(subcost_parts) > 2:
+    for subresource in subresources:
+        if "~" in subresource:
+            subresource_parts = subresource.split(".")
+            if len(subresource_parts) > 2:
                 raise BartiqPrecompilationError("Wildcard parsing supported only for expressions without nesting.")
-            pattern = subcost_parts[0].replace("~", ".*")
-            cost_type = subcost_parts[1]
+            pattern = subresource_parts[0].replace("~", ".*")
+            resource_type = subresource_parts[1]
 
-            if "~" in cost_type:
+            if "~" in resource_type:
                 raise BartiqPrecompilationError("Cost cannot contain wildcard symbol.")
             matching_strings = []
             for child_name in routine.children.keys():
                 if re.search(pattern, child_name):
                     child_resources = routine.children[child_name].resources
                     for resource in child_resources.values():
-                        if resource.name == cost_type:
+                        if resource.name == resource_type:
                             matching_strings.append(child_name)
                             break
-            wildcard_subcosts[subcost] = [string + "." + cost_type for string in matching_strings]
+            wildcard_subresources[subresource] = [string + "." + resource_type for string in matching_strings]
 
-    new_costs = {}
+    new_resources = {}
     for resource in routine.resources.values():
         resource_expr = resource.value
         if isinstance(resource_expr, str) and "~" in resource_expr:
             new_cost_expression = resource_expr
-            for pattern_to_replace in wildcard_subcosts:
+            for pattern_to_replace in wildcard_subresources:
                 if pattern_to_replace in resource_expr:
-                    substitution = ",".join(wildcard_subcosts[pattern_to_replace])
+                    substitution = ",".join(wildcard_subresources[pattern_to_replace])
                     new_cost_expression = new_cost_expression.replace(pattern_to_replace, substitution)
             if resource_expr != new_cost_expression:
-                new_costs[resource.name] = new_cost_expression
+                new_resources[resource.name] = new_cost_expression
 
     for resource_name in routine.resources:
-        if resource_name in new_costs:
-            routine.resources[resource_name].value = new_costs[resource_name]
+        if resource_name in new_resources:
+            routine.resources[resource_name].value = new_resources[resource_name]
 
 
 class AddPassthroughPlaceholder:
+    """Adds placeholder routines whenever passthrough is detected.
+
+    Contrary to other precompilation methods, this one is stateful (and therefore implemented as a class),
+    to ensure unique name and register size for each passhtrough.
+    """
+
     def __init__(self) -> None:
-        """Contrary to other precompilation methods, this one is stateful (and therefore implemented as a class),
-        to ensure unique name and register size for each passhtrough.
-        """
         self.index = 0
 
     def add_passthrough_placeholders(self, routine: Routine, _backend: SymbolicBackend) -> None:
@@ -203,3 +206,51 @@ def _get_passthrough_routine(index):
             },
         }
     )
+
+
+def propagate_linked_params(routine: Routine, _backend: SymbolicBackend) -> None:
+    """Propagate linked params, flattening deep linkages into a series of direct links.
+
+    Note:
+        This funcion needs to visit routines from top to bottom, which is a reverse
+        of the order in which the precompilation proceeds. Therefore, it detects
+        being at the root level, and only does nontrivial work then.
+
+        If any other such stages are added, we should think about splitting precompilation
+        process into a top-down and bottom-up parts.
+    """
+    if routine.is_root:
+        _propagate_linked_params(routine)
+
+
+def _propagate_linked_params(routine: Routine) -> None:
+    new_linked_params = {}
+    for source_param, targets in routine.linked_params.items():
+        current_links = []
+        for path, target_param in targets:
+            parts = path.split(".", 1)
+            if len(parts) == 2:  # There is descendancy of more than one level
+                # Inroduce new, one level linkage to intermediate parameter
+                # E.g. having a link x -> a.b#x we:
+                # 1. Introduce input param b.x to a
+                # 2. Link x -> a#b.x
+                # 3. Link b.x -> b#x
+                child_path, further_path = parts
+                child = routine.children[child_path]
+                new_input_param = f"{further_path}.{target_param}"
+                child.input_params = [*child.input_params, new_input_param]
+                # Note that in this case there won't be more than one element
+                # in a link, as it would signify that two parameters link to the
+                # same param
+                child.linked_params[new_input_param] = [(further_path, target_param)]
+                # Lastly, add new link to routine
+                current_links.append((child_path, new_input_param))
+            else:
+                current_links.append((path, target_param))
+        new_linked_params[source_param] = current_links
+    for child in routine.children.values():
+        _propagate_linked_params(child)
+
+    # Avoid marking linked_params as set if there was no change
+    if new_linked_params != routine.linked_params:
+        routine.linked_params = new_linked_params

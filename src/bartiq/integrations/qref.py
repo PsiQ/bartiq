@@ -75,7 +75,7 @@ def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
         "linked_params": [
             {
                 "source": str(source),
-                "targets": [f"{child.name}.{param}" for child, param in targets],
+                "targets": [f"{path}.{param}" for path, param in targets],
             }
             for source, targets in routine.linked_params.items()
         ],

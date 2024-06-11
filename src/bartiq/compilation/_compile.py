@@ -12,74 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Glossary:
-
-- Routine: a topological definition of a quantum circuit. In this definition, each quantum subroutine is represented
-  as a routine with input and/or output ports, representing the qubit registers the inputs and/or outputs
-  respectively. Qubit register flows between subroutines are represented by connections between subroutine ports.
-  Root-level ports represent input/output quantum registers of the top-level quantum routine.
-  Each subroutine also contains information about its quantum resource costs
-- Estimate: the output of compiling a circuit with an assignment of routines. After compilation, each
-  routines's resources and register sizes now represent the cost of the routine in terms of the estimate's
-  high-level parameters (rather than the parameters of the original routine).
-
-Estimate compilation is a complex procedure that involves a number of interacting, subtle steps.
-At a high level there are three major stages to the process:
-
-1. Routine precompilation
-2. Routine-to-function conversion
-3. Estimate compilation
-
-Below describes the main concepts in each of these in more detail.
-
-1. Routine precompilation
-This stage "precompiles" the routine by making a series of reasonable assumptions about what the user would have
-wanted when they have not been explicit. For example, insertion of "trivial" routines for known subroutines or
-"filling out" routines which have only been partially defined. (It is expected that this precompilation stage will
-grow as more sensible defaults are requested by users.)
-This stage is applied via `run_estimate_precompilation`
-
-2. Routine-to-function conversion
-Before being compiled, routines must first be mapped to compilable function objects.
-At this stage, we perform a number of steps to map the routines into functions that are ready for
-compilation:
-
-1. Map routines to "local" functions: first, we simply map the routines to functions in a local manner, whereby they
-   are unaware of their location within the full definition. We use RoutineWithFunction, which augments Routine
-   class with a `symbolic_function` field.
-2. Map "local" functions to "global" functions: next, we tell the functions where they live in the definition, thereby
-   making each parameter and any named functions unique within the definition.
-3. Pull in input register sizes: in order to allow for input register sizes to be compiled properly, low level input
-   register sizes must be renamed by the size parameters used by high-level registers. This process is referred to as
-   "pulling in" those high-level register sizes.
-4. Push out output register sizes: to ensure correct compilation for output register sizes, those associated with
-   low-level routines must be "push out" to either other low-level routines or eventually high-level routines.
-5. Parameter inheritance: lastly, any high-level routines parameters are passed down to low-level estimators by
-   substituting the low-level routine parameters with the high-level ones.
-
-Once this is complete, the final function is stored back as one of the routine's attributes.
-This stage is applied via `_map_estimators_to_functions`
-
-3. Estimate compilation
-
-Lastly, the entire estimate is compiled. Compilation occurs at a routine-local level, bottom-to-top, such that each
-routine's estimate is compiled strictly after all its children's estimates have been compiled. This stage also
-contains a number of sub-steps:
-
-1. Compile functions of self and children (non-leaves only): for leaves, no function compilation is necessary, but for
-   non-leaves we must compile our own function with those of our direct descendent children.
-2. Undo register size pulling and pushing: to ensure a correct local estimate, we must "undo" the pulling in and pushing
-   out of register size params done during routine-to-function conversion.
-3. Derefence global namespace: again, to ensure a correct local routine definition, we dereference the global
-   namespace.
-4. Map function to routine: lastly, once the correct local function has been compiled, we map the function object
-   back to a routine and update routine's attribute
-
-This stage is applied via `_compile_routine_with_functions`
-
-"""
-
 from typing import Any, Optional, cast, overload
 
 from .. import Port, Routine
@@ -155,22 +87,20 @@ def _compile_routine(
     global_functions: Optional[list[str]] = None,
     functions_map: Optional[FunctionsMap] = None,
 ):
-    # NOTE: Old compilation algorithm was written with the assumption that root is always an empty string.
-    # The fact that remove the name and then add it back at the end is a hack solution and needs to be fixed in future.
     root_name = routine.name
     routine.name = ""
     precompile(routine, precompilation_stages=precompilation_stages, backend=backend)
 
     # NOTE: This step must be completed BEFORE we start to compile the functions, as parents must be allowed to
     # update their childrens' functions (to support parameter inheritance).
-    routine_with_functions = _add_func_to_routine(routine, global_functions, backend)
+    routine_with_functions = _add_function_to_routine(routine, global_functions, backend)
 
     compiled_routine_with_funcs = _compile_routine_with_functions(routine_with_functions, functions_map, backend)
     compiled_routine_with_funcs.name = root_name
     return compiled_routine_with_funcs.to_routine()
 
 
-def _add_func_to_routine(
+def _add_function_to_routine(
     routine: Routine, global_functions: Optional[list[str]], backend: SymbolicBackend[T_expr]
 ) -> RoutineWithFunction[T_expr]:
     """Converts each routine to a symbolic function."""
@@ -437,7 +367,14 @@ def _pass_on_inherited_params(routine: RoutineWithFunction[T_expr]) -> None:
     """Overwrites childrens' parameters."""
     for local_ancestor_param, links in routine.linked_params.items():
         global_ancestor_param = join_paths(routine.absolute_path, local_ancestor_param)
-        for inheritor, param_name in links:
+        for inheritor_path, param_name in links:
+            if "." in inheritor_path:
+                raise BartiqCompilationError(
+                    "Error when passing inherited params. "
+                    f"The inheritor {inheritor_path} is not a direct descendant of {routine.name}. "
+                    "Make sure the parameter linkage happen only one level deep."
+                )
+            inheritor = routine.children[inheritor_path]
             # Define ancestor-to-inheritor parameter map
             param_map = {join_paths(inheritor.absolute_path, param_name): global_ancestor_param}
 

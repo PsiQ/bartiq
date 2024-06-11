@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from sympy import latex, symbols
 
 from .._routine import Routine
@@ -18,13 +19,13 @@ from ..compilation._utilities import split_equation
 from ..symbolics.sympy_interpreter import parse_to_sympy
 
 
-def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
+def routine_to_latex(routine: Routine, show_non_root_resources: bool = True) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
         routine: The routine to render.
         show_non_root_costs: If ``True`` (default), displays all costs, otherwise only includes costs
-        from the root node.
+            from the root node.
 
     Returns:
         A LaTeX snippet of the routine.
@@ -42,21 +43,22 @@ def represent_routine_in_latex(routine: Routine, show_non_root_resources: bool =
 def _format_object_header(routine: Routine) -> str:
     """Formats the standard object repr as a header."""
     cls = type(routine)
-    return rf"&\text{{{cls.__name__} \textrm{{({routine.name})}}}}".replace("_", r"\_")
+    escaped_routine_name = routine.name.replace("_", r"\_")
+    return rf"&\text{{{cls.__name__} \textrm{{({escaped_routine_name})}}}}"
 
 
 def _format_input_params(input_params: list[str]):
-    """Formats estimator input parameters to LaTeX."""
+    """Formats input parameters to LaTeX."""
     input_params = [_format_param(input_param) for input_param in input_params]
     return _format_section_one_line("Input parameters", input_params)
 
 
 def _format_linked_params(linked_params):
-    """Formats estimator inherited parameters to LaTeX."""
+    """Formats linked parameters to LaTeX."""
     lines = []
     for param, children_links in linked_params.items():
         key = _format_param_math(param)
-        param_names = [".".join([link[0].name, link[1]]) for link in children_links]
+        param_names = [".".join([path, target_param]) for path, target_param in children_links]
         values = [_format_param(param) for param in param_names]
         lines.append(f"&{key}: " + ", ".join(values))
     return _format_section_multi_line("Linked parameters", lines)
@@ -79,7 +81,7 @@ def _format_port_sizes(ports, label):
 
 
 def _format_local_variables(local_variables):
-    """Formats estimator local parameters to LaTeX."""
+    """Formats routine's local variables to LaTeX."""
     lines = []
     for variable in local_variables:
         assignment, expression = split_equation(variable)
@@ -127,12 +129,13 @@ def _format_param_text(param):
         return rf"\text{{{symbol}}}_\text{{{subscript}}}"
     else:
         symbol, *subscripts = param.split("_")
-        sanitized_subscripts = r"\_".join(subscripts)
-        return rf"\text{{{symbol}}}_\text{{{sanitized_subscripts}}}"
+        escaped_subscript = r"\_".join(subscripts)
+        return rf"\text{{{symbol}}}_\text{{{escaped_subscript}}}"
 
 
 def _format_name_text(name):
-    return rf"\text{{{name}}}".replace("_", r"\_")
+    escaped_name = name.replace("_", r"\_")
+    return rf"\text{{{escaped_name}}}"
 
 
 def _format_param_math(param):
@@ -177,7 +180,7 @@ def _format_resources(routine: Routine, show_non_root_resources: bool):
 
 
 def _get_resources_lines(resources, path=None):
-    """Formats estimator costs to LaTeX."""
+    """Formats resources to LaTeX."""
     lines = []
     for resource in resources.values():
         if path is None:

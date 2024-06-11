@@ -105,8 +105,6 @@ def _evaluate(
     for parsed_assignment in parsed_assignments:
         _evaluate_over_assignment(evaluated_routine, parsed_assignment, backend, functions_map)
 
-    # TODO: This is just for backward compatibility and making sure tests pass. # noqa:T101
-    evaluated_routine.linked_params = {}
     return evaluated_routine
 
 

@@ -30,24 +30,24 @@ def _split_equation(equation: str) -> tuple[str, str]:
     return (lhs, rhs)
 
 
-def infer_subcosts(routine: Routine, backend):
-    """Infer subcosts for a routine."""
+def infer_subresources(routine: Routine, backend):
+    """Infer what are the resources of a routine's children."""
     expressions = [resource.value for resource in routine.resources.values()]
     for variable in routine.local_variables:
         _, rhs = _split_equation(variable)
         expressions.append(rhs)
 
     # Any path-prefixed variable (i.e. prefixed by a .-separated path) not
-    # in subcosts, but found in the RHS of an expression in either costs,
+    # in subresources, but found in the RHS of an expression in either costs,
     # local_variables, or output ports.
-    subcosts = []
+    subresources = []
     for expr in expressions:
         vars = _extract_input_variables_from_expression(expr, backend)
-        # Only consider variables that are subcosts (ones that have a "." in the name).
+        # Only consider variables that are subresources (ones that have a "." in the name).
         for var in vars:
             if "." in var:
-                subcosts.append(var)
-    return sorted(set(subcosts))
+                subresources.append(var)
+    return sorted(set(subresources))
 
 
 def _extract_input_variables_from_expression(expression, backend):

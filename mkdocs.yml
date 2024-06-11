@@ -29,9 +29,12 @@ nav:
       - tutorials/index.md
       - tutorials/01_basic_example.ipynb
       - tutorials/02_alias_sampling_basic.ipynb
-  - reference.md
+  - Concepts:
+      - concepts/compilation.md
+      - concepts/precompilation.md
   - troubleshooting.md
   - limitations.md
+  - reference.md
 
 
 plugins:
