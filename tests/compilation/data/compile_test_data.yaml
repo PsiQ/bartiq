@@ -18,7 +18,7 @@
         type: other
         value: {type: str, value: x + y}
     input_params: [x, y]
-# Children with independent resources, unlinked params,  no ports
+# Children with independent resources, unlinked params, no ports
 - - name: root
     type: null
     children:
@@ -68,14 +68,6 @@
             value: {type: str, value: x + y}
         input_params: [x, y]
     resources:
-      a.z:
-        name: a.z
-        type: other
-        value: {type: str, value: a.x + a.y}
-      b.z:
-        name: b.z
-        type: other
-        value: {type: str, value: b.x + b.y}
       z:
         name: z
         type: other

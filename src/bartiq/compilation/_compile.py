@@ -97,7 +97,10 @@ def _compile_routine(
 
     compiled_routine_with_funcs = _compile_routine_with_functions(routine_with_functions, functions_map, backend)
     compiled_routine_with_funcs.name = root_name
-    return compiled_routine_with_funcs.to_routine()
+
+    compiled_routine = compiled_routine_with_funcs.to_routine()
+    compiled_routine = _remove_children_costs(compiled_routine)
+    return compiled_routine
 
 
 def _add_function_to_routine(
@@ -674,3 +677,9 @@ def _split_local_path(path: str) -> tuple[str, str]:
     """Split path into parent path and local name, much like directory path and a file name."""
     *parent_path, name = path.rsplit(".", 1)
     return ("" if parent_path == [] else parent_path[0]), name
+
+
+def _remove_children_costs(routine: Routine) -> Routine:
+    for subroutine in routine.walk():
+        subroutine.resources = {name: res for name, res in subroutine.resources.items() if "." not in name}
+    return routine
