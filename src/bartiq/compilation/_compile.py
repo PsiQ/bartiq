@@ -682,7 +682,5 @@ def _split_local_path(path: str) -> tuple[str, str]:
 
 def _remove_children_costs(routine: Routine) -> Routine:
     for subroutine in routine.walk():
-        for resource in copy.copy(subroutine.resources):
-            if "." in resource:
-                del subroutine.resources[resource]
+        subroutine.resources = {name: res for name, res in subroutine.resources.items() if "." not in name}
     return routine
