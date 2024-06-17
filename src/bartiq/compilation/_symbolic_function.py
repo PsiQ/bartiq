@@ -713,18 +713,8 @@ def update_routine_with_symbolic_function(routine: Routine, function: SymbolicFu
             routine.resources[lhs].value = rhs
         else:
             raw_name = lhs.split(".")[-1]
-            if raw_name in routine.resources:
-                type = routine.resources[raw_name].type
-            else:
-                # NOTE: This logic handles the case where we add children's costs to the parent.
-                # I think in future we want to get rid of this, but it is necessary for backward compatibility reasons.
-                for subroutine in routine.walk():
-                    if raw_name in subroutine.resources:
-                        type = subroutine.resources[raw_name].type
-                        break
-                else:
-                    type = ResourceType.other
-            routine.resources[lhs] = Resource(name=lhs, value=rhs, parent=routine, type=type)
+            type = ResourceType.other
+            routine.resources[lhs] = Resource(name=raw_name, value=rhs, parent=routine, type=type)
 
 
 def _parse_function_inputs(function):
