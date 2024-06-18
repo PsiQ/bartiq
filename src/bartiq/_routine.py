@@ -312,11 +312,12 @@ class Routine(BaseModel):
         else:
             return _find_descendant(selector, self.children)
 
-    def relative_path_from(self, ancestor: Optional[Routine]) -> str:
+    def relative_path_from(self, ancestor: Optional[Routine], exclude_root_name: bool = False) -> str:
         """Return relative path to the ancestor.
 
         Args:
             ancestor: Ancestor from which a relative path to self should be found.
+            exclude_root_name: if True, removes the name of the root from the relative path, if it is present.
 
         Returns:
             selector s such that ancestor.find_descendant(s) is self.
@@ -324,18 +325,33 @@ class Routine(BaseModel):
         Raises:
             ValueError: If ancestor is not, in fact, an ancestor of self.
         """
+
+        # For root node return an empty string
+        if self.parent is None and ancestor is None and exclude_root_name:
+            return ""
         if self.parent is ancestor:
             return self.name
         else:
             try:
-                return f"{self.parent.relative_path_from(ancestor)}.{self.name}"  # type: ignore
+                return f"{self.parent.relative_path_from(ancestor, exclude_root_name=exclude_root_name)}.{self.name}"  # type: ignore
             except (ValueError, AttributeError) as e:
                 raise ValueError("Ancestor not found.") from e
 
-    @property
-    def absolute_path(self) -> str:
+    def absolute_path(self, exclude_root_name: bool = False) -> str:
         """Returns a path from root."""
-        return self.relative_path_from(None).removeprefix(".")
+        return self.relative_path_from(None, exclude_root_name=exclude_root_name).removeprefix(".")
+
+    def absolute_path_without_root(self, exclude_root_name: bool = True) -> str:
+        """Returns a path from root."""
+        if self.parent is None:
+            return ""
+        else:
+            return self.relative_path_from(None, exclude_root_name=exclude_root_name).removeprefix(".")
+        path = self.relative_path_from(None).removeprefix(".")
+        if "." not in path:
+            return ""
+        else:
+            return self.relative_path_from(None).removeprefix(".")
 
     def _repr_markdown_(self):
         from .integrations.latex import routine_to_latex
@@ -385,14 +401,21 @@ class Port(BaseModel):
         size_value = "None" if self.size is None else f'"{self.size}"'
         return f"{self.__class__.__name__}({parent_name}.#{self.name}, size={size_value}, {self.direction})"
 
-    @property
-    def absolute_path(self) -> str:
+    def absolute_path(self, exclude_root_name: bool = False) -> str:
         """Returns a path from root."""
         assert self.parent is not None
-        if self.parent.absolute_path == "":
+        if self.parent.absolute_path(exclude_root_name=exclude_root_name) == "":
             return f"#{self.name}"
         else:
-            return f"{self.parent.absolute_path}.#{self.name}"
+            return f"{self.parent.absolute_path(exclude_root_name=exclude_root_name)}.#{self.name}"
+
+    def absolute_path_without_root(self, exclude_root_name: bool = True) -> str:
+        """Returns a path from root."""
+        assert self.parent is not None
+        if self.parent.absolute_path_without_root(exclude_root_name=exclude_root_name) == "":
+            return f"#{self.name}"
+        else:
+            return f"{self.parent.absolute_path_without_root(exclude_root_name=exclude_root_name)}.#{self.name}"
 
 
 class Connection(BaseModel):

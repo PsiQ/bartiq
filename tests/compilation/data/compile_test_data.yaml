@@ -350,7 +350,7 @@
             y_bb}
     input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
 # Children and grandchildren, resources dependent on children, with ports, with input params and params linking
-- - name: ''
+- - name: root
     type: null
     ports:
       foo:
@@ -490,7 +490,7 @@
       - [b.b, x]
       y_bb:
       - [b.b, y]
-  - name: ''
+  - name: root
     type: null
     ports:
       foo:
@@ -632,7 +632,7 @@
             y_ba + y_bb}
     input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
 # Children and grandchildren, resources dependent on children, no ports, local variables in leaves
-- - name: ''
+- - name: root
     type: null
     children:
       a:
@@ -698,7 +698,7 @@
         name: z
         type: other
         value: {type: str, value: a.z + b.z}
-  - name: ''
+  - name: root
     type: null
     children:
       a:
@@ -768,7 +768,7 @@
   # This is a legacy test case which used to verify if children are compiled in
   # topological rather than definition order. This is of little relevance now,
   # as children are stored as dictionaries rather than list.
-- - name: ''
+- - name: root
     type: null
     children:
       b:
@@ -789,7 +789,7 @@
             size: {type: str, value: '1'}
     connections:
     - {source: a.out_0, target: b.in_0}
-  - name: ''
+  - name: root
     type: null
     children:
       b:
@@ -1067,7 +1067,7 @@
         type: other
         value: {type: str, value: '4'}
 # Constant register size comes from non-root
-- - name: ''
+- - name: root
     type: null
     ports:
       out_0: {name: out_0, direction: output, size: null}
@@ -1095,7 +1095,7 @@
     connections:
     - {source: a.out_0, target: b.in_0}
     - {source: b.out_0, target: out_0}
-  - name: ''
+  - name: root
     type: null
     ports:
       out_0:
@@ -1127,7 +1127,7 @@
     - {source: a.out_0, target: b.in_0}
     - {source: b.out_0, target: out_0}
 # Parent's and child's ports are connected and the port sizes are defined in both cases (not None)
-- - name: ''
+- - name: root
     type: null
     ports:
       in_0:
@@ -1179,7 +1179,7 @@
         name: N
         type: other
         value: {type: str, value: a.A}
-  - name: ''
+  - name: root
     type: null
     ports:
       in_0:

@@ -158,7 +158,7 @@ def _nested_routine():
 def test_get_port_source(parent_path, port_name, source_port_path, routine):
     port_parent = routine.find_descendant(parent_path)
     port = port_parent.ports[port_name]
-    assert get_port_source(port).absolute_path == source_port_path
+    assert get_port_source(port).absolute_path() == source_port_path
 
 
 @pytest.mark.parametrize(
@@ -190,4 +190,4 @@ def test_get_port_source(parent_path, port_name, source_port_path, routine):
 def test_get_port_target(parent_path, port_name, target_port_path, routine):
     port_parent = routine.find_descendant(parent_path)
     port = port_parent.ports[port_name]
-    assert get_port_target(port).absolute_path == target_port_path
+    assert get_port_target(port).absolute_path() == target_port_path

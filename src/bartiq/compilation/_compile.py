@@ -87,8 +87,8 @@ def _compile_routine(
     global_functions: Optional[list[str]] = None,
     functions_map: Optional[FunctionsMap] = None,
 ):
-    root_name = routine.name
-    routine.name = ""
+    # root_name = routine.name
+    # routine.name = ""
     precompile(routine, precompilation_stages=precompilation_stages, backend=backend)
 
     # NOTE: This step must be completed BEFORE we start to compile the functions, as parents must be allowed to
@@ -96,7 +96,7 @@ def _compile_routine(
     routine_with_functions = _add_function_to_routine(routine, global_functions, backend)
 
     compiled_routine_with_funcs = _compile_routine_with_functions(routine_with_functions, functions_map, backend)
-    compiled_routine_with_funcs.name = root_name
+    # compiled_routine_with_funcs.name = root_name
 
     compiled_routine = compiled_routine_with_funcs.to_routine()
     compiled_routine = _remove_children_costs(compiled_routine)
@@ -124,8 +124,7 @@ def _map_routine_to_function(
     local_function = to_symbolic_function(routine, backend)
 
     # Updates the functions' namespace to a path-prefixed global
-    global_function = _add_function_namespace(local_function, routine.absolute_path, global_functions)
-
+    global_function = _add_function_namespace(local_function, routine.absolute_path_without_root(), global_functions)
     # Pull in and push out register sizes
     # NOTE: Non-leaf routines shouldn't have input or output register sizes defined
     # (since they are dependent upon the size of some other routines's register), so skip this step for them.
@@ -201,9 +200,9 @@ def _pull_in_input_register_size_param(
     if not source_parent.is_root:
         raise BartiqCompilationError(
             "Can only pull in size parameters from the root routine, but source is a non-root non-leaf routine; "
-            f"attempted to pull {source_port.absolute_path} in to {input_port.absolute_path}."
-            f"This indicates that {source_port.absolute_path} terminates a connection on a non-leaf routine, "
-            f"which is an invalid topology. Please connect {source_port.absolute_path} to a leaf port."
+            f"attempted to pull {source_port.absolute_path_without_root()} in to {input_port.absolute_path_without_root()}."
+            f"This indicates that {source_port.absolute_path_without_root()} terminates a connection on a non-leaf routine, "
+            f"which is an invalid topology. Please connect {source_port.absolute_path_without_root()} to a leaf port."
         )
 
     root_input_register_size = source_parent.input_ports[source_port.name].size
@@ -212,15 +211,15 @@ def _pull_in_input_register_size_param(
     if is_constant_int(root_input_register_size):
         assert isinstance(root_input_register_size, (int, str))
         new_function = set_input_port_size_to_constant_value(
-            function, input_port.absolute_path, int(root_input_register_size), backend
+            function, input_port.absolute_path_without_root(), int(root_input_register_size), backend
         )
         return new_function
 
     # If the root input is of variable size, then we will rename the parameter with the root parameter
     elif is_single_parameter(root_input_register_size):
-        root_param = join_paths(source_port.absolute_path, str(root_input_register_size))
+        root_param = join_paths(source_port.absolute_path_without_root(), str(root_input_register_size))
         param = str(input_port.size)
-        leaf_param = join_paths(input_port.absolute_path, param)
+        leaf_param = join_paths(input_port.absolute_path_without_root(), param)
         if is_constant_int(param):
             raise BartiqCompilationError(
                 "Input registers cannot be constant-sized; "
@@ -317,7 +316,7 @@ def _push_out_output_register_size_params(
 
     new_function = function
     for port in routine.output_ports.values():
-        output = port.absolute_path
+        output = port.absolute_path_without_root()
         source_register_size_variable = function.outputs[output]
         target_port = get_port_target(port)
         target_routine = target_port.parent
@@ -343,7 +342,7 @@ def _push_out_output_register_size_params(
                     "Input registers cannot be constant-sized; "
                     f"attempted to merge register size {source_register_size_variable} with {target_param}"
                 )
-            new_function = rename_variables(new_function, {port.absolute_path: target_param})
+            new_function = rename_variables(new_function, {port.absolute_path_without_root(): target_param})
 
     # Return function with renamed parameters
     return new_function
@@ -358,18 +357,20 @@ def _resolve_target_param(target: Port) -> str:
         assert (
             target_routine.is_root
         ), "Shouldn't ever find non-root non-leaf target. Most likely ports are connected incorrectly"
-        return target.absolute_path
+        return target.absolute_path_without_root()
 
     if target.size is None or target.size == "":
-        raise BartiqCompilationError(f"No size found for input register {target.name} in {target.absolute_path}")
+        raise BartiqCompilationError(
+            f"No size found for input register {target.name} in {target.absolute_path_without_root()}"
+        )
     target_register_param = str(target.size)
-    return join_paths(target.absolute_path, target_register_param)
+    return join_paths(target.absolute_path_without_root(), target_register_param)
 
 
 def _pass_on_inherited_params(routine: RoutineWithFunction[T_expr]) -> None:
     """Overwrites childrens' parameters."""
     for local_ancestor_param, links in routine.linked_params.items():
-        global_ancestor_param = join_paths(routine.absolute_path, local_ancestor_param)
+        global_ancestor_param = join_paths(routine.absolute_path_without_root(), local_ancestor_param)
         for inheritor_path, param_name in links:
             if "." in inheritor_path:
                 raise BartiqCompilationError(
@@ -379,7 +380,7 @@ def _pass_on_inherited_params(routine: RoutineWithFunction[T_expr]) -> None:
                 )
             inheritor = routine.children[inheritor_path]
             # Define ancestor-to-inheritor parameter map
-            param_map = {join_paths(inheritor.absolute_path, param_name): global_ancestor_param}
+            param_map = {join_paths(inheritor.absolute_path_without_root(), param_name): global_ancestor_param}
 
             # Apply the renaming to the inheritor routine as well as all descendent routines.
             # This is needed because inheritance happens from the bottom up, so if a subroutine of the current
@@ -441,7 +442,7 @@ def _compile_function_to_routine_leaf_non_root(
     local_function = _undo_pull_in_input_register_size_params_leaf(local_function, routine)
 
     # Remove the global path namespace to make routine ignorant of higher structure
-    namespace = routine.absolute_path
+    namespace = routine.absolute_path_without_root()
     local_function = _remove_function_namespace(local_function, namespace)
 
     return local_function
@@ -492,7 +493,7 @@ def _compile_function_to_routine_non_leaf_non_root(
     new_function = _undo_push_out_output_register_size_params(new_function, routine)
 
     # Next, remove any global parameter namespaces to ensure the function is locally consistent.
-    namespace = routine.absolute_path
+    namespace = routine.absolute_path_without_root()
     new_function = _remove_function_namespace(new_function, namespace)
 
     # Lastly, go find the sizes of any constant-sized registers which weren't included in the compilation
@@ -512,7 +513,7 @@ def _remove_constant_register_sizes_non_leaf_non_root(
         # Case 1: It's a constant register size
         if name.startswith("#") and output_variable.is_constant_int:
             # Case 1.1: It's a constant register size for the current routine => keep
-            if path == routine.absolute_path:
+            if path == routine.absolute_path_without_root():
                 new_outputs[output_symbol] = output_variable
 
             # Case 1.2: It's a constant register size for another routine => ignore
@@ -542,8 +543,8 @@ def _undo_pull_in_input_register_size_params_leaf(
 
         source_register = source_port.name
         source_param = str(source_parent.input_ports[source_register].size)
-        child_param = join_paths(source_port.absolute_path, source_param)
-        parent_param = join_paths(input_port.absolute_path, source_param)
+        child_param = join_paths(source_port.absolute_path_without_root(), source_param)
+        parent_param = join_paths(input_port.absolute_path_without_root(), source_param)
         param_map[child_param] = parent_param
 
     return rename_variables(function, param_map)
@@ -573,11 +574,11 @@ def _undo_pull_in_input_register_size_params_non_leaf(
         param = str(port.size)
 
         if is_constant_int(param):
-            child_param = port.absolute_path
-            parent_param = input_port.absolute_path
+            child_param = port.absolute_path_without_root()
+            parent_param = input_port.absolute_path_without_root()
         elif is_single_parameter(param):
-            child_param = join_paths(port.absolute_path, param)
-            parent_param = join_paths(input_port.absolute_path, param)
+            child_param = join_paths(port.absolute_path_without_root(), param)
+            parent_param = join_paths(input_port.absolute_path_without_root(), param)
         else:
             raise ValueError("param should be either integer or a single symbol, got {param}.")
 
@@ -601,8 +602,8 @@ def _undo_push_out_output_register_size_params(
     for source in routine.output_ports.values():
         target = get_port_target(source)
         assert target.parent is not None
-        new_param = _resolve_target_param(target) if target.parent.is_leaf else target.absolute_path
-        param_map[new_param] = source.absolute_path
+        new_param = _resolve_target_param(target) if target.parent.is_leaf else target.absolute_path_without_root()
+        param_map[new_param] = source.absolute_path_without_root()
 
     # Return function with renamed parameters
     return rename_variables(function, param_map)
@@ -669,7 +670,7 @@ def _get_internal_port_endpoint(port: Port) -> Port:
     if port.direction == "output":
         endpoint = get_port_source(port)
 
-    assert endpoint is not None, f"Expected {port.absolute_path} to have an internal endpoint."
+    assert endpoint is not None, f"Expected {port.absolute_path_without_root()} to have an internal endpoint."
     return endpoint
 
 
@@ -680,6 +681,7 @@ def _split_local_path(path: str) -> tuple[str, str]:
 
 
 def _remove_children_costs(routine: Routine) -> Routine:
+    # NOTE: we probably should not be adding children costs in the first place, rather than removing it.
     for subroutine in routine.walk():
         subroutine.resources = {name: res for name, res in subroutine.resources.items() if "." not in name}
     return routine
