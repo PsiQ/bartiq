@@ -177,8 +177,8 @@ def _evaluate_over_assignment(
             subroutine_assignments.append(assignment)
 
         # Check for any register size assignments that have been propagated from upstream ports
-        if subroutine.absolute_path in register_sizes:
-            subroutine_assignments.extend(register_sizes.pop(subroutine.absolute_path))
+        if subroutine.absolute_path() in register_sizes:
+            subroutine_assignments.extend(register_sizes.pop(subroutine.absolute_path()))
 
         # Compute the new routine
         evaluated_routine = _evaluate_routine(subroutine, subroutine_assignments, backend, functions_map)
@@ -206,7 +206,7 @@ def _get_downstream_register_size_assignments(source_port: Port, value: Number) 
         variable = str(target_port.size)
         local_assignment = _RegisterSizeAssignment(target_port.direction, target_port.name, variable, value)
         assert target_port.parent is not None
-        register_sizes[target_port.parent.absolute_path].append(local_assignment)
+        register_sizes[target_port.parent.absolute_path()].append(local_assignment)
 
     return register_sizes
 
