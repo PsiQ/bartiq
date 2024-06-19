@@ -64,7 +64,7 @@ def custom_function(a, b):
     [
         (
             {
-                "name": "",
+                "name": "root",
                 "type": "foo",
                 "children": {
                     "a": {
@@ -107,7 +107,7 @@ def custom_function(a, b):
             ["N = 5"],
             {"b.my_f": custom_function},
             {
-                "name": "",
+                "name": "root",
                 "type": "foo",
                 "children": {
                     "a": {

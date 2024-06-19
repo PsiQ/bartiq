@@ -33,7 +33,7 @@ def test_join_paths(inputs, output):
 
 def _simple_routine():
     return Routine(
-        name="",
+        name="simple_routine",
         input_params=["N"],
         ports={
             "in_0": {"name": "in_0", "direction": "input", "size": "N"},
@@ -68,7 +68,7 @@ def _simple_routine():
 
 def _nested_routine():
     return Routine(
-        name="",
+        name="nested_routine",
         input_params=["N"],
         ports={
             "in_0": {"name": "in_0", "direction": "input", "size": "N"},
@@ -158,7 +158,7 @@ def _nested_routine():
 def test_get_port_source(parent_path, port_name, source_port_path, routine):
     port_parent = routine.find_descendant(parent_path)
     port = port_parent.ports[port_name]
-    assert get_port_source(port).absolute_path() == source_port_path
+    assert get_port_source(port).absolute_path(exclude_root_name=True) == source_port_path
 
 
 @pytest.mark.parametrize(
@@ -190,4 +190,4 @@ def test_get_port_source(parent_path, port_name, source_port_path, routine):
 def test_get_port_target(parent_path, port_name, target_port_path, routine):
     port_parent = routine.find_descendant(parent_path)
     port = port_parent.ports[port_name]
-    assert get_port_target(port).absolute_path() == target_port_path
+    assert get_port_target(port).absolute_path(exclude_root_name=True) == target_port_path

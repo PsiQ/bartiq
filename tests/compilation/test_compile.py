@@ -120,7 +120,7 @@ def test_defined_expression_functions_errors(function, functions_map, expected_e
 
 def test_compiling_correctly_propagates_global_functions():
     routine = Routine(
-        name="",
+        name="root",
         type="dummy",
         resources={"X": {"name": "X", "value": "a.X + b.X + c.X", "type": "other"}},
         children={
