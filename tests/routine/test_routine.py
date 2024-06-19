@@ -86,6 +86,17 @@ class TestFindingRelativePathFromAncestor:
             routine_d.relative_path_from(routine_c)
 
 
+class TestGettingAbsolutePath:
+    def test_gets_absolute_path_with_root_name_by_default(self):
+        child = Routine(name="child", type=None)
+        parent = Routine(name="root", children={"child": child}, type=None)
+
+        assert child.absolute_path() == "root.child"
+        assert child.absolute_path(exclude_root_name=True) == "child"
+        assert parent.absolute_path() == "root"
+        assert parent.absolute_path(exclude_root_name=True) == ""
+
+
 class TestRoutineEquality:
     def _example_routine(self):
         # The reason it is not a fixture is that we need it two times in the same
