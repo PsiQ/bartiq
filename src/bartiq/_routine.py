@@ -338,7 +338,11 @@ class Routine(BaseModel):
                 raise ValueError("Ancestor not found.") from e
 
     def absolute_path(self, exclude_root_name: bool = False) -> str:
-        """Returns a path from root."""
+        """Returns a path from root.
+
+        Args:
+            exclude_root_name: If true, excludes name of root from the path. Default: False
+        """
         if self.parent is None and exclude_root_name:
             return ""
         else:
@@ -393,7 +397,11 @@ class Port(BaseModel):
         return f"{self.__class__.__name__}({parent_name}.#{self.name}, size={size_value}, {self.direction})"
 
     def absolute_path(self, exclude_root_name: bool = False) -> str:
-        """Returns a path from root."""
+        """Returns a path from root.
+
+        Args:
+            exclude_root_name: If true, excludes name of root from the path. Default: False
+        """
         assert self.parent is not None
         if self.parent.absolute_path(exclude_root_name=exclude_root_name) == "":
             return f"#{self.name}"
