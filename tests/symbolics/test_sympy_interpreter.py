@@ -13,58 +13,17 @@ Tests for the sympy interpreter.
 import string
 
 import pytest
-from sympy import (
-    Float,
-    Function,
-    Heaviside,
-    LambertW,
-    Max,
-    Min,
-    Mod,
-    Product,
-    Rational,
-    Sum,
-    Symbol,
-    acos,
-    acosh,
-    acot,
-    acoth,
-    acsc,
-    acsch,
-    asec,
-    asech,
-    asin,
-    asinh,
-    atan,
-    atanh,
-    cbrt,
-    ceiling,
-    cos,
-    cosh,
-    cot,
-    coth,
-    csc,
-    csch,
-    exp,
-    floor,
-    frac,
-    im,
-    log,
-    multiplicity,
-    prod,
-    re,
-    sec,
-    sech,
-    sin,
-    sinh,
-    sqrt,
-    tan,
-    tanh,
-)
+from sympy import (Float, Function, Heaviside, LambertW, Max, Min, Mod,
+                   Product, Rational, Sum, Symbol, acos, acosh, acot, acoth,
+                   acsc, acsch, asec, asech, asin, asinh, atan, atanh, cbrt,
+                   ceiling, cos, cosh, cot, coth, csc, csch, exp, floor, frac,
+                   im, log, multiplicity, prod, re, sec, sech, sin, sinh, sqrt,
+                   tan, tanh)
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, parse_to_sympy
+from bartiq.symbolics.sympy_interpreter import (SPECIAL_PARAMS, Round,
+                                                parse_to_sympy)
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 

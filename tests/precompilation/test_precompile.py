@@ -16,13 +16,11 @@ import pytest
 
 from bartiq._routine import Routine
 from bartiq.precompilation import precompile
-from bartiq.precompilation.stages import (
-    AddPassthroughPlaceholder,
-    BartiqPrecompilationError,
-    add_default_additive_resources,
-    add_default_properties,
-    unroll_wildcarded_resources,
-)
+from bartiq.precompilation.stages import (AddPassthroughPlaceholder,
+                                          BartiqPrecompilationError,
+                                          add_default_additive_resources,
+                                          add_default_properties,
+                                          unroll_wildcarded_resources)
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 

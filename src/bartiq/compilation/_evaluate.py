@@ -22,19 +22,11 @@ from ..routing import get_route
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from ._compile import set_input_port_size_to_constant_value
-from ._symbolic_function import (
-    define_expression_functions,
-    evaluate_function_at,
-    to_symbolic_function,
-    update_routine_with_symbolic_function,
-)
-from ._utilities import (
-    is_non_negative_int,
-    is_number_string,
-    is_single_parameter,
-    parse_value,
-    split_equation,
-)
+from ._symbolic_function import (define_expression_functions,
+                                 evaluate_function_at, to_symbolic_function,
+                                 update_routine_with_symbolic_function)
+from ._utilities import (is_non_negative_int, is_number_string,
+                         is_single_parameter, parse_value, split_equation)
 from .types import NUMBER_TYPES, FunctionsMap, Number
 
 

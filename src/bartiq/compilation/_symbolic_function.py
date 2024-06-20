@@ -25,7 +25,6 @@ from ..symbolics.utilities import infer_subresources
 from ..symbolics.variables import DependentVariable, IndependentVariable
 from ._utilities import is_constant_int, is_single_parameter, split_equation
 from .types import FunctionsMap, Number
-
 # NOTE: there's still a terminology indecision between input/output and independent/dependent.
 # This will perhaps be more intuitive when we move to the "function graph" picture, but for now it will remain, so FYI.
 

@@ -26,7 +26,8 @@ from sympy.core.function import AppliedUndef
 
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
-from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS, parse_to_sympy
+from .sympy_interpreter import (SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS,
+                                parse_to_sympy)
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15

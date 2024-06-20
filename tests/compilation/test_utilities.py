@@ -14,12 +14,9 @@
 
 import pytest
 
-from bartiq.compilation._utilities import (
-    is_constant_int,
-    is_non_negative_int,
-    is_single_parameter,
-    split_equation,
-)
+from bartiq.compilation._utilities import (is_constant_int,
+                                           is_non_negative_int,
+                                           is_single_parameter, split_equation)
 
 
 @pytest.mark.parametrize(

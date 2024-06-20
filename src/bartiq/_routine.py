@@ -21,16 +21,12 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from enum import Enum
-from typing import Annotated, Any, Iterable, Optional, Sequence, TypeVar, Union, cast
+from typing import (Annotated, Any, Iterable, Optional, Sequence, TypeVar,
+                    Union, cast)
 
 from pydantic import BaseModel as _BaseModel
-from pydantic import (
-    BeforeValidator,
-    Field,
-    PlainSerializer,
-    field_serializer,
-    field_validator,
-)
+from pydantic import (BeforeValidator, Field, PlainSerializer,
+                      field_serializer, field_validator)
 from typing_extensions import Self
 
 T = TypeVar("T", bound="Routine")

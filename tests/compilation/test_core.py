@@ -17,13 +17,8 @@ import re
 import pytest
 
 from bartiq.compilation._symbolic_function import (
-    SymbolicFunction,
-    _get_renamed_inputs_and_outputs,
-    _merge_functions,
-    _serialize_variables,
-    compile_functions,
-    rename_variables,
-)
+    SymbolicFunction, _get_renamed_inputs_and_outputs, _merge_functions,
+    _serialize_variables, compile_functions, rename_variables)
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics.variables import DependentVariable, IndependentVariable
 

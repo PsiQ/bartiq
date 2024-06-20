@@ -21,17 +21,13 @@ from ..routing import get_port_source, get_port_target, join_paths
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from ..symbolics.variables import DependentVariable
-from ._symbolic_function import (
-    RoutineWithFunction,
-    SymbolicFunction,
-    compile_functions,
-    define_expression_functions,
-    rename_functions,
-    rename_variables,
-    to_symbolic_function,
-    update_routine_with_symbolic_function,
-)
-from ._utilities import get_children_in_walk_order, is_constant_int, is_single_parameter
+from ._symbolic_function import (RoutineWithFunction, SymbolicFunction,
+                                 compile_functions,
+                                 define_expression_functions, rename_functions,
+                                 rename_variables, to_symbolic_function,
+                                 update_routine_with_symbolic_function)
+from ._utilities import (get_children_in_walk_order, is_constant_int,
+                         is_single_parameter)
 from .types import FunctionsMap, Number
 
 

@@ -16,10 +16,8 @@ import pytest
 
 from bartiq._routine import Routine
 from bartiq.compilation._symbolic_function import (
-    SymbolicFunction,
-    to_symbolic_function,
-    update_routine_with_symbolic_function,
-)
+    SymbolicFunction, to_symbolic_function,
+    update_routine_with_symbolic_function)
 from bartiq.errors import BartiqCompilationError
 
 

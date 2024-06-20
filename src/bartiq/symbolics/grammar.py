@@ -15,21 +15,9 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 
-from pyparsing import (
-    Combine,
-    Forward,
-    Group,
-    Literal,
-    OneOrMore,
-    Opt,
-    ParseResults,
-    StringEnd,
-    StringStart,
-    Suppress,
-    ZeroOrMore,
-    delimited_list,
-    pyparsing_common,
-)
+from pyparsing import (Combine, Forward, Group, Literal, OneOrMore, Opt,
+                       ParseResults, StringEnd, StringStart, Suppress,
+                       ZeroOrMore, delimited_list, pyparsing_common)
 
 WILDCARD_CHARACTER = "~"
 

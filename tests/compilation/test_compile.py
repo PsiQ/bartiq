@@ -20,10 +20,8 @@ import yaml
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
-from bartiq.compilation._symbolic_function import (
-    SymbolicFunction,
-    define_expression_functions,
-)
+from bartiq.compilation._symbolic_function import (SymbolicFunction,
+                                                   define_expression_functions)
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
 
