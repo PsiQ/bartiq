@@ -124,6 +124,7 @@ def parse_value(value_str: str) -> Number:
 
 
 def eval_expression(expr: str) -> Number:
+    """Evaluates a mathematical expression string, ensuring only allowed names are used."""
 
     allowed_names = {**Math_constants, **Math_functions}
 
@@ -138,7 +139,7 @@ def eval_expression(expr: str) -> Number:
 
 
 def evaluate_math_function(func_str: str) -> Number:
-
+    """Parses and evaluates a mathematical function string."""
     match = re.match(r"(\w+)\(([^)]*)\)", func_str)
     if not match:
         raise ValueError(f"Invalid function format: {func_str}")
@@ -150,7 +151,7 @@ def evaluate_math_function(func_str: str) -> Number:
         raise ValueError(f"Function '{func_name}()' accepts only one argument.")
 
     arg_str = arg_str.strip()
-    if arg_str not in Math_constants and not float(arg_str):
+    if arg_str not in Math_constants and not is_number_string(arg_str):
         raise ValueError(f"Invalid argument '{arg_str}' in function '{func_name}()'")
 
     args = parse_value(arg_str)

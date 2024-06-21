@@ -257,7 +257,7 @@ def _evaluate_routine_over_assignment(
     backend: SymbolicBackend[T_expr],
     functions_map: Optional[FunctionsMap] = None,
 ) -> Routine:
-    """Dispatches oeration assignment based upon the assignment type."""
+    """Dispatches operation assignment based upon the assignment type."""
     # First, check that the assignment is to a number
     if not isinstance(assignment.value, NUMBER_TYPES):
         raise BartiqCompilationError(
