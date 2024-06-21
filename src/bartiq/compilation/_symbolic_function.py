@@ -25,6 +25,7 @@ from ..symbolics.utilities import infer_subresources
 from ..symbolics.variables import DependentVariable, IndependentVariable
 from ._utilities import is_constant_int, is_single_parameter, split_equation
 from .types import FunctionsMap, Number
+
 # NOTE: there's still a terminology indecision between input/output and independent/dependent.
 # This will perhaps be more intuitive when we move to the "function graph" picture, but for now it will remain, so FYI.
 
@@ -124,7 +125,9 @@ def _verify_no_repeated_variable_symbols(variables: list[TVar]) -> None:
         raise BartiqCompilationError(f"Variable list contains repeated symbol; found {variables}")
 
 
-def compile_functions(functions: list[SymbolicFunction[T_expr]]) -> SymbolicFunction[T_expr]:
+def compile_functions(
+    functions: list[SymbolicFunction[T_expr]],
+) -> SymbolicFunction[T_expr]:
     """Compiles a series of functions into a single function.
 
     The compiled function is the function produced when function inputs and outputs sharing the same name are

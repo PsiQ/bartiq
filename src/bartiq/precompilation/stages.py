@@ -179,13 +179,24 @@ class AddPassthroughPlaceholder:
                     # as otherwise serializing this using `exclude_unset` will still consider this field
                     # as unset. This is a prime example why mutability might be problematic in hard to predict ways.
                     # routine.children[new_routine.name] = new_routine # <- this causes problems
-                    routine.children = {**routine.children, new_routine.name: new_routine}
+                    routine.children = {
+                        **routine.children,
+                        new_routine.name: new_routine,
+                    }
                 connections_to_remove.append(i)
                 connections_to_add.append(
-                    Connection(source=connection.source, target=new_routine.ports["in_0"], parent=routine)
+                    Connection(
+                        source=connection.source,
+                        target=new_routine.ports["in_0"],
+                        parent=routine,
+                    )
                 )
                 connections_to_add.append(
-                    Connection(source=new_routine.ports["out_0"], target=connection.target, parent=routine)
+                    Connection(
+                        source=new_routine.ports["out_0"],
+                        target=connection.target,
+                        parent=routine,
+                    )
                 )
                 self.index += 1
 

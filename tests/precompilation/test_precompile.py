@@ -16,11 +16,13 @@ import pytest
 
 from bartiq._routine import Routine
 from bartiq.precompilation import precompile
-from bartiq.precompilation.stages import (AddPassthroughPlaceholder,
-                                          BartiqPrecompilationError,
-                                          add_default_additive_resources,
-                                          add_default_properties,
-                                          unroll_wildcarded_resources)
+from bartiq.precompilation.stages import (
+    AddPassthroughPlaceholder,
+    BartiqPrecompilationError,
+    add_default_additive_resources,
+    add_default_properties,
+    unroll_wildcarded_resources,
+)
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -730,7 +732,9 @@ WILDCARD_TEST_CASES = [
 def test_precompile_handles_wildcards(input_dict, expected_resource, backend):
     input_routine = Routine(**input_dict)
     precompiled_routine = precompile(
-        input_routine, precompilation_stages=[unroll_wildcarded_resources], backend=backend
+        input_routine,
+        precompilation_stages=[unroll_wildcarded_resources],
+        backend=backend,
     )
     assert precompiled_routine.resources[expected_resource[0]].value == expected_resource[1]
 

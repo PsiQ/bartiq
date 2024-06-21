@@ -16,16 +16,22 @@ from typing import Callable, Optional
 
 from .. import Routine
 from ..symbolics.backend import SymbolicBackend
-from .stages import (AddPassthroughPlaceholder, add_default_additive_resources,
-                     add_default_properties, propagate_linked_params,
-                     remove_non_root_container_input_register_sizes,
-                     unroll_wildcarded_resources)
+from .stages import (
+    AddPassthroughPlaceholder,
+    add_default_additive_resources,
+    add_default_properties,
+    propagate_linked_params,
+    remove_non_root_container_input_register_sizes,
+    unroll_wildcarded_resources,
+)
 
 PrecompilationStage = Callable[[Routine, SymbolicBackend], None]
 
 
 def precompile(
-    routine: Routine, backend: SymbolicBackend, precompilation_stages: Optional[list[PrecompilationStage]] = None
+    routine: Routine,
+    backend: SymbolicBackend,
+    precompilation_stages: Optional[list[PrecompilationStage]] = None,
 ) -> Routine:
     """A precompilation stage that transforms a routine prior to estimate compilation.
 

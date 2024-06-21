@@ -118,7 +118,8 @@ def parse_value(value_str: str) -> Number:
         return eval_expression(value_str)
     except (SyntaxError, NameError, ZeroDivisionError):
         raise BartiqCompilationError(
-            f"Could not parse value '{value_str}'; values must be integers, floats, recognized constants or math functions."
+            f"Could not parse value '{value_str}'; values must be integers, floats, recognized constants or "
+            f"math functions."
         )
 
 

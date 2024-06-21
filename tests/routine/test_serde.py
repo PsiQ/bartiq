@@ -14,8 +14,14 @@
 
 import pytest
 
-from bartiq._routine import (Connection, Port, PortDirection, Resource,
-                             ResourceType, Routine)
+from bartiq._routine import (
+    Connection,
+    Port,
+    PortDirection,
+    Resource,
+    ResourceType,
+    Routine,
+)
 
 # flake8: noqa
 

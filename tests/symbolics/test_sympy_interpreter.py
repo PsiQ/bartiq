@@ -13,17 +13,58 @@ Tests for the sympy interpreter.
 import string
 
 import pytest
-from sympy import (Float, Function, Heaviside, LambertW, Max, Min, Mod,
-                   Product, Rational, Sum, Symbol, acos, acosh, acot, acoth,
-                   acsc, acsch, asec, asech, asin, asinh, atan, atanh, cbrt,
-                   ceiling, cos, cosh, cot, coth, csc, csch, exp, floor, frac,
-                   im, log, multiplicity, prod, re, sec, sech, sin, sinh, sqrt,
-                   tan, tanh)
+from sympy import (
+    Float,
+    Function,
+    Heaviside,
+    LambertW,
+    Max,
+    Min,
+    Mod,
+    Product,
+    Rational,
+    Sum,
+    Symbol,
+    acos,
+    acosh,
+    acot,
+    acoth,
+    acsc,
+    acsch,
+    asec,
+    asech,
+    asin,
+    asinh,
+    atan,
+    atanh,
+    cbrt,
+    ceiling,
+    cos,
+    cosh,
+    cot,
+    coth,
+    csc,
+    csch,
+    exp,
+    floor,
+    frac,
+    im,
+    log,
+    multiplicity,
+    prod,
+    re,
+    sec,
+    sech,
+    sin,
+    sinh,
+    sqrt,
+    tan,
+    tanh,
+)
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from bartiq.symbolics.sympy_interpreter import (SPECIAL_PARAMS, Round,
-                                                parse_to_sympy)
+from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, parse_to_sympy
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -177,7 +218,10 @@ PARSE_TEST_CASES = [
     # Mmmmmm, three-tiered pi
     ("Pi * pi * PI", Symbol("Pi") * Symbol("pi") * Pi),
     # Ignore subscripts
-    ("N_x + N_y + N_z + N", Symbol("N_x") + Symbol("N_y") + Symbol("N_z") + Symbol("N")),
+    (
+        "N_x + N_y + N_z + N",
+        Symbol("N_x") + Symbol("N_y") + Symbol("N_z") + Symbol("N"),
+    ),
     # Can use all letters of the English and Greek alphabets (with and without path prefixes) as Symbol
     *make_alphabet_test_cases(use="symbol"),
     # Can use all letters of the English and Greek alphabets (with and without path prefixes) as functions
