@@ -121,6 +121,8 @@ def test_converting_qref_v1_object_to_routine_give_correct_output(example_routin
     assert qref_to_bartiq(example_serialized_qref_v1_object) == example_routine
 
 
-def test_conversion_from_bartiq_to_qref_raises_an_error_if_version_is_unsupported(example_routine):
+def test_conversion_from_bartiq_to_qref_raises_an_error_if_version_is_unsupported(
+    example_routine,
+):
     with pytest.raises(ValueError):
         bartiq_to_qref(example_routine, version="v3")

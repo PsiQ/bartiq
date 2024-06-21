@@ -1,0 +1,19 @@
+digraph {
+	graph [fontname=Helvetica rankdir=LR]
+	subgraph "cluster_.my_algorithm" {
+		graph [label=my_algorithm style=rounded]
+		subgraph ".my_algorithm:inputs" {
+			graph [rank=same]
+			".my_algorithm.in" [label=in color="#ffa44a" fontsize=10 shape=circle style=bold]
+		}
+		subgraph ".my_algorithm:outputs" {
+			graph [rank=same]
+			".my_algorithm.out" [label=out color="#ffa44a" fontsize=10 shape=circle style=bold]
+		}
+		".my_algorithm.A" [label="{ {<in> in} | A | {<out> out} }" color="#0288f5" fontsize=12 shape=Mrecord style=bold]
+		".my_algorithm.B" [label="{ {<in> in} | B | {<out> out} }" color="#0288f5" fontsize=12 shape=Mrecord style=bold]
+		".my_algorithm.A":out -> ".my_algorithm.B":in
+		".my_algorithm.B":out -> ".my_algorithm.out"
+		".my_algorithm.in" -> ".my_algorithm.A":in
+	}
+}
