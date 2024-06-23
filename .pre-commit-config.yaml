@@ -22,7 +22,7 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
-        args: ["--profile", "black", "--filter-files", "--check"]
+        args: ['--profile', "black", "--filter-files", "--check"]
 
   - repo: https://github.com/ambv/black
     rev: 24.4.1
@@ -42,10 +42,3 @@ repos:
         stages: [commit-msg]
         args: []
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        name: isort (python)
-        exclude: site-packages/
-        args: [ "--profile", "black" ]
