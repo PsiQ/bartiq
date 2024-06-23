@@ -19,9 +19,11 @@ qref = "0.3.0"
 ipytree = { version = "^0.2.2", optional = true }
 ipywidgets = { version = "^8.1.2", optional = true }
 traitlets = { version = "^5.14.3", optional = true }
+requests = "^2.32.3"
+graphviz = "^0.20.3"
 
 [tool.poetry.extras]
-jupyter = ["ipytree", "ipywidgets", "traitlets","graphviz"]
+jupyter = ["ipytree", "ipywidgets", "traitlets"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
