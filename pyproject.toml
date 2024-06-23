@@ -21,7 +21,7 @@ ipywidgets = { version = "^8.1.2", optional = true }
 traitlets = { version = "^5.14.3", optional = true }
 
 [tool.poetry.extras]
-jupyter = ["ipytree", "ipywidgets", "traitlets"]
+jupyter = ["ipytree", "ipywidgets", "traitlets","graphviz"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
