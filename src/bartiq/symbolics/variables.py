@@ -181,9 +181,7 @@ class DependentVariable(Generic[T_expr]):
         ) in self.expression_functions.items():
             if expression_function_callable:
                 evaluated_expression = self.backend.define_function(
-                    evaluated_expression,
-                    expression_function_name,
-                    expression_function_callable,
+                    evaluated_expression, expression_function_name, expression_function_callable
                 )
 
         return evaluated_expression
@@ -265,11 +263,7 @@ class DependentVariable(Generic[T_expr]):
             else:
                 new_expression_variables[symbol] = IndependentVariable(symbol)
 
-        return replace(
-            self,
-            expression=new_expression,
-            expression_variables=new_expression_variables,
-        )
+        return replace(self, expression=new_expression, expression_variables=new_expression_variables)
 
     def substitute_series(self, substitution_map: dict[str, str | Number]) -> Self:
         """Applies a series of substitutions."""
@@ -290,11 +284,7 @@ class DependentVariable(Generic[T_expr]):
                 **old_expression_functions,
                 new_function: expression_function,
             }
-            return replace(
-                self,
-                expression=new_expression,
-                expression_functions=new_expression_functions,
-            )
+            return replace(self, expression=new_expression, expression_functions=new_expression_functions)
         else:
             return self
 

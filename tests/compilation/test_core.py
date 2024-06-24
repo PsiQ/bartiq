@@ -129,29 +129,13 @@ def test_SymbolicFunction_equality(function_1, function_2, backend):
 
 ERRORS_TEST_CASES = [
     # Output references unknown variables
-    (
-        ([], ["b = a"]),
-        BartiqCompilationError,
-        "Expressions must not contain unknown variables",
-    ),
+    (([], ["b = a"]), BartiqCompilationError, "Expressions must not contain unknown variables"),
     # No duplicate inputs
-    (
-        (["a", "a"], []),
-        BartiqCompilationError,
-        "Variable list contains repeated symbol",
-    ),
+    ((["a", "a"], []), BartiqCompilationError, "Variable list contains repeated symbol"),
     # No duplicate outputs
-    (
-        ([], ["a = 0", "a = 1"]),
-        BartiqCompilationError,
-        "Variable list contains repeated symbol",
-    ),
+    (([], ["a = 0", "a = 1"]), BartiqCompilationError, "Variable list contains repeated symbol"),
     # Outputs cannot share names with inputs
-    (
-        (["a"], ["a = 0"]),
-        BartiqCompilationError,
-        "Outputs must not reuse input symbols",
-    ),
+    ((["a"], ["a = 0"]), BartiqCompilationError, "Outputs must not reuse input symbols"),
 ]
 
 
@@ -443,10 +427,7 @@ RENAME_INPUTS_AND_OUTPUTS_ERRORS_TEST_CASES: list[tuple[tuple, dict, str]] = [
 ]
 
 
-@pytest.mark.parametrize(
-    "function, variable_map, expected_error",
-    RENAME_INPUTS_AND_OUTPUTS_ERRORS_TEST_CASES,
-)
+@pytest.mark.parametrize("function, variable_map, expected_error", RENAME_INPUTS_AND_OUTPUTS_ERRORS_TEST_CASES)
 def test_rename_inputs_and_outputs_errors(function, variable_map, expected_error, backend):
     function = SymbolicFunction.from_str(*function, backend)
 

@@ -218,10 +218,7 @@ PARSE_TEST_CASES = [
     # Mmmmmm, three-tiered pi
     ("Pi * pi * PI", Symbol("Pi") * Symbol("pi") * Pi),
     # Ignore subscripts
-    (
-        "N_x + N_y + N_z + N",
-        Symbol("N_x") + Symbol("N_y") + Symbol("N_z") + Symbol("N"),
-    ),
+    ("N_x + N_y + N_z + N", Symbol("N_x") + Symbol("N_y") + Symbol("N_z") + Symbol("N")),
     # Can use all letters of the English and Greek alphabets (with and without path prefixes) as Symbol
     *make_alphabet_test_cases(use="symbol"),
     # Can use all letters of the English and Greek alphabets (with and without path prefixes) as functions
