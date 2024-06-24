@@ -86,18 +86,12 @@ DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA = [
 ]
 
 
-@pytest.mark.parametrize(
-    "function, functions_map, expected_output_expressions",
-    DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA,
-)
+@pytest.mark.parametrize("function, functions_map, expected_output_expressions", DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA)
 def test_defined_expression_functions(function, functions_map, expected_output_expressions):
     new_function = define_expression_functions(function=function, functions_map=functions_map)
     assert function.inputs == new_function.inputs
     for output_symbol, output_variable in new_function.outputs.items():
-        for (
-            expression_function_name,
-            expression_function_callable,
-        ) in functions_map.items():
+        for expression_function_name, expression_function_callable in functions_map.items():
             assert output_variable.expression_functions[expression_function_name] == expression_function_callable
         new_evaluated_expression = output_variable.evaluated_expression
         assert expected_output_expressions[output_symbol] == new_evaluated_expression
@@ -171,13 +165,7 @@ COMPILE_WITH_ARBITRARY_FUNCTIONS_TEST_CASES = [
                 "b": {
                     "name": "b",
                     "type": "dummy",
-                    "resources": {
-                        "X": {
-                            "name": "X",
-                            "value": "my_f(my_f(1), 4, 5) + 3",
-                            "type": "other",
-                        }
-                    },
+                    "resources": {"X": {"name": "X", "value": "my_f(my_f(1), 4, 5) + 3", "type": "other"}},
                 },
             },
         ),
@@ -209,11 +197,7 @@ COMPILE_WITH_ARBITRARY_FUNCTIONS_TEST_CASES = [
         ),
         {"b.my_f": f_2_conditional},
         [],
-        [
-            (None, "X", "2*N + b.my_f(N) + 3"),
-            ("a", "X", "2*N"),
-            ("b", "X", "b.my_f(N) + 3"),
-        ],
+        [(None, "X", "2*N + b.my_f(N) + 3"), ("a", "X", "2*N"), ("b", "X", "b.my_f(N) + 3")],
     ),
     (
         Routine(
@@ -283,13 +267,7 @@ COMPILE_ERRORS_TEST_CASES = [
                         "b": {
                             "name": "b",
                             "type": "dummy",
-                            "ports": {
-                                "in_0": {
-                                    "name": "in_0",
-                                    "direction": "input",
-                                    "size": None,
-                                }
-                            },
+                            "ports": {"in_0": {"name": "in_0", "direction": "input", "size": None}},
                         }
                     },
                     "connections": [{"source": "in_0", "target": "b.in_0"}],
@@ -344,13 +322,7 @@ COMPILE_ERRORS_TEST_CASES = [
                     "name": "a",
                     "type": "dummy",
                     "input_params": ["M", "N"],
-                    "ports": {
-                        "out_foo": {
-                            "name": "out_foo",
-                            "direction": "output",
-                            "size": "M + N",
-                        }
-                    },
+                    "ports": {"out_foo": {"name": "out_foo", "direction": "output", "size": "M + N"}},
                 },
                 "b": {
                     "name": "b",
@@ -383,11 +355,7 @@ COMPILE_ERRORS_TEST_CASES = [
                     "name": "c",
                     "type": "dummy",
                     "ports": {
-                        "out_0": {
-                            "name": "out_0",
-                            "direction": "output",
-                            "size": "2*N",
-                        },
+                        "out_0": {"name": "out_0", "direction": "output", "size": "2*N"},
                         "in_0": {"name": "in_0", "direction": "input", "size": "N"},
                         "in_1": {"name": "in_1", "direction": "input", "size": "N"},
                     },

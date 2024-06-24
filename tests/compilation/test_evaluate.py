@@ -42,11 +42,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     [
         (routine_with_passthrough(), ["N=10"], {"out_0": "10"}),
         (routine_with_passthrough(a_out_size="N+2"), ["N=10"], {"out_0": "12"}),
-        (
-            routine_with_two_passthroughs(),
-            ["N=10", "M=7"],
-            {"out_0": "10", "out_1": "7"},
-        ),
+        (routine_with_two_passthroughs(), ["N=10", "M=7"], {"out_0": "10", "out_1": "7"}),
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
@@ -78,10 +74,7 @@ def custom_function(a, b):
                             "X": {
                                 "name": "X",
                                 "type": "other",
-                                "value": {
-                                    "type": "str",
-                                    "value": "2*N + a.unknown_fun(1)",
-                                },
+                                "value": {"type": "str", "value": "2*N + a.unknown_fun(1)"},
                             }
                         },
                         "input_params": ["N"],
@@ -124,10 +117,7 @@ def custom_function(a, b):
                             "X": {
                                 "name": "X",
                                 "type": "other",
-                                "value": {
-                                    "type": "str",
-                                    "value": "a.unknown_fun(1) + 10",
-                                },
+                                "value": {"type": "str", "value": "a.unknown_fun(1) + 10"},
                             }
                         },
                     },
