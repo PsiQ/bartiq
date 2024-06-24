@@ -27,7 +27,7 @@ from bartiq.integrations import qref_to_bartiq
 with open("alias_sampling_basic.json", "r") as f:
     routine_dict = json.load(f)
 
-uncompiled_routine = qref_to_bartiq(routine_dict)[evaluate_test_data.yaml](..%2Ftests%2Fcompilation%2Fdata%2Fevaluate_test_data.yaml)
+uncompiled_routine = qref_to_bartiq(routine_dict)
 compiled_routine = compile_routine(uncompiled_routine)
 
 assignments = ["L=100", "mu=10"]
