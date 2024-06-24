@@ -88,7 +88,11 @@ def _nested_routine():
                         type=None,
                         ports={
                             "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                            "out_0": {"name": "out_0", "direction": "output", "size": "N"},
+                            "out_0": {
+                                "name": "out_0",
+                                "direction": "output",
+                                "size": "N",
+                            },
                         },
                     ),
                 },
@@ -110,7 +114,11 @@ def _nested_routine():
                         type=None,
                         ports={
                             "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                            "out_0": {"name": "out_0", "direction": "output", "size": "N"},
+                            "out_0": {
+                                "name": "out_0",
+                                "direction": "output",
+                                "size": "N",
+                            },
                         },
                     ),
                 },

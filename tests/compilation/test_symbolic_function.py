@@ -54,7 +54,10 @@ TO_SYMBOLIC_FUNCTION_TEST_CASES = [
     (_make_routine(), ([], [])),
     # Simple case with no register sizes
     (
-        _make_routine(input_params=["a", "b"], resources=_dummy_resources(["x = a + b", "y = a - b"])),
+        _make_routine(
+            input_params=["a", "b"],
+            resources=_dummy_resources(["x = a + b", "y = a - b"]),
+        ),
         (["a", "b"], ["x = a + b", "y = a - b"]),
     ),
     # No register sizes, but including local parameters
@@ -110,12 +113,31 @@ TO_SYMBOLIC_FUNCTION_TEST_CASES = [
     (
         _make_routine(
             ports={
-                **_ports_from_reg_sizes({"0": "A", "1": "A", "2": "B", "3": "C", "4": "B", "5": "A", "6": "C"}, "in"),
+                **_ports_from_reg_sizes(
+                    {
+                        "0": "A",
+                        "1": "A",
+                        "2": "B",
+                        "3": "C",
+                        "4": "B",
+                        "5": "A",
+                        "6": "C",
+                    },
+                    "in",
+                ),
                 **_ports_from_reg_sizes({"0": "A + B + 2*C"}, "out"),
             }
         ),
         (
-            ["#in_0.A", "#in_1.A", "#in_2.B", "#in_3.C", "#in_4.B", "#in_5.A", "#in_6.C"],
+            [
+                "#in_0.A",
+                "#in_1.A",
+                "#in_2.B",
+                "#in_3.C",
+                "#in_4.B",
+                "#in_5.A",
+                "#in_6.C",
+            ],
             ["#out_0 = #in_0.A + #in_2.B + 2*#in_3.C"],
         ),
     ),
@@ -348,7 +370,10 @@ UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES = [
                 **_ports_from_reg_sizes({"0": None}, "out"),
             },
         ),
-        (["x", "y", "#in_0.z"], ["a = x + y", "b = x - y - #in_0.z", "#out_0 = x * y * #in_0.z"]),
+        (
+            ["x", "y", "#in_0.z"],
+            ["a = x + y", "b = x - y - #in_0.z", "#out_0 = x * y * #in_0.z"],
+        ),
         _make_routine(
             input_params=["x", "y"],
             ports={
@@ -383,7 +408,10 @@ UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES = [
 ]
 
 
-@pytest.mark.parametrize("routine, function, expected_routine", UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES)
+@pytest.mark.parametrize(
+    "routine, function, expected_routine",
+    UPDATE_ROUTINE_WITH_SYMBOLIC_FUNCTION_TEST_CASES,
+)
 def test_update_routine_with_symbolic_function(routine, function, expected_routine, backend):
     function = SymbolicFunction.from_str(*function, backend)
 

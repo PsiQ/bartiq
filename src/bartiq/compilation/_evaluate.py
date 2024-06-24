@@ -61,7 +61,12 @@ RegisterSizeAssignmentMap = dict[str, list[_RegisterSizeAssignment]]
 
 
 @overload
-def evaluate(routine: Routine, assignments: list[str], *, functions_map: Optional[FunctionsMap] = None) -> Routine:
+def evaluate(
+    routine: Routine,
+    assignments: list[str],
+    *,
+    functions_map: Optional[FunctionsMap] = None,
+) -> Routine:
     pass  # pragma: no cover
 
 
@@ -89,7 +94,12 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
     Returns:
         A new estimate with variables assigned to the desired values.
     """
-    return _evaluate(routine=routine, assignments=assignments, backend=backend, functions_map=functions_map)
+    return _evaluate(
+        routine=routine,
+        assignments=assignments,
+        backend=backend,
+        functions_map=functions_map,
+    )
 
 
 def _evaluate(
@@ -187,7 +197,10 @@ def _evaluate_over_assignment(
         routine_downstream_register_size_assignments = _propagate_forward_constant_output_register_sizes(
             evaluated_routine
         )
-        for path, downstream_assignments in routine_downstream_register_size_assignments.items():
+        for (
+            path,
+            downstream_assignments,
+        ) in routine_downstream_register_size_assignments.items():
             register_sizes[path].extend(downstream_assignments)
 
     assert not register_sizes, f"Shouldn't have any more register sizes left to evaluate; found {register_sizes}"

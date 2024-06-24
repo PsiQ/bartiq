@@ -29,7 +29,9 @@ PrecompilationStage = Callable[[Routine, SymbolicBackend], None]
 
 
 def precompile(
-    routine: Routine, backend: SymbolicBackend, precompilation_stages: Optional[list[PrecompilationStage]] = None
+    routine: Routine,
+    backend: SymbolicBackend,
+    precompilation_stages: Optional[list[PrecompilationStage]] = None,
 ) -> Routine:
     """A precompilation stage that transforms a routine prior to estimate compilation.
 
