@@ -76,7 +76,7 @@ LATEX_TEST_CASES = [
         Routine(
             name="root",
             ports={
-                "0": {"name": "0", "size": "a", "direction": "input"},
+                "in_0": {"name": "in_0", "size": "a", "direction": "input"},
                 "b": {"name": "b", "size": "b", "direction": "input"},
             },
         ),
@@ -84,7 +84,7 @@ LATEX_TEST_CASES = [
         r"""
 &\text{Routine \textrm{(root)}}\newline
 &\underline{\text{Input ports:}}\\
-&\text{0} = a\\
+&\text{in\_0} = a\\
 &\text{b} = b
 """,
     ),
@@ -113,7 +113,7 @@ LATEX_TEST_CASES = [
         Routine(
             name="root",
             ports={
-                "0": {"name": "0", "size": "2", "direction": "output"},
+                "in_0": {"name": "in_0", "size": "2", "direction": "output"},
                 "b": {"name": "b", "size": "3", "direction": "output"},
             },
         ),
@@ -121,7 +121,7 @@ LATEX_TEST_CASES = [
         r"""
 &\text{Routine \textrm{(root)}}\newline
 &\underline{\text{Output ports:}}\\
-&\text{0} = 2\\
+&\text{in\_0} = 2\\
 &\text{b} = 3
 """,
     ),

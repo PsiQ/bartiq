@@ -18,7 +18,7 @@ from bartiq._routine import Routine
 def routine_with_passthrough(a_out_size="N"):
     """Routine with a passthrough, used for testing."""
     return Routine(
-        name="",
+        name="root",
         input_params=["N"],
         ports={
             "in_0": {"name": "in_0", "direction": "input", "size": "N"},
@@ -65,7 +65,7 @@ def routine_with_passthrough(a_out_size="N"):
 def routine_with_two_passthroughs():
     """Routine with a two passthroughs, used for testing."""
     return Routine(
-        name="",
+        name="root",
         type=None,
         input_params=["N"],
         ports={

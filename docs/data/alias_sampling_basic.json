@@ -348,7 +348,6 @@
             {
                 "source": "mu",
                 "targets": [
-                    "had.mu",
                     "qrom.mu",
                     "compare.mu"
                 ]
