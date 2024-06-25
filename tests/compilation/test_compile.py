@@ -38,6 +38,7 @@ def load_compile_test_data():
 COMPILE_TEST_DATA = load_compile_test_data()
 
 
+@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile(routine, expected_routine):
     compiled_routine = compile_routine(routine)
@@ -375,4 +376,4 @@ COMPILE_ERRORS_TEST_CASES = [
 @pytest.mark.parametrize("routine, expected_error", COMPILE_ERRORS_TEST_CASES)
 def test_compile_errors(routine, expected_error):
     with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
-        compile_routine(routine, precompilation_stages=[])
+        compile_routine(routine, precompilation_stages=[], skip_verification=True)
