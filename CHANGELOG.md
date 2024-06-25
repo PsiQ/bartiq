@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/PsiQ/bartiq/compare/v0.2.0...v0.3.0) (2024-06-25)
+
+
+### Features
+
+* Custom repr for connection and port ([#54](https://github.com/PsiQ/bartiq/issues/54)) ([ee5b6e7](https://github.com/PsiQ/bartiq/commit/ee5b6e7a0c50d73d4fe4d28d33ffe0f0bcefcb58))
+* routine verification ([#76](https://github.com/PsiQ/bartiq/issues/76)) ([cd1940d](https://github.com/PsiQ/bartiq/commit/cd1940d42c881b3eed406efdc1f9d89b6574cbea))
+* Streamline parameter linkage ([#65](https://github.com/PsiQ/bartiq/issues/65)) ([8645d90](https://github.com/PsiQ/bartiq/commit/8645d9004c96abaa933f34611aef31daa6c950cd))
+
+
+### Bug Fixes
+
+* don't add children costs during compilation ([#68](https://github.com/PsiQ/bartiq/issues/68)) ([1ad361f](https://github.com/PsiQ/bartiq/commit/1ad361f0a95172b56d40ab3b0f1cfcbbfa08ac14))
+* handling root name ([#69](https://github.com/PsiQ/bartiq/issues/69)) ([ce1f504](https://github.com/PsiQ/bartiq/commit/ce1f5049542b2deb15f26c04ad43212dc40285f8))
+
 ## [0.2.0](https://github.com/PsiQ/bartiq/compare/0.1.2...v0.2.0) (2024-06-04)
 
 
