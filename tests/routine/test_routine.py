@@ -20,18 +20,18 @@ from bartiq._routine import Routine
 class TestFindingChildren:
     def test_selector_without_dot_finds_direct_child(self):
         routine_a = Routine(name="a", type=None, children={"b": Routine(name="b", type=None)})
-        root = Routine(name="", children={"a": routine_a}, type=None)
+        root = Routine(name="root", children={"a": routine_a}, type=None)
 
         assert root.find_descendant("a") is routine_a
 
     def test_empty_selector_finds_self(self):
-        root = Routine(name="", type=None)
+        root = Routine(name="root", type=None)
         assert root.find_descendant("") is root
 
     def test_selector_with_dot_finds_grand_child(self):
         routine_b = Routine(name="b", type=None)
         root = Routine(
-            name="",
+            name="root",
             children={"a": Routine(name="a", type=None, children={"b": routine_b})},
             type=None,
         )
@@ -41,7 +41,7 @@ class TestFindingChildren:
     @pytest.mark.parametrize("selector", ["ddd", "a.ddd"], ids=["Missing child", "Missing grand child"])
     def test_attempt_to_find_nonexisting_child_raises_value_error_containing_selector(self, selector: str):
         root = Routine(
-            name="",
+            name="root",
             children={"a": Routine(name="a", type=None, children={"b": Routine(name="b", type=None)})},
             type=None,
         )
@@ -54,14 +54,14 @@ class TestFindingChildren:
 class TestFindingRelativePathFromAncestor:
     def test_can_find_correct_path_from_direct_parent(self):
         child = Routine(name="child", type=None)
-        parent = Routine(name="", children={"child": child}, type=None)
+        parent = Routine(name="parent", children={"child": child}, type=None)
 
         assert child.relative_path_from(parent) == "child"
 
     def test_can_find_correct_path_from_grand_parent(self):
         grand_child = Routine(name="a", type=None)
         root = Routine(
-            name="",
+            name="root",
             type=None,
             children={"b": Routine(name="b", type=None, children={"a": grand_child})},
         )
@@ -104,22 +104,22 @@ class TestRoutineEquality:
         return Routine(
             name="a",
             type=None,
-            ports={"in.0": {"name": "in.0", "direction": "input", "size": "N"}},
+            ports={"in_0": {"name": "in_0", "direction": "input", "size": "N"}},
             children={
                 "child_1": Routine(
                     name="child_1",
                     type="childtype",
                     ports={
-                        "in.0": {"name": "in.0", "direction": "input", "size": "N-2"},
-                        "out.0": {"name": "in.1", "direction": "output", "size": "N-2"},
+                        "in_0": {"name": "in_0", "direction": "input", "size": "N-2"},
+                        "out_0": {"name": "out_0", "direction": "output", "size": "N-2"},
                     },
                 ),
                 "child_2": Routine(
                     name="child_2",
                     type="childtype",
                     ports={
-                        "in.0": {"name": "in.0", "direction": "input", "size": 2},
-                        "out.0": {"name": "in.1", "direction": "output", "size": 2},
+                        "in_0": {"name": "in_0", "direction": "input", "size": 2},
+                        "out_0": {"name": "out_0", "direction": "output", "size": 2},
                     },
                 ),
             },

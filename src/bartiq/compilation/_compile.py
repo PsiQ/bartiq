@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from typing import Any, Optional, cast, overload
 
 from .. import Port, Routine
@@ -21,6 +22,7 @@ from ..routing import get_port_source, get_port_target, join_paths
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from ..symbolics.variables import DependentVariable
+from ..verification import verify_compiled_routine, verify_uncompiled_routine
 from ._symbolic_function import (
     RoutineWithFunction,
     SymbolicFunction,
@@ -42,6 +44,7 @@ def compile_routine(
     precompilation_stages: Optional[list[PrecompilationStage]] = None,
     global_functions: Optional[list[str]] = None,
     functions_map: Optional[FunctionsMap] = None,
+    skip_verification: bool = False,
 ) -> Routine:
     pass  # pragma: no cover
 
@@ -54,6 +57,7 @@ def compile_routine(
     precompilation_stages: Optional[list[PrecompilationStage]] = None,
     global_functions: Optional[list[str]] = None,
     functions_map: Optional[FunctionsMap] = None,
+    skip_verification: bool = False,
 ) -> Routine:
     pass  # pragma: no cover
 
@@ -65,6 +69,7 @@ def compile_routine(
     precompilation_stages=None,
     global_functions=None,
     functions_map=None,
+    skip_verification: bool = False,
 ):
     """Compile estimates for given uncompiled Routine.
 
@@ -76,8 +81,9 @@ def compile_routine(
             default precompilation stages are used.
         global_functions: functions in the cost expressions which we don't want to have namespaced.
         functions_map: a dictionary which specifies non-standard functions which need to applied during compilation.
+        skip_verification: if True, skips routine verification before and after compilation.
     """
-    return _compile_routine(routine, backend, precompilation_stages, global_functions, functions_map)
+    return _compile_routine(routine, backend, precompilation_stages, global_functions, functions_map, skip_verification)
 
 
 def _compile_routine(
@@ -86,8 +92,16 @@ def _compile_routine(
     precompilation_stages: Optional[list[PrecompilationStage]] = None,
     global_functions: Optional[list[str]] = None,
     functions_map: Optional[FunctionsMap] = None,
+    skip_verification: bool = False,
 ):
     precompile(routine, precompilation_stages=precompilation_stages, backend=backend)
+    if not skip_verification:
+        verification_result = verify_uncompiled_routine(routine, backend=backend)
+        if not verification_result:
+            problems = [problem + "\n" for problem in verification_result.problems]
+            raise BartiqCompilationError(
+                f"Found the following issues with the provided routine before the compilation started: {problems}",
+            )
 
     # NOTE: This step must be completed BEFORE we start to compile the functions, as parents must be allowed to
     # update their childrens' functions (to support parameter inheritance).
@@ -97,6 +111,15 @@ def _compile_routine(
 
     compiled_routine = compiled_routine_with_funcs.to_routine()
     compiled_routine = _remove_children_costs(compiled_routine)
+    if not skip_verification:
+        verification_result = verify_compiled_routine(compiled_routine, backend=backend)
+        if not verification_result:
+            warnings.warn(
+                "Found the following issues with the provided routine after the compilation has finished:"
+                f" {verification_result.problems}",
+            )
+        # if len(verification_result.problems) != 0:
+        #     breakpoint()
     return compiled_routine
 
 
