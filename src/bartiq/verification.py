@@ -52,6 +52,7 @@ def verify_uncompiled_routine(routine: Routine, backend: SymbolicBackend) -> Ver
     """Verifies whether an uncompiled routine has correct format.
 
     This function checks:
+
     - routine's topology
     - whether parameter linking is correct
     - if all the expressions in the routine can be parsed by a provided backend
@@ -59,6 +60,9 @@ def verify_uncompiled_routine(routine: Routine, backend: SymbolicBackend) -> Ver
     Args:
         routine: Routine to be verified.
         backend: Backend used for verification
+
+    Returns:
+        verified stuff
     """
     topology_verification_output = verify_routine_topology(routine)
     parameter_linking_problems = _verify_parameter_linking(routine)
@@ -124,6 +128,7 @@ def verify_compiled_routine(routine: Routine, backend: SymbolicBackend) -> Verif
     """Verifies whether a compiled routine has correct format.
 
     This function checks:
+
     - routine's topology
     - if all the expression contain only parameters defined at the top level
     - if all the linked_params are empty
