@@ -119,7 +119,20 @@ def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignm
     # Sort the assignments based on whether they refer to register size variables or not
     parsed_assignments: list[Assignment] = []
     for variable, value_str in assignment_map.items():
-        value = parse_value(value_str)
+        try:
+            value = parse_value(value_str)
+        except BartiqCompilationError:
+            # str to expression
+            expression = sympy_backend.as_expression(value_str)
+            expression = sympy_backend.parse_constant(expression)
+            # expression to value
+
+            result = sympy_backend.value_of(expression)
+            if result is not None:
+                value = result
+            else:
+                raise ValueError("Expected an int or float, but got None")
+
         if variable in routine.input_params or variable in size_to_registers_map:
             if variable in routine.input_params:
                 parsed_assignments.append(_VariableAssignment(variable, value))
@@ -244,7 +257,7 @@ def _evaluate_routine_over_assignment(
     backend: SymbolicBackend[T_expr],
     functions_map: Optional[FunctionsMap] = None,
 ) -> Routine:
-    """Dispatches oeration assignment based upon the assignment type."""
+    """Dispatches operation assignment based upon the assignment type."""
     # First, check that the assignment is to a number
     if not isinstance(assignment.value, NUMBER_TYPES):
         raise BartiqCompilationError(
