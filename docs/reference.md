@@ -11,3 +11,5 @@
 ::: bartiq.errors
 
 ::: bartiq.integrations
+
+::: bartiq.verification

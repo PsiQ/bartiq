@@ -31,6 +31,7 @@ def load_evaluate_test_data():
 EVALUTE_TEST_CASES = load_evaluate_test_data()
 
 
+@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("input_dict, assignments, expected_dict", EVALUTE_TEST_CASES)
 def test_evaluate(input_dict, assignments, expected_dict, backend):
     evaluated_routine = evaluate(Routine(**input_dict), assignments, backend=backend)
@@ -68,7 +69,7 @@ def custom_function(a, b):
     [
         (
             {
-                "name": "",
+                "name": "root",
                 "type": "foo",
                 "children": {
                     "a": {
@@ -114,7 +115,7 @@ def custom_function(a, b):
             ["N = 5"],
             {"b.my_f": custom_function},
             {
-                "name": "",
+                "name": "root",
                 "type": "foo",
                 "children": {
                     "a": {

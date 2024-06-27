@@ -33,7 +33,7 @@ PRECOMP_TEST_CASES = [
     # - Removing input register size for non-root containers
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "ports": {
                 "in_0": {
@@ -103,7 +103,7 @@ PRECOMP_TEST_CASES = [
         },
         None,
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "ports": {
                 "in_0": {
@@ -167,7 +167,7 @@ PRECOMP_TEST_CASES = [
     # Insert default register sizes for merge
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "ports": {
                 "in_0": {
@@ -237,7 +237,7 @@ PRECOMP_TEST_CASES = [
         },
         [add_default_properties],
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "ports": {
                 "in_0": {
@@ -309,7 +309,7 @@ PRECOMP_TEST_CASES = [
     # Checks if default additive resources are being added correctly
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "a": {
@@ -360,7 +360,7 @@ PRECOMP_TEST_CASES = [
         },
         [add_default_additive_resources],
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "a": {
@@ -433,7 +433,7 @@ def test_precompile_adds_additive_resources(input_dict, precompilation_stages, e
 WILDCARD_TEST_CASES = [
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_1": {
@@ -482,7 +482,7 @@ WILDCARD_TEST_CASES = [
     ),
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_1": {
@@ -531,7 +531,7 @@ WILDCARD_TEST_CASES = [
     ),
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_T1": {
@@ -591,7 +591,7 @@ WILDCARD_TEST_CASES = [
     ),
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_T1": {
@@ -629,7 +629,7 @@ WILDCARD_TEST_CASES = [
     ),
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_T1": {
@@ -678,7 +678,7 @@ WILDCARD_TEST_CASES = [
     ),
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_T1": {
@@ -805,7 +805,7 @@ def test_precompile_raises_correct_exceptions(input_dict, failure_message, backe
 KNOWN_BUGGY_WILDCARD_CASES = [
     (
         {
-            "name": "",
+            "name": "root",
             "type": None,
             "children": {
                 "rot_T1": {

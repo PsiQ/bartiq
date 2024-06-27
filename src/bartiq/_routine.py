@@ -28,9 +28,11 @@ from pydantic import (
     BeforeValidator,
     Field,
     PlainSerializer,
+    StringConstraints,
     field_serializer,
     field_validator,
 )
+from qref.schema_v1 import NAME_PATTERN
 from typing_extensions import Self
 
 T = TypeVar("T", bound="Routine")
@@ -44,6 +46,7 @@ TYPE_LOOKUP = {
 
 Value = Union[int, float, str]
 Symbol = str
+_Name = Annotated[str, StringConstraints(pattern=rf"^{NAME_PATTERN}$")]
 
 
 class ResourceType(str, Enum):
@@ -210,7 +213,7 @@ class Routine(BaseModel):
         meta: Addictional free-form information associated with this routine.
     """
 
-    name: str
+    name: _Name
     type: Optional[str] = None
     ports: dict[str, Port] = Field(default_factory=dict)
     parent: Optional[Self] = Field(exclude=True, default=None)
@@ -372,7 +375,7 @@ class Resource(BaseModel):
         value: Value of the resources, either concrete one or a variable.
     """
 
-    name: str
+    name: _Name
     type: ResourceType
     parent: Optional[Routine] = Field(exclude=True, default=None)
     value: AnnotatedValue
@@ -393,7 +396,7 @@ class Port(BaseModel):
         meta: Additional free-form data associated with this port.
     """
 
-    name: str
+    name: _Name
     parent: Optional[Routine] = Field(exclude=True, default=None)
     direction: PortDirection
     size: Optional[AnnotatedValue]
