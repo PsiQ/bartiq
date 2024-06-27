@@ -98,7 +98,7 @@ def value_of(expr: T_expr) -> Optional[Number]:
 
     if int(value) == value:
         value = int(value)
-    else:
+    elif value is not None:
         value = float(value)
 
     return value
