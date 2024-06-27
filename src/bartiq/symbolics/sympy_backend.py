@@ -21,10 +21,10 @@ from __future__ import annotations
 from functools import singledispatch
 from typing import Callable, Iterable, Optional, Union
 
-from sympy import Expr, Function, N, Order, symbols, sympify
+from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
 
-from ..compilation.types import Number
+from ..compilation.types import Math_constants, Number
 from ..errors import BartiqCompilationError
 from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS, parse_to_sympy
 from .sympy_serializer import serialize_expression
@@ -34,7 +34,6 @@ NUM_DIGITS_PRECISION = 15
 SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
-
 
 T_expr = Expr
 
@@ -52,6 +51,16 @@ def _parse(value: str) -> T_expr:
 def as_expression(value: Union[str | int | float]) -> T_expr:
     """Convert numerical or textual value into an expression."""
     return _as_expression(value)
+
+
+def parse_constant(expr: T_expr) -> T_expr:
+    """Parse the expression, replacing known constants while ignoring case."""
+    for symbol_str, constant in Math_constants.items():
+        expr = expr.subs(Symbol(symbol_str.casefold()), constant)
+        expr = expr.subs(Symbol(symbol_str.upper()), constant)
+        expr = expr.replace(Symbol(symbol_str.capitalize()), constant)
+
+    return expr
 
 
 def free_symbols_in(expr: T_expr) -> Iterable[str]:
@@ -86,8 +95,11 @@ def value_of(expr: T_expr) -> Optional[Number]:
             raise e
 
     # Map to integer if possible
+
     if int(value) == value:
         value = int(value)
+    else:
+        value = float(value)
 
     return value
 

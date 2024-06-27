@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import ast
-import re
 from typing import Any, TypeVar
 
 from .. import Routine
 from ..errors import BartiqCompilationError
-from .types import NUMBER_TYPES, Math_constants, Math_functions, Number
+from .types import NUMBER_TYPES, Number
 
 T = TypeVar("T", bound=Routine)
 
@@ -93,69 +92,13 @@ def get_children_in_walk_order(routine: T) -> list[T]:
 
 def parse_value(value_str: str) -> Number:
     """Attempts to parse a single value string, but throws a compilation error if this isn't possible."""
-    value_str = value_str.strip()
-
-    # Check if it is a math constant
-    if value_str in Math_constants:
-        return Math_constants[value_str]
-
-    # Check if it is a numeric value
     try:
         value = ast.literal_eval(value_str)
-        if isinstance(value, NUMBER_TYPES):
-            return value
+        if not isinstance(value, NUMBER_TYPES):
+            raise ValueError
+        return value
     except ValueError:
-        pass
-
-    # Check if it is a mathematical function call
-    try:
-        return evaluate_math_function(value_str)
-    except ValueError:
-        pass
-
-    # Evaluate as a mathematical expression
-    try:
-        return eval_expression(value_str)
-    except (SyntaxError, NameError, ZeroDivisionError):
-        raise BartiqCompilationError(
-            f"Could not parse value '{value_str}'; expected a number, recognized constant (e.g., 'pi', 'e'), or a "
-            f"valid mathematical expression (e.g., 'sin(30)', 'sqrt(4)')."
-        )
-
-
-def eval_expression(expr: str) -> Number:
-    """Evaluates a mathematical expression string, ensuring only allowed names are used."""
-
-    allowed_names = {**Math_constants, **Math_functions}
-
-    # Compile the expression to check for invalid names
-    code = compile(expr, "<string>", "eval")
-    for name in code.co_names:
-        if name not in allowed_names and not is_number_string(name):
-            raise NameError(f"Use of '{name}' not allowed")
-
-    # Evaluate the expression with the allowed names
-    return eval(expr, {"__builtins__": None}, allowed_names)
-
-
-def evaluate_math_function(func_str: str) -> Number:
-    """Parses and evaluates a mathematical function string."""
-    match = re.match(r"(\w+)\(([^)]*)\)", func_str)
-    if not match:
-        raise ValueError(f"Invalid function format: {func_str}")
-
-    func_name, arg_str = match.groups()
-    if func_name not in Math_functions:
-        raise ValueError(f"Unknown function: {func_name}")
-    if "," in arg_str:
-        raise ValueError(f"Function '{func_name}()' accepts only one argument.")
-
-    arg_str = arg_str.strip()
-    if arg_str not in Math_constants and not is_number_string(arg_str):
-        raise ValueError(f"Invalid argument '{arg_str}' in function '{func_name}()'")
-
-    args = parse_value(arg_str)
-    return Math_functions[func_name](args)
+        raise BartiqCompilationError(f"Could not parse value {value_str}; values must be integers or floats.")
 
 
 def split_equation(equation: str) -> tuple[str, str]:

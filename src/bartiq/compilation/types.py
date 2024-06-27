@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-from typing import Callable, Dict, Union
+from typing import Callable, Union
+
+import sympy
 
 # Note: when we drop support for 3.9, we will be able to start
 # using the Number union with isinstance checks, thus eliminating
@@ -22,24 +23,11 @@ NUMBER_TYPES = (int, float)
 Number = Union[int, float]
 
 # Define mathematical constants
-Math_constants: Dict[str, float] = {
-    "pi": math.pi,
-    "e": math.e,
-}
-
-# Define mathematical functions
-Math_functions: Dict[str, Callable[[float], float]] = {
-    "sin": lambda x: math.sin(math.radians(x)),
-    "cos": lambda x: math.cos(math.radians(x)),
-    "tan": lambda x: math.tan(math.radians(x)),
-    "asin": lambda x: math.degrees(math.asin(x)),
-    "acos": lambda x: math.degrees(math.acos(x)),
-    "atan": lambda x: math.degrees(math.atan(x)),
-    "log": math.log,
-    "log10": math.log10,
-    "ln": math.log,
-    "sqrt": math.sqrt,
-    "exp": math.exp,
+Math_constants = {
+    "pi": sympy.pi,
+    "E": sympy.exp(1),
+    "oo": sympy.oo,
+    "infinity": sympy.oo,
 }
 
 FunctionsMap = dict[str, Callable]
