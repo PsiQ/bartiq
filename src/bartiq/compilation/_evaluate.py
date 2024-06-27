@@ -127,10 +127,6 @@ def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignm
             expression = sympy_backend.parse_constant(expression)
             # expression to value
             value = sympy_backend.value_of(expression)
-            if value is not None:
-                pass
-            else:
-                raise ValueError("Expected an int or float, but got None")
 
         if variable in routine.input_params or variable in size_to_registers_map:
             if variable in routine.input_params:

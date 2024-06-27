@@ -58,7 +58,7 @@ def parse_constant(expr: T_expr) -> T_expr:
     for symbol_str, constant in Math_constants.items():
         expr = expr.subs(Symbol(symbol_str.casefold()), constant)
         expr = expr.subs(Symbol(symbol_str.upper()), constant)
-        expr = expr.replace(Symbol(symbol_str.capitalize()), constant)
+        expr = expr.subs(Symbol(symbol_str.capitalize()), constant)
 
     return expr
 
@@ -83,7 +83,7 @@ def reserved_functions() -> Iterable[str]:
 
 
 def value_of(expr: T_expr) -> Optional[Number]:
-    """Compute a numerical value of an expression, return None if it not possible."""
+    """Compute a numerical value of an expression, return None if it's not possible."""
     # If numeric value possible, evaluate, otherwise return None
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
@@ -93,9 +93,7 @@ def value_of(expr: T_expr) -> Optional[Number]:
             return None
         else:
             raise e
-
     # Map to integer if possible
-
     if int(value) == value:
         value = int(value)
     elif value is not None:
