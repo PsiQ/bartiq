@@ -61,7 +61,12 @@ RegisterSizeAssignmentMap = dict[str, list[_RegisterSizeAssignment]]
 
 
 @overload
-def evaluate(routine: Routine, assignments: list[str], *, functions_map: Optional[FunctionsMap] = None) -> Routine:
+def evaluate(
+    routine: Routine,
+    assignments: list[str],
+    *,
+    functions_map: Optional[FunctionsMap] = None,
+) -> Routine:
     pass  # pragma: no cover
 
 
@@ -89,7 +94,12 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
     Returns:
         A new estimate with variables assigned to the desired values.
     """
-    return _evaluate(routine=routine, assignments=assignments, backend=backend, functions_map=functions_map)
+    return _evaluate(
+        routine=routine,
+        assignments=assignments,
+        backend=backend,
+        functions_map=functions_map,
+    )
 
 
 def _evaluate(
@@ -101,14 +111,18 @@ def _evaluate(
 ) -> Routine:
     # We do this to ensure we don't mutate the input object.
     evaluated_routine = Routine(**routine.model_dump())
-    parsed_assignments = _parse_assignments(evaluated_routine, assignments)
+    parsed_assignments = _parse_assignments(evaluated_routine, assignments, backend)
     for parsed_assignment in parsed_assignments:
         _evaluate_over_assignment(evaluated_routine, parsed_assignment, backend, functions_map)
 
     return evaluated_routine
 
 
-def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignment]:
+def _parse_assignments(
+    routine: Routine,
+    assignments: list[str],
+    backend: SymbolicBackend[T_expr],
+) -> list[Assignment]:
     """Splits input register size assignments from input variable assignments."""
     # Parse assignment strings to their variable names and assignment expressions
     assignment_map: dict[str, str] = dict(split_equation(assignment) for assignment in assignments)
@@ -123,11 +137,10 @@ def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignm
             value = parse_value(value_str)
         except BartiqCompilationError:
             # str to expression
-            expression = sympy_backend.as_expression(value_str)
-            expression = sympy_backend.parse_constant(expression)
+            expression = backend.as_expression(value_str)
+            expression = backend.parse_constant(expression)
             # expression to value
-
-            result = sympy_backend.value_of(expression)
+            result = backend.value_of(expression)
             if result is not None:
                 value = result
             else:
@@ -200,7 +213,10 @@ def _evaluate_over_assignment(
         routine_downstream_register_size_assignments = _propagate_forward_constant_output_register_sizes(
             evaluated_routine
         )
-        for path, downstream_assignments in routine_downstream_register_size_assignments.items():
+        for (
+            path,
+            downstream_assignments,
+        ) in routine_downstream_register_size_assignments.items():
             register_sizes[path].extend(downstream_assignments)
 
     assert not register_sizes, f"Shouldn't have any more register sizes left to evaluate; found {register_sizes}"

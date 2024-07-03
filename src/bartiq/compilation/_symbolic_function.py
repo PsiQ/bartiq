@@ -125,7 +125,9 @@ def _verify_no_repeated_variable_symbols(variables: list[TVar]) -> None:
         raise BartiqCompilationError(f"Variable list contains repeated symbol; found {variables}")
 
 
-def compile_functions(functions: list[SymbolicFunction[T_expr]]) -> SymbolicFunction[T_expr]:
+def compile_functions(
+    functions: list[SymbolicFunction[T_expr]],
+) -> SymbolicFunction[T_expr]:
     """Compiles a series of functions into a single function.
 
     The compiled function is the function produced when function inputs and outputs sharing the same name are

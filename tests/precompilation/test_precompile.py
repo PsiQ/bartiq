@@ -732,7 +732,9 @@ WILDCARD_TEST_CASES = [
 def test_precompile_handles_wildcards(input_dict, expected_resource, backend):
     input_routine = Routine(**input_dict)
     precompiled_routine = precompile(
-        input_routine, precompilation_stages=[unroll_wildcarded_resources], backend=backend
+        input_routine,
+        precompilation_stages=[unroll_wildcarded_resources],
+        backend=backend,
     )
     assert precompiled_routine.resources[expected_resource[0]].value == expected_resource[1]
 

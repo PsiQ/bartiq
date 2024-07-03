@@ -99,12 +99,22 @@ def _verify_expressions_parsable(routine: Routine, backend: SymbolicBackend) -> 
     problems = []
     for subroutine in routine.walk():
         resource_problems = [
-            _verify_expression(backend, resource, resource.value, "resource", subroutine.absolute_path())
+            _verify_expression(
+                backend,
+                resource,
+                resource.value,
+                "resource",
+                subroutine.absolute_path(),
+            )
             for resource in subroutine.resources.values()
         ]
         local_variable_problems = [
             _verify_expression(
-                backend, local_variable, local_variable.split("=")[1], "local_variable", subroutine.absolute_path()
+                backend,
+                local_variable,
+                local_variable.split("=")[1],
+                "local_variable",
+                subroutine.absolute_path(),
             )
             for local_variable in subroutine.local_variables
         ]

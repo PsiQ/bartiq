@@ -83,7 +83,14 @@ def compile_routine(
         functions_map: a dictionary which specifies non-standard functions which need to applied during compilation.
         skip_verification: if True, skips routine verification before and after compilation.
     """
-    return _compile_routine(routine, backend, precompilation_stages, global_functions, functions_map, skip_verification)
+    return _compile_routine(
+        routine,
+        backend,
+        precompilation_stages,
+        global_functions,
+        functions_map,
+        skip_verification,
+    )
 
 
 def _compile_routine(

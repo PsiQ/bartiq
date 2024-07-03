@@ -111,7 +111,11 @@ class TestRoutineEquality:
                     type="childtype",
                     ports={
                         "in_0": {"name": "in_0", "direction": "input", "size": "N-2"},
-                        "out_0": {"name": "out_0", "direction": "output", "size": "N-2"},
+                        "out_0": {
+                            "name": "out_0",
+                            "direction": "output",
+                            "size": "N-2",
+                        },
                     },
                 ),
                 "child_2": Routine(
@@ -186,7 +190,10 @@ class TestRoutineWalkRespectsDepthFirstTopologicalOrder:
                 "a": _dummy_routine_dict("a"),
                 "b": {
                     **_dummy_routine_dict("b"),
-                    "children": {"c": _dummy_routine_dict("c"), "d": _dummy_routine_dict("d")},
+                    "children": {
+                        "c": _dummy_routine_dict("c"),
+                        "d": _dummy_routine_dict("d"),
+                    },
                 },
             },
         )
@@ -220,7 +227,9 @@ class TestRoutineWalkRespectsDepthFirstTopologicalOrder:
 
         assert visited_names == ["d", "c", "a", "b", "root"]
 
-    def test_each_chain_of_linearly_connected_children_is_enumerated_in_topological_order(self):
+    def test_each_chain_of_linearly_connected_children_is_enumerated_in_topological_order(
+        self,
+    ):
         root = Routine(
             **_dummy_routine_dict("root"),
             children={name: _dummy_routine_dict(name) for name in ("a", "b", "c", "d")},
@@ -320,7 +329,11 @@ class TestRoutineWalkRespectsDepthFirstTopologicalOrder:
                         "ports": {
                             "in_0": {"name": "in_0", "direction": "input", "size": 1},
                             "in_1": {"name": "in_1", "direction": "input", "size": 1},
-                            "out_0": {"name": "out_0", "direction": "output", "size": 1},
+                            "out_0": {
+                                "name": "out_0",
+                                "direction": "output",
+                                "size": 1,
+                            },
                         },
                     }
                 },

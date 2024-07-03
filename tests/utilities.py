@@ -30,7 +30,11 @@ def routine_with_passthrough(a_out_size="N"):
                 type=None,
                 ports={
                     "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                    "out_0": {"name": "out_0", "direction": "output", "size": f"{a_out_size}"},
+                    "out_0": {
+                        "name": "out_0",
+                        "direction": "output",
+                        "size": f"{a_out_size}",
+                    },
                 },
             ),
             "b": Routine(
