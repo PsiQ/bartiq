@@ -128,10 +128,7 @@ def test_split_equation(equation, expected_lhs, expected_rhs):
         # No equals
         ("foo", "Equations must contain a single equals sign; found foo"),
         # Too many equals
-        (
-            "foo=bar=baz",
-            "Equations must contain a single equals sign; found foo=bar=baz",
-        ),
+        ("foo=bar=baz", "Equations must contain a single equals sign; found foo=bar=baz"),
         # Bad LHS
         ("=a", "Equations must have both a left- and right-hand side; found =a"),
         # Bad RHS
