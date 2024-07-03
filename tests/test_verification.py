@@ -60,7 +60,7 @@ def test_verify_uncompiled_routine(routine):
                 name="root",
                 input_params=["N"],
                 resources={"X": {"name": "X", "value": "a +", "type": "other"}},
-                local_variables=["X=a*"],
+                local_variables={"X": "a*"},
                 ports={"in_0": {"name": "in_0", "direction": "input", "size": "#"}},
                 type=None,
             ),

@@ -86,8 +86,8 @@ class SymbolicFunction(Generic[T_expr]):
     # def from_str(cls: Type[T], ...) -> T[T_expr]
     # But TypeVars cannot have arguments.
     @classmethod
-    def from_str(
-        cls, inputs: list[str], outputs: list[str], backend: SymbolicBackend[T_expr]
+    def assemble(
+        cls, inputs: list[str], outputs: dict[str, str], backend: SymbolicBackend[T_expr]
     ) -> SymbolicFunction[T_expr]:
         """Creates a SymbolicFunction instance from lists of easy-to-write strings.
 
@@ -100,9 +100,12 @@ class SymbolicFunction(Generic[T_expr]):
         """
         return cls(_parse_input_expressions(inputs), parse_output_expressions(outputs, backend))
 
-    def to_str(self) -> tuple[list[str], list[str]]:
+    def to_str(self) -> tuple[list[str], dict[str, str]]:
         """Serialises the SymbolicFunction to a string (in the format required by ``from_str``)."""
-        return (_serialize_variables(self.inputs), _serialize_variables(self.outputs))
+        return (
+            [var.symbol for var in self.inputs.values()],
+            {var.symbol: str(var.expression) for var in self.outputs.values()},
+        )
 
     def __repr__(self) -> str:
         inputs = list(self._inputs.values())
@@ -160,7 +163,7 @@ def parse_output_expressions(
     output_expressions: list[str], backend: SymbolicBackend[T_expr]
 ) -> list[DependentVariable[T_expr]]:
     """Parses a list of output expressions to a dictionary mapping output symbols to their expressions."""
-    return [parse_output_expression(output_expression, backend) for output_expression in output_expressions]
+    return [DependentVariable(key, backend.as_expression(value), backend) for key, value in output_expressions.items()]
 
 
 def parse_output_expression(output_expression: str, backend: SymbolicBackend[T_expr]) -> DependentVariable[T_expr]:
@@ -569,7 +572,7 @@ def _make_cost_variables(
     """Compiles a cost variable, taking into account any local parameters."""
     # This allows users to reuse costs in subsequent expressions.
     known_params = {local_param.symbol: local_param for local_param in local_params}
-    costs = _resources_to_cost_expressions(resources)
+    costs = {resource.name: resource.value for resource in resources}
     new_cost_variables = []
     for old_output_variable in parse_output_expressions(costs, backend):
         # Substitute any local parameters
@@ -587,13 +590,6 @@ def _make_cost_variables(
     return new_cost_variables
 
 
-def _resources_to_cost_expressions(resources: list[Resource]) -> list[str]:
-    expressions = []
-    for resource in resources:
-        expressions.append(f"{resource.name} = {resource.value}")
-    return expressions
-
-
 def _make_output_register_size_variables(
     output_ports: dict[str, Port],
     local_params: list[DependentVariable[T_expr]],
@@ -602,14 +598,14 @@ def _make_output_register_size_variables(
     """Compiles an output register size variables, taking into account any local parameters."""
     output_register_sizes = {key: port.size for key, port in output_ports.items() if port.size is not None}
 
-    output_expression_strs = [
-        f"{_get_output_name(output)} = {expression_str}" for output, expression_str in output_register_sizes.items()
-    ]
+    output_expression_map = {
+        _get_output_name(output): expression_str for output, expression_str in output_register_sizes.items()
+    }
     # Next, substitute in any local params
     known_params = {local_param.symbol: local_param for local_param in local_params}
     return [
         _substitute_local_parameters(output, known_params)
-        for output in parse_output_expressions(output_expression_strs, backend)
+        for output in parse_output_expressions(output_expression_map, backend)
     ]
 
 
@@ -631,16 +627,13 @@ def _make_input_register_size_variables(
     """
     input_register_sizes = {key: port.size for key, port in input_ports.items() if port.size is not None}
     # First, remove all the #in_ prefixes to get the corresponding output variables
-    output_expression_strs = [
-        f"{input} = {expression_str}"
-        for input, expression_str in _get_non_trivial_input_register_sizes(input_register_sizes).items()
-    ]
+    output_expression_map = _get_non_trivial_input_register_sizes(input_register_sizes)
 
     # Next, substitute in any local params
     known_params = {local_param.symbol: local_param for local_param in local_params}
     return [
         _substitute_local_parameters(output, known_params)
-        for output in parse_output_expressions(output_expression_strs, backend)
+        for output in parse_output_expressions(output_expression_map, backend)
     ]
 
 
@@ -666,12 +659,12 @@ def _make_input_register_constants(
     """Identifies constant input register sizes and formats them as output variables."""
     input_register_sizes = {key: port.size for key, port in input_ports.items() if port.size is not None}
 
-    output_expression_strs = [
-        f"#{inpt} = {expression_str}"
+    output_expressions = {
+        f"#{inpt}": expression_str
         for inpt, expression_str in input_register_sizes.items()
         if is_constant_int(expression_str)
-    ]
-    return parse_output_expressions(output_expression_strs, backend)
+    }
+    return parse_output_expressions(output_expressions, backend)
 
 
 def _substitute_local_parameters(output_variable, local_params):

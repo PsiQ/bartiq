@@ -93,10 +93,10 @@ LATEX_TEST_CASES = [
         Routine(
             name="root",
             input_params=["a", "b"],
-            local_variables=[
-                "x_foo = y + a",
-                "y_bar = b * c",
-            ],
+            local_variables={
+                "x_foo": "y + a",
+                "y_bar": "b * c",
+            },
         ),
         {},
         r"""
@@ -163,10 +163,10 @@ LATEX_TEST_CASES = [
                 "d": {"name": "d", "input_params": ["k_2"]},
                 "e": {"name": "e", "input_params": ["l_3"]},
             },
-            local_variables=[
-                "x_foo = a.i_0 + a",
-                "y_bar = b * c.j_1",
-            ],
+            local_variables={
+                "x_foo": "a.i_0 + a",
+                "y_bar": "b * c.j_1",
+            },
             resources={
                 "t": {"name": "t", "value": 0, "type": "additive"},
             },
@@ -196,10 +196,10 @@ LATEX_TEST_CASES = [
     (
         Routine(
             name="root",
-            local_variables=[
-                "a=1+2",
-                "b = 3+4",
-            ],
+            local_variables={
+                "a": "1+2",
+                "b": "3+4",
+            },
             resources={
                 "c": {"name": "c", "value": "a + b", "type": "additive"},
                 "d": {"name": "d", "value": "a-b", "type": "additive"},

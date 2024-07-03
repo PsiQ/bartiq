@@ -217,7 +217,7 @@ class Routine(BaseModel):
     connections: list[Connection] = Field(default_factory=list)
     resources: dict[str, Resource] = Field(default_factory=dict)
     input_params: Sequence[Symbol] = Field(default_factory=list)
-    local_variables: list[str] = Field(default_factory=list)
+    local_variables: dict[str, str] = Field(default_factory=dict)
     linked_params: dict[Symbol, list[tuple[str, Symbol]]] = Field(default_factory=dict)
     meta: Optional[dict[str, Any]] = Field(default_factory=dict)
 

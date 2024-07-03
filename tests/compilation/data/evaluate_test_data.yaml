@@ -929,13 +929,13 @@
 - - name: root
     type: null
     input_params: [L]
-    local_variables: ['N=L/multiplicity(2,L)']
+    local_variables: {'N': 'L/multiplicity(2,L)'}
     resources:
       T_gates: {name: T_gates, type: additive, value: 8*ceiling(log_2(N))}
   - [L = 10]
   - name: root
     type: null
-    local_variables: ['N=L/multiplicity(2,L)']
+    local_variables: {'N': 'L/multiplicity(2,L)'}
     resources:
       T_gates: {name: T_gates, type: additive, value: '32'}
 # Linked params through multiple generations

@@ -104,9 +104,9 @@ def _verify_expressions_parsable(routine: Routine, backend: SymbolicBackend) -> 
         ]
         local_variable_problems = [
             _verify_expression(
-                backend, local_variable, local_variable.split("=")[1], "local_variable", subroutine.absolute_path()
+                backend, f"{variable} = {expression}", expression, "local_variable", subroutine.absolute_path()
             )
-            for local_variable in subroutine.local_variables
+            for variable, expression in subroutine.local_variables.items()
         ]
         port_problems = [
             _verify_expression(backend, port, port.size, "port size", subroutine.absolute_path())
