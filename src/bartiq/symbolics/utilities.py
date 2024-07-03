@@ -15,21 +15,6 @@
 from .. import Routine
 
 
-def _split_equation(equation: str) -> tuple[str, str]:
-    """Splits an equation string and returns the left and right side."""
-    if equation.count("=") != 1:
-        raise ValueError(f"Equations must contain a single equals sign; found {equation}")
-
-    lhs, rhs = equation.split("=")
-    lhs = lhs.strip()
-    rhs = rhs.strip()
-
-    if not lhs or not rhs:
-        raise ValueError(f"Equations must have both a left- and right-hand side; found {equation}")
-
-    return (lhs, rhs)
-
-
 def infer_subresources(routine: Routine, backend):
     """Infer what are the resources of a routine's children."""
     expressions = [*[resource.value for resource in routine.resources.values()], *routine.local_variables.values()]
