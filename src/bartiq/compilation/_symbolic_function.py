@@ -166,11 +166,6 @@ def parse_output_expressions(
     return [DependentVariable(key, backend.as_expression(value), backend) for key, value in output_expressions.items()]
 
 
-def parse_output_expression(output_expression: str, backend: SymbolicBackend[T_expr]) -> DependentVariable[T_expr]:
-    """Parses a single output expression string to an output variable."""
-    return DependentVariable.from_str(output_expression, backend)
-
-
 def _merge_functions(
     function_1: SymbolicFunction[T_expr], function_2: SymbolicFunction[T_expr]
 ) -> SymbolicFunction[T_expr]:
@@ -213,12 +208,6 @@ def _merge_functions(
         outputs_new[output_1_symbol] = output_1_variable
 
     return SymbolicFunction(inputs_new, outputs_new)
-
-
-def _serialize_variables(variables: Union[dict[str, IndependentVariable], dict[str, DependentVariable]]) -> list[str]:
-    """Serializes variables."""
-    assert isinstance(variables, dict)
-    return [str(variable) for variable in variables.values()]
 
 
 def _verify_symbolic_function(function: SymbolicFunction) -> None:
