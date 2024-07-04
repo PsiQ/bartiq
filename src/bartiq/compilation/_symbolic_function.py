@@ -160,7 +160,7 @@ def _parse_input_expressions(inputs: list[str]) -> list[IndependentVariable]:
 
 
 def parse_output_expressions(
-    output_expressions: list[str], backend: SymbolicBackend[T_expr]
+    output_expressions: dict[str, str], backend: SymbolicBackend[T_expr]
 ) -> list[DependentVariable[T_expr]]:
     """Parses a list of output expressions to a dictionary mapping output symbols to their expressions."""
     return [DependentVariable(key, backend.as_expression(value), backend) for key, value in output_expressions.items()]
@@ -561,7 +561,7 @@ def _make_cost_variables(
     """Compiles a cost variable, taking into account any local parameters."""
     # This allows users to reuse costs in subsequent expressions.
     known_params = {local_param.symbol: local_param for local_param in local_params}
-    costs = {resource.name: resource.value for resource in resources}
+    costs = {resource.name: str(resource.value) for resource in resources}
     new_cost_variables = []
     for old_output_variable in parse_output_expressions(costs, backend):
         # Substitute any local parameters
@@ -585,7 +585,7 @@ def _make_output_register_size_variables(
     backend: SymbolicBackend[T_expr],
 ) -> list[DependentVariable[T_expr]]:
     """Compiles an output register size variables, taking into account any local parameters."""
-    output_register_sizes = {key: port.size for key, port in output_ports.items() if port.size is not None}
+    output_register_sizes = {key: str(port.size) for key, port in output_ports.items() if port.size is not None}
 
     output_expression_map = {
         _get_output_name(output): expression_str for output, expression_str in output_register_sizes.items()
@@ -646,7 +646,7 @@ def _make_input_register_constants(
     input_ports: dict[str, Port], backend: SymbolicBackend[T_expr]
 ) -> list[DependentVariable[T_expr]]:
     """Identifies constant input register sizes and formats them as output variables."""
-    input_register_sizes = {key: port.size for key, port in input_ports.items() if port.size is not None}
+    input_register_sizes = {key: str(port.size) for key, port in input_ports.items() if port.size is not None}
 
     output_expressions = {
         f"#{inpt}": expression_str
