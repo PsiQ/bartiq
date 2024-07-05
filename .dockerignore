@@ -4,3 +4,7 @@
 docs
 requirements
 .gitignore
+.git
+*.iml
+.idea
+.vscode
