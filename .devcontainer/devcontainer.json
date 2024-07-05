@@ -31,8 +31,12 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.terminal.activateEnvironment": true
+        "python.defaultInterpreterPath": "/bartiq/.venv/bin/python",
+        "jupyter.kernels.excludePythonEnvironments": [
+          "/bin/python3",
+          "/usr/bin/python3",
+          "/usr/local/bin/python"
+        ]
       }
     }
   }
