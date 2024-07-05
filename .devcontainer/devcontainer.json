@@ -4,7 +4,20 @@
     "context": "../"
   },
   "customizations": {
-    "forwardedPorts": [],
+    "forwardPorts": [
+      8000,
+      8888
+    ],
+    "portsAttributes": {
+		"8000": {
+			"label": "docs",
+			"onAutoForward": "notify"
+		},
+    "8888": {
+			"label": "jupyter",
+			"onAutoForward": "notify"
+		}
+	},
     "vscode": {
       "extensions": [
         "ms-toolsai.jupyter",
@@ -24,4 +37,3 @@
     }
   }
 }
-
