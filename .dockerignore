@@ -1,10 +1,7 @@
 .gitlab
 .github
 .venv
-docs
-requirements
-.gitignore
-.git
 *.iml
 .idea
 .vscode
+.cache
