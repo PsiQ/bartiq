@@ -91,6 +91,7 @@ def _routine_v1_to_bartiq_routine(routine_v1) -> Routine:
         type=routine_v1.type,
         ports={port.name: port.model_dump() for port in routine_v1.ports},
         resources={resource.name: resource.model_dump() for resource in routine_v1.resources},
+        local_variables=routine_v1.local_variables,
         connections=[connection.model_dump() for connection in routine_v1.connections],
         input_params=routine_v1.input_params,
         linked_params={
