@@ -33,6 +33,13 @@ def example_routine():
             "out_0": {"name": "out_0", "size": "N", "direction": "output"},
             "out_1": {"name": "out_1", "size": 3, "direction": "output"},
         },
+        resources={
+            "n_qubits": {
+                "name": "n_qubits",
+                "type": "additive",
+                "value": {"value": 30, "type": "int"},
+            },
+        },
         children={
             "foo": {
                 "name": "foo",
@@ -58,13 +65,6 @@ def example_routine():
             },
         },
         linked_params={"N": [("foo", "M"), ("bar", "N")]},
-        resources={
-            "n_qubits": {
-                "name": "n_qubits",
-                "type": "additive",
-                "value": {"value": 30, "type": "int"},
-            },
-        },
         connections=[
             {"source": "in_0", "target": "foo.in_0"},
             {"source": "foo.out_0", "target": "out_0"},
