@@ -63,5 +63,5 @@ target-version = ['py39']
 
 
 [[tool.mypy.overrides]]
-module = ["ipywidgets.*", "ipytree.*"]
+module = ["ipywidgets.*", "ipytree.*", "sympy.*"]
 ignore_missing_imports = true
