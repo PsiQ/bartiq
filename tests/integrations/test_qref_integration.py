@@ -38,7 +38,7 @@ def example_routine():
                 "name": "n_qubits",
                 "type": "additive",
                 "value": {"value": 30, "type": "int"},
-            },
+            }
         },
         children={
             "foo": {
