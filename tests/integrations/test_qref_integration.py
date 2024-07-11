@@ -33,18 +33,15 @@ def example_routine():
             "out_0": {"name": "out_0", "size": "N", "direction": "output"},
             "out_1": {"name": "out_1", "size": 3, "direction": "output"},
         },
-        resources={
-            "n_qubits": {
-                "name": "n_qubits",
-                "type": "additive",
-                "value": {"value": 30, "type": "int"},
-            }
-        },
         children={
             "foo": {
                 "name": "foo",
                 "type": None,
                 "input_params": ["M"],
+                "local_variables": [
+                    "R=ceiling(log_2(M))",
+                ],
+                "resources": {"T_gates": {"name": "T_gates", "type": "additive", "value": "R ** 2"}},
                 "ports": {
                     "in_0": {"name": "in_0", "size": "M", "direction": "input"},
                     "out_0": {"name": "out_0", "size": 3, "direction": "output"},
@@ -61,6 +58,13 @@ def example_routine():
             },
         },
         linked_params={"N": [("foo", "M"), ("bar", "N")]},
+        resources={
+            "n_qubits": {
+                "name": "n_qubits",
+                "type": "additive",
+                "value": {"value": 30, "type": "int"},
+            },
+        },
         connections=[
             {"source": "in_0", "target": "foo.in_0"},
             {"source": "foo.out_0", "target": "out_0"},
@@ -93,6 +97,10 @@ def example_serialized_qref_v1_object():
                         {"name": "out_0", "direction": "output", "size": 3},
                     ],
                     "input_params": ["M"],
+                    "local_variables": [
+                        "R=ceiling(log_2(M))",
+                    ],
+                    "resources": [{"name": "T_gates", "type": "additive", "value": "R ** 2"}],
                 },
             ],
             "type": None,
