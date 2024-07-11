@@ -19,10 +19,11 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import Callable, Iterable, Optional, TypeAlias, Union
+from typing import Callable, Iterable, Optional, Union
 
 from sympy import Expr, Function, N, Order, symbols, sympify
 from sympy.core.function import AppliedUndef
+from typing_extensions import TypeAlias
 
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
