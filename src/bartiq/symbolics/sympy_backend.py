@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Iterable, Optional, TypeAlias, Union
 
 from sympy import Expr, Function, N, Order, symbols, sympify
 from sympy.core.function import AppliedUndef
@@ -36,7 +36,7 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
 
-T_expr = Expr
+T_expr: TypeAlias = Expr
 
 
 @singledispatch
