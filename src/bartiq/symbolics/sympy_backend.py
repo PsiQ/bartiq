@@ -78,7 +78,6 @@ def value_of(expr: T_expr) -> Optional[Number]:
     # If numeric value possible, evaluate, otherwise return None
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
-
     except TypeError as e:
         if str(e) == "Cannot round symbolic expression":
             return None
@@ -86,7 +85,7 @@ def value_of(expr: T_expr) -> Optional[Number]:
             raise e
 
     # Map to integer if possible
-    if int(value) == value:
+    if int(value) == value or value.is_Float and value % 1 == 0:
         value = int(value)
 
     return value
