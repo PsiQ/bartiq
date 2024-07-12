@@ -19,6 +19,13 @@ from qref import SchemaV1
 from .. import Port, Routine
 
 
+def _serialize_port_direction(port_direction):
+    try:
+        return port_direction.value
+    except AttributeError:
+        return str(port_direction)
+
+
 def bartiq_to_qref(routine: Routine, version: str = "v1") -> SchemaV1:
     """Convert Bartiq routine to QREF object."""
     if version != "v1":
@@ -58,7 +65,7 @@ def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
         "ports": [
             {
                 "name": port.name,
-                "direction": str(port.direction),
+                "direction": _serialize_port_direction(port.direction),
                 "size": _ensure_primitive_type(port.size),
             }
             for port in routine.ports.values()
