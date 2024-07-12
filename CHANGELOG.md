@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.2](https://github.com/PsiQ/bartiq/compare/v0.3.1...v0.3.2) (2024-07-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* Make local_variables a dictionary instead of a list of strings ([#79](https://github.com/PsiQ/bartiq/issues/79))
+
+### Miscellaneous Chores
+
+* release 0.3.2 ([eb52443](https://github.com/PsiQ/bartiq/commit/eb52443c3e05b4494574dfed9f860dd41b8abd66))
+
+
+### Code Refactoring
+
+* Make local_variables a dictionary instead of a list of strings ([#79](https://github.com/PsiQ/bartiq/issues/79)) ([2837c2c](https://github.com/PsiQ/bartiq/commit/2837c2c326ddacdcdbf971e560153dc20c5a2d0e))
+
 ## [0.3.1](https://github.com/PsiQ/bartiq/compare/v0.3.0...v0.3.1) (2024-07-12)
 
 
