@@ -12,7 +12,7 @@ python = "^3.9"
 pydantic = "^2.7"
 sympy = "^1.12"
 pyparsing ="~3.1.2"
-qref = "0.6.1"
+qref = "0.6.2"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.

@@ -2694,13 +2694,13 @@ cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
 name = "qref"
-version = "0.6.1"
+version = "0.6.2"
 description = "Quantum Resource Estimation Format"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "qref-0.6.1-py3-none-any.whl", hash = "sha256:464cf0d619010671bd511059e599ea2147e143a98c8269119196f914b1fc03cf"},
-    {file = "qref-0.6.1.tar.gz", hash = "sha256:bdc7dc2f52b2bffb553491eddfb131bd631d6f08116fd713addce596d4d294d5"},
+    {file = "qref-0.6.2-py3-none-any.whl", hash = "sha256:6d5d7ee81acae4d843e710ccd95a1fdcfcee3b5998fac855a1433ec6adaa2d04"},
+    {file = "qref-0.6.2.tar.gz", hash = "sha256:b58c7f32c7c63d70cae5163f450c5fc7eb01d4cc00ba1ea0650fa3ef500c2c30"},
 ]
 
 [package.dependencies]
@@ -3367,4 +3367,4 @@ jupyter = ["ipytree", "ipywidgets", "traitlets"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "df50c0631bc8c4613343a5feaed53cc6c72656688872110de4c43a42e70aad48"
+content-hash = "5517a73d9fe4aad9079dd388f38b4c3807d220bbd991688c24b0af5098c0c07b"
