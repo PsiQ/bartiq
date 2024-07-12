@@ -71,7 +71,7 @@ def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
             for connection in routine.connections
         ],
         "input_params": [str(symbol) for symbol in routine.input_params],
-        "local_variables": [str(symbol) for symbol in routine.local_variables],
+        "local_variables": {var: expr for var, expr in routine.local_variables.items()},
         "linked_params": [
             {
                 "source": str(source),

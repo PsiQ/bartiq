@@ -45,9 +45,7 @@ def example_routine():
                 "name": "foo",
                 "type": None,
                 "input_params": ["M"],
-                "local_variables": [
-                    "R=ceiling(log_2(M))",
-                ],
+                "local_variables": {"R": "ceiling(log_2(M))"},
                 "resources": {"T_gates": {"name": "T_gates", "type": "additive", "value": "R ** 2"}},
                 "ports": {
                     "in_0": {"name": "in_0", "size": "M", "direction": "input"},
@@ -97,9 +95,7 @@ def example_serialized_qref_v1_object():
                         {"name": "out_0", "direction": "output", "size": 3},
                     ],
                     "input_params": ["M"],
-                    "local_variables": [
-                        "R=ceiling(log_2(M))",
-                    ],
+                    "local_variables": {"R": "ceiling(log_2(M))"},
                     "resources": [{"name": "T_gates", "type": "additive", "value": "R ** 2"}],
                 },
             ],

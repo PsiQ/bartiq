@@ -62,25 +62,25 @@ def f_3_optional_inputs(a, b=2, c=3):
 DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA = [
     # Testing function which can be interpreted symbolically
     (
-        SymbolicFunction.from_str(["a", "b"], ["x = f(a) + f(b)"], BACKEND),
+        SymbolicFunction.assemble(["a", "b"], {"x": "f(a) + f(b)"}, BACKEND),
         {"f": f_1_simple},
         {"x": "a + b + 2"},
     ),
     # Testing function which cannot be interpreted symbolically due to having a condition
     (
-        SymbolicFunction.from_str(["a"], ["x = f(a) + a"], BACKEND),
+        SymbolicFunction.assemble(["a"], {"x": "f(a) + a"}, BACKEND),
         {"f": f_2_conditional},
         {"x": "a + f(a)"},
     ),
     # Testing function with multiple inputs, some with default values ["x = a**2 + 2*a + 3*b"]
     (
-        SymbolicFunction.from_str(["a", "b"], ["x = f(a, b) + f(a, a, a)"], BACKEND),
+        SymbolicFunction.assemble(["a", "b"], {"x": "f(a, b) + f(a, a, a)"}, BACKEND),
         {"f": f_3_optional_inputs},
         {"x": "a ^ 2 + 2*a + 3*b"},
     ),
     # Testing nested calls of a simple function
     (
-        SymbolicFunction.from_str(["a"], ["x = f(f(f(a)))"], BACKEND),
+        SymbolicFunction.assemble(["a"], {"x": "f(f(f(a)))"}, BACKEND),
         {"f": f_1_simple},
         {"x": "a + 3"},
     ),
@@ -106,7 +106,7 @@ def mad_max(a, b):
     "function, functions_map, expected_error",
     [
         (
-            SymbolicFunction.from_str(["a", "b"], ["x = max(a, b)"], BACKEND),
+            SymbolicFunction.assemble(["a", "b"], {"x": "max(a, b)"}, BACKEND),
             {"max": mad_max},
             "Attempted to redefine built-in function max",
         )
