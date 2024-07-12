@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bartiq"
-version = "0.3.2"
+version = "0.3.3"
 description = "Symbolic Quantum Resource Estimation compilation"
 authors = ["PsiQuantum, Corp."]
 license = "Apache 2.0"
