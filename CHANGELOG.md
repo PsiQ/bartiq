@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/PsiQ/bartiq/compare/v0.3.2...v0.3.3) (2024-07-12)
+
+
+### Bug Fixes
+
+* Fix port direction handling in Qref export ([#85](https://github.com/PsiQ/bartiq/issues/85)) ([b6271a3](https://github.com/PsiQ/bartiq/commit/b6271a389cd202a8913efb0c09b9a746e9a43913))
+
 ## [0.3.2](https://github.com/PsiQ/bartiq/compare/v0.3.1...v0.3.2) (2024-07-12)
 
 
