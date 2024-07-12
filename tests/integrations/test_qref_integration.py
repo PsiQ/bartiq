@@ -15,7 +15,7 @@
 import pytest
 from pytest import fixture
 
-from bartiq import Routine
+from bartiq import Port, Routine
 from bartiq.integrations import bartiq_to_qref, qref_to_bartiq
 
 # Note: fixture example_routine has to be synced with
@@ -128,3 +128,16 @@ def test_converting_qref_v1_object_to_routine_give_correct_output(example_routin
 def test_conversion_from_bartiq_to_qref_raises_an_error_if_version_is_unsupported(example_routine):
     with pytest.raises(ValueError):
         bartiq_to_qref(example_routine, version="v3")
+
+
+def test_routine_with_explicitly_constructed_port_successfully_converts_into_qref():
+    routine = Routine(
+        name="root", ports={"in_0": Port.model_validate({"name": "in_0", "direction": "input", "size": 1})}
+    )
+
+    expected_qref_dict = {
+        "version": "v1",
+        "program": {"name": "root", "type": None, "ports": [{"name": "in_0", "size": 1, "direction": "input"}]},
+    }
+
+    assert bartiq_to_qref(routine).model_dump(exclude_unset=True) == expected_qref_dict
