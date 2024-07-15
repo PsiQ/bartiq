@@ -32,7 +32,9 @@ a~.b -> wildcard(a).b
 
 Also, the parser here needs substantially less functionallity from
 the "interpreter", i.e. something that constructs actual objects
-from parsed informations.
+from parsed informations. This is because we actually construct at most
+binary expressions, and we assume that operators of the constructed
+objects behave like they should with built-in operators.
 """
 import ast
 import operator
@@ -44,7 +46,7 @@ from typing import Callable, TypeVar
 from .grammar import Interpreter
 from .sympy_interpreter import SympyInterpreter
 
-op_map = {
+_BINARY_OP_MAP = {
     ast.Mult: operator.mul,
     ast.Add: operator.add,
     ast.Div: operator.truediv,
@@ -56,7 +58,7 @@ op_map = {
 }
 
 
-unary_op_map = {ast.USub: operator.neg, ast.UAdd: lambda x: +x}
+_UNARY_OP_MAP = {ast.USub: operator.neg, ast.UAdd: lambda x: +x}
 
 
 TExpr = TypeVar("TExpr")
@@ -69,6 +71,26 @@ _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
 
 @dataclass(frozen=True)
 class PreprocessingStage:
+    """Class for representing a single step performed during preprocessing.
+
+    Example stages, defined below, include preprocessing expression to replace
+    the xor operator (^) with power operator (**), or replacing wildcard
+    characters (~) with calls to wildcard() function.
+
+    Attributes:
+        matches: Function deciding if given preprocessing step should be run.
+           The actuall preprocesssing step will be run if and only if
+           matches(expression) is true.
+        preprocess: Function performing actual preprocessing work.
+
+    Note:
+        The reason why we separate `matches` and `preprocess` is that some
+        preprocessing steps are expensive, but not always needed.
+        For example, replacing wildcard characters is expensive, because it is
+        done with regular expressions. However, not all expressions have wildcards,
+        and checking if an expression contains a wildcard is fast.
+    """
+
     matches: Callable[[str], bool]
     preprocess: Callable[[str], str]
 
@@ -81,6 +103,7 @@ def _replace_port_names(expression):
     return re.sub(_PORT_NAME, r"Port(\1)", expression)
 
 
+# Preprocessing stage replacing port names with calls to `Port` function.
 _PORT_NAME_REPLACEMENT = PreprocessingStage(matches=_contains_port_name, preprocess=_replace_port_names)
 
 
@@ -92,6 +115,7 @@ def _replace_wildcards(expression):
     return re.sub(_WILDCARD_PATTERN, r"wildcard(\1)", expression)
 
 
+# Preprocessing stage replacing wildcard characters with calls to `wildcard` function
 _WILDCARD_REPLACEMENT = PreprocessingStage(matches=_contains_wildcard, preprocess=_replace_wildcards)
 
 
@@ -103,6 +127,7 @@ def _replace_lambda(expression):
     return expression.replace("lambda", "__lambda__")
 
 
+# Preprocessing stage replacing symbols named lambda with symbols named __lambda__
 _LAMBDA_REPLACEMENT = PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
 
 
@@ -114,15 +139,19 @@ def _replace_xor_op(expression):
     return expression.replace("^", "**")
 
 
+# Preprocessing stage replacing xor operators (^) with power (**) operators.
 _XOR_OP_REPLACEMENT = PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
 
 
-# If there are any new preprocessing stages, they should be added here
+# Sequence of all known preprocessing stages.
+# If there are any new preprocessing stages, they should be added here.
+# Note that this list is not exposed/configurable by the user, because it wouldn't really make sens -
+# if any of those preprocessing stages does not run we would risk having unparseable expression.
 _PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_NAME_REPLACEMENT, _LAMBDA_REPLACEMENT, _XOR_OP_REPLACEMENT)
 
 
-def _preprocess(expression):
-    """Preprocess a given expression to make it suitable for parsing."""
+def _preprocess(expression: str) -> str:
+    """Preprocess a given expression to make it suitable for parsing with ast module."""
     for stage in _PREPROCESSING_STAGES:
         if stage.matches(expression):
             expression = stage.preprocess(expression)
@@ -130,40 +159,70 @@ def _preprocess(expression):
 
 
 def _restore_name(name: str) -> str:
+    """Given a token (e.g. symbol, or a function) return its name or lambda if it was __lambda__.
+
+    This is to reverse the effects of preprocessing.
+    """
     return "lambda" if name == "__lambda__" else name
 
 
 class NodeConverter:
+    """Converter capable of transforming a given AST node into symbolic expression using given interpreter.
+
+    Attributes:
+        interpreter: An interpreter to use for constructing primitives of symbolic expressions.
+    """
 
     def __init__(self, interpreter: Interpreter):
         self.interpreter = interpreter
 
     @singledispatchmethod
     def convert_node(self, node):
+        """Given an AST node convert it into symbolic expression."""
         raise NotImplementedError(f"Uknown node {node}.")
 
     @convert_node.register
     def _(self, node: ast.Module):
+        """Variant of convert_node for ast.Module, which is just a top level node."""
         return self.convert_node(node.body[0])
 
     @convert_node.register
     def _(self, node: ast.Expr):
+        """ "Variant of convert_node for ast.Expr, which is just a wrapper for actuall expression (node.value)."""
         return self.convert_node(node.value)
 
     @convert_node.register
     def _(self, node: ast.Constant):
+        """Variant of convert_node for ast.Constant, which should be converted to a number."""
         return self.interpreter.create_number((node.value,))
 
     @convert_node.register
     def _(self, node: ast.BinOp):
-        return op_map[type(node.op)](self.convert_node(node.left), self.convert_node(node.right))
+        """Variant of convert_node for ast.BinOp.
+
+        This is the first of more involved variants. When converting binary operation, we first descend
+        down the tree and convert children, and then combine the results using operator as given in
+        _BINARY_OP_MAP.
+        """
+        return _BINARY_OP_MAP[type(node.op)](self.convert_node(node.left), self.convert_node(node.right))
 
     @convert_node.register
     def _(self, node: ast.UnaryOp):
-        return unary_op_map[type(node.op)](self.convert_node(node.operand))
+        """Variant of convert_node for ast.UnaryOp.
+
+        There are only two unary operators supported, namely +x and -x.
+        """
+        return _UNARY_OP_MAP[type(node.op)](self.convert_node(node.operand))
 
     @convert_node.register
     def _(self, node: ast.Call):
+        """Variant of converet_node for ast.Call.
+
+        Most instances of ast.Call get converted to a regular function call.
+        However, there are some notable exceptions:
+        - Calls to `wildcard()` function are converted to wildard symbol.
+        - Calls to Port() function are converted to port designator (e.g. Port(in_0) -> #in_0)
+        """
         if isinstance(node.func, ast.Name):
             if node.func.id == "Port":
                 return self.interpreter.create_parameter((f"#{_resolve_value(node.args[0])}",))
@@ -184,15 +243,24 @@ class NodeConverter:
 
     @convert_node.register
     def _(self, node: ast.Name):
+        """Variant of convert_node for ast.Name, which is just a node representing symbol."""
         return self.interpreter.create_parameter((_restore_name(node.id),))
 
     @convert_node.register
     def _(self, node: ast.Attribute):
+        """Variant of converet_node for ast.Attribute, which represent namespaced symbols."""
         return self.interpreter.create_parameter((_resolve_value(node),))
 
 
 @singledispatch
 def _resolve_value(value_node):
+    """Given a node, resolve it to a namespaced name.
+
+    This function works for ast.Name nodes, as well as (possibly nested) ast.Attribute nodes, for
+    which it recurses into their value part.
+    Also, if an ast.Call node is a part of attribute lookup, this is an error, unless the function
+    being called is a wildcard - in which case we simply use ~ symbol in the namespaced symbol name.
+    """
     raise NotImplementedError(f"Unexpected node found when resolving attribute lookup: {type(value_node)}")
 
 
@@ -214,9 +282,27 @@ def _(value_node: ast.Call):
 
 
 def parse(expression: str, interpreter: Interpreter):
+    """Parse given mathematical using given interpreter to create expression primitives.
+
+    Args:
+        expression: An expression to parse.
+        interpreter: An interpreter providing methods for constructing numbers, symbols, and functions.
+
+    Returns:
+        A result of interpreting the whole expression (which depends on what the interpreter produces).
+    """
     preprocessed_expression = _preprocess(expression)
     return NodeConverter(interpreter).convert_node(ast.parse(preprocessed_expression))
 
 
 def parse_to_sympy(expression: str, debug=False):
+    """Parse given mathematical expression into a sympy expression.
+
+    Args:
+        expression: expression to be parsed.
+        debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
+            for performance reasons.
+    Returns:
+        A Sympy expression object parsed from `expression`.
+    """
     return parse(expression, interpreter=SympyInterpreter(debug=debug))
