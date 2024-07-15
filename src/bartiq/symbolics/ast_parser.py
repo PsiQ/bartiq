@@ -34,9 +34,31 @@ Also, the parser here needs substantially less functionallity from
 the "interpreter", i.e. something that constructs actual objects
 from parsed informations.
 """
+import ast
+import operator
 import re
 from dataclasses import dataclass
-from typing import Callable
+from functools import singledispatch, singledispatchmethod
+from typing import Callable, TypeVar
+
+from .grammar import Interpreter
+from .sympy_interpreter import SympyInterpreter
+
+op_map = {
+    ast.Mult: operator.mul,
+    ast.Add: operator.add,
+    ast.Div: operator.truediv,
+    ast.Sub: operator.sub,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.BitXor: operator.pow,
+}
+
+
+unary_op_map = {ast.USub: operator.neg}
+
+
+TExpr = TypeVar("TExpr")
 
 _IDENTIFIER = r"[_a-zA-Z]\w*"
 _NAMESPACE_IDENTIFIER = rf"{_IDENTIFIER}(\.{_IDENTIFIER})*"
@@ -82,3 +104,86 @@ def _preprocess(expression):
         if stage.matches(expression):
             expression = stage.preprocess(expression)
     return expression
+
+
+class NodeConverter:
+
+    def __init__(self, interpreter: Interpreter):
+        self.interpreter = interpreter
+
+    @singledispatchmethod
+    def convert_node(self, node):
+        raise NotImplementedError(f"Uknown node {node}.")
+
+    @convert_node.register
+    def _(self, node: ast.Module):
+        return self.convert_node(node.body[0])
+
+    @convert_node.register
+    def _(self, node: ast.Expr):
+        return self.convert_node(node.value)
+
+    @convert_node.register
+    def _(self, node: ast.Constant):
+        return self.interpreter.create_number((node.value,))
+
+    @convert_node.register
+    def _(self, node: ast.BinOp):
+        return op_map[type(node.op)](self.convert_node(node.left), self.convert_node(node.right))
+
+    @convert_node.register
+    def _(self, node: ast.UnaryOp):
+        return unary_op_map[type(node.op)](self.convert_node(node.operand))
+
+    @convert_node.register
+    def _(self, node: ast.Call):
+        if isinstance(node.func, ast.Name):
+            if node.func.id == "Port":
+                return self.interpreter.create_parameter((f"#{_resolve_value(node.args[0])}",))
+            return self.interpreter.create_function((node.func.id, list(map(self.convert_node, node.args))))
+        if isinstance(node.func, ast.Attribute):
+            if node.func.attr == "Port":
+                return self.interpreter.create_parameter(
+                    (f"{_resolve_value(node.func.value)}.#{_resolve_value(node.args[0])}",)
+                )
+        else:
+            raise NotImplementedError("Invalid function call, encountered unexpected node {node.func} as the callee.")
+
+    @convert_node.register
+    def _(self, node: ast.Name):
+        return self.interpreter.create_parameter((node.id,))
+
+    @convert_node.register
+    def _(self, node: ast.Attribute):
+        return self.interpreter.create_parameter((_resolve_value(node),))
+
+
+@singledispatch
+def _resolve_value(value_node):
+    raise NotImplementedError(f"Unexpected node found when resolving attribute lookup: {type(value_node)}")
+
+
+@_resolve_value.register
+def _(value_node: ast.Name):
+    return value_node.id
+
+
+@_resolve_value.register
+def _(value_node: ast.Attribute):
+    return f"{_resolve_value(value_node.value)}.{value_node.attr}"
+
+
+@_resolve_value.register
+def _(value_node: ast.Call):
+    if value_node.func.id != "wildcard":
+        raise ValueError("Should never encounter function call other than wildcard() in the attribute lookup")
+    return f"{value_node.args[0].id}~" if value_node.args else "~"
+
+
+def parse(expression: str, interpreter: Interpreter):
+    preprocessed_expression = _preprocess(expression)
+    return NodeConverter(interpreter).convert_node(ast.parse(preprocessed_expression))
+
+
+def parse_to_sympy(expression: str, debug=False):
+    return parse(expression, interpreter=SympyInterpreter(debug=debug))
