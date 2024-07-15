@@ -52,10 +52,11 @@ op_map = {
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
     ast.BitXor: operator.pow,
+    ast.FloorDiv: operator.floordiv,
 }
 
 
-unary_op_map = {ast.USub: operator.neg}
+unary_op_map = {ast.USub: operator.neg, ast.UAdd: lambda x: +x}
 
 
 TExpr = TypeVar("TExpr")
@@ -94,8 +95,30 @@ def _replace_wildcards(expression):
 _WILDCARD_REPLACEMENT = PreprocessingStage(matches=_contains_wildcard, preprocess=_replace_wildcards)
 
 
+def _contains_lambda(expression):
+    return "lambda" in expression
+
+
+def _replace_lambda(expression):
+    return expression.replace("lambda", "__lambda__")
+
+
+_LAMBDA_REPLACEMENT = PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
+
+
+def _contains_xor_op(expression):
+    return "^" in expression
+
+
+def _replace_xor_op(expression):
+    return expression.replace("^", "**")
+
+
+_XOR_OP_REPLACEMENT = PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
+
+
 # If there are any new preprocessing stages, they should be added here
-_PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_NAME_REPLACEMENT)
+_PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_NAME_REPLACEMENT, _LAMBDA_REPLACEMENT, _XOR_OP_REPLACEMENT)
 
 
 def _preprocess(expression):
@@ -104,6 +127,10 @@ def _preprocess(expression):
         if stage.matches(expression):
             expression = stage.preprocess(expression)
     return expression
+
+
+def _restore_name(name: str) -> str:
+    return "lambda" if name == "__lambda__" else name
 
 
 class NodeConverter:
@@ -140,18 +167,24 @@ class NodeConverter:
         if isinstance(node.func, ast.Name):
             if node.func.id == "Port":
                 return self.interpreter.create_parameter((f"#{_resolve_value(node.args[0])}",))
-            return self.interpreter.create_function((node.func.id, list(map(self.convert_node, node.args))))
+            return self.interpreter.create_function(
+                (_restore_name(node.func.id), list(map(self.convert_node, node.args)))
+            )
         if isinstance(node.func, ast.Attribute):
             if node.func.attr == "Port":
                 return self.interpreter.create_parameter(
                     (f"{_resolve_value(node.func.value)}.#{_resolve_value(node.args[0])}",)
                 )
+            else:
+                return self.interpreter.create_function(
+                    (_resolve_value(node.func), list(map(self.convert_node, node.args)))
+                )
         else:
-            raise NotImplementedError("Invalid function call, encountered unexpected node {node.func} as the callee.")
+            raise NotImplementedError(f"Invalid function call, encountered unexpected node {node.func} as the callee.")
 
     @convert_node.register
     def _(self, node: ast.Name):
-        return self.interpreter.create_parameter((node.id,))
+        return self.interpreter.create_parameter((_restore_name(node.id),))
 
     @convert_node.register
     def _(self, node: ast.Attribute):
@@ -165,12 +198,12 @@ def _resolve_value(value_node):
 
 @_resolve_value.register
 def _(value_node: ast.Name):
-    return value_node.id
+    return _restore_name(value_node.id)
 
 
 @_resolve_value.register
 def _(value_node: ast.Attribute):
-    return f"{_resolve_value(value_node.value)}.{value_node.attr}"
+    return f"{_resolve_value(value_node.value)}.{_restore_name(value_node.attr)}"
 
 
 @_resolve_value.register
