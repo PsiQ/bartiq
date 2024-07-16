@@ -30,6 +30,14 @@ a.b.#out_1 -> a.b.Port(out_1)
 ~.a -> wildcard().a
 a~.b -> wildcard(a).b
 
+3. Reserved lambda keyword is replaced with __lambda__, e.g.
+lambda + gamma -> __lambda__ + gamma
+
+After the preprocessing is done, the resulting expression is also
+a valid Python expression. Therefore, we are able to use ast.parse
+to construct abstract syntax tree for the expression. This abstract
+syntax tree is then walked to assemble an expression object.
+
 Also, the parser here needs substantially less functionallity from
 the "interpreter", i.e. something that constructs actual objects
 from parsed informations. This is because we actually construct at most
