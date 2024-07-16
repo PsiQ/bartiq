@@ -42,6 +42,7 @@ import re
 from dataclasses import dataclass
 from functools import singledispatch, singledispatchmethod
 from typing import Callable, TypeVar
+from warnings import warn
 
 from .grammar import Interpreter
 from .sympy_interpreter import SympyInterpreter
@@ -136,6 +137,7 @@ def _contains_xor_op(expression):
 
 
 def _replace_xor_op(expression):
+    warn("Using ^ operator to denote exponentiation is deprecated. Use ** operator instead.", DeprecationWarning)
     return expression.replace("^", "**")
 
 
