@@ -266,8 +266,12 @@ def _(value_node: ast.Attribute):
 
 @_resolve_value.register
 def _(value_node: ast.Call):
+    # Assertions here are to silence Mypy and describe the expected input.
+    # We should never get any assertion errors here, unless the expression doesn't match our grammar.
+    assert isinstance(value_node.func, ast.Name)
     if value_node.func.id != "wildcard":
         raise ValueError("Should never encounter function call other than wildcard() in the attribute lookup")
+    assert isinstance(value_node.args[0], ast.Name)
     return f"{value_node.args[0].id}~" if value_node.args else "~"
 
 
