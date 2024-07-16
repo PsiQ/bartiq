@@ -137,7 +137,9 @@ def _parse_assignments(
             value = parse_value(value_str)
         except BartiqCompilationError:
             expression = backend.parse_constant(backend.as_expression(value_str))
-            value = backend.value_of(expression)
+            if (result := backend.value_of(expression)) is None:
+                raise ValueError("Expected an int or float, but got None")
+            value = result
 
         if variable in routine.input_params or variable in size_to_registers_map:
             if variable in routine.input_params:
