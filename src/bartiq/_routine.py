@@ -177,7 +177,11 @@ class BaseModel(_BaseModel):
     which is needed for handling sympy symbols.
     """
 
-    model_config = {"arbitrary_types_allowed": True, "use_enum_values": True, "extra": "forbid"}
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "use_enum_values": True,
+        "extra": "forbid",
+    }
 
 
 class Routine(BaseModel):
@@ -282,7 +286,11 @@ class Routine(BaseModel):
             (
                 connection
                 if isinstance(connection, Connection)
-                else _parse_connection_dict(connection, values.data.get("children", {}), values.data.get("ports", {}))
+                else _parse_connection_dict(
+                    connection,
+                    values.data.get("children", {}),
+                    values.data.get("ports", {}),
+                )
             )
             for connection in v
         ]

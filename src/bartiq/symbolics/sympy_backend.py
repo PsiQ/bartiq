@@ -21,7 +21,8 @@ from __future__ import annotations
 from functools import singledispatch
 from typing import Callable, Iterable, Optional, Union
 
-from sympy import Expr, Function, N, Order, symbols, sympify
+import sympy
+from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
@@ -36,8 +37,14 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
-
 T_expr: TypeAlias = Expr
+
+MATH_CONSTANTS = {
+    "pi": sympy.pi,
+    "E": sympy.exp(1),
+    "oo": sympy.oo,
+    "infinity": sympy.oo,
+}
 
 
 @singledispatch
@@ -53,6 +60,16 @@ def _parse(value: str) -> T_expr:
 def as_expression(value: Union[str | int | float]) -> T_expr:
     """Convert numerical or textual value into an expression."""
     return _as_expression(value)
+
+
+def parse_constant(expr: T_expr) -> T_expr:
+    """Parse the expression, replacing known constants while ignoring case."""
+    for symbol_str, constant in MATH_CONSTANTS.items():
+        expr = expr.subs(Symbol(symbol_str.casefold()), constant)
+        expr = expr.subs(Symbol(symbol_str.upper()), constant)
+        expr = expr.subs(Symbol(symbol_str.capitalize()), constant)
+
+    return expr
 
 
 def free_symbols_in(expr: T_expr) -> Iterable[str]:
@@ -75,7 +92,7 @@ def reserved_functions() -> Iterable[str]:
 
 
 def value_of(expr: T_expr) -> Optional[Number]:
-    """Compute a numerical value of an expression, return None if it not possible."""
+    """Compute a numerical value of an expression, return None if it's not possible."""
     # If numeric value possible, evaluate, otherwise return None
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
@@ -84,10 +101,11 @@ def value_of(expr: T_expr) -> Optional[Number]:
             return None
         else:
             raise e
-
     # Map to integer if possible
     if int(value) == value or value.is_Float and value % 1 == 0:
         value = int(value)
+    elif value is not None:
+        value = float(value)
 
     return value
 

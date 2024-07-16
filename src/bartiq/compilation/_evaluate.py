@@ -61,7 +61,12 @@ RegisterSizeAssignmentMap = dict[str, list[_RegisterSizeAssignment]]
 
 
 @overload
-def evaluate(routine: Routine, assignments: list[str], *, functions_map: Optional[FunctionsMap] = None) -> Routine:
+def evaluate(
+    routine: Routine,
+    assignments: list[str],
+    *,
+    functions_map: Optional[FunctionsMap] = None,
+) -> Routine:
     pass  # pragma: no cover
 
 
@@ -89,7 +94,12 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
     Returns:
         A new estimate with variables assigned to the desired values.
     """
-    return _evaluate(routine=routine, assignments=assignments, backend=backend, functions_map=functions_map)
+    return _evaluate(
+        routine=routine,
+        assignments=assignments,
+        backend=backend,
+        functions_map=functions_map,
+    )
 
 
 def _evaluate(
@@ -101,14 +111,18 @@ def _evaluate(
 ) -> Routine:
     # We do this to ensure we don't mutate the input object.
     evaluated_routine = Routine(**routine.model_dump())
-    parsed_assignments = _parse_assignments(evaluated_routine, assignments)
+    parsed_assignments = _parse_assignments(evaluated_routine, assignments, backend)
     for parsed_assignment in parsed_assignments:
         _evaluate_over_assignment(evaluated_routine, parsed_assignment, backend, functions_map)
 
     return evaluated_routine
 
 
-def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignment]:
+def _parse_assignments(
+    routine: Routine,
+    assignments: list[str],
+    backend: SymbolicBackend[T_expr],
+) -> list[Assignment]:
     """Splits input register size assignments from input variable assignments."""
     # Parse assignment strings to their variable names and assignment expressions
     assignment_map: dict[str, str] = dict(split_equation(assignment) for assignment in assignments)
@@ -119,7 +133,14 @@ def _parse_assignments(routine: Routine, assignments: list[str]) -> list[Assignm
     # Sort the assignments based on whether they refer to register size variables or not
     parsed_assignments: list[Assignment] = []
     for variable, value_str in assignment_map.items():
-        value = parse_value(value_str)
+        try:
+            value = parse_value(value_str)
+        except BartiqCompilationError:
+            expression = backend.parse_constant(backend.as_expression(value_str))
+            if (result := backend.value_of(expression)) is None:
+                raise ValueError("Expected an int or float, but got None")
+            value = result
+
         if variable in routine.input_params or variable in size_to_registers_map:
             if variable in routine.input_params:
                 parsed_assignments.append(_VariableAssignment(variable, value))
@@ -187,7 +208,10 @@ def _evaluate_over_assignment(
         routine_downstream_register_size_assignments = _propagate_forward_constant_output_register_sizes(
             evaluated_routine
         )
-        for path, downstream_assignments in routine_downstream_register_size_assignments.items():
+        for (
+            path,
+            downstream_assignments,
+        ) in routine_downstream_register_size_assignments.items():
             register_sizes[path].extend(downstream_assignments)
 
     assert not register_sizes, f"Shouldn't have any more register sizes left to evaluate; found {register_sizes}"
@@ -244,7 +268,7 @@ def _evaluate_routine_over_assignment(
     backend: SymbolicBackend[T_expr],
     functions_map: Optional[FunctionsMap] = None,
 ) -> Routine:
-    """Dispatches oeration assignment based upon the assignment type."""
+    """Dispatches operation assignment based upon the assignment type."""
     # First, check that the assignment is to a number
     if not isinstance(assignment.value, NUMBER_TYPES):
         raise BartiqCompilationError(

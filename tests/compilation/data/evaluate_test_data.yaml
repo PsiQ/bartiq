@@ -992,3 +992,39 @@
                 name: Q
                 type: other
                 value: {type: str, value: y + 10}
+
+# Resource Q is assigned a constant value of pi
+- - name: root
+    type: null
+    input_params: [Q]
+    resources:
+      T_gates: {name: T_gates, type: additive, value: Q}
+  - [Q = pi]
+  - name: root
+    type: null
+    resources:
+      T_gates: {name: T_gates, type: additive, value: '3.14159265358979'}
+
+# Resource Q is assigned a constant value of sin(pi/2)
+- - name: root
+    type: null
+    input_params: [Q]
+    resources:
+      T_gates: {name: T_gates, type: additive, value: Q}
+  - [Q = sin(pi/2)]
+  - name: root
+    type: null
+    resources:
+      T_gates: {name: T_gates, type: additive, value: '1'}
+
+# Resource Q is assigned a constant value of 5*e
+- - name: root
+    type: null
+    input_params: [Q]
+    resources:
+      T_gates: {name: T_gates, type: additive, value: Q}
+  - [Q = 5*e]
+  - name: root
+    type: null
+    resources:
+      T_gates: {name: T_gates, type: additive, value: '13.5914091422952'}
