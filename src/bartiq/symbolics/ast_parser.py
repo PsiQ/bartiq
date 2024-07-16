@@ -65,7 +65,7 @@ TExpr = TypeVar("TExpr")
 
 _IDENTIFIER = r"[_a-zA-Z]\w*"
 _NAMESPACE_IDENTIFIER = rf"{_IDENTIFIER}(\.{_IDENTIFIER})*"
-_PORT_NAME = rf"#({_NAMESPACE_IDENTIFIER})"
+_PORT_PATTERN = rf"#({_NAMESPACE_IDENTIFIER})"
 _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
 
 
@@ -95,16 +95,16 @@ class PreprocessingStage:
     preprocess: Callable[[str], str]
 
 
-def _contains_port_name(expression):
+def _contains_port(expression):
     return "#" in expression
 
 
-def _replace_port_names(expression):
-    return re.sub(_PORT_NAME, r"Port(\1)", expression)
+def _replace_ports(expression):
+    return re.sub(_PORT_PATTERN, r"Port(\1)", expression)
 
 
 # Preprocessing stage replacing port names with calls to `Port` function.
-_PORT_NAME_REPLACEMENT = PreprocessingStage(matches=_contains_port_name, preprocess=_replace_port_names)
+_PORT_REPLACEMENT = PreprocessingStage(matches=_contains_port, preprocess=_replace_ports)
 
 
 def _contains_wildcard(expression):
@@ -147,7 +147,7 @@ _XOR_OP_REPLACEMENT = PreprocessingStage(matches=_contains_xor_op, preprocess=_r
 # If there are any new preprocessing stages, they should be added here.
 # Note that this list is not exposed/configurable by the user, because it wouldn't really make sens -
 # if any of those preprocessing stages does not run we would risk having unparseable expression.
-_PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_NAME_REPLACEMENT, _LAMBDA_REPLACEMENT, _XOR_OP_REPLACEMENT)
+_PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_REPLACEMENT, _LAMBDA_REPLACEMENT, _XOR_OP_REPLACEMENT)
 
 
 def _preprocess(expression: str) -> str:
@@ -219,36 +219,24 @@ class NodeConverter:
         """Variant of converet_node for ast.Call.
 
         Most instances of ast.Call get converted to a regular function call.
-        However, there are some notable exceptions:
-        - Calls to `wildcard()` function are converted to wildard symbol.
-        - Calls to Port() function are converted to port designator (e.g. Port(in_0) -> #in_0)
+        Exception to this are the Port functions, which are converted to port
+        designator.
         """
-        if isinstance(node.func, ast.Name):
-            if node.func.id == "Port":
-                return self.interpreter.create_parameter((f"#{_resolve_value(node.args[0])}",))
-            return self.interpreter.create_function(
-                (_restore_name(node.func.id), list(map(self.convert_node, node.args)))
+        if isinstance(node.func, ast.Name) and node.func.id == "Port":
+            return self.interpreter.create_parameter((f"#{_resolve_value(node.args[0])}",))
+        if isinstance(node.func, ast.Attribute) and node.func.attr == "Port":
+            return self.interpreter.create_parameter(
+                (f"{_resolve_value(node.func.value)}.#{_resolve_value(node.args[0])}",)
             )
-        if isinstance(node.func, ast.Attribute):
-            if node.func.attr == "Port":
-                return self.interpreter.create_parameter(
-                    (f"{_resolve_value(node.func.value)}.#{_resolve_value(node.args[0])}",)
-                )
-            else:
-                return self.interpreter.create_function(
-                    (_resolve_value(node.func), list(map(self.convert_node, node.args)))
-                )
         else:
-            raise NotImplementedError(f"Invalid function call, encountered unexpected node {node.func} as the callee.")
+            return self.interpreter.create_function(
+                (_resolve_value(node.func), list(map(self.convert_node, node.args)))
+            )
 
-    @convert_node.register
-    def _(self, node: ast.Name):
-        """Variant of convert_node for ast.Name, which is just a node representing symbol."""
-        return self.interpreter.create_parameter((_restore_name(node.id),))
-
-    @convert_node.register
-    def _(self, node: ast.Attribute):
-        """Variant of converet_node for ast.Attribute, which represent namespaced symbols."""
+    @convert_node.register(ast.Name)
+    @convert_node.register(ast.Attribute)
+    def _(self, node):
+        """Variant of convert_node for ast.Name and ast.Attribute, which are nodes representing parameter."""
         return self.interpreter.create_parameter((_resolve_value(node),))
 
 
