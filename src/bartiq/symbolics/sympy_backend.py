@@ -21,10 +21,11 @@ from __future__ import annotations
 from functools import singledispatch
 from typing import Callable, Iterable, Optional, Union
 
+import sympy
 from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
 
-from ..compilation.types import Math_constants, Number
+from ..compilation.types import Number
 from ..errors import BartiqCompilationError
 from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS, parse_to_sympy
 from .sympy_serializer import serialize_expression
@@ -36,6 +37,13 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
 T_expr = Expr
+
+MATH_CONSTANTS = {
+    "pi": sympy.pi,
+    "E": sympy.exp(1),
+    "oo": sympy.oo,
+    "infinity": sympy.oo,
+}
 
 
 @singledispatch
@@ -55,7 +63,7 @@ def as_expression(value: Union[str | int | float]) -> T_expr:
 
 def parse_constant(expr: T_expr) -> T_expr:
     """Parse the expression, replacing known constants while ignoring case."""
-    for symbol_str, constant in Math_constants.items():
+    for symbol_str, constant in MATH_CONSTANTS.items():
         expr = expr.subs(Symbol(symbol_str.casefold()), constant)
         expr = expr.subs(Symbol(symbol_str.upper()), constant)
         expr = expr.subs(Symbol(symbol_str.capitalize()), constant)

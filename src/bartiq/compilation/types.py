@@ -14,20 +14,10 @@
 
 from typing import Callable, Union
 
-import sympy
-
 # Note: when we drop support for 3.9, we will be able to start
 # using the Number union with isinstance checks, thus eliminating
 # the need of separate NUMBER_TYPES
 NUMBER_TYPES = (int, float)
 Number = Union[int, float]
-
-# Define mathematical constants
-Math_constants = {
-    "pi": sympy.pi,
-    "E": sympy.exp(1),
-    "oo": sympy.oo,
-    "infinity": sympy.oo,
-}
 
 FunctionsMap = dict[str, Callable]
