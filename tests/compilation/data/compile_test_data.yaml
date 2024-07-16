@@ -648,7 +648,7 @@
                 type: other
                 value: {type: str, value: k}
             input_params: [x, y]
-            local_variables: [i = x + y, j = x - y, k = (i + j) / 2 + (i - j) / 2]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
           b:
             name: b
             type: null
@@ -658,7 +658,7 @@
                 type: other
                 value: {type: str, value: k}
             input_params: [x, y]
-            local_variables: [i = x + y, j = x - y, k = (i + j) / 2 + (i - j) / 2]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
         resources:
           z:
             name: z
@@ -677,7 +677,7 @@
                 type: other
                 value: {type: str, value: k}
             input_params: [x, y]
-            local_variables: [i = x + y, j = x - y, k = (i + j) / 2 + (i - j) / 2]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
           b:
             name: b
             type: null
@@ -687,7 +687,7 @@
                 type: other
                 value: {type: str, value: k}
             input_params: [x, y]
-            local_variables: [i = x + y, j = x - y, k = (i + j) / 2 + (i - j) / 2]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
         resources:
           z:
             name: z
@@ -827,7 +827,7 @@
         name: z
         type: other
         value: {type: str, value: 3 * M}
-    local_variables: [M = 2 * N]
+    local_variables: {"M": "2 * N"}
   - name: root
     type: null
     ports:

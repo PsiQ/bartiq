@@ -443,7 +443,7 @@ def _compile_routine_with_functions(
 
     routine.symbolic_function = None
     for subroutine in routine.walk():
-        subroutine.local_variables = []
+        subroutine.local_variables = {}
 
     return routine
 

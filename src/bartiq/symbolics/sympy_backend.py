@@ -24,6 +24,7 @@ from typing import Callable, Iterable, Optional, Union
 import sympy
 from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
+from typing_extensions import TypeAlias
 
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
@@ -36,7 +37,7 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
-T_expr = Expr
+T_expr: TypeAlias = Expr
 
 MATH_CONSTANTS = {
     "pi": sympy.pi,
@@ -95,14 +96,13 @@ def value_of(expr: T_expr) -> Optional[Number]:
     # If numeric value possible, evaluate, otherwise return None
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
-
     except TypeError as e:
         if str(e) == "Cannot round symbolic expression":
             return None
         else:
             raise e
     # Map to integer if possible
-    if int(value) == value:
+    if int(value) == value or value.is_Float and value % 1 == 0:
         value = int(value)
     elif value is not None:
         value = float(value)

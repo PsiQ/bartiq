@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.3.3](https://github.com/PsiQ/bartiq/compare/v0.3.2...v0.3.3) (2024-07-12)
+
+
+### Bug Fixes
+
+* Fix port direction handling in Qref export ([#85](https://github.com/PsiQ/bartiq/issues/85)) ([b6271a3](https://github.com/PsiQ/bartiq/commit/b6271a389cd202a8913efb0c09b9a746e9a43913))
+
+## [0.3.2](https://github.com/PsiQ/bartiq/compare/v0.3.1...v0.3.2) (2024-07-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* Make local_variables a dictionary instead of a list of strings ([#79](https://github.com/PsiQ/bartiq/issues/79))
+
+### Miscellaneous Chores
+
+* release 0.3.2 ([eb52443](https://github.com/PsiQ/bartiq/commit/eb52443c3e05b4494574dfed9f860dd41b8abd66))
+
+
+### Code Refactoring
+
+* Make local_variables a dictionary instead of a list of strings ([#79](https://github.com/PsiQ/bartiq/issues/79)) ([2837c2c](https://github.com/PsiQ/bartiq/commit/2837c2c326ddacdcdbf971e560153dc20c5a2d0e))
+
+## [0.3.1](https://github.com/PsiQ/bartiq/compare/v0.3.0...v0.3.1) (2024-07-12)
+
+
+### Bug Fixes
+
+* correctly passing local variables when converting qref_v1 object to bartiq routine ([295ce32](https://github.com/PsiQ/bartiq/commit/295ce3247b65d36cb19fadf532d99d78d61ea52a))
+
+
+### Documentation
+
+* add example of qref visualization in tutorials ([c0ee3ea](https://github.com/PsiQ/bartiq/commit/c0ee3eaf5a8bc01e314ae21f0d162f37db7ea273))
+
 ## [0.3.0](https://github.com/PsiQ/bartiq/compare/v0.2.0...v0.3.0) (2024-06-25)
 
 
