@@ -64,7 +64,7 @@ from sympy import (
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from bartiq.symbolics.ast_parser import parse_to_sympy
+from bartiq.symbolics.sympy_backends import parse_to_sympy
 from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round
 from bartiq.symbolics.sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from bartiq.symbolics.sympy_serializer import serialize_expression

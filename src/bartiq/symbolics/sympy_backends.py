@@ -27,8 +27,8 @@ from typing_extensions import TypeAlias
 
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
-from .ast_parser import parse_to_sympy
-from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS
+from .ast_parser import parse
+from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS, SympyInterpreter
 from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression
 
@@ -40,6 +40,19 @@ BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
 
 T_expr: TypeAlias = Expr
+
+
+def parse_to_sympy(expression: str, debug=False) -> T_expr:
+    """Parse given mathematical expression into a sympy expression.
+
+    Args:
+        expression: expression to be parsed.
+        debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
+            for performance reasons.
+    Returns:
+        A Sympy expression object parsed from `expression`.
+    """
+    return parse(expression, interpreter=SympyInterpreter(debug=debug))
 
 
 class SympyBackend:

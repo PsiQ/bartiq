@@ -41,11 +41,10 @@ import operator
 import re
 from dataclasses import dataclass
 from functools import singledispatch, singledispatchmethod
-from typing import Callable, TypeVar
+from typing import Callable
 from warnings import warn
 
 from .grammar import Interpreter
-from .sympy_interpreter import SympyInterpreter
 
 _BINARY_OP_MAP = {
     ast.Mult: operator.mul,
@@ -62,8 +61,6 @@ _BINARY_OP_MAP = {
 _UNARY_OP_MAP = {ast.USub: operator.neg, ast.UAdd: lambda x: +x}
 
 
-TExpr = TypeVar("TExpr")
-
 _IDENTIFIER = r"[_a-zA-Z]\w*"
 _NAMESPACE_IDENTIFIER = rf"{_IDENTIFIER}(\.{_IDENTIFIER})*"
 _PORT_PATTERN = rf"#({_NAMESPACE_IDENTIFIER})"
@@ -71,7 +68,7 @@ _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
 
 
 @dataclass(frozen=True)
-class PreprocessingStage:
+class _PreprocessingStage:
     """Class for representing a single step performed during preprocessing.
 
     Example stages, defined below, include preprocessing expression to replace
@@ -105,7 +102,7 @@ def _replace_ports(expression):
 
 
 # Preprocessing stage replacing port names with calls to `Port` function.
-_PORT_REPLACEMENT = PreprocessingStage(matches=_contains_port, preprocess=_replace_ports)
+_PORT_REPLACEMENT = _PreprocessingStage(matches=_contains_port, preprocess=_replace_ports)
 
 
 def _contains_wildcard(expression):
@@ -117,7 +114,7 @@ def _replace_wildcards(expression):
 
 
 # Preprocessing stage replacing wildcard characters with calls to `wildcard` function
-_WILDCARD_REPLACEMENT = PreprocessingStage(matches=_contains_wildcard, preprocess=_replace_wildcards)
+_WILDCARD_REPLACEMENT = _PreprocessingStage(matches=_contains_wildcard, preprocess=_replace_wildcards)
 
 
 def _contains_lambda(expression):
@@ -129,7 +126,7 @@ def _replace_lambda(expression):
 
 
 # Preprocessing stage replacing symbols named lambda with symbols named __lambda__
-_LAMBDA_REPLACEMENT = PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
+_LAMBDA_REPLACEMENT = _PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
 
 
 def _contains_xor_op(expression):
@@ -142,7 +139,7 @@ def _replace_xor_op(expression):
 
 
 # Preprocessing stage replacing xor operators (^) with power (**) operators.
-_XOR_OP_REPLACEMENT = PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
+_XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
 
 
 # Sequence of all known preprocessing stages.
@@ -168,7 +165,7 @@ def _restore_name(name: str) -> str:
     return "lambda" if name == "__lambda__" else name
 
 
-class NodeConverter:
+class _NodeConverter:
     """Converter capable of transforming a given AST node into symbolic expression using given interpreter.
 
     Attributes:
@@ -271,8 +268,12 @@ def _(value_node: ast.Call):
     assert isinstance(value_node.func, ast.Name)
     if value_node.func.id != "wildcard":
         raise ValueError("Should never encounter function call other than wildcard() in the attribute lookup")
-    assert isinstance(value_node.args[0], ast.Name)
-    return f"{value_node.args[0].id}~" if value_node.args else "~"
+    # We can't use ternary operator here because it confuses mypy
+    if value_node.args:
+        assert isinstance(value_node.args[0], ast.Name)
+        return f"{value_node.args[0].id}~"
+    else:
+        return "~"
 
 
 def parse(expression: str, interpreter: Interpreter):
@@ -286,17 +287,4 @@ def parse(expression: str, interpreter: Interpreter):
         A result of interpreting the whole expression (which depends on what the interpreter produces).
     """
     preprocessed_expression = _preprocess(expression)
-    return NodeConverter(interpreter).convert_node(ast.parse(preprocessed_expression))
-
-
-def parse_to_sympy(expression: str, debug=False):
-    """Parse given mathematical expression into a sympy expression.
-
-    Args:
-        expression: expression to be parsed.
-        debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
-            for performance reasons.
-    Returns:
-        A Sympy expression object parsed from `expression`.
-    """
-    return parse(expression, interpreter=SympyInterpreter(debug=debug))
+    return _NodeConverter(interpreter).convert_node(ast.parse(preprocessed_expression))
