@@ -285,7 +285,7 @@ def _(value_node: ast.Call):
 
 
 def parse(expression: str, interpreter: Interpreter):
-    """Parse given mathematical using given interpreter to create expression primitives.
+    """Parse given mathematical expression using given interpreter to create expression primitives.
 
     Args:
         expression: An expression to parse.
