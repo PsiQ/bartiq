@@ -1,0 +1,3887 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Symbolic compilation for QRE">
+      
+      
+        <meta name="author" content="PsiQuantum Corp.">
+      
+      
+      
+        <link rel="prev" href="../limitations/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>API reference - Bartiq</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../css/timeago.css">
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../psidocs.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Bartiq" class="md-header__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bartiq
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Bartiq" class="md-nav__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Bartiq
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome to Bartiq
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/01_basic_example/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basic example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/02_alias_sampling_basic/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alias Sampling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/compilation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Compilation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/precompilation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Precompilation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Known limitations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    API reference
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    API reference
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq" class="md-nav__link">
+    <span class="md-ellipsis">
+      bartiq
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bartiq">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Port" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Port">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Port.absolute_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      absolute_path
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.PortDirection" class="md-nav__link">
+    <span class="md-ellipsis">
+      PortDirection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resource
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.ResourceType" class="md-nav__link">
+    <span class="md-ellipsis">
+      ResourceType
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      Routine
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.input_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      input_ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.is_leaf" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_leaf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.is_root" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_root
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.output_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      output_ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.absolute_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      absolute_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.find_descendant" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_descendant
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.relative_path_from" class="md-nav__link">
+    <span class="md-ellipsis">
+      relative_path_from
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.walk" class="md-nav__link">
+    <span class="md-ellipsis">
+      walk
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.compile_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      compile_routine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.evaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      evaluate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.precompilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      precompilation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="precompilation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.AddPassthroughPlaceholder" class="md-nav__link">
+    <span class="md-ellipsis">
+      AddPassthroughPlaceholder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AddPassthroughPlaceholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.AddPassthroughPlaceholder.add_passthrough_placeholders" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_passthrough_placeholders
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.add_default_additive_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_default_additive_resources
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.add_default_properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_default_properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.default_precompilation_stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      default_precompilation_stages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.precompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      precompile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.remove_non_root_container_input_register_sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_non_root_container_input_register_sizes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.unroll_wildcarded_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      unroll_wildcarded_resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.symbolics" class="md-nav__link">
+    <span class="md-ellipsis">
+      symbolics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      routing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="routing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_port_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_port_source
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_port_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_port_target
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_route" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_route
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.join_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      join_paths
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.errors.BartiqCompilationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      BartiqCompilationError
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.errors.BartiqPrecompilationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      BartiqPrecompilationError
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      integrations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="integrations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.integrations.bartiq_to_qref" class="md-nav__link">
+    <span class="md-ellipsis">
+      bartiq_to_qref
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.integrations.qref_to_bartiq" class="md-nav__link">
+    <span class="md-ellipsis">
+      qref_to_bartiq
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      verification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.VerificationOutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      VerificationOutput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="VerificationOutput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.VerificationOutput.is_valid" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_valid
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_compiled_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_compiled_routine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_routine_topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_routine_topology
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_uncompiled_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_uncompiled_routine
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq" class="md-nav__link">
+    <span class="md-ellipsis">
+      bartiq
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="bartiq">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Port" class="md-nav__link">
+    <span class="md-ellipsis">
+      Port
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Port">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Port.absolute_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      absolute_path
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.PortDirection" class="md-nav__link">
+    <span class="md-ellipsis">
+      PortDirection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resource
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.ResourceType" class="md-nav__link">
+    <span class="md-ellipsis">
+      ResourceType
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      Routine
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Routine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.input_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      input_ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.is_leaf" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_leaf
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.is_root" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_root
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.output_ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      output_ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.absolute_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      absolute_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.find_descendant" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_descendant
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.relative_path_from" class="md-nav__link">
+    <span class="md-ellipsis">
+      relative_path_from
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.Routine.walk" class="md-nav__link">
+    <span class="md-ellipsis">
+      walk
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.compile_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      compile_routine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.evaluate" class="md-nav__link">
+    <span class="md-ellipsis">
+      evaluate
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.precompilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      precompilation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="precompilation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.AddPassthroughPlaceholder" class="md-nav__link">
+    <span class="md-ellipsis">
+      AddPassthroughPlaceholder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AddPassthroughPlaceholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.AddPassthroughPlaceholder.add_passthrough_placeholders" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_passthrough_placeholders
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.add_default_additive_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_default_additive_resources
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.add_default_properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_default_properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.default_precompilation_stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      default_precompilation_stages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.precompile" class="md-nav__link">
+    <span class="md-ellipsis">
+      precompile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.remove_non_root_container_input_register_sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_non_root_container_input_register_sizes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.precompilation.unroll_wildcarded_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      unroll_wildcarded_resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.symbolics" class="md-nav__link">
+    <span class="md-ellipsis">
+      symbolics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.routing" class="md-nav__link">
+    <span class="md-ellipsis">
+      routing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="routing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_port_source" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_port_source
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_port_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_port_target
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.get_route" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_route
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.routing.join_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      join_paths
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.errors.BartiqCompilationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      BartiqCompilationError
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.errors.BartiqPrecompilationError" class="md-nav__link">
+    <span class="md-ellipsis">
+      BartiqPrecompilationError
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      integrations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="integrations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.integrations.bartiq_to_qref" class="md-nav__link">
+    <span class="md-ellipsis">
+      bartiq_to_qref
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.integrations.qref_to_bartiq" class="md-nav__link">
+    <span class="md-ellipsis">
+      qref_to_bartiq
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bartiq.verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      verification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.VerificationOutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      VerificationOutput
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="VerificationOutput">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.VerificationOutput.is_valid" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_valid
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_compiled_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_compiled_routine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_routine_topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_routine_topology
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bartiq.verification.verify_uncompiled_routine" class="md-nav__link">
+    <span class="md-ellipsis">
+      verify_uncompiled_routine
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/PsiQ/bartiq/edit/main/docs/reference.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="api-reference">API reference</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.Connection" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">Connection</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="bartiq._routine.BaseModel">BaseModel</span></code></p>
+
+  
+      <p>Connection between two ports.</p>
+
+
+
+  <p><span class="doc-section-title">Attributes:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Connection.source">source</span></code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq._routine.Port" href="#bartiq.Port">Port</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Port which the connection comes from.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Connection.target">target</span></code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq._routine.Port" href="#bartiq.Port">Port</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Port the connection targets.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Connection.parent">parent</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine this connection belongs to. Note: it is marked as Optional
+only because of how Routine objects are internally constructed. In
+correctly constructed routines, no actual connection should have
+a None as a parent.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.Port" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">Port</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="bartiq._routine.BaseModel">BaseModel</span></code></p>
+
+  
+      <p>Class representing a port.</p>
+
+
+
+  <p><span class="doc-section-title">Attributes:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Port.name">name</span></code></td>
+          <td>
+                <code><span title="bartiq._routine._Name">_Name</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of this port.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Port.parent">parent</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to which this port belongs to.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Port.direction">direction</span></code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq._routine.PortDirection" href="#bartiq.PortDirection">PortDirection</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Direction of this port. Port can be either input, output or
+bidirectional.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Port.size">size</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="bartiq._routine.AnnotatedValue">AnnotatedValue</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Size of this port. It might be a concrete value or a variable.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Port.meta">meta</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[dict[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Additional free-form data associated with this port.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.Port.absolute_path" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">absolute_path</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">absolute_path</span><span class="p">(</span><span class="n">exclude_root_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a path from root.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>exclude_root_name</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If true, excludes name of root from the path. Default: False</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.PortDirection" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">PortDirection</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>str</code>, <code><span title="enum.Enum">Enum</span></code></p>
+
+  
+      <p>Class for representing port direction.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.Resource" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">Resource</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="bartiq._routine.BaseModel">BaseModel</span></code></p>
+
+  
+      <p>Resource associated with a routine.</p>
+
+
+
+  <p><span class="doc-section-title">Attributes:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Resource.name">name</span></code></td>
+          <td>
+                <code><span title="bartiq._routine._Name">_Name</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the resource.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Resource.type">type</span></code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq._routine.ResourceType" href="#bartiq.ResourceType">ResourceType</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Type of the resource.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Resource.parent">parent</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine whose resource this object represents.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Resource.value">value</span></code></td>
+          <td>
+                <code><span title="bartiq._routine.AnnotatedValue">AnnotatedValue</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value of the resources, either concrete one or a variable.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.ResourceType" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">ResourceType</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>str</code>, <code><span title="enum.Enum">Enum</span></code></p>
+
+  
+      <p>Class for representing types of resources.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.Routine" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">Routine</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="bartiq._routine.BaseModel">BaseModel</span></code></p>
+
+  
+      <p>Subroutine in a quantum program.</p>
+
+
+
+  <p><span class="doc-section-title">Attributes:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.name">name</span></code></td>
+          <td>
+                <code><span title="bartiq._routine._Name">_Name</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the subroutine.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.type">type</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Type of the subroutine, might be None.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.ports">ports</span></code></td>
+          <td>
+                <code>dict[str, <a class="autorefs autorefs-internal" title="bartiq._routine.Port" href="#bartiq.Port">Port</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary mapping port name to corresponding Port object with the same name.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.parent">parent</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing_extensions.Self">Self</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A Routine whose this routine is subroutine of. Might be None, in which
+case the routine is considered to be root of computation.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.children">children</span></code></td>
+          <td>
+                <code>dict[str, <a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary mapping name of subroutine of this routine into routine
+object with the same name.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.connections">connections</span></code></td>
+          <td>
+                <code>list[<a class="autorefs autorefs-internal" title="bartiq._routine.Connection" href="#bartiq.Connection">Connection</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of connections objects, containing all the directed edges between
+either ports of this routine and ports of its children or ports of two children.
+Importantly, by convention, connection objects cannot descend further then one
+generation (i.e. there might not be a connection between routine and its
+grandchild).</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.resources">resources</span></code></td>
+          <td>
+                <code>dict[str, <a class="autorefs autorefs-internal" title="bartiq._routine.Resource" href="#bartiq.Resource">Resource</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary mapping name of the resource to corresponding Resource object.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.input_params">input_params</span></code></td>
+          <td>
+                <code><span title="typing.Sequence">Sequence</span>[<span title="bartiq._routine.Symbol">Symbol</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Sequence of symbols determining inputs for this routine.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.local_variables">local_variables</span></code></td>
+          <td>
+                <code>dict[str, str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Convenience aliases to expressions commonly used within this Routine.
+For instance, for a Routine with input parameter d one of the local variables
+can be N=ceil(log_2(d)).</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.linked_params">linked_params</span></code></td>
+          <td>
+                <code>dict[<span title="bartiq._routine.Symbol">Symbol</span>, list[tuple[str, <span title="bartiq._routine.Symbol">Symbol</span>]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary defining relations between parameters of this routine and
+parameters of its children. This dictionary is keyed with this routine's
+symbols, with the corresponding values being list of pairs (child, param) to
+which the symbol is connected to. Unlike connections, parameters links might
+descend further than one generation.</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code><span title="bartiq.Routine.meta">meta</span></code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[dict[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Addictional free-form information associated with this routine.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="bartiq.Routine.input_ports" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">input_ports</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">input_ports</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Port</span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Dictionary of input ports of this routine.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="bartiq.Routine.is_leaf" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">is_leaf</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_leaf</span><span class="p">:</span> <span class="nb">bool</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Return True if this routine is a leaf, and false otherwise.</p>
+<p>By the definition, a routine is a leaf iff it has no children.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="bartiq.Routine.is_root" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">is_root</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_root</span><span class="p">:</span> <span class="nb">bool</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Return True if this routine is a root, and false otherwise.</p>
+<p>By the definition, a routine is a root iff it doesn't have a parent.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="bartiq.Routine.output_ports" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">output_ports</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">output_ports</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Port</span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Dictionary of output ports of this routine.</p>
+  </div>
+
+</div>
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.Routine.absolute_path" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">absolute_path</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">absolute_path</span><span class="p">(</span><span class="n">exclude_root_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a path from root.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>exclude_root_name</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If true, excludes name of root from the path. Default: False</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.Routine.find_descendant" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">find_descendant</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">find_descendant</span><span class="p">(</span><span class="n">selector</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Routine</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Given a selector of a child, return the corresponding routine.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>selector</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a string comprising sequence of names determining the child.
+For instance, a string "a.b.c" mean child with name "c" of
+routine with name "b", which itself is a child of routine "a"
+which is a child of self. If empty string is provided, returns itself.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine corresponding to given selector.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Raises:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if given child is not found.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.Routine.relative_path_from" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">relative_path_from</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">relative_path_from</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">ancestor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Routine</span><span class="p">],</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">exclude_root_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Return relative path to the ancestor.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>ancestor</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="bartiq._routine.Routine" href="#bartiq.Routine">Routine</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ancestor from which a relative path to self should be found.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>exclude_root_name</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if True, removes the name of the root from the relative path, if it is present.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>selector s such that ancestor.find_descendant(s) is self.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Raises:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code>ValueError</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If ancestor is not, in fact, an ancestor of self.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.Routine.walk" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">walk</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">walk</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Self</span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Iterates through all the ancestry, deep-first.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.compile_routine" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">compile_routine</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">compile_routine</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">backend</span><span class="o">=</span><span class="n">sympy_backend</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">precompilation_stages</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">global_functions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">functions_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">skip_verification</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Compile estimates for given uncompiled Routine.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to be compiled</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>backend</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The backend to use for manipulating symbolic expressions. Defaults to
+sympy_backend.</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="bartiq.symbolics.sympy_backend">sympy_backend</span></code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>precompilation_stages</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a list of precompilation stages which should be applied. If <code>None</code>,
+default precompilation stages are used.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>global_functions</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>functions in the cost expressions which we don't want to have namespaced.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>functions_map</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary which specifies non-standard functions which need to applied during compilation.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>skip_verification</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>if True, skips routine verification before and after compilation.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.evaluate" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">evaluate</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">evaluate</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">assignments</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">backend</span><span class="o">=</span><span class="n">sympy_backend</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">functions_map</span><span class="o">=</span><span class="kc">None</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Routine</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Evaluates an estimate of a series of variable assignments.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to evaluate. Note: this must have been compiled already.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>assignments</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of variable assignments, such as <code>['x = 10', 'y = 3.141']</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>backend</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A backend used for manipulating symbolic expressions.</p>
+            </div>
+          </td>
+          <td>
+                <code><span title="bartiq.symbolics.sympy_backend">sympy_backend</span></code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>functions_map</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary with string keys and callable functions as values. If any of the routines contains
+a function matching the key in this dict, it will be replaced by calling corresponding value of this dict.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A new estimate with variables assigned to the desired values.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.precompilation" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.precompilation</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.precompilation.AddPassthroughPlaceholder" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">AddPassthroughPlaceholder</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Adds placeholder routines whenever passthrough is detected.</p>
+<p>Contrary to other precompilation methods, this one is stateful (and therefore implemented as a class),
+to ensure unique name and register size for each passhtrough.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="bartiq.precompilation.AddPassthroughPlaceholder.add_passthrough_placeholders" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">add_passthrough_placeholders</span>
+
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">add_passthrough_placeholders</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">_backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Detects when a passthrough occurs in given routine and removes it.
+Passthroughs are problematic for the compilation process and are removed by adding
+"identity routines". This changes the topology of the routine, but it functionally stays the same.</p>
+<p>NOTE: To work properly it needs to be used before remove_non_root_container_input_register_sizes.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.add_default_additive_resources" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">add_default_additive_resources</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">add_default_additive_resources</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">_backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Adds an additive resources to routine if any of the children contains them.</p>
+<p>If given routine:
+- has children,
+- children have defined some additive resources
+- is missing some these resources,
+it adds the resource which is sum of the resources in subroutines.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.add_default_properties" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">add_default_properties</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">add_default_properties</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">_backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">defaults</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DefaultsMap</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Adds a default resources/port sizes to a routine based on its type.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.default_precompilation_stages" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">default_precompilation_stages</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">default_precompilation_stages</span><span class="p">()</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Default suite of precompilation stages.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.precompile" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">precompile</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">precompile</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">precompilation_stages</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="nb">list</span><span class="p">[</span><span class="n">PrecompilationStage</span><span class="p">]</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Routine</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>A precompilation stage that transforms a routine prior to estimate compilation.</p>
+<p>If no precompilation stages are specified, the following precompilation stages are performed by default (in order):
+1. Adds default resources and register sizes for the following routine types:
+  - <code>merge</code>
+2. Adds additive resources to routines if there's an additive resources in any of the children.
+3. Adds "fake routines" when passthrough is detected.
+4. Removes input register sizes from non-root routines as they will be derived from the connected output ports
+    in the compilation process.
+5. Replaces wildcard statements ("~") with appropriate expressions.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A uncompiled routine.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>backend</code></td>
+          <td>
+                <code><span title="bartiq.symbolics.backend.SymbolicBackend">SymbolicBackend</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Backend used to perform expression manipulation.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>precompilation_stages</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[list[<span title="bartiq.precompilation._core.PrecompilationStage">PrecompilationStage</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of functions that modify routine and all it's sub-routines in place.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.remove_non_root_container_input_register_sizes" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">remove_non_root_container_input_register_sizes</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">remove_non_root_container_input_register_sizes</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">_backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Removes any non-root container inputer register sizes defined.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.precompilation.unroll_wildcarded_resources" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">unroll_wildcarded_resources</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">unroll_wildcarded_resources</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Unrolls wildcarded expressions in the resources using information from its children.
+Right now it supports only non-nested expressions.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.symbolics" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.symbolics</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.routing" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.routing</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.routing.get_port_source" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">get_port_source</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_port_source</span><span class="p">(</span><span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Port</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Finds the port's source port, i.e. the terminal port reached by following upstream connections.
+It ignores the intermediate ports, like parent's ports, which only facilitate
+connections through layers of hierarchy, but do not provide meaningful inputs.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.routing.get_port_target" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">get_port_target</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_port_target</span><span class="p">(</span><span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Port</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Finds port's target port, i.e. the terminal port reached by following downstream connections.
+It ignores the intermediate ports, like parent's ports, which only facilitate
+connections through layers of hierarchy, but do not provide meaningful inputs.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.routing.get_route" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">get_route</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">get_route</span><span class="p">(</span><span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">,</span> <span class="n">forward</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Port</span><span class="p">]</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a list of all the ports that will be encountered when following particular port in either direction.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.routing.join_paths" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">join_paths</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">join_paths</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Helper function for joining paths in a routine.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.errors" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.errors</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.errors.BartiqCompilationError" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">BartiqCompilationError</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>Exception</code></p>
+
+  
+      <p>Raised for errors during Bartiq function compilation.</p>
+
+
+  </div>
+
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.errors.BartiqPrecompilationError" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">BartiqPrecompilationError</span>
+
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>Exception</code></p>
+
+  
+      <p>Raised for errors during Bartiq function pre-compilation.</p>
+
+
+  </div>
+
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.integrations" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.integrations</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.integrations.bartiq_to_qref" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">bartiq_to_qref</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">bartiq_to_qref</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;v1&quot;</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SchemaV1</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert Bartiq routine to QREF object.</p>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.integrations.qref_to_bartiq" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">qref_to_bartiq</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">qref_to_bartiq</span><span class="p">(</span><span class="n">qref_obj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">SchemaV1</span><span class="p">,</span> <span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Routine</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert QREF object to a Bartiq routine.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="bartiq.verification" class="doc doc-heading">
+          <span class="doc doc-object-name doc-module-name">bartiq.verification</span>
+
+
+</h2>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="bartiq.verification.VerificationOutput" class="doc doc-heading">
+          <span class="doc doc-object-name doc-class-name">VerificationOutput</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Dataclass containing the output of the verification.</p>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="bartiq.verification.VerificationOutput.is_valid" class="doc doc-heading">
+          <span class="doc doc-object-name doc-attribute-name">is_valid</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">is_valid</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>If true, no issues has been found in the process of verification.</p>
+  </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.verification.verify_compiled_routine" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">verify_compiled_routine</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">verify_compiled_routine</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationOutput</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Verifies whether a compiled routine has correct format.</p>
+<p>This function checks:</p>
+<ul>
+<li>routine's topology</li>
+<li>if all the expression contain only parameters defined at the top level</li>
+<li>if all the linked_params are empty</li>
+</ul>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to be verified.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>backend</code></td>
+          <td>
+                <code><span title="bartiq.symbolics.backend.SymbolicBackend">SymbolicBackend</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Backend used for verification</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.verification.verify_routine_topology" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">verify_routine_topology</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">verify_routine_topology</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationOutput</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Verifies whether the routine has correct topology.</p>
+<p>It uses QREF's <code>verify_topology</code> method.</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to be verified.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="bartiq.verification.verify_uncompiled_routine" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">verify_uncompiled_routine</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">verify_uncompiled_routine</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="n">SymbolicBackend</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VerificationOutput</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>Verifies whether an uncompiled routine has correct format.</p>
+<p>This function checks:</p>
+<ul>
+<li>routine's topology</li>
+<li>whether parameter linking is correct</li>
+<li>if all the expressions in the routine can be parsed by a provided backend</li>
+</ul>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>routine</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.Routine" href="#bartiq.Routine">Routine</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Routine to be verified.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>backend</code></td>
+          <td>
+                <code><span title="bartiq.symbolics.backend.SymbolicBackend">SymbolicBackend</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Backend used for verification</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td>
+                <code><a class="autorefs autorefs-internal" title="bartiq.verification.VerificationOutput" href="#bartiq.verification.VerificationOutput">VerificationOutput</a></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>verified stuff</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1-2.1-2M12.5 7v5.2l4 2.4-1 1L11 13V7h1.5M11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2v1.8Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-17T16:29:52+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-17</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3h-2Z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-07-17T16:29:52+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-07-17</span>
+  </span>
+
+    
+    
+    
+      
+  <span class="md-source-file__fact">
+    
+      
+  <span class="md-icon" title="Contributors">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z"/></svg>
+  </span>
+  <span>GitHub</span>
+
+    
+    <nav>
+      
+        <a href="https://github.com/mstechly" class="md-author" title="@mstechly">
+          
+          <img src="https://avatars.githubusercontent.com/u/7314136?v=4&size=72" alt="mstechly">
+        </a>
+      
+        <a href="https://github.com/sammorley-short" class="md-author" title="@sammorley-short">
+          
+          <img src="https://avatars.githubusercontent.com/u/20857520?v=4&size=72" alt="sammorley-short">
+        </a>
+      
+      
+      
+    </nav>
+  </span>
+
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2023-2024 PsiQuantum Corp.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+        <script src="../js/timeago.min.js"></script>
+      
+        <script src="../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../js/open_in_new_tab.js"></script>
+      
+    
+  </body>
+</html>
