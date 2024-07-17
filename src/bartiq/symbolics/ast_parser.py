@@ -276,7 +276,6 @@ def _(value_node: ast.Call):
     assert isinstance(value_node.func, ast.Name)
     if value_node.func.id != "wildcard":
         raise ValueError("Should never encounter function call other than wildcard() in the attribute lookup")
-    # We can't use ternary operator here because it confuses mypy
     if value_node.args:
         assert isinstance(value_node.args[0], ast.Name)
         return f"{value_node.args[0].id}~"
