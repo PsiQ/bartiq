@@ -373,6 +373,11 @@ PARSE_TEST_CASES = [
     ("sum(~.X)", Function("sum")(Symbol("~.X"))),
     ("max(~.X)", Function("max")(Symbol("~.X"))),
     ("min(~.X)", Function("min")(Symbol("~.X"))),
+    # Expressions containing "in" keyword
+    ("in", Symbol("in")),
+    ("a.in", Symbol("a.in")),
+    ("a.in.b", Symbol("a.in.b")),
+    ("in.b", Symbol("in.b")),
 ]
 
 

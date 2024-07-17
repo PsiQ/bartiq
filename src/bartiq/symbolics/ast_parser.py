@@ -73,6 +73,9 @@ _IDENTIFIER = r"[_a-zA-Z]\w*"
 _NAMESPACE_IDENTIFIER = rf"{_IDENTIFIER}(\.{_IDENTIFIER})*"
 _PORT_PATTERN = rf"#({_NAMESPACE_IDENTIFIER})"
 _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
+_IN_PATTERN = r"(^|[^\w])in($|[^\w])"
+
+_RESTRICTED_NAME_MAP = {"__lambda__": "lambda", "__in__": "in"}
 
 
 @dataclass(frozen=True)
@@ -150,11 +153,28 @@ def _replace_xor_op(expression):
 _XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
 
 
+def _contains_in(expression):
+    return re.search(_IN_PATTERN, expression) is not None
+
+
+def _replace_in(expression):
+    return re.sub(_IN_PATTERN, r"\1__in__\2", expression)
+
+
+# Preprocessing stage replacing "in"s with _in
+_IN_REPLACEMENT = _PreprocessingStage(matches=_contains_in, preprocess=_replace_in)
+
 # Sequence of all known preprocessing stages.
 # If there are any new preprocessing stages, they should be added here.
 # Note that this list is not exposed/configurable by the user, because it wouldn't really make sens -
 # if any of those preprocessing stages does not run we would risk having unparseable expression.
-_PREPROCESSING_STAGES = (_WILDCARD_REPLACEMENT, _PORT_REPLACEMENT, _LAMBDA_REPLACEMENT, _XOR_OP_REPLACEMENT)
+_PREPROCESSING_STAGES = (
+    _WILDCARD_REPLACEMENT,
+    _PORT_REPLACEMENT,
+    _LAMBDA_REPLACEMENT,
+    _XOR_OP_REPLACEMENT,
+    _IN_REPLACEMENT,
+)
 
 
 def _preprocess(expression: str) -> str:
@@ -170,7 +190,7 @@ def _restore_name(name: str) -> str:
 
     This is to reverse the effects of preprocessing.
     """
-    return "lambda" if name == "__lambda__" else name
+    return _RESTRICTED_NAME_MAP.get(name, name)
 
 
 class _NodeConverter:
