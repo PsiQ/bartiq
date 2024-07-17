@@ -19,6 +19,7 @@ from warnings import warn
 from sympy import (
     Function,
     Heaviside,
+    Integer,
     LambertW,
     Max,
     Min,
@@ -52,17 +53,9 @@ from sympy import (
     frac,
     im,
     log,
-    multiplicity,
-    prod,
-    re,
-    sec,
-    sech,
-    sin,
-    sinh,
-    sqrt,
-    tan,
-    tanh,
 )
+from sympy import multiplicity as orig_multiplicity
+from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
@@ -160,6 +153,12 @@ class Round(Function):
         return round(x, ndigits=ndigits)
 
 
+class multiplicity(Function):
+    @classmethod
+    def eval(cls, p, n):
+        return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
+
+
 SPECIAL_FUNCS = {
     "mod": Mod,
     "max": Max,
@@ -212,15 +211,7 @@ SPECIAL_FUNCS = {
     "log_10": log10,
     "lambertw": LambertW,
     "heaviside": Heaviside,
-}
-
-
-def _multiplicity(p, n):
-    return Number(multiplicity(p, n))
-
-
-TRY_IF_POSSIBLE_FUNCS = {
-    "multiplicity": _multiplicity,
+    "multiplicity": multiplicity,
 }
 
 
@@ -255,21 +246,7 @@ class SympyInterpreter(Interpreter):
         elif name.lower() in SPECIAL_FUNCS:
             func = SPECIAL_FUNCS[name.lower()]
 
-        # Case 3: Some functions may only successfully evaluted in certain cases, so attempt to do so if possible.
-        # Otherwise, just cast to a generic function
-        # NOTE: this should probably be replaced with some sort of more rigorous input type-checking for
-        # sympy-defined functions, but given the many different valid types of number you can use in sympy, just
-        # trying to run the function is much simpler in practise. We will fix this when we have more function
-        # instances to generalise over.
-        elif name.lower() in TRY_IF_POSSIBLE_FUNCS:
-            try:
-                func = TRY_IF_POSSIBLE_FUNCS[name.lower()]
-                result = func(*args)
-                return result
-            except ValueError:
-                func = Function(name)
-
-        # Case 4: If nothing else works, just cast to a generic function
+        # Case 3: If nothing else works, just cast to a generic function
         else:
             func = Function(name)
 

@@ -29,7 +29,7 @@ from typing_extensions import TypeAlias
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
-from .sympy_interpreter import SPECIAL_FUNCS, TRY_IF_POSSIBLE_FUNCS, SympyInterpreter
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
 from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression
 
@@ -37,7 +37,7 @@ NUM_DIGITS_PRECISION = 15
 # Order included here to allow for user-defined big O's
 SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
-BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
+BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 
 T_expr: TypeAlias = Expr
@@ -125,11 +125,7 @@ class SympyBackend:
 
     def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
         """Substitute occurrences of given symbol with an expression or numerical value."""
-        return (
-            self.as_expression(self.serialize(expr.subs(symbols(symbol), replacement)))
-            if symbol in self.free_symbols_in(expr)
-            else expr
-        )
+        return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
 
     def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
         """Rename all instances of given function call."""
