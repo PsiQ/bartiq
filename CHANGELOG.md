@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/PsiQ/bartiq/compare/v0.3.3...v0.4.0) (2024-07-17)
+
+
+### Features
+
+* Implement ast-based parser for symbolic expressions ([#87](https://github.com/PsiQ/bartiq/issues/87)) ([c7f642e](https://github.com/PsiQ/bartiq/commit/c7f642e01181945fcdcfcf4d49bdebb3e398801d))
+* Improve Value Parsing to Take Mathematical Constants and Functions ([#74](https://github.com/PsiQ/bartiq/issues/74)) ([961dc1c](https://github.com/PsiQ/bartiq/commit/961dc1c853104a384bce3701410940b8558e2937))
+
 ## [0.3.3](https://github.com/PsiQ/bartiq/compare/v0.3.2...v0.3.3) (2024-07-12)
 
 
