@@ -21,7 +21,8 @@ from __future__ import annotations
 from functools import singledispatchmethod
 from typing import Callable, Iterable, Optional, Union
 
-from sympy import Expr, Function, N, Order, symbols, sympify
+import sympy
+from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
@@ -40,6 +41,13 @@ BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS) + list(TRY_IF_POSSIBLE_FUNCS)
 
 
 T_expr: TypeAlias = Expr
+
+MATH_CONSTANTS = {
+    "pi": sympy.pi,
+    "E": sympy.exp(1),
+    "oo": sympy.oo,
+    "infinity": sympy.oo,
+}
 
 
 def parse_to_sympy(expression: str, debug=False) -> T_expr:
@@ -72,6 +80,15 @@ class SympyBackend:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
+    def parse_constant(self, expr: T_expr) -> T_expr:
+        """Parse the expression, replacing known constants while ignoring case."""
+        for symbol_str, constant in MATH_CONSTANTS.items():
+            expr = expr.subs(Symbol(symbol_str.casefold()), constant)
+            expr = expr.subs(Symbol(symbol_str.upper()), constant)
+            expr = expr.subs(Symbol(symbol_str.capitalize()), constant)
+
+        return expr
+
     def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
         return map(str, expr.free_symbols)
@@ -89,7 +106,7 @@ class SympyBackend:
         return BUILT_IN_FUNCTIONS
 
     def value_of(self, expr: T_expr) -> Optional[Number]:
-        """Compute a numerical value of an expression, return None if it not possible."""
+        """Compute a numerical value of an expression, return None if it's not possible."""
         # If numeric value possible, evaluate, otherwise return None
         try:
             value = N(expr).round(n=NUM_DIGITS_PRECISION)
@@ -102,7 +119,8 @@ class SympyBackend:
         # Map to integer if possible
         if int(value) == value or value.is_Float and value % 1 == 0:
             value = int(value)
-
+        else:
+            value = float(value)
         return value
 
     def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:

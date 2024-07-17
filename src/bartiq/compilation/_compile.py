@@ -124,7 +124,9 @@ def _compile_routine(
 
 
 def _add_function_to_routine(
-    routine: Routine, global_functions: Optional[list[str]], backend: SymbolicBackend[T_expr]
+    routine: Routine,
+    global_functions: Optional[list[str]],
+    backend: SymbolicBackend[T_expr],
 ) -> RoutineWithFunction[T_expr]:
     """Converts each routine to a symbolic function."""
     routine_with_functions = RoutineWithFunction.from_routine(routine)
@@ -207,7 +209,9 @@ def _pull_in_input_register_size_params(
 
 
 def _pull_in_input_register_size_param(
-    function: SymbolicFunction[T_expr], input_port: Port, backend: SymbolicBackend[T_expr]
+    function: SymbolicFunction[T_expr],
+    input_port: Port,
+    backend: SymbolicBackend[T_expr],
 ) -> SymbolicFunction[T_expr]:
     """Renames a leaf's input register size to the associated high-level register size."""
     source_port = get_port_source(input_port)
@@ -235,13 +239,19 @@ def _pull_in_input_register_size_param(
     if is_constant_int(root_input_register_size):
         assert isinstance(root_input_register_size, (int, str))
         new_function = set_input_port_size_to_constant_value(
-            function, input_port.absolute_path(exclude_root_name=True), int(root_input_register_size), backend
+            function,
+            input_port.absolute_path(exclude_root_name=True),
+            int(root_input_register_size),
+            backend,
         )
         return new_function
 
     # If the root input is of variable size, then we will rename the parameter with the root parameter
     elif is_single_parameter(root_input_register_size):
-        root_param = join_paths(source_port.absolute_path(exclude_root_name=True), str(root_input_register_size))
+        root_param = join_paths(
+            source_port.absolute_path(exclude_root_name=True),
+            str(root_input_register_size),
+        )
         param = str(input_port.size)
         leaf_param = join_paths(input_port.absolute_path(exclude_root_name=True), param)
         if is_constant_int(param):
@@ -654,7 +664,9 @@ def _infer_missing_register_sizes(
             assert port_endpoint.size  # To satisfy typechecker
             new_output_symbol = f"#{port.name}"
             new_outputs[new_output_symbol] = DependentVariable(
-                new_output_symbol, backend.as_expression(port_endpoint.size), backend=backend
+                new_output_symbol,
+                backend.as_expression(port_endpoint.size),
+                backend=backend,
             )
     return SymbolicFunction(function.inputs, new_outputs)
 
