@@ -75,7 +75,7 @@ _PORT_PATTERN = rf"#({_NAMESPACE_IDENTIFIER})"
 _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
 _IN_PATTERN = r"(^|[^\w])in($|[^\w])"
 
-_RESTRICTED_NAME_MAP = {"__lambda__": "lambda", "__in__": "in"}
+_RESTRICTED_NAMES = {"__lambda__": "lambda", "__in__": "in"}
 
 
 @dataclass(frozen=True)
@@ -190,7 +190,7 @@ def _restore_name(name: str) -> str:
 
     This is to reverse the effects of preprocessing.
     """
-    return _RESTRICTED_NAME_MAP.get(name, name)
+    return _RESTRICTED_NAMES.get(name, name)
 
 
 class _NodeConverter:
