@@ -14,6 +14,7 @@
 
 import operator
 from functools import lru_cache
+from warnings import warn
 
 from sympy import (
     Function,
@@ -79,6 +80,11 @@ def parse_to_sympy(string, debug=False):
     Returns:
         sympy.Basic: Some sympy expression.
     """
+    warn(
+        "Legacy, pyparsing based sympy parser is deprecated, use default sympy_backend when calling compile_routine "
+        "and evaluate",
+        DeprecationWarning,
+    )
     interpreter = SympyInterpreter(debug=debug)
     parser = make_parser(interpreter)
     return parser.parse_string(string)[0]
