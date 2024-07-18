@@ -50,7 +50,6 @@ from sympy import (
     frac,
     im,
     log,
-    multiplicity,
     prod,
     re,
     sec,
@@ -65,7 +64,7 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backends import parse_to_sympy
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round
+from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, multiplicity
 from bartiq.symbolics.sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
@@ -365,9 +364,9 @@ PARSE_TEST_CASES = [
     ("x / y // z", (x / y) // z),
     ("x ^ y ** z", x ** (y**z)),
     # Special functions
-    ("multiplicity(x, y)", Function("multiplicity")(x, y)),
-    ("multiplicity(x, 2)", Function("multiplicity")(x, 2)),
-    ("multiplicity(2, y)", Function("multiplicity")(2, y)),
+    ("multiplicity(x, y)", multiplicity(x, y)),
+    ("multiplicity(x, 2)", multiplicity(x, 2)),
+    ("multiplicity(2, y)", multiplicity(2, y)),
     ("multiplicity(2, 40)", multiplicity(2, 40)),
     # Expressions with wildcard
     ("sum(~.X)", Function("sum")(Symbol("~.X"))),
