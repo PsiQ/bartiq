@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from typing import Optional
 
 from sympy import Expr, Function, Poly, Symbol, prod
@@ -24,6 +25,12 @@ class BigO:
         It analyzes given expression and returns all the Big O terms in it.
         If variable is provided, it analyses scaling in this particular variable,
         otherwise it assumes all the symbols are variables.
+
+        Note:
+            It's an experimental tool and is meant to facilitate the analysis, but
+            it might not produce correct results, especially for more complicated
+            expressions. In case of any problems please create an issue on project's GitHub,
+            we'd love to hear your feedback on this!
 
         Args:
             expr: sympy expression we want to analyze
@@ -72,6 +79,11 @@ def _convert_to_big_O(expr: Expr, gens: Optional[list[Expr]] = None) -> Expr:
     gens = gens or []
     if len(expr.free_symbols) == 0:
         return _add_big_o_function(1)
+    if len(expr.free_symbols) > 1:
+        warnings.warn(
+            "Big O notation for expressions with multiple variables is not well defined. "
+            "For more reliable results, please select a variable of interest."
+        )
     poly = Poly(expr, gens)
     leading_terms = _get_leading_terms(poly)
     return sum(map(_add_big_o_function, leading_terms))

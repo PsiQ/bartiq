@@ -49,8 +49,13 @@ from bartiq.analysis import BigO
         ),
     ],
 )
-def test_to_big_O(expr, variable, expected):
+def test_BigO(expr, variable, expected):
     assert BigO(expr, variable) == expected
+
+
+def test_BigO_throws_warning_for_multiple_variables():
+    with pytest.warns():
+        BigO(x**y + y**x + x * y + x**2 * y + 3 + x * y**2 + x + y + 1)
 
 
 def test_adding_BigO_expressions():
