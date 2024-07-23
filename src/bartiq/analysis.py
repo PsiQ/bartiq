@@ -36,7 +36,11 @@ class BigO:
             expr: sympy expression we want to analyze
             variable: variable for which we want to performa analysis.
         """
-        self.expr = _convert_to_big_O(expr, variable)
+        if variable is None:
+            gens = []
+        else:
+            gens = [variable]
+        self.expr = _convert_to_big_O(expr, gens)
 
     def __add__(self, other):
         if isinstance(other, self.__class__):
@@ -79,12 +83,12 @@ def _convert_to_big_O(expr: Expr, gens: Optional[list[Expr]] = None) -> Expr:
     gens = gens or []
     if len(expr.free_symbols) == 0:
         return _add_big_o_function(1)
-    if len(expr.free_symbols) > 1:
+    if len(expr.free_symbols) > 1 and len(gens) == 0:
         warnings.warn(
-            "Big O notation for expressions with multiple variables is not well defined. "
-            "For more reliable results, please select a variable of interest."
+            "Results for using BigO with multiple variables might be unreliable. "
+            "For better results please select a variable of interest."
         )
-    poly = Poly(expr, gens)
+    poly = Poly(expr, *gens)
     leading_terms = _get_leading_terms(poly)
     return sum(map(_add_big_o_function, leading_terms))
 
