@@ -20,7 +20,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+      - name: Install dependencies and the package
+        run: |
+          python -m pip install --upgrade pip poetry
+          poetry install
+      - name: Run unit tests
+        run: poetry run pytest
+  
+  run_coverage:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -36,7 +56,7 @@ jobs:
       - name: Run unit tests
         run: poetry run pytest --cov=bartiq --cov-report xml
       - name: Add coverage info to GitHub UI
-        run: pycobertura show --format github-annotation coverage.xml
+        run: poetry run pycobertura show --format github-annotation coverage.xml
 
   run_quality_checks:
     runs-on: ubuntu-latest
