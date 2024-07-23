@@ -2,6 +2,8 @@
 
 ::: bartiq
 
+::: bartiq.analysis
+
 ::: bartiq.precompilation
 
 ::: bartiq.symbolics
