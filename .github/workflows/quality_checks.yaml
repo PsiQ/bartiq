@@ -34,7 +34,9 @@ jobs:
           python -m pip install --upgrade pip poetry
           poetry install
       - name: Run unit tests
-        run: poetry run pytest
+        run: poetry run pytest --cov=bartiq --cov-report xml
+      - name: Add coverage info to GitHub UI
+        run: pycobertura show --format github-annotation coverage.xml
 
   run_quality_checks:
     runs-on: ubuntu-latest
