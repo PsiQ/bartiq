@@ -17,27 +17,28 @@ import sympy
 from sympy.abc import x, y
 from qref import SchemaV1  # Assuming the functions and class are in qref module
 
-from bartiq.transform import _expand_aggregation_dict, expand_aggregation_resources, add_aggregated_resources
+from bartiq.transform import _expand_aggregation_dict, add_aggregated_resources
 
 
 @pytest.mark.parametrize(
     "aggregation_dict, expected",
     [
         (
-            {'A': {'B': 2, 'C': 3}, 'B': {'C': 4, 'D': 5}, 'C': {'D': 6}},
-            {'A': {'D': 76}, 'B': {'D': 29}, 'C': {'D': 6}},
+            {"A": {"B": 2, "C": 3}, "B": {"C": 4, "D": 5}, "C": {"D": 6}},
+            {"A": {"D": 76}, "B": {"D": 29}, "C": {"D": 6}},
         ),
     ],
 )
 def test_expand_aggregation_dict(aggregation_dict, expected):
     assert _expand_aggregation_dict(aggregation_dict) == expected
 
+
 @pytest.mark.parametrize(
     "aggregation_dict, expected",
     [
         (
-            {'A': {'B': 2, 'C': 'x-y'}, 'B': {'C': 4, 'D': 5}, 'C': {'D': '3*z'}},
-            {'A': {'D': '3*z*(x - y + 8) + 10'}, 'B': {'D': '12*z+5'}, 'C': {'D': '3*z'}},
+            {"A": {"B": 2, "C": "x-y"}, "B": {"C": 4, "D": 5}, "C": {"D": "3*z"}},
+            {"A": {"D": "3*z*(x - y + 8) + 10"}, "B": {"D": "12*z+5"}, "C": {"D": "3*z"}},
         ),
     ],
 )
@@ -46,3 +47,103 @@ def test_expand_aggregation_dict_symbol(aggregation_dict, expected):
     for key in expected:
         for sub_key in expected[key]:
             assert sympy.simplify(result[key][sub_key]) == sympy.simplify(expected[key][sub_key])
+
+
+# Example usp_dict and usp data
+subroutine_1 = {
+    "name": "subroutine_1",
+    "type": None,
+    "ports": [
+        {"name": "in", "direction": "input", "size": "R"},
+        {"name": "out", "direction": "output", "size": "R"},
+    ],
+    "resources": [
+        {
+            "name": "A",
+            "type": "additive",
+            "value": "2*x",
+        },
+        {"name": "B", "type": "additive", "value": "3"},
+    ],
+    "input_params": ["x"],
+    "local_variables": {"R": "x+1"},
+}
+
+subroutine_2 = {
+    "name": "subroutine_2",
+    "type": None,
+    "ports": [
+        {"name": "in", "direction": "input", "size": "R"},
+        {"name": "out", "direction": "output", "size": "R"},
+    ],
+    "resources": [
+        {
+            "name": "A",
+            "type": "additive",
+            "value": "ceil(x/4)",
+        },
+        {"name": "B", "type": "additive", "value": "1"},
+    ],
+    "input_params": ["x"],
+    "local_variables": {"R": "x+1"},
+}
+
+
+@pytest.mark.parametrize(
+    "aggregation_dict, subroutine, expected",
+    [
+        (
+            {
+                "A": {"B": "x*y + z"},
+                "B": {"C": "2*z"},
+            },
+            subroutine_1,
+            {
+                "name": "subroutine_1",
+                "type": None,
+                "ports": [
+                    {"name": "in", "direction": "input", "size": "R"},
+                    {"name": "out", "direction": "output", "size": "R"},
+                ],
+                "resources": [
+                    {"name": "C", "type": "additive", "value": "6*z+2*x*(x*y+z)*(2*z)"},
+                ],
+                "input_params": ["x"],
+                "local_variables": {"R": "x+1"},
+            },
+        ),
+        (
+            {"A": {"C": "x*y"}, "B": {"D": "2*x + y"}, "C": {"D": "3*z"}},
+            subroutine_2,
+            {
+                "name": "subroutine_2",
+                "type": None,
+                "ports": [
+                    {"name": "in", "direction": "input", "size": "R"},
+                    {"name": "out", "direction": "output", "size": "R"},
+                ],
+                "resources": [
+                    {"name": "D", "type": "additive", "value": "3*ceil(x/4)*x*y*z + (2*x + y)"},
+                ],
+                "input_params": ["x"],
+                "local_variables": {"R": "x+1"},
+            },
+        ),
+    ],
+)
+def test_add_aggregated_resources(aggregation_dict, subroutine, expected):
+    aggregated_subroutine = add_aggregated_resources(aggregation_dict, subroutine)
+
+    aggregated_resources = aggregated_subroutine["resources"]
+    expected_resources = expected["resources"]
+
+    aggregated_names = [res["name"] for res in aggregated_resources]
+    expected_names = [res["name"] for res in expected_resources]
+
+    assert aggregated_names == expected_names
+
+    for resource in aggregated_resources:
+        for expected_resource in expected_resources:
+            if expected_resource["name"] == resource["name"]:
+                assert sympy.simplify(resource["value"]) == sympy.simplify(expected_resource["value"])
+                assert resource["type"] == expected_resource["type"]
