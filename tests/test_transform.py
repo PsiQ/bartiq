@@ -31,3 +31,18 @@ from bartiq.transform import _expand_aggregation_dict, expand_aggregation_resour
 )
 def test_expand_aggregation_dict(aggregation_dict, expected):
     assert _expand_aggregation_dict(aggregation_dict) == expected
+
+@pytest.mark.parametrize(
+    "aggregation_dict, expected",
+    [
+        (
+            {'A': {'B': 2, 'C': 'x-y'}, 'B': {'C': 4, 'D': 5}, 'C': {'D': '3*z'}},
+            {'A': {'D': '3*z*(x - y + 8) + 10'}, 'B': {'D': '12*z+5'}, 'C': {'D': '3*z'}},
+        ),
+    ],
+)
+def test_expand_aggregation_dict_symbol(aggregation_dict, expected):
+    result = _expand_aggregation_dict(aggregation_dict)
+    for key in expected:
+        for sub_key in expected[key]:
+            assert sympy.simplify(result[key][sub_key]) == sympy.simplify(expected[key][sub_key])

@@ -21,21 +21,22 @@ def _expand_aggregation_dict(aggregation_dict: dict) -> dict:
     # Expand the aggregation_dict to handle nested calls
     expanded_dict = {}
     for key, mapping in aggregation_dict.items():
-        expanded_mapping = copy.deepcopy(mapping)
+        expanded_mapping = {k: sympy.sympify(v) for k, v in mapping.items()}
         to_expand = list(mapping.keys())
         while to_expand:
             current = to_expand.pop(0)
             if current in aggregation_dict:
-                sub_mapping = aggregation_dict[current]
+                sub_mapping = {k: sympy.sympify(v) for k, v in aggregation_dict[current].items()}
                 for sub_key, sub_multiplier in sub_mapping.items():
                     if sub_key in expanded_mapping:
-                        expanded_mapping[sub_key] += expanded_mapping[current] * sub_multiplier
+                        expanded_mapping[sub_key] = sympy.sympify(expanded_mapping[sub_key]) + expanded_mapping[current] * sub_multiplier
                     else:
                         expanded_mapping[sub_key] = expanded_mapping[current] * sub_multiplier
                         to_expand.append(sub_key)
                 del expanded_mapping[current]
         expanded_dict[key] = expanded_mapping
     return expanded_dict
+
 
 def expand_aggregation_resources(qref_obj: Union[SchemaV1, dict]) -> dict:
     qref_obj = SchemaV1.model_validate(qref_obj)
