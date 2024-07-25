@@ -14,8 +14,6 @@
 
 import pytest
 import sympy
-from sympy.abc import x, y
-from qref import SchemaV1  # Assuming the functions and class are in qref module
 
 from bartiq.transform import _expand_aggregation_dict, add_aggregated_resources
 
@@ -44,12 +42,11 @@ def test_expand_aggregation_dict(aggregation_dict, expected):
 )
 def test_expand_aggregation_dict_symbol(aggregation_dict, expected):
     result = _expand_aggregation_dict(aggregation_dict)
-    for key in expected:
-        for sub_key in expected[key]:
-            assert sympy.simplify(result[key][sub_key]) == sympy.simplify(expected[key][sub_key])
+    for resource in expected:
+        for sub_res in expected[resource]:
+            assert sympy.simplify(result[resource][sub_res]) == sympy.simplify(expected[resource][sub_res])
 
 
-# Example usp_dict and usp data
 subroutine_1 = {
     "name": "subroutine_1",
     "type": None,
@@ -58,11 +55,7 @@ subroutine_1 = {
         {"name": "out", "direction": "output", "size": "R"},
     ],
     "resources": [
-        {
-            "name": "A",
-            "type": "additive",
-            "value": "2*x",
-        },
+        {"name": "A", "type": "additive", "value": "2*x"},
         {"name": "B", "type": "additive", "value": "3"},
     ],
     "input_params": ["x"],
@@ -77,26 +70,35 @@ subroutine_2 = {
         {"name": "out", "direction": "output", "size": "R"},
     ],
     "resources": [
-        {
-            "name": "A",
-            "type": "additive",
-            "value": "ceil(x/4)",
-        },
+        {"name": "A", "type": "additive", "value": "ceil(x/4)"},
         {"name": "B", "type": "additive", "value": "1"},
     ],
     "input_params": ["x"],
     "local_variables": {"R": "x+1"},
 }
 
+subroutine_3 = {
+    "name": "subroutine_3",
+    "type": None,
+    "ports": [
+        {"name": "in", "direction": "input", "size": "R"},
+        {"name": "out", "direction": "output", "size": "R"},
+    ],
+    "resources": [
+        {"name": "A", "type": "additive", "value": "sqrt(x/4)"},
+        {"name": "B", "type": "additive", "value": "1"},
+    ],
+    "input_params": ["x"],
+    "local_variables": {"R": "x"},
+}
 
+
+# Test for add_aggregated_resources with correct values
 @pytest.mark.parametrize(
     "aggregation_dict, subroutine, expected",
     [
         (
-            {
-                "A": {"B": "x*y + z"},
-                "B": {"C": "2*z"},
-            },
+            {"A": {"B": "x*y + z"}, "B": {"C": "2*z"}},
             subroutine_1,
             {
                 "name": "subroutine_1",
@@ -147,3 +149,44 @@ def test_add_aggregated_resources(aggregation_dict, subroutine, expected):
             if expected_resource["name"] == resource["name"]:
                 assert sympy.simplify(resource["value"]) == sympy.simplify(expected_resource["value"])
                 assert resource["type"] == expected_resource["type"]
+
+
+@pytest.mark.parametrize(
+    "error_aggregation_dict, error_subroutine, error_expected",
+    [
+        (
+            {"A": {"B": "x*y + z"}},
+            subroutine_3,
+            {
+                "name": "subroutine_3",
+                "type": None,
+                "ports": [
+                    {"name": "in", "direction": "input", "size": "R"},
+                    {"name": "out", "direction": "output", "size": "R"},
+                ],
+                "resources": [
+                    {"name": "B", "type": "multiadditive", "value": "sqrt(x/4) * (x*y + z)+90"},
+                    {"name": "wrong", "type": "additive", "value": "3"},
+                ],
+                "input_params": ["x"],
+                "local_variables": {"R": "x"},
+            },
+        ),
+    ],
+)
+def test_add_aggregated_resources_errors(error_aggregation_dict, error_subroutine, error_expected):
+    aggregated_subroutine = add_aggregated_resources(error_aggregation_dict, error_subroutine)
+
+    aggregated_resources = aggregated_subroutine["resources"]
+    expected_resources = error_expected["resources"]
+
+    aggregated_names = [res["name"] for res in aggregated_resources]
+    expected_names = [res["name"] for res in expected_resources]
+
+    assert aggregated_names != expected_names
+
+    for resource in aggregated_resources:
+        for expected_resource in expected_resources:
+            if expected_resource["name"] == resource["name"]:
+                assert sympy.simplify(resource["value"]) != sympy.simplify(expected_resource["value"])
+                assert resource["type"] != expected_resource["type"]
