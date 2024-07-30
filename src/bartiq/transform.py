@@ -16,6 +16,8 @@
 import copy
 from typing import Any, Dict
 
+import sympy
+
 from bartiq import Resource, Routine
 from bartiq.symbolics import sympy_backend
 from bartiq.verification import verify_uncompiled_routine
@@ -76,43 +78,58 @@ def _add_aggregated_resources_to_subroutine(
 
 
 def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """
+    Expand the aggregation dictionary to handle nested resources.
+    Args:
+        aggregation_dict: The input aggregation dictionary.
+    Returns:
+        Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
+    """
     expanded_dict = {}
-    for resource in aggregation_dict:
-        expanded_dict[resource] = _expand_resource(resource, aggregation_dict)
+    for resource in aggregation_dict.keys():
+        expanded_dict[resource] = _expand_resource(resource, aggregation_dict, set())
     return expanded_dict
 
 
-def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Any]:
-    expanded_mapping = {}
-    to_expand = [(resource, 1)]
-    visited = set()
+def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]], visited: set) -> Dict[str, Any]:
+    """
+    Recursively expand resource mapping to handle nested resources and detect circular dependencies.
+    Args:
+        resource: The resource to expand.
+        aggregation_dict: The input aggregation dictionary.
+        visited: A set of currently visited resources to detect circular dependencies.
+    Returns:
+        Dict[str, Any]: The expanded resource mapping.
+    """
+    if resource in visited:
+        raise ValueError(f"Circular dependency detected: {' -> '.join(visited)} -> {resource}")
 
-    while to_expand:
-        current, multiplier = to_expand.pop()
-        if current in visited:
-            raise ValueError(f"Circular dependency detected: {' -> '.join(visited)} -> {current}")
+    # Add current resource to the visited set
+    visited.add(resource)
 
-        visited.add(current)
+    # If the resource is not in the aggregation dictionary, return an empty dictionary
+    if resource not in aggregation_dict:
+        visited.remove(resource)
+        return {}
 
-        if current not in aggregation_dict:
-            if current in expanded_mapping:
-                expanded_mapping[current] += multiplier
-            else:
-                expanded_mapping[current] = multiplier
-            visited.remove(current)
-            continue
+    # Sympify the mapping values for the current resource
+    expanded_mapping = {k: sympy.sympify(v) for k, v in aggregation_dict[resource].items()}
+    res_to_expand = list(expanded_mapping.keys())
 
-        for sub_res, sub_multiplier in aggregation_dict[current].items():
-            sub_multiplier = backend.as_expression(sub_multiplier) * multiplier
-            if sub_res in expanded_mapping:
-                expanded_mapping[sub_res] += sub_multiplier
-            else:
-                expanded_mapping[sub_res] = sub_multiplier
-                to_expand.append((sub_res, sub_multiplier))
-
-        visited.remove(current)
-
-    return expanded_mapping
+    while res_to_expand:
+        current = res_to_expand.pop(0)
+        if current in aggregation_dict:
+            # Recursively expand the nested resources
+            sub_mapping = _expand_resource(current, aggregation_dict, visited.copy())
+            for sub_res, sub_multiplier in sub_mapping.items():
+                if sub_res in expanded_mapping:
+                    expanded_mapping[sub_res] = (
+                        sympy.sympify(expanded_mapping[sub_res]) + expanded_mapping[current] * sub_multiplier
+                    )
+                else:
+                    expanded_mapping[sub_res] = expanded_mapping[current] * sub_multiplier
+                    res_to_expand.append(sub_res)
+            del expanded_mapping[current]
 
     # Remove the current resource from the visited set
     visited.remove(resource)

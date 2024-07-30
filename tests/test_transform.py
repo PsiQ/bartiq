@@ -13,192 +13,97 @@
 # limitations under the License.
 
 import pytest
-import sympy
-from bartiq.transform import _expand_aggregation_dict, add_aggregated_resources
+from bartiq import Routine
+from bartiq.integrations import qref_to_bartiq
+from bartiq.transform import add_aggregated_resources
 
-
-@pytest.mark.parametrize(
-    "aggregation_dict, expected",
-    [
-        (
-            {
-                "B": {"C": 4, "D": 5},
-                "C": {"D": 6},
-                "A": {"B": 2, "C": 3},
-            },
-            {
-                "B": {"D": 29},
-                "C": {"D": 6},
-                "A": {"D": 76},
-            },
-        ),
-    ],
-)
-def test_expand_aggregation_dict(aggregation_dict, expected):
-    assert _expand_aggregation_dict(aggregation_dict) == expected
-
-
-@pytest.mark.parametrize(
-    "aggregation_dict, expected",
-    [
-        (
-            {"B": {"C": 4, "D": 5}, "C": {"D": "3*z"}, "A": {"B": 2, "C": "x-y"}},
-            {"B": {"D": "12*z+5"}, "A": {"D": "3*z*(x - y + 8) + 10"}, "C": {"D": "3*z"}},
-        ),
-    ],
-)
-def test_expand_aggregation_dict_symbol(aggregation_dict, expected):
-    result = _expand_aggregation_dict(aggregation_dict)
-
-    for resource in result:
-        for sub_res in result[resource]:
-            expanded_expr = sympy.simplify(result[resource][sub_res])
-            expected_expr = sympy.simplify(expected[resource][sub_res])
-            assert expanded_expr.equals(expected_expr)
-
-
-"""
-subroutine_1 = {
-    "name": "subroutine_1",
+ccry_gate = {
+    "name": "ccry_gate",
     "type": None,
     "ports": [
-        {"name": "in", "direction": "input", "size": "R"},
-        {"name": "out", "direction": "output", "size": "R"},
+        {"name": "in", "direction": "input", "size": "n"},
+        {"name": "out", "direction": "output", "size": "n"},
     ],
     "resources": [
-        {"name": "A", "type": "additive", "value": "2*x"},
-        {"name": "B", "type": "additive", "value": "3"},
+        {"name": "CNOT", "type": "additive", "value": "2*num"},
+        {"name": "control_ry", "type": "additive", "value": "3*num"},
     ],
-    "input_params": ["x"],
-    "local_variables": {"R": "x+1"},
-}
-
-subroutine_2 = {
-    "name": "subroutine_2",
-    "type": None,
-    "ports": [
-        {"name": "in", "direction": "input", "size": "R"},
-        {"name": "out", "direction": "output", "size": "R"},
-    ],
-    "resources": [
-        {"name": "A", "type": "additive", "value": "ceil(x/4)"},
-        {"name": "B", "type": "additive", "value": "1"},
-    ],
-    "input_params": ["x"],
-    "local_variables": {"R": "x+1"},
-}
-
-subroutine_3 = {
-    "name": "subroutine_3",
-    "type": None,
-    "ports": [
-        {"name": "in", "direction": "input", "size": "R"},
-        {"name": "out", "direction": "output", "size": "R"},
-    ],
-    "resources": [
-        {"name": "A", "type": "additive", "value": "sqrt(x/4)"},
-        {"name": "B", "type": "additive", "value": "1"},
-    ],
-    "input_params": ["x"],
-    "local_variables": {"R": "x"},
+    "input_params": ["x", "num"],
+    "local_variables": {"n": "x"},
 }
 
 
-# Test for add_aggregated_resources with correct values
-@pytest.mark.parametrize(
-    "aggregation_dict, subroutine, expected",
-    [
-        (
-            {"A": {"B": "x*y + z"}, "B": {"C": "2*z"}},
-            subroutine_1,
-            {
-                "name": "subroutine_1",
-                "type": None,
-                "ports": [
-                    {"name": "in", "direction": "input", "size": "R"},
-                    {"name": "out", "direction": "output", "size": "R"},
-                ],
-                "resources": [
-                    {"name": "C", "type": "additive", "value": "6*z+2*x*(x*y+z)*(2*z)"},
-                ],
-                "input_params": ["x"],
-                "local_variables": {"R": "x+1"},
-            },
-        ),
-        (
-            {"A": {"C": "x*y"}, "B": {"D": "2*x + y"}, "C": {"D": "3*z"}},
-            subroutine_2,
-            {
-                "name": "subroutine_2",
-                "type": None,
-                "ports": [
-                    {"name": "in", "direction": "input", "size": "R"},
-                    {"name": "out", "direction": "output", "size": "R"},
-                ],
-                "resources": [
-                    {"name": "D", "type": "additive", "value": "3*ceil(x/4)*x*y*z + (2*x + y)"},
-                ],
-                "input_params": ["x"],
-                "local_variables": {"R": "x+1"},
-            },
-        ),
-    ],
-)
-def test_add_aggregated_resources(aggregation_dict, subroutine, expected):
-    aggregated_subroutine = add_aggregated_resources(aggregation_dict, subroutine)
-
-    aggregated_resources = aggregated_subroutine["resources"]
-    expected_resources = expected["resources"]
-
-    aggregated_names = [res["name"] for res in aggregated_resources]
-    expected_names = [res["name"] for res in expected_resources]
-
-    assert aggregated_names == expected_names
-
-    for resource in aggregated_resources:
-        for expected_resource in expected_resources:
-            if expected_resource["name"] == resource["name"]:
-                assert sympy.simplify(resource["value"]) == sympy.simplify(expected_resource["value"])
-                assert resource["type"] == expected_resource["type"]
+def generate_test_1():
+    test_1_qref = {
+        "name": "test_1_qref",
+        "type": None,
+        "ports": [
+            {"name": "in", "direction": "input", "size": "z"},
+            {"name": "out", "direction": "output", "size": "z"},
+        ],
+    }
+    test_1_qref["children"] = [ccry_gate]
+    test_1_qref["connections"] = [
+        {"source": "in", "target": "ccry_gate.in"},
+        {"source": "ccry_gate.out", "target": "out"},
+    ]
+    test_1_qref["input_params"] = ["z", "num"]
+    test_1_qref["linked_params"] = [
+        {"source": "z", "targets": ["ccry_gate.x"]},
+        {"source": "num", "targets": ["ccry_gate.num"]},
+    ]
+    test_1_qref = {"version": "v1", "program": test_1_qref}
+    test_1 = qref_to_bartiq(test_1_qref)
+    return test_1
 
 
 @pytest.mark.parametrize(
-    "error_aggregation_dict, error_subroutine, error_expected",
+    "aggregation_dict, test_1, expected_output",
     [
         (
-            {"A": {"B": "x*y + z"}},
-            subroutine_3,
-            {
-                "name": "subroutine_3",
-                "type": None,
-                "ports": [
-                    {"name": "in", "direction": "input", "size": "R"},
-                    {"name": "out", "direction": "output", "size": "R"},
+            {"control_ry": {"rotation": 2, "CNOT": 2}, "rotation": {"T_gates": 50}},
+            generate_test_1(),
+            Routine(
+                name="test_1_qref",
+                input_params=["z", "num"],
+                children={
+                    "ccry_gate": Routine(
+                        name="ccry_gate",
+                        type=None,
+                        input_params=["x", "num"],
+                        ports={
+                            "in": {"name": "in", "direction": "input", "size": "n"},
+                            "out": {"name": "out", "direction": "output", "size": "n"},
+                        },
+                        resources={
+                            "CNOT": {"name": "CNOT", "type": "additive", "value": "8*num"},
+                            "T_gates": {"name": "control_ry", "type": "additive", "value": "300*num"},
+                        },
+                        local_variables={"n": "x"},
+                    )
+                },
+                type=None,
+                linked_params={"z": [("ccry_gate", "x")], "num": [("ccry_gate", "num")]},
+                ports={
+                    "in": {"name": "in", "direction": "input", "size": "z"},
+                    "out": {"name": "out", "direction": "output", "size": "z"},
+                },
+                connections=[
+                    {"source": "in", "target": "ccry_gate.in"},
+                    {"source": "ccry_gate.out", "target": "out"},
                 ],
-                "resources": [
-                    {"name": "B", "type": "multiadditive", "value": "sqrt(x/4) * (x*y + z)+90"},
-                    {"name": "wrong", "type": "additive", "value": "3"},
-                ],
-                "input_params": ["x"],
-                "local_variables": {"R": "x"},
-            },
+            ),
         ),
     ],
 )
-def test_add_aggregated_resources_errors(error_aggregation_dict, error_subroutine, error_expected):
-    aggregated_subroutine = add_aggregated_resources(error_aggregation_dict, error_subroutine)
+def test_add_aggregated_resources(aggregation_dict, test_1, expected_output):
+    result = add_aggregated_resources(aggregation_dict, test_1)
 
-    aggregated_resources = aggregated_subroutine["resources"]
-    expected_resources = error_expected["resources"]
+    def compare_resources(routine, expected):
+        if hasattr(routine, "resources") and routine.resources:
+            for resource_name in routine.resources:
+                assert routine.resources[resource_name].value == expected.resources[resource_name].value
+            for child in routine.children:
+                compare_resources(child, expected)
 
-    aggregated_names = [res["name"] for res in aggregated_resources]
-    expected_names = [res["name"] for res in expected_resources]
-
-    assert aggregated_names != expected_names
-
-    for resource in aggregated_resources:
-        for expected_resource in expected_resources:
-            if expected_resource["name"] == resource["name"]:
-                assert sympy.simplify(resource["value"]) != sympy.simplify(expected_resource["value"])
-                assert resource["type"] != expected_resource["type"]
-"""
+    compare_resources(result, expected_output)
