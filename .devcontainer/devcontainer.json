@@ -3,8 +3,21 @@
     "dockerfile": "Dockerfile",
     "context": "../"
   },
+  "forwardPorts": [
+    8000,
+    8888
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "docs",
+      "onAutoForward": "notify"
+    },
+    "8888": {
+      "label": "jupyter",
+      "onAutoForward": "notify"
+    }
+  },
   "customizations": {
-    "forwardedPorts": [],
     "vscode": {
       "extensions": [
         "ms-toolsai.jupyter",
@@ -18,10 +31,13 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.terminal.activateEnvironment": true
+        "python.defaultInterpreterPath": "/bartiq/.venv/bin/python",
+        "jupyter.kernels.excludePythonEnvironments": [
+          "/bin/python3",
+          "/usr/bin/python3",
+          "/usr/local/bin/python"
+        ]
       }
     }
   }
 }
-
