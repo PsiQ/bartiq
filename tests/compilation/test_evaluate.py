@@ -19,6 +19,7 @@ import yaml
 
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
+from bartiq.integrations.qref import qref_to_bartiq
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -148,3 +149,32 @@ def custom_function(a, b):
 def test_evaluate_with_functions_map(input_dict, assignments, functions_map, expected_dict, backend):
     evaluated_routine = evaluate(Routine(**input_dict), assignments, backend=backend, functions_map=functions_map)
     assert evaluated_routine == Routine(**expected_dict)
+
+
+def _nlz(num):
+    num = int(num)
+    return (num & -num).bit_length() - 1
+
+
+def test_compile_and_evaluate_double_factorization_routine():
+    with open(Path(__file__).parent / "data/df_qref.yaml") as f:
+        qref_def = yaml.safe_load(f)
+
+    routine = qref_to_bartiq(qref_def)
+
+    global_functions = ["nlz"]
+    compiled_routine = compile_routine(routine, global_functions=global_functions)
+    assignments = ["N_spatial=10", "R=54", "M=480", "b=10", "lamda=2", "N_givens=20", "Ksi_l=10"]
+    functions_map = {"nlz": _nlz}
+    evaluated_routine = evaluate(compiled_routine, assignments=assignments, functions_map=functions_map)
+    expected_resources = {
+        "toffs": 260,
+        "t_gates": 216,
+        "rotations": 4,
+        "measurements": 0,
+        "gidney_relbows": 56403,
+        "gidney_lelbows": 56403,
+    }
+
+    for resource_name in expected_resources:
+        assert expected_resources[resource_name] == int(evaluated_routine.resources[resource_name].value)
