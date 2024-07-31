@@ -19,6 +19,7 @@ from typing import Any, Dict
 import sympy
 
 from bartiq import Resource, Routine
+from bartiq.compilation.types import Number
 from bartiq.symbolics import sympy_backend
 from bartiq.verification import verify_uncompiled_routine
 
@@ -39,8 +40,10 @@ def add_aggregated_resources(aggregation_dict: Dict[str, Dict[str, Any]], routin
     Raises:
         TypeError: If the input types are not valid bartiq routine.
     """
-    if not verify_uncompiled_routine(routine, backend=backend):
-        raise TypeError("Must apply to a valid bartiq routine.")
+    try:
+        verify_uncompiled_routine(routine, backend=backend)
+    except Exception as e:
+        raise TypeError("Must apply to a valid bartiq routine.") from e
 
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict)
     for subroutine in routine.walk():
@@ -60,6 +63,11 @@ def _add_aggregated_resources_to_subroutine(
         if resource_name in expanded_aggregation_dict:
             mapping = expanded_aggregation_dict[resource_name]
             for sub_res, multiplier in mapping.items():
+                try:
+                    isinstance(multiplier, Number)
+                except TypeError:
+                    multiplier = backend.parse(multiplier)
+
                 if sub_res in aggregated_resources:
                     current_value_expr = backend.parse(aggregated_resources[sub_res].value)
                     aggregated_resources[sub_res].value = str(current_value_expr + multiplier * resource_expr)
@@ -77,7 +85,7 @@ def _add_aggregated_resources_to_subroutine(
     return subroutine
 
 
-def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Dict[str, Any]]:
     """
     Expand the aggregation dictionary to handle nested resources.
     Args:
@@ -85,13 +93,18 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]]) -> Dic
     Returns:
         Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
     """
+    if not isinstance(aggregation_dict, dict):
+        raise TypeError("aggregation_dict must be a dictionary.")
+
     expanded_dict = {}
     for resource in aggregation_dict.keys():
         expanded_dict[resource] = _expand_resource(resource, aggregation_dict, set())
     return expanded_dict
 
 
-def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]], visited: set) -> Dict[str, Any]:
+def _expand_resource(
+    resource: str, aggregation_dict: Dict[str, Dict[str, Any]], visited: set, backend=BACKEND
+) -> Dict[str, Any]:
     """
     Recursively expand resource mapping to handle nested resources and detect circular dependencies.
     Args:
@@ -113,10 +126,15 @@ def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]],
         return {}
 
     # Sympify the mapping values for the current resource
-    expanded_mapping = {k: sympy.sympify(v) for k, v in aggregation_dict[resource].items()}
+    expanded_mapping = {
+        k: backend.parse(v) if not isinstance(v, Number) else k for k, v in aggregation_dict[resource].items()
+    }
+
+    expanded_mapping = {k: sympy.simplify(v) for k, v in aggregation_dict[resource].items()}
+
     res_to_expand = list(expanded_mapping.keys())
 
-    while res_to_expand:
+    for res in res_to_expand:
         current = res_to_expand.pop(0)
         if current in aggregation_dict:
             # Recursively expand the nested resources
@@ -124,7 +142,7 @@ def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]],
             for sub_res, sub_multiplier in sub_mapping.items():
                 if sub_res in expanded_mapping:
                     expanded_mapping[sub_res] = (
-                        sympy.sympify(expanded_mapping[sub_res]) + expanded_mapping[current] * sub_multiplier
+                        backend.parse(expanded_mapping[sub_res]) + expanded_mapping[current] * sub_multiplier
                     )
                 else:
                     expanded_mapping[sub_res] = expanded_mapping[current] * sub_multiplier
