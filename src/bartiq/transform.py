@@ -59,23 +59,19 @@ def _add_aggregated_resources_to_subroutine(
 
     aggregated_resources = copy.copy(subroutine.resources)
     for resource_name in subroutine.resources:
-        resource_expr = backend.parse(subroutine.resources[resource_name].value)
+        resource_expr = backend.as_expression(subroutine.resources[resource_name].value)
         if resource_name in expanded_aggregation_dict:
             mapping = expanded_aggregation_dict[resource_name]
             for sub_res, multiplier in mapping.items():
-                try:
-                    isinstance(multiplier, Number)
-                except TypeError:
-                    multiplier = backend.parse(multiplier)
-
+                multiplier_expr = backend.as_expression(multiplier)
                 if sub_res in aggregated_resources:
-                    current_value_expr = backend.parse(aggregated_resources[sub_res].value)
-                    aggregated_resources[sub_res].value = str(current_value_expr + multiplier * resource_expr)
+                    current_value_expr = backend.as_expression(aggregated_resources[sub_res].value)
+                    aggregated_resources[sub_res].value = str(current_value_expr + multiplier_expr * resource_expr)
                 else:
                     new_resource = Resource(
                         name=sub_res,
                         type=subroutine.resources[resource_name].type,
-                        value=str(multiplier * resource_expr),
+                        value=str(multiplier_expr * resource_expr),
                     )
                     aggregated_resources[sub_res] = new_resource
 
@@ -134,7 +130,7 @@ def _expand_resource(
 
     res_to_expand = list(expanded_mapping.keys())
 
-    for res in res_to_expand:
+    while res_to_expand:
         current = res_to_expand.pop(0)
         if current in aggregation_dict:
             # Recursively expand the nested resources
