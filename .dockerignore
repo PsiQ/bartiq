@@ -1,0 +1,7 @@
+.gitlab
+.github
+.venv
+*.iml
+.idea
+.vscode
+.cache
