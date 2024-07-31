@@ -156,6 +156,7 @@ def _nlz(num):
     return (num & -num).bit_length() - 1
 
 
+@pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine():
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
         qref_def = yaml.safe_load(f)
