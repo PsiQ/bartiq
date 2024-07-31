@@ -31,7 +31,14 @@ def add_aggregated_resources(aggregation_dict: Dict[str, Dict[str, Any]], routin
     Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
-        aggregation_dict: The aggregation dictionary.
+        aggregation_dict: A dictionary that decomposes resources into more fundamental components along with their
+        respective multipliers. The multipliers can be numeric values or strings representing expressions.
+                          Example:
+                          {
+                              "swap": {"CNOT": 3},
+                              "arbitrary_z": {"T_gates": "3*log_2(1/epsilon) + O(log(log(1/epsilon)))"},
+                              ...
+                          }
         routine: The program to which the resources will be added.
 
     Returns:
@@ -123,10 +130,10 @@ def _expand_resource(
 
     # Sympify the mapping values for the current resource
     expanded_mapping = {
-        k: backend.parse(v) if not isinstance(v, Number) else k for k, v in aggregation_dict[resource].items()
+        k: sympy.simplify(v) if not isinstance(v, Number) else v for k, v in aggregation_dict[resource].items()
     }
 
-    expanded_mapping = {k: sympy.simplify(v) for k, v in aggregation_dict[resource].items()}
+    expanded_mapping = {k: backend.as_expression(v) for k, v in aggregation_dict[resource].items()}
 
     res_to_expand = list(expanded_mapping.keys())
 
