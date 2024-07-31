@@ -16,10 +16,7 @@
 import copy
 from typing import Any, Dict
 
-import sympy
-
 from bartiq import Resource, Routine
-from bartiq.compilation.types import Number
 from bartiq.symbolics import sympy_backend
 from bartiq.verification import verify_uncompiled_routine
 
@@ -32,11 +29,11 @@ def add_aggregated_resources(aggregation_dict: Dict[str, Dict[str, Any]], routin
 
     Args:
         aggregation_dict: A dictionary that decomposes resources into more fundamental components along with their
-        respective multipliers. The multipliers can be numeric values or strings representing expressions.
+        respective multipliers. The multipliers can be numeric values or strings representing valid bartiq expressions.
                           Example:
                           {
                               "swap": {"CNOT": 3},
-                              "arbitrary_z": {"T_gates": "3*log_2(1/epsilon) + O(log(log(1/epsilon)))"},
+                              "arbitrary_z": {"T_gates": "3*log2(1/epsilon) + O(log(log(1/epsilon)))"},
                               ...
                           }
         routine: The program to which the resources will be added.
@@ -113,25 +110,19 @@ def _expand_resource(
     Args:
         resource: The resource to expand.
         aggregation_dict: The input aggregation dictionary.
-        visited: A set of currently visited resources to detect circular dependencies.
+        visited: A set of visited resources to detect circular dependencies.
     Returns:
         Dict[str, Any]: The expanded resource mapping.
     """
     if resource in visited:
         raise ValueError(f"Circular dependency detected: {' -> '.join(visited)} -> {resource}")
 
-    # Add current resource to the visited set
     visited.add(resource)
 
     # If the resource is not in the aggregation dictionary, return an empty dictionary
     if resource not in aggregation_dict:
         visited.remove(resource)
         return {}
-
-    # Sympify the mapping values for the current resource
-    expanded_mapping = {
-        k: sympy.simplify(v) if not isinstance(v, Number) else v for k, v in aggregation_dict[resource].items()
-    }
 
     expanded_mapping = {k: backend.as_expression(v) for k, v in aggregation_dict[resource].items()}
 
@@ -143,15 +134,18 @@ def _expand_resource(
             # Recursively expand the nested resources
             sub_mapping = _expand_resource(current, aggregation_dict, visited.copy())
             for sub_res, sub_multiplier in sub_mapping.items():
+                sub_multiplier_expr = backend.as_expression(sub_multiplier)
                 if sub_res in expanded_mapping:
-                    expanded_mapping[sub_res] = (
-                        backend.parse(expanded_mapping[sub_res]) + expanded_mapping[current] * sub_multiplier
+                    expanded_mapping[sub_res] = str(
+                        backend.as_expression(expanded_mapping[sub_res])
+                        + backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
                     )
                 else:
-                    expanded_mapping[sub_res] = expanded_mapping[current] * sub_multiplier
+                    expanded_mapping[sub_res] = str(
+                        backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
+                    )
                     res_to_expand.append(sub_res)
             del expanded_mapping[current]
 
-    # Remove the current resource from the visited set
     visited.remove(resource)
     return expanded_mapping

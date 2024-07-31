@@ -42,7 +42,7 @@ arbitrary_z = {
         {"name": "out", "direction": "output", "size": "n"},
     ],
     "resources": [
-        {"name": "arbitrary_z", "type": "additive", "value": "ceil(5*num/2)"},
+        {"name": "arbitrary_z", "type": "additive", "value": "ceiling(5*num/2)"},
     ],
     "input_params": ["x", "num"],
     "local_variables": {"n": "x"},
@@ -112,7 +112,7 @@ def _generate_test(subroutine, input_params, linked_params):
         ),
         (  # Example using aggregation dict values with parameters to approximate single-qubit Z-rotations
             # using optimal ancilla-free Clifford+T circuits, as detailed in (arXiv:1403.2975).
-            {"arbitrary_z": {"T_gates": "3*log_2(1/epsilon) + O(log(log(1/epsilon)))"}},
+            {"arbitrary_z": {"T_gates": "3*log2(1/epsilon) + O(log(log(1/epsilon)))"}},
             _generate_test(
                 arbitrary_z,
                 ["z", "num"],
@@ -134,7 +134,7 @@ def _generate_test(subroutine, input_params, linked_params):
                             "T_gates": {
                                 "name": "T_gates",
                                 "type": "additive",
-                                "value": "ceiling(5*num/2)*(3*log_2(1/epsilon) + O(log(log(1/epsilon))))",
+                                "value": "ceiling(5*num/2)*(3*log2(1/epsilon) + O(log(log(1/epsilon))))",
                             },
                         },
                         local_variables={"n": "x"},
