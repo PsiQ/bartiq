@@ -14,7 +14,6 @@
 
 import pytest
 import sympy
-
 from bartiq import Routine
 from bartiq.integrations import qref_to_bartiq
 from bartiq.transform import add_aggregated_resources
@@ -49,7 +48,7 @@ arbitrary_z = {
 }
 
 
-def generate_test(subroutine, input_params, linked_params):
+def _generate_test(subroutine, input_params, linked_params):
     test_qref = {
         "name": "test_qref",
         "type": None,
@@ -74,7 +73,7 @@ def generate_test(subroutine, input_params, linked_params):
     [
         (
             {"control_ry": {"rotation": 2, "CNOT": 2}, "rotation": {"T_gates": 50}},
-            generate_test(
+            _generate_test(
                 ccry_gate,
                 ["z", "num"],
                 [{"source": "z", "targets": ["ccry_gate.x"]}, {"source": "num", "targets": ["ccry_gate.num"]}],
@@ -113,7 +112,7 @@ def generate_test(subroutine, input_params, linked_params):
         (  # Example using aggregation dict values with parameters to approximate single-qubit Z-rotations
             # using optimal ancilla-free Clifford+T circuits, as detailed in (arXiv:1403.2975).
             {"arbitrary_z": {"T_gates": "3*log_2(1/epsilon) + O(log(log(1/epsilon)))"}},
-            generate_test(
+            _generate_test(
                 arbitrary_z,
                 ["z", "num"],
                 [{"source": "z", "targets": ["arbitrary_z.x"]}, {"source": "num", "targets": ["arbitrary_z.num"]}],
@@ -156,11 +155,10 @@ def generate_test(subroutine, input_params, linked_params):
 )
 def test_add_aggregated_resources(aggregation_dict, generate_test_fn, expected_output):
     result = add_aggregated_resources(aggregation_dict, generate_test_fn)
-    compare_routines(result, expected_output)
+    _compare_routines(result, expected_output)
 
 
-# Define the comparison function
-def compare_routines(routine, expected):
+def _compare_routines(routine, expected):
     if hasattr(routine, "resources") and routine.resources:
         for resource_name in routine.resources:
             expanded_expr = sympy.simplify(routine.resources[resource_name].value)
@@ -168,4 +166,4 @@ def compare_routines(routine, expected):
             assert expanded_expr.equals(expected_expr)
 
     for child in routine.children:
-        compare_routines(routine.children[child], expected.children[child])
+        _compare_routines(routine.children[child], expected.children[child])
