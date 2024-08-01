@@ -56,7 +56,7 @@ jobs:
       - name: Run unit tests
         run: poetry run pytest --cov=bartiq --cov-report xml
       - name: Add coverage info to GitHub UI
-        run: poetry run pycobertura show --format github-annotation coverage.xml
+        run: poetry run pycobertura show coverage.xml --format html --output coverage.html
 
   run_quality_checks:
     runs-on: ubuntu-latest
