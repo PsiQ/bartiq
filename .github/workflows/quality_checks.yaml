@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -35,6 +35,51 @@ jobs:
           poetry install
       - name: Run unit tests
         run: poetry run pytest
+  
+  run_coverage:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+      - name: Install dependencies and the package
+        run: |
+          python -m pip install --upgrade pip poetry
+          poetry install
+      - name: Run unit tests
+        run: poetry run pytest --cov=bartiq --cov-report xml
+      - name: Add coverage info to GitHub UI
+        run: poetry run pycobertura show coverage.xml --format html --output coverage.html
+      - name: Convert coverage report to markdown
+        uses: docker://pandoc/core:2.9
+        with:
+          args: "coverage.html -t gfm -o coverage.md"
+      - name: Generate concise coverage report
+        run: |
+          sed -n '/####/q;p' coverage.md > coverage_concise.md
+          echo "</div>" >> coverage_concise.md
+      - name: Retrieve PR number to publish coverage report to
+        uses: jwalton/gh-find-current-pr@v1
+        id: finder
+        with:
+          state: all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add coverage report to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.finder.outputs.pr }}
+          recreate: true
+          path: coverage_concise.md
 
   run_quality_checks:
     runs-on: ubuntu-latest
