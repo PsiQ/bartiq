@@ -149,7 +149,7 @@ def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
 
         if res not in visited:
             visiting.append(res)
-            for neighbor in aggregation_dict[res]:
+            for neighbor in default_agg_dict[res]:
                 dfs(neighbor)
             visiting.remove(res)
             visited.add(res)
@@ -158,9 +158,9 @@ def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
     visited: Set[str] = set()
     visiting: List[str] = []
     result: List[str] = []
-    aggregation_dict: Dict[str, List[str]] = defaultdict(list, aggregation_dict)
+    default_agg_dict: Dict[str, List[str]] = defaultdict(list, aggregation_dict)
 
-    resources = list(aggregation_dict.keys())
+    resources = list(default_agg_dict.keys())
     for res in resources:
         if res not in visited:
             dfs(res)
