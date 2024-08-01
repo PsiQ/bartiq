@@ -15,7 +15,7 @@
 
 import copy
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Set
 
 from bartiq import Resource, Routine
 from bartiq.symbolics import sympy_backend
@@ -155,10 +155,10 @@ def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
             visited.add(res)
             result.append(res)
 
-    visited = set()
-    visiting = []
-    result = []
-    aggregation_dict = defaultdict(list, aggregation_dict)
+    visited: Set[str] = set()
+    visiting: List[str] = []
+    result: List[str] = []
+    aggregation_dict: Dict[str, List[str]] = defaultdict(list, aggregation_dict)
 
     resources = list(aggregation_dict.keys())
     for res in resources:
