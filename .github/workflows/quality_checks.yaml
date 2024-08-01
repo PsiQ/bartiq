@@ -38,6 +38,8 @@ jobs:
   
   run_coverage:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     strategy:
       matrix:
         python-version: ["3.12"]
