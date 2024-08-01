@@ -108,8 +108,6 @@ def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]],
         Dict[str, Any]: The expanded resource mapping.
     """
 
-    # If the resource is not in the aggregation dictionary, return an empty dictionary
-
     expanded_mapping = {k: backend.as_expression(v) for k, v in aggregation_dict[resource].items()}
 
     res_to_expand = list(expanded_mapping.keys())
@@ -145,6 +143,7 @@ def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
     """
 
     def dfs(res):
+        # Helper function to perform DFS
         if res in visiting:
             raise ValueError(f"Circular dependency detected: {' -> '.join(visiting[visiting.index(res):])} -> {res}")
 
