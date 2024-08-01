@@ -14,7 +14,8 @@
 
 
 import copy
-from typing import Any, Dict
+from collections import defaultdict
+from typing import Any, Dict, List
 
 from bartiq import Resource, Routine
 from bartiq.symbolics import sympy_backend
@@ -89,55 +90,80 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backen
     if not isinstance(aggregation_dict, dict):
         raise TypeError("aggregation_dict must be a dictionary.")
 
+    sorted_resources = _topological_sort(aggregation_dict)
+
     expanded_dict = {}
-    for resource in aggregation_dict.keys():
-        expanded_dict[resource] = _expand_resource(resource, aggregation_dict, set())
+    for resource in sorted_resources:
+        if resource in aggregation_dict:
+            expanded_dict[resource] = _expand_resource(resource, aggregation_dict)
     return expanded_dict
 
 
-def _expand_resource(
-    resource: str, aggregation_dict: Dict[str, Dict[str, Any]], visited: set, backend=BACKEND
-) -> Dict[str, Any]:
+def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Any]:
     """Recursively expand resource mapping to handle nested resources and detect circular dependencies.
     Args:
         resource: The resource to expand.
         aggregation_dict: The input aggregation dictionary.
-        visited: A set of visited resources to detect circular dependencies.
     Returns:
         Dict[str, Any]: The expanded resource mapping.
     """
-    if resource in visited:
-        raise ValueError(f"Circular dependency detected: {' -> '.join(visited)} -> {resource}")
-
-    visited.add(resource)
 
     # If the resource is not in the aggregation dictionary, return an empty dictionary
-    if resource not in aggregation_dict:
-        visited.remove(resource)
-        return {}
 
     expanded_mapping = {k: backend.as_expression(v) for k, v in aggregation_dict[resource].items()}
 
     res_to_expand = list(expanded_mapping.keys())
 
-    while res_to_expand:
-        current = res_to_expand.pop(0)
+    for current in res_to_expand[:]:
         if current in aggregation_dict:
             # Recursively expand the nested resources
-            sub_mapping = _expand_resource(current, aggregation_dict, visited.copy())
+            sub_mapping = _expand_resource(current, aggregation_dict, backend)
             for sub_res, sub_multiplier in sub_mapping.items():
                 sub_multiplier_expr = backend.as_expression(sub_multiplier)
+                expanded_expr = backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
                 if sub_res in expanded_mapping:
-                    expanded_mapping[sub_res] = str(
-                        backend.as_expression(expanded_mapping[sub_res])
-                        + backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
-                    )
+                    expanded_mapping[sub_res] = str(backend.as_expression(expanded_mapping[sub_res]) + expanded_expr)
                 else:
-                    expanded_mapping[sub_res] = str(
-                        backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
-                    )
+                    expanded_mapping[sub_res] = str(expanded_expr)
                     res_to_expand.append(sub_res)
+
             del expanded_mapping[current]
 
-    visited.remove(resource)
     return expanded_mapping
+
+
+def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
+    """Perform a topological sort on the aggregation dictionary to determine the order of resource expansion.
+    Args:
+        aggregation_dict : The input aggregation dictionary where keys are resource names
+                                                      and values are dictionaries of decomposed resources.
+    Returns:
+        List[str]: The list of resources in topologically sorted order.
+
+    Raises:
+        ValueError: If a circular dependency is detected in the aggregation dictionary.
+    """
+
+    def dfs(res):
+        if res in visiting:
+            raise ValueError(f"Circular dependency detected: {' -> '.join(visiting[visiting.index(res):])} -> {res}")
+
+        if res not in visited:
+            visiting.append(res)
+            for neighbor in aggregation_dict[res]:
+                dfs(neighbor)
+            visiting.remove(res)
+            visited.add(res)
+            result.append(res)
+
+    visited = set()
+    visiting = []
+    result = []
+    aggregation_dict = defaultdict(list, aggregation_dict)
+
+    resources = list(aggregation_dict.keys())
+    for res in resources:
+        if res not in visited:
+            dfs(res)
+
+    return result
