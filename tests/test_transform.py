@@ -155,7 +155,7 @@ def _generate_test(subroutine, input_params, linked_params):
     ],
 )
 def test_add_aggregated_resources(aggregation_dict, generate_test_fn, expected_output):
-    result = add_aggregated_resources(aggregation_dict, generate_test_fn)
+    result = add_aggregated_resources(generate_test_fn, aggregation_dict)
     _compare_routines(result, expected_output)
 
 

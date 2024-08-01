@@ -23,11 +23,11 @@ from bartiq.verification import verify_uncompiled_routine
 BACKEND = sympy_backend
 
 
-def add_aggregated_resources(aggregation_dict: Dict[str, Dict[str, Any]], routine: Routine, backend=BACKEND) -> Routine:
-    """
-    Add aggregated resources to bartiq routine based on the aggregation dictionary.
+def add_aggregated_resources(routine: Routine, aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Routine:
+    """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
+        routine: The program to which the resources will be added.
         aggregation_dict: A dictionary that decomposes resources into more fundamental components along with their
         respective multipliers. The multipliers can be numeric values or strings representing valid bartiq expressions.
                           Example:
@@ -36,27 +36,21 @@ def add_aggregated_resources(aggregation_dict: Dict[str, Dict[str, Any]], routin
                               "arbitrary_z": {"T_gates": "3*log2(1/epsilon) + O(log(log(1/epsilon)))"},
                               ...
                           }
-        routine: The program to which the resources will be added.
 
     Returns:
         Routine: The program with aggregated resources.
 
-    Raises:
-        TypeError: If the input types are not valid bartiq routine.
     """
-    try:
-        verify_uncompiled_routine(routine, backend=backend)
-    except Exception as e:
-        raise TypeError("Must apply to a valid bartiq routine.") from e
+    verify_uncompiled_routine(routine, backend=backend)
 
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict)
     for subroutine in routine.walk():
-        _add_aggregated_resources_to_subroutine(expanded_aggregation_dict, subroutine)
+        _add_aggregated_resources_to_subroutine(subroutine, expanded_aggregation_dict)
     return routine
 
 
 def _add_aggregated_resources_to_subroutine(
-    expanded_aggregation_dict: Dict[str, Dict[str, Any]], subroutine: Routine, backend=BACKEND
+    subroutine: Routine, expanded_aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND
 ) -> Routine:
     if not hasattr(subroutine, "resources") or not subroutine.resources:
         return subroutine
@@ -86,8 +80,7 @@ def _add_aggregated_resources_to_subroutine(
 
 
 def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Dict[str, Any]]:
-    """
-    Expand the aggregation dictionary to handle nested resources.
+    """Expand the aggregation dictionary to handle nested resources.
     Args:
         aggregation_dict: The input aggregation dictionary.
     Returns:
@@ -105,8 +98,7 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backen
 def _expand_resource(
     resource: str, aggregation_dict: Dict[str, Dict[str, Any]], visited: set, backend=BACKEND
 ) -> Dict[str, Any]:
-    """
-    Recursively expand resource mapping to handle nested resources and detect circular dependencies.
+    """Recursively expand resource mapping to handle nested resources and detect circular dependencies.
     Args:
         resource: The resource to expand.
         aggregation_dict: The input aggregation dictionary.
