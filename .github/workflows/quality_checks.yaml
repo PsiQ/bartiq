@@ -57,6 +57,27 @@ jobs:
         run: poetry run pytest --cov=bartiq --cov-report xml
       - name: Add coverage info to GitHub UI
         run: poetry run pycobertura show coverage.xml --format html --output coverage.html
+      - name: Convert coverage report to markdown
+        uses: docker://pandoc/core:2.9
+        with:
+          args: "coverage.html -t gfm -o coverage.md"
+      - name: Generate concise coverage report
+        run: |
+          sed -n '/####/q;p' coverage.md > coverage_concise.md
+          echo "</div>" >> coverage_concise.md
+      - name: Retrieve PR number to publish coverage report to
+        uses: jwalton/gh-find-current-pr@v1
+        id: finder
+        with:
+          state: all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add coverage report to PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.finder.outputs.pr }}
+          recreate: true
+          path: coverage_concise.md
 
   run_quality_checks:
     runs-on: ubuntu-latest
