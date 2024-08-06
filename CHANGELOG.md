@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0](https://github.com/PsiQ/bartiq/compare/v0.4.0...v0.5.0) (2024-08-06)
+
+
+### Features
+
+* add aggregation function for resource decomposition ([#95](https://github.com/PsiQ/bartiq/issues/95)) ([40e2a5b](https://github.com/PsiQ/bartiq/commit/40e2a5b8e4c103b1e04a4379da52a00a99e31ce4))
+* add BigO analysis ([#90](https://github.com/PsiQ/bartiq/issues/90)) ([7a24848](https://github.com/PsiQ/bartiq/commit/7a24848995a0a8921c0c155fed9755866b7d43e0))
+
+
+### Documentation
+
+* correct the cost representation of uniform state preparation in alias sampling tutorials ([7830238](https://github.com/PsiQ/bartiq/commit/78302389bf10a25ed4baa61940711ae653361277))
+
 ## [0.4.0](https://github.com/PsiQ/bartiq/compare/v0.3.3...v0.4.0) (2024-07-17)
 
 
