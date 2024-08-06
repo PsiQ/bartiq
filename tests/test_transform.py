@@ -93,7 +93,8 @@ def _generate_test(subroutine, input_params, linked_params):
                         },
                         resources={
                             "CNOT": {"name": "CNOT", "type": "additive", "value": "8*num"},
-                            "T_gates": {"name": "control_ry", "type": "additive", "value": "300*num"},
+                            "T_gates": {"name": "T_gates", "type": "additive", "value": "300*num"},
+                            "control_ry": {"name": "control_ry", "type": "additive", "value": "3*num"},
                         },
                         local_variables={"n": "x"},
                     )
@@ -135,6 +136,11 @@ def _generate_test(subroutine, input_params, linked_params):
                                 "name": "T_gates",
                                 "type": "additive",
                                 "value": "ceiling(5*num/2)*(3*log2(1/epsilon) + O(log(log(1/epsilon))))",
+                            },
+                            "arbitrary_z": {
+                                "name": "arbitrary_z",
+                                "type": "additive",
+                                "value": "ceiling(5*num/2)",
                             },
                         },
                         local_variables={"n": "x"},
