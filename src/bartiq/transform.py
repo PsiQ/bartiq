@@ -74,8 +74,6 @@ def _add_aggregated_resources_to_subroutine(
                     )
                     aggregated_resources[sub_res] = new_resource
 
-            # del aggregated_resources[resource_name]
-
     subroutine.resources = aggregated_resources
     return subroutine
 
