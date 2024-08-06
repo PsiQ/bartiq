@@ -74,7 +74,7 @@ def _add_aggregated_resources_to_subroutine(
                     )
                     aggregated_resources[sub_res] = new_resource
 
-            del aggregated_resources[resource_name]
+            # del aggregated_resources[resource_name]
 
     subroutine.resources = aggregated_resources
     return subroutine
@@ -87,9 +87,6 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backen
     Returns:
         Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
     """
-    if not isinstance(aggregation_dict, dict):
-        raise TypeError("aggregation_dict must be a dictionary.")
-
     sorted_resources = _topological_sort(aggregation_dict)
 
     expanded_dict = {}
