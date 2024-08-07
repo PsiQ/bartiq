@@ -33,9 +33,9 @@
                 "input_params": [
                     "L"
                 ],
-                "local_variables": [
-                    "R=ceiling(log_2(L))"
-                ]
+                "local_variables": {
+                    "R" : "ceiling(log_2(L))"
+                }
             },
             {
                 "name": "had",
@@ -99,9 +99,9 @@
                     "L",
                     "mu"
                 ],
-                "local_variables": [
-                    "R=ceiling(log_2(L))"
-                ]
+                "local_variables": {
+                    "R" : "ceiling(log_2(L))"
+                }
             },
             {
                 "name": "compare",
@@ -333,9 +333,9 @@
             "mu",
             "L"
         ],
-        "local_variables": [
-            "R=ceiling(log_2(L))"
-        ],
+        "local_variables": {
+            "R" : "ceiling(log_2(L))"
+        },
         "linked_params": [
             {
                 "source": "L",
