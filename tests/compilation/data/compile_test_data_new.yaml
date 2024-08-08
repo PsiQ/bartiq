@@ -1,0 +1,1765 @@
+# Null case
+- - {name: root, type: null}
+  - {name: root, type: null}
+# One routine, only resource
+- - name: root
+    type: null
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: x + y}
+    input_params: [x, y]
+  - name: root
+    type: null
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: x + y}
+    input_params: [x, y]
+# Children with independent resources, unlinked params, no ports
+- - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: x + y}
+        input_params: [x, y]
+      b:
+        name: b
+        type: null
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: x + y}
+        input_params: [x, y]
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: x + y}
+    input_params: [x, y]
+  - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.x + a.y}
+        input_params: [a.x, a.y]
+      b:
+        name: b
+        type: null
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: b.x + b.y}
+        input_params: [b.x, b.y]
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: x + y}
+    input_params: [a.x, a.y, b.x, b.y, x, y]
+# Children and grandchildren, resources dependent on children, no ports, no input params
+- - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.z + b.z}
+  - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: a.a.x + a.a.y}
+            input_params: [a.a.x, a.a.y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: a.b.x + a.b.y}
+            input_params: [a.b.x, a.b.y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y}
+        input_params: [a.a.x, a.a.y, a.b.x, a.b.y]
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: b.a.x + b.a.y}
+            input_params: [b.a.x, b.a.y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: b.b.x + b.b.y}
+            input_params: [b.b.x, b.b.y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: b.a.x + b.a.y + b.b.x + b.b.y}
+        input_params: [b.a.x, b.a.y, b.b.x, b.b.y]
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y}
+    input_params: [a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y]
+# Children and grandchildren, resources dependent on children, no ports, with input params and params linking
+- - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y}
+            input_params: [x, y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.z + b.z}
+    input_params: [x_aa, y_aa, x_ab, y_ab, x_ba, y_ba, x_bb, y_bb]
+    linked_params:
+      x_aa:
+      - [a.a, x]
+      y_aa:
+      - [a.a, y]
+      x_ab:
+      - [a.b, x]
+      y_ab:
+      - [a.b, y]
+      x_ba:
+      - [b.a, x]
+      y_ba:
+      - [b.a, y]
+      x_bb:
+      - [b.b, x]
+      y_bb:
+      - [b.b, y]
+  - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x_aa + y_aa}
+            input_params: [x_aa, y_aa]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x_ab + y_ab}
+            input_params: [x_ab, y_ab]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: x_aa + x_ab + y_aa + y_ab}
+        input_params: [x_aa, x_ab, y_aa, y_ab]
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x_ba + y_ba}
+            input_params: [x_ba, y_ba]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x_bb + y_bb}
+            input_params: [x_bb, y_bb]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: x_ba + x_bb + y_ba + y_bb}
+        input_params: [x_ba, x_bb, y_ba, y_bb]
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba +
+            y_bb}
+    input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
+# Children and grandchildren, resources dependent on children, with ports, with input params and params linking
+- - name: root
+    type: null
+    ports:
+      foo:
+        name: foo
+        direction: input
+        size: {type: str, value: N}
+      out_bar: {name: out_bar, direction: output, size: null}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          a:
+            name: a
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y + N}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y + N}
+            input_params: [x, y]
+        connections:
+        - {source: a.out_0, target: b.in_0}
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: a.in_0}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+      b:
+        name: b
+        type: null
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          a:
+            name: a
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y + N}
+            input_params: [x, y]
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: x + y + N}
+            input_params: [x, y]
+        connections:
+        - {source: a.out_0, target: b.in_0}
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: a.in_0}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+    connections:
+    - {source: a.out_0, target: b.in_0}
+    - {source: b.out_0, target: out_bar}
+    - {source: foo, target: a.in_0}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.z + b.z}
+    input_params: [x_aa, y_aa, x_ab, y_ab, x_ba, y_ba, x_bb, y_bb]
+    linked_params:
+      x_aa:
+      - [a.a, x]
+      y_aa:
+      - [a.a, y]
+      x_ab:
+      - [a.b, x]
+      y_ab:
+      - [a.b, y]
+      x_ba:
+      - [b.a, x]
+      y_ba:
+      - [b.a, y]
+      x_bb:
+      - [b.b, x]
+      y_bb:
+      - [b.b, y]
+  - name: root
+    type: null
+    ports:
+      foo:
+        name: foo
+        direction: input
+        size: {type: str, value: N}
+      out_bar:
+        name: out_bar
+        direction: output
+        size: {type: str, value: N}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: N}
+        children:
+          a:
+            name: a
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: N + x_aa + y_aa}
+            input_params: [N, x_aa, y_aa]
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: N + x_ab + y_ab}
+            input_params: [N, x_ab, y_ab]
+        connections:
+        - {source: a.out_0, target: b.in_0}
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: a.in_0}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: 2*N + x_aa + x_ab + y_aa + y_ab}
+        input_params: [N, x_aa, x_ab, y_aa, y_ab]
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: N}
+        children:
+          a:
+            name: a
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: N + x_ba + y_ba}
+            input_params: [N, x_ba, y_ba]
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: N}
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: N + x_bb + y_bb}
+            input_params: [N, x_bb, y_bb]
+        connections:
+        - {source: a.out_0, target: b.in_0}
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: a.in_0}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: 2*N + x_ba + x_bb + y_ba + y_bb}
+        input_params: [N, x_ba, x_bb, y_ba, y_bb]
+    connections:
+    - {source: a.out_0, target: b.in_0}
+    - {source: b.out_0, target: out_bar}
+    - {source: foo, target: a.in_0}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: 4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab +
+            y_ba + y_bb}
+    input_params: [N, x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
+# Children and grandchildren, resources dependent on children, no ports, local variables in leaves
+- - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: k}
+            input_params: [x, y]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: k}
+            input_params: [x, y]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: k}
+            input_params: [x, y]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: k}
+            input_params: [x, y]
+            local_variables: {"i": "x + y", "j": "x - y", "k": "(i + j) / 2 + (i - j) / 2"}
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.z + b.z}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.z + b.z}
+  - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: a.a.x + a.a.y}
+            input_params: [a.a.x, a.a.y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: a.b.x + a.b.y}
+            input_params: [a.b.x, a.b.y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y}
+        input_params: [a.a.x, a.a.y, a.b.x, a.b.y]
+      b:
+        name: b
+        type: null
+        children:
+          a:
+            name: a
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: b.a.x + b.a.y}
+            input_params: [b.a.x, b.a.y]
+          b:
+            name: b
+            type: null
+            resources:
+              z:
+                name: z
+                type: other
+                value: {type: str, value: b.b.x + b.b.y}
+            input_params: [b.b.x, b.b.y]
+        resources:
+          z:
+            name: z
+            type: other
+            value: {type: str, value: b.a.x + b.a.y + b.b.x + b.b.y}
+        input_params: [b.a.x, b.a.y, b.b.x, b.b.y]
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y +
+            b.b.x + b.b.y}
+    input_params: [a.a.x, a.a.y, a.b.x, a.b.y, b.a.x, b.a.y, b.b.x, b.b.y]
+  # Test whether port sizes propagate between two topologically connected children.
+  # This is a legacy test case which used to verify if children are compiled in
+  # topological rather than definition order. This is of little relevance now,
+  # as children are stored as dictionaries rather than list.
+- - name: root
+    type: null
+    children:
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: x}
+      a:
+        name: a
+        type: null
+        ports:
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+    connections:
+    - {source: a.out_0, target: b.in_0}
+  - name: root
+    type: null
+    children:
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: '1'}
+      a:
+        name: a
+        type: null
+        ports:
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+    connections:
+    - {source: a.out_0, target: b.in_0}
+# Root only, with resource depending on port sizes and local variables.
+- - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: N}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: N}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: 3 * M}
+    local_variables: {"M": "2 * N"}
+  - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: N}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: N}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: 6*N}
+    input_params: [N]
+# Constant input register sizes
+- - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '1'}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '1'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: '2'}
+      out_1:
+        name: out_1
+        direction: output
+        size: {type: str, value: '2'}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: N}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: M}
+          out_1:
+            name: out_1
+            direction: output
+            size: {type: str, value: M}
+        resources:
+          y:
+            name: y
+            type: other
+            value: {type: str, value: N + M}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.y}
+  - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '1'}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '1'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: '2'}
+      out_1:
+        name: out_1
+        direction: output
+        size: {type: str, value: '2'}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: '1'}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: '2'}
+          out_1:
+            name: out_1
+            direction: output
+            size: {type: str, value: '2'}
+        resources:
+          y:
+            name: y
+            type: other
+            value: {type: str, value: '3'}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: '3'}
+# Constant input register size with children inputs being described by the same variable
+- - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '2'}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '2'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: '2'}
+      out_1:
+        name: out_1
+        direction: output
+        size: {type: str, value: '2'}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: N}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: N}
+          out_1:
+            name: out_1
+            direction: output
+            size: {type: str, value: N}
+        resources:
+          y:
+            name: y
+            type: other
+            value: {type: str, value: 2*N}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: a.y}
+  - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '2'}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '2'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: '2'}
+      out_1:
+        name: out_1
+        direction: output
+        size: {type: str, value: '2'}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: '2'}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '2'}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: '2'}
+          out_1:
+            name: out_1
+            direction: output
+            size: {type: str, value: '2'}
+        resources:
+          y:
+            name: y
+            type: other
+            value: {type: str, value: '4'}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+    resources:
+      z:
+        name: z
+        type: other
+        value: {type: str, value: '4'}
+# Constant register size comes from non-root
+- - name: root
+    type: null
+    ports:
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: N}
+    connections:
+    - {source: a.out_0, target: b.in_0}
+    - {source: b.out_0, target: out_0}
+  - name: root
+    type: null
+    ports:
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '1'}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: '1'}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+    connections:
+    - {source: a.out_0, target: b.in_0}
+    - {source: b.out_0, target: out_0}
+# Parent's and child's ports are connected and the port sizes are defined in both cases (not None)
+- - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: X}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: Y}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: Z}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: Z}
+            resources:
+              B:
+                name: B
+                type: other
+                value: {type: str, value: Z}
+        connections:
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: b.in_0}
+        resources:
+          A:
+            name: A
+            type: other
+            value: {type: str, value: b.B}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: in_0, target: a.in_0}
+    resources:
+      N:
+        name: N
+        type: other
+        value: {type: str, value: a.A}
+  - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: X}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: X}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: X}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: X}
+        input_params: [X]
+        children:
+          b:
+            name: b
+            type: null
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: X}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: X}
+            resources:
+              B:
+                name: B
+                type: other
+                value: {type: str, value: X}
+            input_params: [X]
+        connections:
+        - {source: b.out_0, target: out_0}
+        - {source: in_0, target: b.in_0}
+        resources:
+          A:
+            name: A
+            type: other
+            value: {type: str, value: X}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: in_0, target: a.in_0}
+    resources:
+      N:
+        name: N
+        type: other
+        value: {type: str, value: X}
+    input_params: [X]
+# Pass down params to deep descendant and then costs back up
+- - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          b:
+            name: b
+            type: null
+            children:
+              c:
+                name: c
+                type: null
+                resources:
+                  Q:
+                    name: Q
+                    type: other
+                    value: {type: str, value: 5 * x}
+                input_params: [x]
+            resources:
+              Q:
+                name: Q
+                type: other
+                value: {type: str, value: 4 * c.Q}
+            input_params: [x]
+            linked_params:
+              x:
+              - [c, x]
+        resources:
+          Q:
+            name: Q
+            type: other
+            value: {type: str, value: 3 * b.Q}
+        input_params: [x]
+        linked_params:
+          x:
+          - [b, x]
+    resources:
+      Q:
+        name: Q
+        type: other
+        value: {type: str, value: 2 * a.Q}
+    input_params: [x]
+    linked_params:
+      x:
+      - [a, x]
+  - name: root
+    type: null
+    children:
+      a:
+        name: a
+        type: null
+        children:
+          b:
+            name: b
+            type: null
+            children:
+              c:
+                name: c
+                type: null
+                resources:
+                  Q:
+                    name: Q
+                    type: other
+                    value: {type: str, value: 5*x}
+                input_params: [x]
+            resources:
+              Q:
+                name: Q
+                type: other
+                value: {type: str, value: 20*x}
+            input_params: [x]
+        resources:
+          Q:
+            name: Q
+            type: other
+            value: {type: str, value: 60*x}
+        input_params: [x]
+    resources:
+      Q:
+        name: Q
+        type: other
+        value: {type: str, value: 120*x}
+    input_params: [x]
+# Child's port with symbolic size ge resolved through multiple levels of hierarchy.
+- - name: root
+    type: null
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '1'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: N}
+      out_0: {name: out_0, direction: output, size: null}
+      out_1: {name: out_1, direction: output, size: null}
+    children:
+      a:
+        name: a
+        type: null
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          in_1: {name: in_1, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+          out_1: {name: out_1, direction: output, size: null}
+        children:
+          b:
+            name: b
+            type: null
+            ports:
+              in_0: {name: in_0, direction: input, size: null}
+              in_1: {name: in_1, direction: input, size: null}
+              out_0: {name: out_0, direction: output, size: null}
+              out_1: {name: out_1, direction: output, size: null}
+            children:
+              c:
+                name: c
+                type: null
+                ports:
+                  in_0:
+                    name: in_0
+                    direction: input
+                    size: {type: str, value: '1'}
+                  in_1:
+                    name: in_1
+                    direction: input
+                    size: {type: str, value: P}
+                  out_0:
+                    name: out_0
+                    direction: output
+                    size: {type: str, value: '1'}
+                  out_1:
+                    name: out_1
+                    direction: output
+                    size: {type: str, value: P}
+            connections:
+            - {source: c.out_0, target: out_0}
+            - {source: c.out_1, target: out_1}
+            - {source: in_0, target: c.in_0}
+            - {source: in_1, target: c.in_1}
+        connections:
+        - {source: b.out_0, target: out_0}
+        - {source: b.out_1, target: out_1}
+        - {source: in_0, target: b.in_0}
+        - {source: in_1, target: b.in_1}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+  - name: root
+    type: null
+    input_params: [N]
+    ports:
+      in_0:
+        name: in_0
+        direction: input
+        size: {type: str, value: '1'}
+      in_1:
+        name: in_1
+        direction: input
+        size: {type: str, value: N}
+      out_0:
+        name: out_0
+        direction: output
+        size: {type: str, value: '1'}
+      out_1:
+        name: out_1
+        direction: output
+        size: {type: str, value: N}
+    children:
+      a:
+        name: a
+        type: null
+        input_params: [N]
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: '1'}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: N}
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '1'}
+          out_1:
+            name: out_1
+            direction: output
+            size: {type: str, value: N}
+        children:
+          b:
+            name: b
+            type: null
+            input_params: [N]
+            ports:
+              in_0:
+                name: in_0
+                direction: input
+                size: {type: str, value: '1'}
+              in_1:
+                name: in_1
+                direction: input
+                size: {type: str, value: N}
+              out_0:
+                name: out_0
+                direction: output
+                size: {type: str, value: '1'}
+              out_1:
+                name: out_1
+                direction: output
+                size: {type: str, value: N}
+            children:
+              c:
+                name: c
+                type: null
+                input_params: [N]
+                ports:
+                  in_0:
+                    name: in_0
+                    direction: input
+                    size: {type: str, value: '1'}
+                  in_1:
+                    name: in_1
+                    direction: input
+                    size: {type: str, value: N}
+                  out_0:
+                    name: out_0
+                    direction: output
+                    size: {type: str, value: '1'}
+                  out_1:
+                    name: out_1
+                    direction: output
+                    size: {type: str, value: N}
+            connections:
+            - {source: c.out_0, target: out_0}
+            - {source: c.out_1, target: out_1}
+            - {source: in_0, target: c.in_0}
+            - {source: in_1, target: c.in_1}
+        connections:
+        - {source: b.out_0, target: out_0}
+        - {source: b.out_1, target: out_1}
+        - {source: in_0, target: b.in_0}
+        - {source: in_1, target: b.in_1}
+    connections:
+    - {source: a.out_0, target: out_0}
+    - {source: a.out_1, target: out_1}
+    - {source: in_0, target: a.in_0}
+    - {source: in_1, target: a.in_1}
+# Root and a child with passthrough port
+- - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        connections:
+          - {source: in_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+  - name: root
+    input_params: [N]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: N}
+    children:
+      a:
+        name: a
+        input_params: [N]
+        ports:
+          in_0: {name: in_0, direction: input, size: N}
+          out_0: {name: out_0, direction: output, size: N}
+        connections:
+          - {source: in_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+# Passhtrough through child and a grandchild, propagating parameter
+- - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          a:
+            name: a
+            ports:
+              in_0: {name: in_0, direction: input, size: null}
+              out_0: {name: out_0, direction: output, size: null}
+            connections:
+              - {source: in_0, target: out_0}
+        connections:
+          - {source: in_0, target: a.in_0}
+          - {source: a.out_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+  - name: root
+    input_params: [N]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: N}
+    children:
+      a:
+        name: a
+        input_params: [N]
+        ports:
+          in_0: {name: in_0, direction: input, size: N}
+          out_0: {name: out_0, direction: output, size: N}
+        children:
+          a:
+            input_params: [N]
+            name: a
+            ports:
+              in_0: {name: in_0, direction: input, size: N}
+              out_0: {name: out_0, direction: output, size: N}
+            connections:
+              - {source: in_0, target: out_0}
+        connections:
+          - {source: in_0, target: a.in_0}
+          - {source: a.out_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+# Passhtrough through child and a grandchild, propagating constant
+- - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: 42}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        ports:
+          in_0: {name: in_0, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          a:
+            name: a
+            ports:
+              in_0: {name: in_0, direction: input, size: null}
+              out_0: {name: out_0, direction: output, size: null}
+            connections:
+              - {source: in_0, target: out_0}
+        connections:
+          - {source: in_0, target: a.in_0}
+          - {source: a.out_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+  - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: "42"}
+      out_0: {name: out_0, direction: output, size: "42"}
+    children:
+      a:
+        name: a
+        ports:
+          in_0: {name: in_0, direction: input, size: "42"}
+          out_0: {name: out_0, direction: output, size: "42"}
+        children:
+          a:
+            name: a
+            ports:
+              in_0: {name: in_0, direction: input, size: "42"}
+              out_0: {name: out_0, direction: output, size: "42"}
+            connections:
+              - {source: in_0, target: out_0}
+        connections:
+          - {source: in_0, target: a.in_0}
+          - {source: a.out_0, target: out_0}
+    connections:
+      - {source: in_0, target: a.in_0}
+      - {source: a.out_0, target: out_0}
+# Propgation of param through children (this is how we introduced passthroughs)
+- - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      passthrough:
+        input_params: [N]
+        name: passthrough
+        ports:
+          in_0: {name: in_0, direction: input, size: R}
+          out_0: {name: out_0, direction: output, size: R}
+    connections:
+      - {source: in_0, target: passthrough.in_0}
+      - {source: passthrough.out_0, target: out_0}
+  - name: root
+    input_params: [N]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: N}
+    children:
+      passthrough:
+        name: passthrough
+        input_params: [N]
+        ports:
+          in_0: {name: in_0, direction: input, size: N}
+          out_0: {name: out_0, direction: output, size: N}
+    connections:
+      - {source: in_0, target: passthrough.in_0}
+      - {source: passthrough.out_0, target: out_0}
+# Root and a child with a through port
+- - name: root
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: null}
+    children:
+      a:
+        name: a
+        ports:
+          thru_0: {name: thru_0, direction: through, size: null}
+    connections:
+      - {source: in_0, target: a.thru_0}
+      - {source: a.thru_0, target: out_0}
+  - name: root
+    input_params: [N]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: N}
+    children:
+      a:
+        name: a
+        input_params: [N]
+        ports:
+          thru_0: {name: thru_0, direction: through, size: N}
+    connections:
+      - {source: in_0, target: a.thru_0}
+      - {source: a.thru_0, target: out_0}
+# Non-trivial size of "allocation", container with resource
+- - name: root
+    input_params: [x, y, z]
+    linked_params:
+      x: [[alloc, a]]
+      y: [[alloc, b]]
+      z: [[alloc, c]]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: null}
+      out_1: {name: out_1, direction: output, size: null}
+    children:
+      alloc:
+        name: alloc
+        input_params: [a, b, c]
+        ports:
+          out_0: {name: out_0, direction: output, size: "f(a, b) + c"}
+      foo:
+        name: foo
+        ports:
+          through_0: {name: through_0, direction: through, size: R}
+          in_1: {name: in_1, direction: input, size: null}
+          out_0: {name: out_0, direction: output, size: null}
+        children:
+          bar:
+            name: bar
+            ports:
+              thru_0: {name: thru_0, direction: through, size: M}
+            resources:
+              z: {name: z, type: other, value: g(M)}
+        resources:
+          z: {name: z, type: other, value: bar.z + R}
+        connections:
+          - {source: in_1, target: bar.thru_0}
+          - {source: bar.thru_0, target: out_0}
+    connections:
+      - {source: in_0, target: foo.in_1}
+      - {source: alloc.out_0, target: foo.through_0}
+      - {source: foo.through_0, target: out_0}
+      - {source: foo.out_0, target: out_1}
+  - name: root
+    input_params: [N, x, y, z]
+    ports:
+      in_0: {name: in_0, direction: input, size: N}
+      out_0: {name: out_0, direction: output, size: "z + f(x, y)"}
+      out_1: {name: out_1, direction: output, size: "N"}
+    children:
+      alloc:
+        name: alloc
+        input_params: [x, y, z]
+        ports:
+          out_0: {name: out_0, direction: output, size: "z + f(x, y)"}
+      foo:
+        input_params: [N, x, y, z]
+        name: foo
+        ports:
+          through_0: {name: through_0, direction: through, size: "z + f(x, y)"}
+          in_1: {name: in_1, direction: input, size: N}
+          out_0: {name: out_0, direction: output, size: N}
+        children:
+          bar:
+            input_params: [N]
+            name: bar
+            ports:
+              thru_0: {name: thru_0, direction: through, size: N}
+            resources:
+              z: {name: z, type: other, value: g(N)}
+        resources:
+          z: {name: z, type: other, value: "z + f(x, y) + g(N)"}
+        connections:
+          - {source: in_1, target: bar.thru_0}
+          - {source: bar.thru_0, target: out_0}
+    connections:
+      - {source: in_0, target: foo.in_1}
+      - {source: alloc.out_0, target: foo.through_0}
+      - {source: foo.through_0, target: out_0}
+      - {source: foo.out_0, target: out_1}
