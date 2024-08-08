@@ -45,6 +45,7 @@ mkdocs-jupyter = "^0.24.7"
 mkdocs-git-committers-plugin-2 = "^2.3.0"
 mkdocs-git-revision-date-localized-plugin = "^1.2.5"
 mike = "^2.0.0"
+matplotlib = "^3.9.1.post1"
 
 
 [tool.poetry-dynamic-versioning]
