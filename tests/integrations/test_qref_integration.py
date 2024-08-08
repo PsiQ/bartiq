@@ -51,6 +51,14 @@ def example_routine():
                     "in_0": {"name": "in_0", "size": "M", "direction": "input"},
                     "out_0": {"name": "out_0", "size": 3, "direction": "output"},
                 },
+                "children": {
+                    "baz": {
+                        "name": "baz",
+                        "type": None,
+                        "input_params": ["K"],
+                        "ports": {"in_0": {"name": "in_0", "direction": "input", "size": "K"}},
+                    }
+                },
             },
             "bar": {
                 "name": "bar",
@@ -62,7 +70,7 @@ def example_routine():
                 },
             },
         },
-        linked_params={"N": [("foo", "M"), ("bar", "N")]},
+        linked_params={"N": [("foo", "M"), ("bar", "N"), ("foo.baz", "K")]},
         connections=[
             {"source": "in_0", "target": "foo.in_0"},
             {"source": "foo.out_0", "target": "out_0"},
@@ -97,6 +105,14 @@ def example_serialized_qref_v1_object():
                     "input_params": ["M"],
                     "local_variables": {"R": "ceiling(log_2(M))"},
                     "resources": [{"name": "T_gates", "type": "additive", "value": "R ** 2"}],
+                    "children": [
+                        {
+                            "name": "baz",
+                            "type": None,
+                            "input_params": ["K"],
+                            "ports": [{"name": "in_0", "direction": "input", "size": "K"}],
+                        }
+                    ],
                 },
             ],
             "type": None,
@@ -112,7 +128,7 @@ def example_serialized_qref_v1_object():
                 {"source": "in_0", "target": "foo.in_0"},
             ],
             "input_params": ["N"],
-            "linked_params": [{"source": "N", "targets": ["foo.M", "bar.N"]}],
+            "linked_params": [{"source": "N", "targets": ["foo.M", "bar.N", "foo.baz.K"]}],
         },
     }
 

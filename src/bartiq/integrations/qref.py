@@ -102,6 +102,6 @@ def _routine_v1_to_bartiq_routine(routine_v1) -> Routine:
         connections=[connection.model_dump() for connection in routine_v1.connections],
         input_params=routine_v1.input_params,
         linked_params={
-            link.source: [target.split(".") for target in link.targets] for link in routine_v1.linked_params
+            link.source: [target.rsplit(".", 1) for target in link.targets] for link in routine_v1.linked_params
         },
     )
