@@ -11,90 +11,57 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import warnings
-from typing import Any, Optional, cast, overload
+from dataclasses import dataclass, replace
+from graphlib import TopologicalSorter
+from typing import Any, Iterable, Optional, cast
 
-from .. import Port, Routine
+from .. import Port, PortDirection, Routine
+from .._routine_new import (
+    CompilationUnit,
+    compilation_unit_from_bartiq,
+    compilation_unit_to_bartiq,
+)
 from ..errors import BartiqCompilationError
-from ..precompilation._core import PrecompilationStage, precompile
+from ..precompilation.stages_new import (
+    DEFAULT_PRECOMPILATION_STAGES,
+    PrecompilationStage,
+)
 from ..routing import get_port_source, get_port_target, join_paths
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from ..symbolics.variables import DependentVariable
 from ..verification import verify_compiled_routine, verify_uncompiled_routine
-from ._symbolic_function import (
-    RoutineWithFunction,
-    SymbolicFunction,
-    compile_functions,
-    define_expression_functions,
-    rename_functions,
-    rename_variables,
-    to_symbolic_function,
-    update_routine_with_symbolic_function,
-)
-from ._utilities import get_children_in_walk_order, is_constant_int, is_single_parameter
-from .types import FunctionsMap, Number
+from ._symbolic_function import RoutineWithFunction, SymbolicFunction
+from ._utilities import get_children_in_walk_order, is_constant_int
+from .types import FunctionsMap
 
 
-@overload
+@dataclass(frozen=True)
+class Context:
+    path: str
+
+    def descend(self, next_path: str) -> Context:
+        return replace(self, path=".".join((self.path, next_path)))
+
+
+def _substitute_all(expr: T_expr, substitutions: dict[str, T_expr], backend: SymbolicBackend[T_expr]) -> T_expr:
+    actual_symbols = list(backend.free_symbols_in(expr))
+    for old, new in substitutions.items():
+        if old in actual_symbols:
+            expr = backend.substitute(expr, old, new)
+    return expr
+
+
 def compile_routine(
     routine: Routine,
     *,
-    precompilation_stages: Optional[list[PrecompilationStage]] = None,
-    global_functions: Optional[list[str]] = None,
-    functions_map: Optional[FunctionsMap] = None,
+    backend: SymbolicBackend[T_expr] = sympy_backend,
+    precompilation_stages: Iterable[PrecompilationStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
     skip_verification: bool = False,
 ) -> Routine:
-    pass  # pragma: no cover
-
-
-@overload
-def compile_routine(
-    routine: Routine,
-    *,
-    backend: SymbolicBackend[T_expr],
-    precompilation_stages: Optional[list[PrecompilationStage]] = None,
-    global_functions: Optional[list[str]] = None,
-    functions_map: Optional[FunctionsMap] = None,
-    skip_verification: bool = False,
-) -> Routine:
-    pass  # pragma: no cover
-
-
-def compile_routine(
-    routine,
-    *,
-    backend=sympy_backend,
-    precompilation_stages=None,
-    global_functions=None,
-    functions_map=None,
-    skip_verification: bool = False,
-):
-    """Compile estimates for given uncompiled Routine.
-
-    Args:
-        routine: Routine to be compiled
-        backend: The backend to use for manipulating symbolic expressions. Defaults to
-            sympy_backend.
-        precompilation_stages: a list of precompilation stages which should be applied. If `None`,
-            default precompilation stages are used.
-        global_functions: functions in the cost expressions which we don't want to have namespaced.
-        functions_map: a dictionary which specifies non-standard functions which need to applied during compilation.
-        skip_verification: if True, skips routine verification before and after compilation.
-    """
-    return _compile_routine(routine, backend, precompilation_stages, global_functions, functions_map, skip_verification)
-
-
-def _compile_routine(
-    routine: Routine,
-    backend: SymbolicBackend[T_expr],
-    precompilation_stages: Optional[list[PrecompilationStage]] = None,
-    global_functions: Optional[list[str]] = None,
-    functions_map: Optional[FunctionsMap] = None,
-    skip_verification: bool = False,
-):
-    precompile(routine, precompilation_stages=precompilation_stages, backend=backend)
     if not skip_verification:
         verification_result = verify_uncompiled_routine(routine, backend=backend)
         if not verification_result:
@@ -103,14 +70,11 @@ def _compile_routine(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
 
-    # NOTE: This step must be completed BEFORE we start to compile the functions, as parents must be allowed to
-    # update their childrens' functions (to support parameter inheritance).
-    routine_with_functions = _add_function_to_routine(routine, global_functions, backend)
-
-    compiled_routine_with_funcs = _compile_routine_with_functions(routine_with_functions, functions_map, backend)
-
-    compiled_routine = compiled_routine_with_funcs.to_routine()
-    compiled_routine = _remove_children_costs(compiled_routine)
+    root_unit = compilation_unit_from_bartiq(routine, backend)
+    for stage in precompilation_stages:
+        root_unit = stage(root_unit, backend)
+    compiled_unit = _compile(root_unit, backend, {}, Context(root_unit.name))
+    compiled_routine = compilation_unit_to_bartiq(compiled_unit, backend)
     if not skip_verification:
         verification_result = verify_compiled_routine(compiled_routine, backend=backend)
         if not verification_result:
@@ -118,9 +82,108 @@ def _compile_routine(
                 "Found the following issues with the provided routine after the compilation has finished:"
                 f" {verification_result.problems}",
             )
-        # if len(verification_result.problems) != 0:
-        #     breakpoint()
     return compiled_routine
+
+
+def _infer_input_map(
+    child: CompilationUnit[T_expr],
+    inverted_param_links: dict[tuple[str, str], T_expr],
+) -> dict[str, T_expr]:
+    return {input: value for (child_name, input), value in inverted_param_links.items() if child_name == child.name}
+
+
+def _compile_local_variables(
+    local_variables: dict[str, T_expr], inputs: dict[str, T_expr], backend: SymbolicBackend[T_expr]
+) -> dict[str, T_expr]:
+    predecessors: dict[str, set[str]] = {
+        var: set(other_var for other_var in backend.free_symbols_in(expr) if other_var in local_variables)
+        for var, expr in local_variables.items()
+    }
+
+    compiled_variables: dict[str, T_expr] = {}
+    extended_inputs = inputs.copy()
+    for variable in TopologicalSorter(predecessors).static_order():
+        compiled_value = _substitute_all(local_variables[variable], extended_inputs, backend)
+        extended_inputs[variable] = compiled_variables[variable] = compiled_value
+    return compiled_variables
+
+
+def _compile(
+    compilation_unit: CompilationUnit[T_expr],
+    backend: SymbolicBackend[T_expr],
+    inputs: dict[str, T_expr],
+    context: Context,
+    is_root: bool = False,
+) -> CompilationUnit[T_expr]:
+    local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
+
+    inverted_param_links: dict[str, T_expr] = {
+        target: inputs.get(source, backend.as_expression(source))
+        for source, targets in compilation_unit.linked_params.items()
+        for target in targets
+    }
+
+    compiled_children: dict[str, CompilationUnit[T_expr]] = {}
+    available_port_sources: dict[str, T_expr] = {}
+
+    compiled_ports: dict[str, _Port[T_expr]] = {
+        name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
+        for name, port in compilation_unit.ports.items()
+        if port.direction != PortDirection.output
+    }
+
+    for name, port in compiled_ports.items():
+        if (target := compilation_unit.connections.get(name)) is not None:
+            available_port_sources[target] = port.size
+
+    for child in compilation_unit.sorted_children():
+        compiled_child = _compile(
+            child,
+            backend,
+            {**_infer_input_map(child, inverted_param_links), **available_port_sources},
+            context.descend(child.name),
+            is_root=False,
+        )
+
+        compiled_children[child.name] = compiled_child
+
+        for pname, port in compiled_child.ports.items():
+            if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
+                available_port_sources[target] = port.size
+
+    children_variables = {
+        f"{cname}.{rname}": resource.value
+        for cname, child in compiled_children.items()
+        for rname, resource in child.resources.items()
+    }
+
+    assignment_map = {**inputs, **children_variables, **local_variables}
+
+    new_resources = {
+        name: replace(resource, value=_substitute_all(resource.value, assignment_map, backend))
+        for name, resource in compilation_unit.resources.items()
+    }
+
+    for name, port in compilation_unit.ports.items():
+        if port.direction == "output":
+            compiled_ports[port.name] = replace(
+                port, size=_substitute_all(port.size, {**inputs, **available_port_sources, **local_variables}, backend)
+            )
+
+    input_params = sorted(
+        set(symbol for resource in new_resources.values() for symbol in backend.free_symbols_in(resource.value))
+        .union(input_param for child in compiled_children.values() for input_param in child.input_params)
+        .union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
+    )
+    return replace(
+        compilation_unit,
+        children=compiled_children,
+        input_params=input_params,
+        linked_params={},
+        ports=compiled_ports,
+        resources=new_resources,
+        local_variables=local_variables,
+    )
 
 
 def _add_function_to_routine(

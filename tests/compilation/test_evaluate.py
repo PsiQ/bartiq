@@ -166,8 +166,7 @@ def test_compile_and_evaluate_double_factorization_routine():
 
     routine = qref_to_bartiq(qref_def)
 
-    global_functions = ["nlz"]
-    compiled_routine = compile_routine(routine, global_functions=global_functions)
+    compiled_routine = compile_routine(routine)
     assignments = ["N_spatial=10", "R=54", "M=480", "b=10", "lamda=2", "N_givens=20", "Ksi_l=10"]
     functions_map = {"nlz": _nlz}
     evaluated_routine = evaluate(compiled_routine, assignments=assignments, functions_map=functions_map)

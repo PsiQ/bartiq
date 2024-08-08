@@ -31,7 +31,7 @@ BACKEND = sympy_backend
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data.yaml") as f:
+    with open(Path(__file__).parent / "data/compile_test_data_new.yaml") as f:
         return [(Routine(**original), Routine(**expected)) for original, expected in yaml.safe_load(f)]
 
 
@@ -143,141 +143,12 @@ def test_compiling_correctly_propagates_global_functions():
         },
     )
 
-    compiled_routine = compile_routine(routine, global_functions=["f"])
+    compiled_routine = compile_routine(routine)
 
-    assert compiled_routine.resources["X"].value == "a.O(1) + b.O(1) + c.g(7) + f(1, 2, 3) + 5"
-
-
-COMPILE_WITH_ARBITRARY_FUNCTIONS_TEST_CASES = [
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            input_params=["N"],
-            resources={"X": {"name": "X", "value": "a.X + b.X", "type": "other"}},
-            linked_params={"N": [("a", "y")]},
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "input_params": ["y"],
-                    "resources": {"X": {"name": "X", "value": "2*y", "type": "other"}},
-                },
-                "b": {
-                    "name": "b",
-                    "type": "dummy",
-                    "resources": {"X": {"name": "X", "value": "my_f(my_f(1), 4, 5) + 3", "type": "other"}},
-                },
-            },
-        ),
-        {"b.my_f": f_3_optional_inputs},
-        [],
-        [(None, "X", "2*N + 30"), ("a", "X", "2*N"), ("b", "X", "30")],
-    ),
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            input_params=["N"],
-            resources={"X": {"name": "X", "value": "a.X + b.X", "type": "other"}},
-            linked_params={"N": [("a", "y"), ("b", "y")]},
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "input_params": ["y"],
-                    "resources": {"X": {"name": "X", "value": "2*y", "type": "other"}},
-                },
-                "b": {
-                    "name": "b",
-                    "type": "dummy",
-                    "input_params": ["y"],
-                    "resources": {"X": {"name": "X", "value": "my_f(y) + 3", "type": "other"}},
-                },
-            },
-        ),
-        {"b.my_f": f_2_conditional},
-        [],
-        [(None, "X", "2*N + b.my_f(N) + 3"), ("a", "X", "2*N"), ("b", "X", "b.my_f(N) + 3")],
-    ),
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            resources={"X": {"name": "X", "value": "a.X + b.X", "type": "other"}},
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "resources": {
-                        "X": {
-                            "name": "X",
-                            "value": "my_local_f(1) + my_global_f(2)",
-                            "type": "other",
-                        }
-                    },
-                },
-                "b": {
-                    "name": "b",
-                    "type": "dummy",
-                    "resources": {
-                        "X": {
-                            "name": "X",
-                            "value": "my_local_f(1) + my_global_f(2)",
-                            "type": "other",
-                        }
-                    },
-                },
-            },
-        ),
-        {},
-        ["my_global_f"],
-        [
-            (None, "X", "a.my_local_f(1) + b.my_local_f(1) + 2*my_global_f(2)"),
-            ("a", "X", "a.my_local_f(1) + my_global_f(2)"),
-            ("b", "X", "b.my_local_f(1) + my_global_f(2)"),
-        ],
-    ),
-]
-
-
-@pytest.mark.parametrize(
-    "routine, functions_map, global_functions, expected_resource_values",
-    COMPILE_WITH_ARBITRARY_FUNCTIONS_TEST_CASES,
-)
-def test_compile_can_use_arbitrary_functions(routine, functions_map, global_functions, expected_resource_values):
-    compiled_routine = compile_routine(routine, global_functions=global_functions, functions_map=functions_map)
-
-    for child, resource_name, value in expected_resource_values:
-        target = compiled_routine if child is None else compiled_routine.children[child]
-        assert target.resources[resource_name].value == value
+    assert compiled_routine.resources["X"].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
 
 
 COMPILE_ERRORS_TEST_CASES = [
-    # Attempt to back out input size parameter to non-root
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "ports": {"in_0": {"name": "in_0", "direction": "input", "size": "N"}},
-                    "children": {
-                        "b": {
-                            "name": "b",
-                            "type": "dummy",
-                            "ports": {"in_0": {"name": "in_0", "direction": "input", "size": None}},
-                        }
-                    },
-                    "connections": [{"source": "in_0", "target": "b.in_0"}],
-                }
-            },
-        ),
-        "Can only pull in size parameters from the root routine, but source is a non-root non-leaf routine; "
-        "attempted to pull a.#in_0 in to a.b.#in_0.",
-    ),
     # Attempt to assign inconsistent constant register sizes
     (
         Routine(
