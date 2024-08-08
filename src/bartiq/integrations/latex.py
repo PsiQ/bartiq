@@ -15,7 +15,6 @@
 from sympy import latex, symbols
 
 from .._routine import Routine
-from ..compilation._utilities import split_equation
 from ..symbolics.sympy_interpreter import parse_to_sympy
 
 
@@ -82,10 +81,10 @@ def _format_port_sizes(ports, label):
 
 def _format_local_variables(local_variables):
     """Formats routine's local variables to LaTeX."""
-    lines = []
-    for variable in local_variables:
-        assignment, expression = split_equation(variable)
-        lines.append(f"&{_format_param_math(assignment)} = {_latex_expression(expression)}")
+    lines = [
+        f"&{_format_param_math(symbol)} = {_latex_expression(expression)}"
+        for symbol, expression in local_variables.items()
+    ]
     return _format_section_multi_line("Local variables", lines)
 
 

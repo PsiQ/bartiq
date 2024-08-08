@@ -51,3 +51,6 @@ class SymbolicBackend(Protocol[T_expr]):
 
     def serialize(self, expr: T_expr) -> str:
         """Return a textual representation of given expression."""
+
+    def parse_constant(self, expr: T_expr) -> T_expr:
+        """Parse the expression, replacing known constants while ignoring case."""

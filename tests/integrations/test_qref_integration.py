@@ -15,7 +15,7 @@
 import pytest
 from pytest import fixture
 
-from bartiq import Routine
+from bartiq import Port, Routine
 from bartiq.integrations import bartiq_to_qref, qref_to_bartiq
 
 # Note: fixture example_routine has to be synced with
@@ -45,9 +45,19 @@ def example_routine():
                 "name": "foo",
                 "type": None,
                 "input_params": ["M"],
+                "local_variables": {"R": "ceiling(log_2(M))"},
+                "resources": {"T_gates": {"name": "T_gates", "type": "additive", "value": "R ** 2"}},
                 "ports": {
                     "in_0": {"name": "in_0", "size": "M", "direction": "input"},
                     "out_0": {"name": "out_0", "size": 3, "direction": "output"},
+                },
+                "children": {
+                    "baz": {
+                        "name": "baz",
+                        "type": None,
+                        "input_params": ["K"],
+                        "ports": {"in_0": {"name": "in_0", "direction": "input", "size": "K"}},
+                    }
                 },
             },
             "bar": {
@@ -60,7 +70,7 @@ def example_routine():
                 },
             },
         },
-        linked_params={"N": [("foo", "M"), ("bar", "N")]},
+        linked_params={"N": [("foo", "M"), ("bar", "N"), ("foo.baz", "K")]},
         connections=[
             {"source": "in_0", "target": "foo.in_0"},
             {"source": "foo.out_0", "target": "out_0"},
@@ -93,6 +103,16 @@ def example_serialized_qref_v1_object():
                         {"name": "out_0", "direction": "output", "size": 3},
                     ],
                     "input_params": ["M"],
+                    "local_variables": {"R": "ceiling(log_2(M))"},
+                    "resources": [{"name": "T_gates", "type": "additive", "value": "R ** 2"}],
+                    "children": [
+                        {
+                            "name": "baz",
+                            "type": None,
+                            "input_params": ["K"],
+                            "ports": [{"name": "in_0", "direction": "input", "size": "K"}],
+                        }
+                    ],
                 },
             ],
             "type": None,
@@ -108,7 +128,7 @@ def example_serialized_qref_v1_object():
                 {"source": "in_0", "target": "foo.in_0"},
             ],
             "input_params": ["N"],
-            "linked_params": [{"source": "N", "targets": ["foo.M", "bar.N"]}],
+            "linked_params": [{"source": "N", "targets": ["foo.M", "bar.N", "foo.baz.K"]}],
         },
     }
 
@@ -124,3 +144,16 @@ def test_converting_qref_v1_object_to_routine_give_correct_output(example_routin
 def test_conversion_from_bartiq_to_qref_raises_an_error_if_version_is_unsupported(example_routine):
     with pytest.raises(ValueError):
         bartiq_to_qref(example_routine, version="v3")
+
+
+def test_routine_with_explicitly_constructed_port_successfully_converts_into_qref():
+    routine = Routine(
+        name="root", ports={"in_0": Port.model_validate({"name": "in_0", "direction": "input", "size": 1})}
+    )
+
+    expected_qref_dict = {
+        "version": "v1",
+        "program": {"name": "root", "type": None, "ports": [{"name": "in_0", "size": 1, "direction": "input"}]},
+    }
+
+    assert bartiq_to_qref(routine).model_dump(exclude_unset=True) == expected_qref_dict

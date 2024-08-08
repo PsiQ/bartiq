@@ -177,7 +177,11 @@ class BaseModel(_BaseModel):
     which is needed for handling sympy symbols.
     """
 
-    model_config = {"arbitrary_types_allowed": True, "use_enum_values": True, "extra": "forbid"}
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "use_enum_values": True,
+        "extra": "forbid",
+    }
 
 
 class Routine(BaseModel):
@@ -217,7 +221,7 @@ class Routine(BaseModel):
     connections: list[Connection] = Field(default_factory=list)
     resources: dict[str, Resource] = Field(default_factory=dict)
     input_params: Sequence[Symbol] = Field(default_factory=list)
-    local_variables: list[str] = Field(default_factory=list)
+    local_variables: dict[str, str] = Field(default_factory=dict)
     linked_params: dict[Symbol, list[tuple[str, Symbol]]] = Field(default_factory=dict)
     meta: Optional[dict[str, Any]] = Field(default_factory=dict)
 
@@ -282,7 +286,11 @@ class Routine(BaseModel):
             (
                 connection
                 if isinstance(connection, Connection)
-                else _parse_connection_dict(connection, values.data.get("children", {}), values.data.get("ports", {}))
+                else _parse_connection_dict(
+                    connection,
+                    values.data.get("children", {}),
+                    values.data.get("ports", {}),
+                )
             )
             for connection in v
         ]

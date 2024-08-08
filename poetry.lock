@@ -2694,13 +2694,13 @@ cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
 name = "qref"
-version = "0.5.0"
+version = "0.6.2"
 description = "Quantum Resource Estimation Format"
 optional = false
 python-versions = "<4.0,>=3.9"
 files = [
-    {file = "qref-0.5.0-py3-none-any.whl", hash = "sha256:7e7fd1117ac5ae05c5a7f14e3f86f45e4a9d8e2c9057a78ee7fa65b8ff5b8f39"},
-    {file = "qref-0.5.0.tar.gz", hash = "sha256:d0921d3bf08953cbdabbc8f475beec299252fe41d2d1708cbe44315bb916e537"},
+    {file = "qref-0.6.2-py3-none-any.whl", hash = "sha256:6d5d7ee81acae4d843e710ccd95a1fdcfcee3b5998fac855a1433ec6adaa2d04"},
+    {file = "qref-0.6.2.tar.gz", hash = "sha256:b58c7f32c7c63d70cae5163f450c5fc7eb01d4cc00ba1ea0650fa3ef500c2c30"},
 ]
 
 [package.dependencies]
@@ -3071,17 +3071,20 @@ tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
 name = "sympy"
-version = "1.12.1"
+version = "1.13.0"
 description = "Computer algebra system (CAS) in Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sympy-1.12.1-py3-none-any.whl", hash = "sha256:9b2cbc7f1a640289430e13d2a56f02f867a1da0190f2f99d8968c2f74da0e515"},
-    {file = "sympy-1.12.1.tar.gz", hash = "sha256:2877b03f998cd8c08f07cd0de5b767119cd3ef40d09f41c30d722f6686b0fb88"},
+    {file = "sympy-1.13.0-py3-none-any.whl", hash = "sha256:6b0b32a4673fb91bd3cac3b55406c8e01d53ae22780be467301cc452f6680c92"},
+    {file = "sympy-1.13.0.tar.gz", hash = "sha256:3b6af8f4d008b9a1a6a4268b335b984b23835f26d1d60b0526ebc71d48a25f57"},
 ]
 
 [package.dependencies]
-mpmath = ">=1.1.0,<1.4.0"
+mpmath = ">=1.1.0,<1.4"
+
+[package.extras]
+dev = ["hypothesis (>=6.70.0)", "pytest (>=7.1.0)"]
 
 [[package]]
 name = "terminado"
@@ -3364,4 +3367,4 @@ jupyter = ["ipytree", "ipywidgets", "traitlets"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "15574b6e4c72cde9b438efc39e6c9474338bd963a321c2dee1741cdb65b18793"
+content-hash = "5517a73d9fe4aad9079dd388f38b4c3807d220bbd991688c24b0af5098c0c07b"

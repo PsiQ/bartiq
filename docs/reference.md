@@ -2,6 +2,8 @@
 
 ::: bartiq
 
+::: bartiq.analysis
+
 ::: bartiq.precompilation
 
 ::: bartiq.symbolics
@@ -13,3 +15,5 @@
 ::: bartiq.integrations
 
 ::: bartiq.verification
+
+::: bartiq.transform

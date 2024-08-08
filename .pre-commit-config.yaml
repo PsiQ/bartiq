@@ -22,7 +22,7 @@ repos:
     rev: 5.13.2
     hooks:
       - id: isort
-        args: ['--profile', "black", "--filter-files", "--check"]
+        args: ["--profile", "black", "--filter-files", "--check"]
 
   - repo: https://github.com/ambv/black
     rev: 24.4.1
@@ -41,4 +41,3 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: []
-

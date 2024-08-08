@@ -19,6 +19,13 @@ from qref import SchemaV1
 from .. import Port, Routine
 
 
+def _serialize_port_direction(port_direction):
+    try:
+        return port_direction.value
+    except AttributeError:
+        return str(port_direction)
+
+
 def bartiq_to_qref(routine: Routine, version: str = "v1") -> SchemaV1:
     """Convert Bartiq routine to QREF object."""
     if version != "v1":
@@ -58,7 +65,7 @@ def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
         "ports": [
             {
                 "name": port.name,
-                "direction": str(port.direction),
+                "direction": _serialize_port_direction(port.direction),
                 "size": _ensure_primitive_type(port.size),
             }
             for port in routine.ports.values()
@@ -71,7 +78,7 @@ def _bartiq_routine_to_qref_v1_dict(routine: Routine) -> dict:
             for connection in routine.connections
         ],
         "input_params": [str(symbol) for symbol in routine.input_params],
-        "local_variables": [str(symbol) for symbol in routine.local_variables],
+        "local_variables": {var: expr for var, expr in routine.local_variables.items()},
         "linked_params": [
             {
                 "source": str(source),
@@ -91,9 +98,10 @@ def _routine_v1_to_bartiq_routine(routine_v1) -> Routine:
         type=routine_v1.type,
         ports={port.name: port.model_dump() for port in routine_v1.ports},
         resources={resource.name: resource.model_dump() for resource in routine_v1.resources},
+        local_variables=routine_v1.local_variables,
         connections=[connection.model_dump() for connection in routine_v1.connections],
         input_params=routine_v1.input_params,
         linked_params={
-            link.source: [target.split(".") for target in link.targets] for link in routine_v1.linked_params
+            link.source: [target.rsplit(".", 1) for target in link.targets] for link in routine_v1.linked_params
         },
     )
