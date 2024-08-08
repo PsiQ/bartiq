@@ -83,6 +83,9 @@
                 "target": "out"
             }
         ],
+        "input_params" : [
+            "N"
+        ],
         "linked_params": [
             {
                 "source": "N",
