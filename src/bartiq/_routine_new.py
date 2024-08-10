@@ -1,22 +1,39 @@
 from dataclasses import dataclass
+from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Iterable, Optional
 
 from typing_extensions import Self
 
-from ._routine import Port, PortDirection, Resource, ResourceType, Routine
+from ._routine import Port as OldPort
+from ._routine import PortDirection
+from ._routine import Resource as OldResource
+from ._routine import ResourceType, Routine
 from .symbolics.backend import SymbolicBackend, T_expr
 
 
+class ConstraintStatus(Enum):
+    inconclusive = auto()
+    satisfied = auto()
+    violated = auto()
+
+
 @dataclass(frozen=True)
-class _Port(Generic[T_expr]):
+class Constraint(Generic[T_expr]):
+    lhs: T_expr
+    rhs: T_expr
+    status: ConstraintStatus = ConstraintStatus.inconclusive
+
+
+@dataclass(frozen=True)
+class Port(Generic[T_expr]):
     name: str
     direction: str
     size: T_expr
 
 
 @dataclass(frozen=True)
-class _Resource(Generic[T_expr]):
+class Resource(Generic[T_expr]):
     name: str
     type: ResourceType
     value: T_expr
@@ -30,9 +47,10 @@ class CompilationUnit(Generic[T_expr]):
     linked_params: dict[str, tuple[str, str]]
     local_variables: dict[str, T_expr]
     children: dict[str, Self]
-    ports: dict[str, _Port[T_expr]]
-    resources: dict[str, _Resource[T_expr]]
+    ports: dict[str, Port[T_expr]]
+    resources: dict[str, Resource[T_expr]]
     connections: dict[str, str]
+    constraints: Iterable[Constraint[T_expr]] = ()
 
     @property
     def inner_connections(self) -> dict[str, str]:
@@ -46,16 +64,16 @@ class CompilationUnit(Generic[T_expr]):
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
 
 
-def _port_from_bartiq(port: Port, backend: SymbolicBackend[T_expr]) -> _Port[T_expr]:
+def _port_from_bartiq(port: OldPort, backend: SymbolicBackend[T_expr]) -> Port[T_expr]:
     if port.size is None:
         size = f"{port.parent.name}.{port.name}" if port.direction != "output" else port.name
     else:
         size = port.size
-    return _Port(name=port.name, direction=PortDirection(port.direction).value, size=backend.as_expression(size))
+    return Port(name=port.name, direction=PortDirection(port.direction).value, size=backend.as_expression(size))
 
 
-def _resource_from_bartiq(resource: Resource, backend: SymbolicBackend[T_expr]) -> _Resource[T_expr]:
-    return _Resource(name=resource.name, type=resource.type, value=backend.as_expression(resource.value))
+def _resource_from_bartiq(resource: OldResource, backend: SymbolicBackend[T_expr]) -> Resource[T_expr]:
+    return Resource(name=resource.name, type=resource.type, value=backend.as_expression(resource.value))
 
 
 def compilation_unit_from_bartiq(routine: Routine, backend: SymbolicBackend[T_expr]) -> CompilationUnit[T_expr]:
@@ -72,12 +90,12 @@ def compilation_unit_from_bartiq(routine: Routine, backend: SymbolicBackend[T_ex
     )
 
 
-def _port_to_bartiq(port: _Port[T_expr], backend: SymbolicBackend[T_expr]) -> Port:
-    return Port(name=port.name, size=backend.serialize(port.size), direction=PortDirection(port.direction))
+def _port_to_bartiq(port: Port[T_expr], backend: SymbolicBackend[T_expr]) -> OldPort:
+    return OldPort(name=port.name, size=backend.serialize(port.size), direction=PortDirection(port.direction))
 
 
-def _resource_to_bartiq(resource: _Resource[T_expr], backend: SymbolicBackend[T_expr]) -> Resource:
-    return Resource(name=resource.name, type=resource.type, value=backend.serialize(resource.value))
+def _resource_to_bartiq(resource: Resource[T_expr], backend: SymbolicBackend[T_expr]) -> OldResource:
+    return OldResource(name=resource.name, type=resource.type, value=backend.serialize(resource.value))
 
 
 def compilation_unit_to_bartiq(compilation_unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> Routine:

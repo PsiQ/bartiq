@@ -3,7 +3,7 @@ from dataclasses import replace
 from typing import Callable
 
 from .._routine import PortDirection, ResourceType
-from .._routine_new import CompilationUnit, _Resource
+from .._routine_new import CompilationUnit, Constraint, Resource
 from ..compilation._utilities import is_single_parameter
 from ..symbolics.backend import SymbolicBackend, T_expr
 
@@ -32,7 +32,7 @@ def add_default_additive_resources(
 
     additional_resources: dict[str, T_expr] = {
         # The eefault here is to satisfy the typechecker
-        res_name: _Resource(
+        res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
             value=sum((backend.as_expression(f"{child_name}.{res_name}") for child_name in children), start=0),
@@ -68,6 +68,7 @@ def _introduce_port_variables(
     new_ports = {}
     additional_local_variables: dict[str, T_expr] = {}
     new_input_params: list[str] = []
+    additional_constraints: list[Constraint[T_expr]] = []
     for port in unit.ports.values():
         if port.direction == PortDirection.output:
             new_ports[port.name] = port
@@ -75,7 +76,12 @@ def _introduce_port_variables(
             new_variable_name = f"{unit.name}.{port.name}"
             new_variable = backend.as_expression(new_variable_name)
             if is_single_parameter((size := backend.serialize(port.size))) and size != new_variable_name:
-                additional_local_variables[size] = new_variable
+                if size not in additional_local_variables:
+                    additional_local_variables[size] = new_variable
+                else:
+                    additional_constraints.append(Constraint(new_variable, additional_local_variables[size]))
+            elif backend.is_constant_int(port.size):
+                additional_constraints.append(Constraint(new_variable, port.size))
             new_ports[port.name] = replace(port, size=new_variable)
             new_input_params.append(new_variable_name)
     return replace(
@@ -83,6 +89,7 @@ def _introduce_port_variables(
         ports=new_ports,
         input_params=tuple([*unit.input_params, *new_input_params]),
         local_variables={**unit.local_variables, **additional_local_variables},
+        constraints=tuple([*unit.constraints, *additional_constraints]),
     )
 
 

@@ -1763,3 +1763,27 @@
       - {source: alloc.out_0, target: foo.through_0}
       - {source: foo.through_0, target: out_0}
       - {source: foo.out_0, target: out_1}
+# Inherited expressions (as opposed to inherited single-parameters)
+- - name: root
+    input_params: [N, lambda]
+    linked_params:
+      "N/lambda": [[foo, x]]
+    resources:
+      z: {name: z, type: other, value: foo.z}
+    children:
+      foo:
+        name: foo
+        input_params: [x]
+        resources:
+          z: {name: z, type: other, value: "2 * x"}
+  - name: root
+    input_params: [lambda, N]
+    resources:
+      z: {name: z, type: other, value: "2*N/lambda"}
+    children:
+      foo:
+        name: foo
+        input_params: [lambda, N]
+        resources:
+          z: {name: z, type: other, value: "2*N/lambda"}
+  

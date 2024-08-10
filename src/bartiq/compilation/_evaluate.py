@@ -14,15 +14,16 @@
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Optional, Union, overload
+from typing import Any, Optional, Union, overload
 
 from .. import Port, PortDirection, Routine
 from ..errors import BartiqCompilationError
 from ..routing import get_route
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
-from ._compile import set_input_port_size_to_constant_value
+from ..symbolics.variables import DependentVariable
 from ._symbolic_function import (
+    SymbolicFunction,
     define_expression_functions,
     evaluate_function_at,
     to_symbolic_function,
@@ -326,3 +327,79 @@ def _evaluate_routine_over_assignment_input_register_size(
 
     update_routine_with_symbolic_function(routine, new_function)
     return routine
+
+
+def set_input_port_size_to_constant_value(
+    function: SymbolicFunction[T_expr],
+    port_path: str,
+    value: Number,
+    backend: SymbolicBackend[T_expr],
+) -> SymbolicFunction[T_expr]:
+    """Assigns an input port size to a constant numeric value.
+
+    NOTE: if multiple input ports share the same size variable parameter, then all these will be set to the same size.
+
+    Args:
+        function: The symbolic function that contains the a variable for an input port size.
+        port_path: The global path to the port.
+        value: The numeric value to assing to the port.
+        backend: backend used for manipulating symbolic expressions.
+
+    Returns:
+        A new symbolic function with the port size parameter set.
+    """
+    # Case 1: function takes port size as input, so remove this and add a constant size and return the new function
+    for input in function.inputs:
+        input_path, input_param = _split_local_path(str(input))
+        if input_path == port_path:
+            # First, if a given variable is present in more than one port, simplify it.
+            variable_map = _get_substitution_map(function, input_param, value)
+
+            new_inputs = [
+                input_variable
+                for input_symbol, input_variable in function.inputs.items()
+                if input_symbol not in variable_map
+            ]
+
+            new_outputs = []
+            for variable, value in variable_map.items():
+                variable_port_path, _ = _split_local_path(variable)
+                new_output = DependentVariable(
+                    symbol=variable_port_path,
+                    expression=backend.as_expression(value),
+                    backend=backend,
+                )
+                new_outputs.append(new_output)
+            for old_output in function.outputs.values():
+                new_output = old_output
+                for variable, value in variable_map.items():
+                    new_output = new_output.substitute(variable, value)
+                new_outputs.append(new_output)
+
+            return SymbolicFunction(new_inputs, new_outputs)
+
+    # Case 2: function has port size set to constant, so check that the values match and return the original function
+    port_path_value = function.outputs.get(port_path).value
+    # Shouldn't be possible that function doesn't know anything about that port whatsoever
+    assert port_path_value is not None, f"Expected function {function} to reference {port_path}, but it doesn't."
+    if int(port_path_value) != int(value):
+        raise BartiqCompilationError(
+            "Failed to set constant register size value because port already has a different constant size; "
+            f"register {port_path} has size {value}, but attempted to assign {port_path_value}."
+        )
+    return function
+
+
+def _get_substitution_map(function: SymbolicFunction[T_expr], param: str, value: Any) -> dict[str, Any]:
+    subs_map = {}
+    for input in function.inputs:
+        _, input_variable = _split_local_path(str(input))
+        if input_variable == param:
+            subs_map[str(input)] = value
+    return subs_map
+
+
+def _split_local_path(path: str) -> tuple[str, str]:
+    """Split path into parent path and local name, much like directory path and a file name."""
+    *parent_path, name = path.rsplit(".", 1)
+    return ("" if parent_path == [] else parent_path[0]), name

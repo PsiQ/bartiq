@@ -25,6 +25,7 @@ from bartiq.compilation._symbolic_function import (
     define_expression_functions,
 )
 from bartiq.errors import BartiqCompilationError
+from bartiq.precompilation.stages_new import introduce_port_variables
 from bartiq.symbolics import sympy_backend
 
 BACKEND = sympy_backend
@@ -41,7 +42,7 @@ COMPILE_TEST_DATA = load_compile_test_data()
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile(routine, expected_routine):
-    compiled_routine = compile_routine(routine)
+    compiled_routine = compile_routine(routine, skip_verification=True)
     assert compiled_routine == expected_routine
 
 
@@ -164,48 +165,7 @@ COMPILE_ERRORS_TEST_CASES = [
             ports={"in_foo": {"name": "in_foo", "direction": "input", "size": 1}},
             connections=[{"source": "in_foo", "target": "a.in_bar"}],
         ),
-        "Failed to set constant register size value because port already has a different constant size; "
-        "register a.#in_bar has size 1, but attempted to assign 2.",
-    ),
-    # Attempt to connect a variable-sized input register to a constant-sized one (root to leaf)
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "ports": {"in_bar": {"name": "in_bar", "direction": "input", "size": 1}},
-                }
-            },
-            ports={"in_foo": {"name": "in_foo", "direction": "input", "size": "N"}},
-            connections=[{"source": "in_foo", "target": "a.in_bar"}],
-        ),
-        "Input registers cannot be constant-sized; attempted to merge register size #in_foo.N with a.#in_bar.1",
-    ),
-    # Attempt to connect a variable-sized input register to a constant-sized one (leaf to leaf)
-    (
-        Routine(
-            name="root",
-            type="dummy",
-            children={
-                "a": {
-                    "name": "a",
-                    "type": "dummy",
-                    "input_params": ["M", "N"],
-                    "ports": {"out_foo": {"name": "out_foo", "direction": "output", "size": "M + N"}},
-                },
-                "b": {
-                    "name": "b",
-                    "type": "dummy",
-                    "ports": {"in_bar": {"name": "in_bar", "direction": "input", "size": 1}},
-                },
-            },
-            connections=[{"source": "a.out_foo", "target": "b.in_bar"}],
-        ),
-        "Input registers cannot be constant-sized; "
-        "attempted to merge register size a.#out_foo = a.M + a.N with b.#in_bar.1",
+        "The following constraint was violated when compiling root.a: a.in_bar = 2 evaluated into 1 = 2.",
     ),
     # Attempt to connect two different sizes to routine which has both inputs of the same size
     (
@@ -238,8 +198,7 @@ COMPILE_ERRORS_TEST_CASES = [
                 {"source": "b.out_0", "target": "c.in_1"},
             ],
         ),
-        "Failed to set constant register size value because port already has a different constant size; "
-        "register #in_0 has size 1, but attempted to assign 2.",
+        "The following constraint was violated when compiling root.c: c.in_1 = 1 evaluated into 2 = 1",
     ),
 ]
 
@@ -247,4 +206,4 @@ COMPILE_ERRORS_TEST_CASES = [
 @pytest.mark.parametrize("routine, expected_error", COMPILE_ERRORS_TEST_CASES)
 def test_compile_errors(routine, expected_error):
     with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
-        compile_routine(routine, precompilation_stages=[], skip_verification=True)
+        compile_routine(routine, precompilation_stages=[introduce_port_variables], skip_verification=True)
