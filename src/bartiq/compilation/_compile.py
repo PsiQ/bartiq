@@ -184,6 +184,9 @@ def _compile(
             is_root=False,
         )
 
+        # TODO: You can check here if the child failed to compile by
+        # comparing if child's input params are a strict subset of
+        # unit's input params).
         compiled_children[child.name] = compiled_child
 
         for pname, port in compiled_child.ports.items():
@@ -214,6 +217,9 @@ def _compile(
         .union(input_param for child in compiled_children.values() for input_param in child.input_params)
         .union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
+
+    # TODO: compute linked params here
+
     return replace(
         compilation_unit,
         children=compiled_children,
