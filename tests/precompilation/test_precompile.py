@@ -21,6 +21,7 @@ from bartiq.precompilation.stages import (
     BartiqPrecompilationError,
     add_default_additive_resources,
     add_default_properties,
+    propagate_linked_params,
     unroll_wildcarded_resources,
 )
 
@@ -872,3 +873,184 @@ def test_precompile_with_wildcard_fails(input_dict, expected_resource, failure_m
 
     precompiled_routine = precompile(input_routine, precompilation_stages=[unroll_wildcarded_resources])
     assert precompiled_routine.resources["total_cost"].value == expected_resource
+
+
+LINKED_PARAM_CASES = [
+    (
+        {
+            "name": "root",
+            "type": None,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": None,
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": None,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": "x+y",
+                                }
+                            },
+                            "input_params": ["x", "y"],
+                        },
+                    },
+                    "resources": {
+                        "v": {
+                            "name": "v",
+                            "type": "other",
+                            "value": "w+b.z",
+                        },
+                    },
+                    "input_params": ["w"],
+                },
+            },
+            "resources": {
+                "u": {
+                    "name": "u",
+                    "type": "other",
+                    "value": "a.v+5",
+                }
+            },
+            "input_params": [
+                "w_a",
+                "x_ab",
+                "y_ab",
+            ],
+            "linked_params": {
+                "w_a": [("a", "w")],
+                "x_ab": [("a.b", "x")],
+                "y_ab": [("a.b", "y")],
+            },
+        },
+        {
+            "root": {
+                "w_a": [("a", "w")],
+                "x_ab": [("a", "b.x")],
+                "y_ab": [("a", "b.y")],
+            },
+            "root.a": {
+                "b.x": [("b", "x")],
+                "b.y": [("b", "y")],
+            },
+        },
+    ),
+    (
+        {
+            "name": "root",
+            "type": None,
+            "children": {
+                "a": {
+                    "name": "a",
+                    "type": None,
+                    "children": {
+                        "b": {
+                            "name": "b",
+                            "type": None,
+                            "children": {
+                                "c": {
+                                    "name": "c",
+                                    "type": None,
+                                    "resources": {
+                                        "z": {
+                                            "name": "z",
+                                            "type": "other",
+                                            "value": "x+y",
+                                        },
+                                    },
+                                    "input_params": ["x", "y"],
+                                }
+                            },
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": "c.z+y",
+                                },
+                            },
+                            "input_params": ["y"],
+                        },
+                        "d": {
+                            "name": "d",
+                            "type": None,
+                            "resources": {
+                                "z": {
+                                    "name": "z",
+                                    "type": "other",
+                                    "value": "x+y",
+                                },
+                            },
+                            "input_params": ["x", "y"],
+                        },
+                    },
+                    "resources": {
+                        "z": {
+                            "name": "z",
+                            "type": "other",
+                            "value": "b.z + d.z",
+                        },
+                    },
+                },
+            },
+            "resources": {
+                "z": {
+                    "name": "z",
+                    "type": "other",
+                    "value": "a.z+5",
+                }
+            },
+            "input_params": [
+                "x_abc",
+                "y_abc",
+                "y_ab",
+                "x_ad",
+                "y_ad",
+            ],
+            "linked_params": {
+                "x_abc": [("a.b.c", "x")],
+                "y_abc": [("a.b.c", "y")],
+                "y_ab": [("a.b", "y")],
+                "x_ad": [("a.d", "x")],
+                "y_ad": [("a.d", "y")],
+            },
+        },
+        {
+            "root": {
+                "x_abc": [("a", "b.c.x")],
+                "x_ad": [("a", "d.x")],
+                "y_ab": [("a", "b.y")],
+                "y_abc": [("a", "b.c.y")],
+                "y_ad": [("a", "d.y")],
+            },
+            "root.a": {
+                "b.c.x": [("b", "c.x")],
+                "d.x": [("d", "x")],
+                "b.y": [("b", "y")],
+                "b.c.y": [("b", "c.y")],
+                "d.y": [("d", "y")],
+            },
+            "root.a.b": {"c.x": [("c", "x")], "c.y": [("c", "y")]},
+        },
+    ),
+]
+
+
+@pytest.mark.parametrize("input_dict, expected_linked_params", LINKED_PARAM_CASES)
+def test_precompile_propagates_linked_params(input_dict, expected_linked_params, backend):
+    input_routine = Routine(**input_dict)
+
+    precompiled_routine = precompile(input_routine, precompilation_stages=[propagate_linked_params], backend=backend)
+
+    for key, linked_params in expected_linked_params.items():
+        children = key.split(".")
+        if len(children) == 1:
+            assert precompiled_routine.linked_params == linked_params
+        else:
+            children.pop(0)
+            temp_routine = precompiled_routine
+            for child in children:
+                temp_routine = temp_routine.children[child]
+            assert temp_routine.linked_params == expected_linked_params[key]
