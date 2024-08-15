@@ -83,7 +83,6 @@ def _add_aggregated_resources_to_subroutine(
             if remove_decomposed:
                 del aggregated_resources[resource_name]
             else:
-                # type_str = "_".join([f"decomposed_to_{target}" for target in sub_res])
                 aggregated_resources[resource_name].type = "other"
 
     subroutine.resources = aggregated_resources
@@ -97,8 +96,6 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backen
     Returns:
         Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
     """
-    if not isinstance(aggregation_dict, dict):
-        raise TypeError("aggregation_dict must be a dictionary.")
 
     sorted_resources = _topological_sort(aggregation_dict)
 
