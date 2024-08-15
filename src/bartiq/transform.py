@@ -17,7 +17,7 @@ import copy
 from collections import defaultdict
 from typing import Any, Dict, List, Set
 
-from bartiq import Resource, Routine, ResourceType
+from bartiq import Resource, ResourceType, Routine
 from bartiq.symbolics import sympy_backend
 from bartiq.verification import verify_uncompiled_routine
 
@@ -84,7 +84,6 @@ def _add_aggregated_resources_to_subroutine(
                 del aggregated_resources[resource_name]
             else:
                 aggregated_resources[resource_name].type = ResourceType.other
-
 
     subroutine.resources = aggregated_resources
     return subroutine
