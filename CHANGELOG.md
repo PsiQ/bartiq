@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/PsiQ/bartiq/compare/v0.5.0...v0.5.1) (2024-08-13)
+
+
+### Bug Fixes
+
+* update alias sampling example ([#103](https://github.com/PsiQ/bartiq/issues/103)) ([0038d3e](https://github.com/PsiQ/bartiq/commit/0038d3efdf429d611feda4d406115d100bb47c2e))
+
 ## [0.5.0](https://github.com/PsiQ/bartiq/compare/v0.4.0...v0.5.0) (2024-08-06)
 
 

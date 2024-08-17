@@ -70,7 +70,7 @@ def _generate_test(subroutine, input_params, linked_params):
 
 
 @pytest.mark.parametrize(
-    "aggregation_dict, generate_test_fn, expected_output",
+    "aggregation_dict, generate_test_fn, remove_decomposed, expected_output",
     [
         (
             {"control_ry": {"rotation": 2, "CNOT": 2}, "rotation": {"T_gates": 50}},
@@ -79,6 +79,7 @@ def _generate_test(subroutine, input_params, linked_params):
                 ["z", "num"],
                 [{"source": "z", "targets": ["ccry_gate.x"]}, {"source": "num", "targets": ["ccry_gate.num"]}],
             ),
+            True,
             Routine(
                 name="test_qref",
                 input_params=["z", "num"],
@@ -118,6 +119,7 @@ def _generate_test(subroutine, input_params, linked_params):
                 ["z", "num"],
                 [{"source": "z", "targets": ["arbitrary_z.x"]}, {"source": "num", "targets": ["arbitrary_z.num"]}],
             ),
+            True,
             Routine(
                 name="test_qref",
                 input_params=["z", "num"],
@@ -152,10 +154,54 @@ def _generate_test(subroutine, input_params, linked_params):
                 ],
             ),
         ),
+        (
+            {"control_ry": {"rotation": 2, "CNOT": 2}, "rotation": {"T_gates": 50}},
+            _generate_test(
+                ccry_gate,
+                ["z", "num"],
+                [{"source": "z", "targets": ["ccry_gate.x"]}, {"source": "num", "targets": ["ccry_gate.num"]}],
+            ),
+            False,
+            Routine(
+                name="test_qref",
+                input_params=["z", "num"],
+                children={
+                    "ccry_gate": Routine(
+                        name="ccry_gate",
+                        type=None,
+                        input_params=["x", "num"],
+                        ports={
+                            "in": {"name": "in", "direction": "input", "size": "n"},
+                            "out": {"name": "out", "direction": "output", "size": "n"},
+                        },
+                        resources={
+                            "CNOT": {"name": "CNOT", "type": "additive", "value": "8*num"},
+                            "T_gates": {"name": "control_ry", "type": "additive", "value": "300*num"},
+                            "control_ry": {
+                                "name": "control_ry",
+                                "type": "other",
+                                "value": "3*num",
+                            },
+                        },
+                        local_variables={"n": "x"},
+                    )
+                },
+                type=None,
+                linked_params={"z": [("ccry_gate", "x")], "num": [("ccry_gate", "num")]},
+                ports={
+                    "in": {"name": "in", "direction": "input", "size": "z"},
+                    "out": {"name": "out", "direction": "output", "size": "z"},
+                },
+                connections=[
+                    {"source": "in", "target": "ccry_gate.in"},
+                    {"source": "ccry_gate.out", "target": "out"},
+                ],
+            ),
+        ),
     ],
 )
-def test_add_aggregated_resources(aggregation_dict, generate_test_fn, expected_output):
-    result = add_aggregated_resources(generate_test_fn, aggregation_dict)
+def test_add_aggregated_resources(aggregation_dict, generate_test_fn, remove_decomposed, expected_output):
+    result = add_aggregated_resources(generate_test_fn, aggregation_dict, remove_decomposed=remove_decomposed)
     _compare_routines(result, expected_output)
 
 
