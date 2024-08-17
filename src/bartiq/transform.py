@@ -17,14 +17,16 @@ import copy
 from collections import defaultdict
 from typing import Any, Dict, List, Set
 
-from bartiq import Resource, Routine
+from bartiq import Resource, ResourceType, Routine
 from bartiq.symbolics import sympy_backend
 from bartiq.verification import verify_uncompiled_routine
 
 BACKEND = sympy_backend
 
 
-def add_aggregated_resources(routine: Routine, aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Routine:
+def add_aggregated_resources(
+    routine: Routine, aggregation_dict: Dict[str, Dict[str, Any]], remove_decomposed: bool = True, backend=BACKEND
+) -> Routine:
     """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
@@ -37,6 +39,10 @@ def add_aggregated_resources(routine: Routine, aggregation_dict: Dict[str, Dict[
                               "arbitrary_z": {"T_gates": "3*log2(1/epsilon) + O(log(log(1/epsilon)))"},
                               ...
                           }
+        remove_decomposed : Whether to remove the decomposed resources from the routine.
+            Defaults to True.
+        backend : Backend instance to use for handling expressions.
+            Defaults to `sympy_backend`.
 
     Returns:
         Routine: The program with aggregated resources.
@@ -46,13 +52,14 @@ def add_aggregated_resources(routine: Routine, aggregation_dict: Dict[str, Dict[
 
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict)
     for subroutine in routine.walk():
-        _add_aggregated_resources_to_subroutine(subroutine, expanded_aggregation_dict)
+        _add_aggregated_resources_to_subroutine(subroutine, expanded_aggregation_dict, remove_decomposed, backend)
     return routine
 
 
 def _add_aggregated_resources_to_subroutine(
-    subroutine: Routine, expanded_aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND
+    subroutine: Routine, expanded_aggregation_dict: Dict[str, Dict[str, Any]], remove_decomposed: bool, backend=BACKEND
 ) -> Routine:
+
     if not hasattr(subroutine, "resources") or not subroutine.resources:
         return subroutine
 
@@ -73,8 +80,10 @@ def _add_aggregated_resources_to_subroutine(
                         value=str(multiplier_expr * resource_expr),
                     )
                     aggregated_resources[sub_res] = new_resource
-
-            del aggregated_resources[resource_name]
+            if remove_decomposed:
+                del aggregated_resources[resource_name]
+            else:
+                aggregated_resources[resource_name].type = ResourceType.other
 
     subroutine.resources = aggregated_resources
     return subroutine
@@ -87,8 +96,6 @@ def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backen
     Returns:
         Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
     """
-    if not isinstance(aggregation_dict, dict):
-        raise TypeError("aggregation_dict must be a dictionary.")
 
     sorted_resources = _topological_sort(aggregation_dict)
 
