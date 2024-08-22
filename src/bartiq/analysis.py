@@ -14,7 +14,7 @@
 
 import random
 import warnings
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 from sympy import Expr, Function, Poly, Symbol, lambdify, prod, symbols
 
@@ -133,7 +133,7 @@ class Optimizer:
         learning_rate: float = 0.01,
         max_iter: int = 1000,
         tolerance: float = 1e-6,
-    ) -> Dict[float, List[float]]:
+    ) -> Dict[str, object]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
         parameter.
@@ -205,9 +205,9 @@ def minimize(
     param: str,
     optimizer: str,
     initial_params: Optional[float] = None,
-    optimizer_kwargs: Optional[Dict] = None,
-    backend=Backend,
-) -> Dict[float, float]:
+    optimizer_kwargs: Optional[Dict[str, object]] = None,
+    backend=None,  # Add your backend type hint if known
+) -> Dict[str, object]:
     """
     Find the optimal parameter value that minimizes a given expression.
 
@@ -221,8 +221,8 @@ def minimize(
 
     Returns:
         Dict: A dictionary containing the optimal value of the parameter (`optimal_value`),
-                          the corresponding minimum cost (`minimum_cost`), and the history of parameter values
-                          (`x_history`).
+              the corresponding minimum cost (`minimum_cost`), and the history of parameter values
+              (`x_history`).
 
     Raises:
         ValueError: If the specified optimizer is unknown.
