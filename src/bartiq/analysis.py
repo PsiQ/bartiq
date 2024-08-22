@@ -235,9 +235,15 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, cost_func)
 
     if optimizer == "gradient_descent":
-        optimization_result = Optimizer.gradient_descent(
-            cost_func=cost_func_callable, initial_value=initial_params, **optimizer_kwargs
-        )
+        valid_kwargs = {
+            "initial_value": initial_params,
+            "bounds": optimizer_kwargs.get("bounds"),
+            "learning_rate": optimizer_kwargs.get("learning_rate", 0.01),
+            "max_iter": optimizer_kwargs.get("max_iter", 1000),
+            "tolerance": optimizer_kwargs.get("tolerance", 1e-6),
+        }
+
+        optimization_result = Optimizer.gradient_descent(cost_func=cost_func_callable, **valid_kwargs)
         opt_value = optimization_result["optimal_value"]
         x_history = optimization_result["x_history"]
         min_cost = cost_func_callable(opt_value)
