@@ -14,7 +14,7 @@
 
 import random
 import warnings
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple, TypedDict, Union
 
 from sympy import Expr, Function, Poly, Symbol, lambdify, prod, symbols
 
@@ -124,6 +124,15 @@ def _make_term_expression(gens, term):
     return prod(powers)
 
 
+class OptimizerKwargs(TypedDict, total=False):
+    initial_value: Optional[Union[float, int]]
+    bounds: Optional[Tuple[float, float]]
+    learning_rate: float
+    max_iter: int
+    tolerance: float
+    initial_params: Optional[Union[float, int]]
+
+
 class Optimizer:
     @staticmethod
     def gradient_descent(
@@ -204,8 +213,7 @@ def minimize(
     expression: str,
     param: str,
     optimizer: str,
-    initial_params: Optional[float] = None,
-    optimizer_kwargs: Optional[Dict[str, object]] = None,
+    optimizer_kwargs: Optional[OptimizerKwargs] = None,
     backend=Backend,
 ) -> Dict[str, object]:
     """
@@ -235,11 +243,10 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, cost_func)
 
     if optimizer == "gradient_descent":
-
-        initial_value = float(optimizer_kwargs.get("initial_value", initial_params))
+        initial_value = float(optimizer_kwargs.get("initial_value", optimizer_kwargs.get("initial_params", None)))
         bounds = optimizer_kwargs.get("bounds", None)
         learning_rate = float(optimizer_kwargs.get("learning_rate", 0.01))
-        max_iter = int(optimizer_kwargs.get("max_iter", 1000))
+        max_iter = float(optimizer_kwargs.get("max_iter", 1000))
         tolerance = float(optimizer_kwargs.get("tolerance", 1e-6))
 
         optimization_result = Optimizer.gradient_descent(
