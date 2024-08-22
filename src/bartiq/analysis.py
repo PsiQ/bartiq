@@ -153,7 +153,7 @@ class Optimizer:
             during optimization.
         """
         if initial_value is None:
-            initial_value = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
+            initial_value = float(random.uniform(*bounds) if bounds else random.uniform(-1, 1))
 
         if bounds and not (bounds[0] <= initial_value <= bounds[1]):
             raise ValueError(f"Initial value {initial_value} is out of bounds {bounds}.")
