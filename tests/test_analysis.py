@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import pytest
 import sympy
 from sympy.abc import x, y
 
-from bartiq.analysis import BigO
+from bartiq.analysis import BigO, minimize
 
 
 @pytest.mark.parametrize(
@@ -90,3 +92,26 @@ def test_adding_BigO_expressions():
 )
 def test_failing_big_O_cases(expr, gens, expected):
     pytest.xfail()
+
+
+@pytest.mark.parametrize(
+    "cost_expression, param, optimizer_kwargs, initial_params, expected_optimal_value, expected_minimum_cost",
+    [
+        # Adjusted test case for minimizing the cosine function
+        ("cos(x)", "x", {"learning_rate": 0.5, "max_iter": 10000, "tolerance": 1e-6}, 3.0, math.pi, -1.0),
+    ],
+)
+def test_minimize(
+    cost_expression, param, optimizer_kwargs, initial_params, expected_optimal_value, expected_minimum_cost
+):
+
+    result = minimize(
+        expression=cost_expression,
+        param=param,
+        initial_params=initial_params,
+        optimizer="gradient_descent",
+        optimizer_kwargs=optimizer_kwargs,
+    )
+
+    assert abs(result["optimal_value"] - expected_optimal_value) < 1e-6
+    assert abs(result["minimum_cost"] - expected_minimum_cost) < 1e-6

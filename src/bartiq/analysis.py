@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import random
 import warnings
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional, Tuple
 
 from sympy import Expr, Function, Poly, Symbol, lambdify, prod, symbols
 
 from bartiq.symbolics import sympy_backend
 
 Backend = sympy_backend
-# no dependency of numpy
 
 
 class BigO:
@@ -127,49 +127,79 @@ def _make_term_expression(gens, term):
 class Optimizer:
     @staticmethod
     def gradient_descent(
-        cost_func: Callable,
-        initial_value: float,
+        cost_func: Callable[[float], float],
+        initial_value: Optional[float] = None,
+        bounds: Optional[Tuple[float, float]] = None,
         learning_rate: float = 0.01,
         max_iter: int = 1000,
         tolerance: float = 1e-6,
-    ) -> float:
+    ) -> Dict[str, List[float]]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
         parameter.
 
         Parameters:
-        cost_func : The objective cost function to be minimized, provided as a callable function.
-        initial_value : The starting point for the optimization.
-        learning_rate : The step size for each iteration. Default is 0.01.
-        max_iter : The maximum number of iterations to perform. Default is 1000.
-        tolerance : The tolerance level for stopping criteria. Default is 1e-6.
+            cost_func (Callable[[float], float]): The objective cost function to be minimized.
+            initial_value (Optional[float]): The starting point for the optimization. If None, a random value is
+            selected.
+            bounds (Optional[Tuple[float, float]]): A tuple specifying the (min, max) range for the parameter value.
+            Default is None (no bounds).
+            learning_rate (float): The step size for each iteration. Default is 0.01.
+            max_iter (int): The maximum number of iterations to perform. Default is 1000.
+            tolerance (float): The tolerance level for stopping criteria. Default is 1e-6.
 
         Returns:
-        float: The value of the parameter that minimizes the expression.
+            Dict[str, List[float]]: A dictionary containing the final value of the parameter and the history of values
+            during optimization.
+
+        Raises:
+            RuntimeError: If the maximum number of iterations is reached without convergence.
+            ValueError: If the initial value is out of bounds.
         """
+        if initial_value is None:
+            initial_value = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
+
+        if bounds and not (bounds[0] <= initial_value <= bounds[1]):
+            raise ValueError(f"Initial value {initial_value} is out of bounds {bounds}.")
+
         current_value = initial_value
+        x_history = [current_value]
+
         for i in range(max_iter):
-            gradient = Optimizer.numerical_gradient(cost_func, current_value)
-            current_value -= learning_rate * gradient
+            gradient = Optimizer._numerical_gradient(cost_func, current_value)
+            next_value = current_value - learning_rate * gradient
+
+            if bounds:
+                next_value = max(min(next_value, bounds[1]), bounds[0])
+                if next_value == bounds[0] or next_value == bounds[1]:
+                    print(f"Bounds reached at iteration {i + 1}.")
+                    x_history.append(next_value)
+                    break
+
+            x_history.append(next_value)
+
             if abs(gradient) < tolerance:
                 print(f"Convergence reached after {i + 1} iterations.")
                 break
+
+            current_value = next_value
         else:
-            print("Maximum iterations reached without convergence.")
-        return current_value
+            raise RuntimeError("Maximum iterations reached without convergence.")
+
+        return {"optimal_value": current_value, "x_history": x_history}
 
     @staticmethod
-    def numerical_gradient(f: Callable, value: float, epsilon: float = 1e-8) -> float:
+    def _numerical_gradient(f: Callable[[float], float], value: float, epsilon: float = 1e-8) -> float:
         """
         Calculate the numerical gradient of the function f at a given point using finite difference.
 
         Parameters:
-        f : The objective function to be minimized.
-        value : The point at which to compute the gradient.
-        epsilon : A small number to calculate the finite difference. Default is 1e-8.
+            f (Callable[[float], float]): The objective function to be minimized.
+            value (float): The point at which to compute the gradient.
+            epsilon (float): A small number to calculate the finite difference. Default is 1e-8.
 
         Returns:
-        float: The estimated gradient of the function at the given point.
+            float: The estimated gradient of the function at the given point.
         """
         return (f(value + epsilon) - f(value - epsilon)) / (2 * epsilon)
 
@@ -178,38 +208,44 @@ def minimize(
     expression: str,
     param: str,
     optimizer: str,
-    optimizer_kwargs=None,
-    initial_params: float = None,
-    bounds=None,
+    initial_params: Optional[float] = None,
+    optimizer_kwargs: Optional[Dict] = None,
     backend=Backend,
 ) -> Dict[str, float]:
     """
-    Function to find the optimal parameter for minimizing a expression.
+    Find the optimal parameter value that minimizes a given expression.
 
     Parameters:
-        expression: The cost function to be optimized, provided as a string expression.
-        param: The parameter to be optimized, provided as a string.
-        optimizer: The name of the optimizer to use.
-        optimizer_kwargs: Additional arguments for the optimizer, default as None.
-        initial_params: The initial guess for the parameter, default as None.
-        bounds: The bounds for the parameter, given as a (min, max) tuple.
+        expression (str): The cost function to be optimized, provided as a string expression.
+        param (str): The parameter to be optimized, provided as a string.
+        optimizer (str): The name of the optimizer to use.
+        initial_params (Optional[float]): The initial guess for the parameter. Default is None.
+        optimizer_kwargs (Optional[Dict]): Additional arguments for the optimizer. Default is None.
         backend: Backend to process the expression.
 
     Returns:
-        dict: A dictionary containing the optimal value of the parameter (`optimal_value`) and the corresponding minimum
-         cost (`minimum_cost`).
+        Dict[str, float]: A dictionary containing the optimal value of the parameter (`optimal_value`),
+                          the corresponding minimum cost (`minimum_cost`), and the history of parameter values
+                          (`x_history`).
+
+    Raises:
+        ValueError: If the specified optimizer is unknown.
     """
     if optimizer_kwargs is None:
         optimizer_kwargs = {}
 
     param_symbol = symbols(param)
     cost_func = backend.as_expression(expression)
-    cost_func_callable = lambdify(param_symbol, cost_func, "numpy")
+    cost_func_callable = lambdify(param_symbol, cost_func)
 
     if optimizer == "gradient_descent":
-        opt_value = Optimizer.gradient_descent(cost_func_callable, initial_params, **optimizer_kwargs)
+        optimization_result = Optimizer.gradient_descent(
+            cost_func=cost_func_callable, initial_value=initial_params, **optimizer_kwargs
+        )
+        opt_value = optimization_result["optimal_value"]
+        x_history = optimization_result["x_history"]
         min_cost = cost_func_callable(opt_value)
     else:
         raise ValueError(f"Unknown optimizer: {optimizer}")
 
-    return {"optimal_value": opt_value, "minimum_cost": min_cost}
+    return {"optimal_value": opt_value, "minimum_cost": min_cost, "x_history": x_history}
