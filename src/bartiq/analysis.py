@@ -236,11 +236,11 @@ def minimize(
 
     if optimizer == "gradient_descent":
 
-        initial_value = optimizer_kwargs.get("initial_value", initial_params)
+        initial_value = float(optimizer_kwargs.get("initial_value", initial_params))
         bounds = optimizer_kwargs.get("bounds", None)
-        learning_rate = optimizer_kwargs.get("learning_rate", 0.01)
-        max_iter = optimizer_kwargs.get("max_iter", 1000)
-        tolerance = optimizer_kwargs.get("tolerance", 1e-6)
+        learning_rate = float(optimizer_kwargs.get("learning_rate", 0.01))
+        max_iter = int(optimizer_kwargs.get("max_iter", 1000))
+        tolerance = float(optimizer_kwargs.get("tolerance", 1e-6))
 
         optimization_result = Optimizer.gradient_descent(
             cost_func=cost_func_callable,
