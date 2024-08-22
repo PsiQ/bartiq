@@ -153,7 +153,7 @@ class Optimizer:
             during optimization.
         """
         if initial_value is None:
-            initial_value = float(random.uniform(*bounds) if bounds else random.uniform(-1, 1))
+            initial_value = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
 
         if bounds and not (bounds[0] <= initial_value <= bounds[1]):
             raise ValueError(f"Initial value {initial_value} is out of bounds {bounds}.")
@@ -206,7 +206,7 @@ def minimize(
     optimizer: str,
     initial_params: Optional[float] = None,
     optimizer_kwargs: Optional[Dict[str, object]] = None,
-    backend=None,  # Add your backend type hint if known
+    backend=Backend,
 ) -> Dict[str, object]:
     """
     Find the optimal parameter value that minimizes a given expression.
@@ -235,15 +235,21 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, cost_func)
 
     if optimizer == "gradient_descent":
-        valid_kwargs = {
-            "initial_value": initial_params,
-            "bounds": optimizer_kwargs.get("bounds"),
-            "learning_rate": optimizer_kwargs.get("learning_rate", 0.01),
-            "max_iter": optimizer_kwargs.get("max_iter", 1000),
-            "tolerance": optimizer_kwargs.get("tolerance", 1e-6),
-        }
 
-        optimization_result = Optimizer.gradient_descent(cost_func=cost_func_callable, **valid_kwargs)
+        initial_value = optimizer_kwargs.get("initial_value", initial_params)
+        bounds = optimizer_kwargs.get("bounds", None)
+        learning_rate = optimizer_kwargs.get("learning_rate", 0.01)
+        max_iter = optimizer_kwargs.get("max_iter", 1000)
+        tolerance = optimizer_kwargs.get("tolerance", 1e-6)
+
+        optimization_result = Optimizer.gradient_descent(
+            cost_func=cost_func_callable,
+            initial_value=initial_value,
+            bounds=bounds,
+            learning_rate=learning_rate,
+            max_iter=max_iter,
+            tolerance=tolerance,
+        )
         opt_value = optimization_result["optimal_value"]
         x_history = optimization_result["x_history"]
         min_cost = cost_func_callable(opt_value)
