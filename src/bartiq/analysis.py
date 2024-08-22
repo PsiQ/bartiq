@@ -243,10 +243,14 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, cost_func)
 
     if optimizer == "gradient_descent":
-        initial_value = float(optimizer_kwargs.get("initial_value", optimizer_kwargs.get("initial_params", None)))
+        initial_value = optimizer_kwargs.get("initial_value", optimizer_kwargs.get("initial_params", None))
+        if initial_value is not None:
+            initial_value = float(initial_value)
         bounds = optimizer_kwargs.get("bounds", None)
+        if bounds is not None:
+            bounds = tuple(float(b) for b in bounds)
         learning_rate = float(optimizer_kwargs.get("learning_rate", 0.01))
-        max_iter = float(optimizer_kwargs.get("max_iter", 1000))
+        max_iter = int(optimizer_kwargs.get("max_iter", 1000))
         tolerance = float(optimizer_kwargs.get("tolerance", 1e-6))
 
         optimization_result = Optimizer.gradient_descent(

@@ -95,20 +95,28 @@ def test_failing_big_O_cases(expr, gens, expected):
 
 
 @pytest.mark.parametrize(
-    "cost_expression, param, optimizer_kwargs, initial_params, expected_optimal_value, expected_minimum_cost",
+    "cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost",
     [
         # Adjusted test case for minimizing the cosine function
-        ("cos(x)", "x", {"learning_rate": 0.5, "max_iter": 10000, "tolerance": 1e-6}, 3.0, math.pi, -1.0),
+        (
+            "cos(x)",
+            "x",
+            {
+                "learning_rate": 0.5,
+                "max_iter": 10000,
+                "tolerance": 1e-6,
+                "initial_params": 3.0,
+            },
+            math.pi,
+            -1.0,
+        ),
     ],
 )
-def test_minimize(
-    cost_expression, param, optimizer_kwargs, initial_params, expected_optimal_value, expected_minimum_cost
-):
+def test_minimize(cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost):
 
     result = minimize(
         expression=cost_expression,
         param=param,
-        initial_params=initial_params,
         optimizer="gradient_descent",
         optimizer_kwargs=optimizer_kwargs,
     )
