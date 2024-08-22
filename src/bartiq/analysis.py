@@ -247,8 +247,15 @@ def minimize(
         if initial_value is not None:
             initial_value = float(initial_value)
         bounds = optimizer_kwargs.get("bounds", None)
+        bounds = optimizer_kwargs.get("bounds", None)
         if bounds is not None:
-            bounds = tuple(float(b) for b in bounds)
+            lower_bound, upper_bound = bounds
+            if lower_bound is None:
+                lower_bound = float("-inf")
+            if upper_bound is None:
+                upper_bound = float("inf")
+            bounds = (float(lower_bound), float(upper_bound))
+
         learning_rate = float(optimizer_kwargs.get("learning_rate", 0.01))
         max_iter = int(optimizer_kwargs.get("max_iter", 1000))
         tolerance = float(optimizer_kwargs.get("tolerance", 1e-6))
