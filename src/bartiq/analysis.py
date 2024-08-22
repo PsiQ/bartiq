@@ -133,28 +133,24 @@ class Optimizer:
         learning_rate: float = 0.01,
         max_iter: int = 1000,
         tolerance: float = 1e-6,
-    ) -> Dict[str, List[float]]:
+    ) -> Dict[float, List[float]]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
         parameter.
 
         Parameters:
-            cost_func (Callable[[float], float]): The objective cost function to be minimized.
-            initial_value (Optional[float]): The starting point for the optimization. If None, a random value is
+            cost_func: The objective cost function to be minimized.
+            initial_value: The starting point for the optimization. If None, a random value is
             selected.
-            bounds (Optional[Tuple[float, float]]): A tuple specifying the (min, max) range for the parameter value.
+            bounds: A tuple specifying the (min, max) range for the parameter value.
             Default is None (no bounds).
-            learning_rate (float): The step size for each iteration. Default is 0.01.
-            max_iter (int): The maximum number of iterations to perform. Default is 1000.
-            tolerance (float): The tolerance level for stopping criteria. Default is 1e-6.
+            learning_rate: The step size for each iteration. Default is 0.01.
+            max_iter: The maximum number of iterations to perform. Default is 1000.
+            tolerance: The tolerance level for stopping criteria. Default is 1e-6.
 
         Returns:
-            Dict[str, List[float]]: A dictionary containing the final value of the parameter and the history of values
+            Dict: A dictionary containing the final value of the parameter and the history of values
             during optimization.
-
-        Raises:
-            RuntimeError: If the maximum number of iterations is reached without convergence.
-            ValueError: If the initial value is out of bounds.
         """
         if initial_value is None:
             initial_value = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
@@ -194,9 +190,9 @@ class Optimizer:
         Calculate the numerical gradient of the function f at a given point using finite difference.
 
         Parameters:
-            f (Callable[[float], float]): The objective function to be minimized.
-            value (float): The point at which to compute the gradient.
-            epsilon (float): A small number to calculate the finite difference. Default is 1e-8.
+            f: The objective function to be minimized.
+            value: The point at which to compute the gradient.
+            epsilon: A small number to calculate the finite difference. Default is 1e-8.
 
         Returns:
             float: The estimated gradient of the function at the given point.
@@ -211,20 +207,20 @@ def minimize(
     initial_params: Optional[float] = None,
     optimizer_kwargs: Optional[Dict] = None,
     backend=Backend,
-) -> Dict[str, float]:
+) -> Dict[float, float]:
     """
     Find the optimal parameter value that minimizes a given expression.
 
     Parameters:
-        expression (str): The cost function to be optimized, provided as a string expression.
-        param (str): The parameter to be optimized, provided as a string.
-        optimizer (str): The name of the optimizer to use.
-        initial_params (Optional[float]): The initial guess for the parameter. Default is None.
-        optimizer_kwargs (Optional[Dict]): Additional arguments for the optimizer. Default is None.
+        expression: The cost function to be optimized, provided as a string expression.
+        param: The parameter to be optimized, provided as a string.
+        optimizer: The name of the optimizer to use.
+        initial_params: The initial guess for the parameter. Default is None.
+        optimizer_kwargs: Additional arguments for the optimizer. Default is None.
         backend: Backend to process the expression.
 
     Returns:
-        Dict[str, float]: A dictionary containing the optimal value of the parameter (`optimal_value`),
+        Dict: A dictionary containing the optimal value of the parameter (`optimal_value`),
                           the corresponding minimum cost (`minimum_cost`), and the history of parameter values
                           (`x_history`).
 
