@@ -14,13 +14,20 @@
 
 import random
 import warnings
-from typing import Callable, Dict, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 from sympy import Expr, Function, Poly, Symbol, lambdify, prod, symbols
 
 from bartiq.symbolics import sympy_backend
 
 Backend = sympy_backend
+
+try:
+    from scipy.optimize import minimize as scipy_minimize
+
+    SCIPY = True
+except ImportError:
+    SCIPY = False
 
 
 class BigO:
@@ -125,21 +132,32 @@ def _make_term_expression(gens, term):
 
 
 class OptimizerKwargs(TypedDict, total=False):
-    initial_value: Optional[Union[float, int]]
-    bounds: Optional[Tuple[float, float]]
-    learning_rate: float
+    x0: Optional[Union[float, List[float], int]]
+    bounds: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]]
+    learning_rate: Union[float, List[float]]
     max_iter: int
     tolerance: float
-    initial_params: Optional[Union[float, int]]
+
+
+class ScipyOptimizerKwargs(TypedDict, total=False):
+    args: Tuple[Any, ...]
+    method: Optional[str]
+    jac: Optional[Union[Callable, str, bool]]
+    hess: Optional[Union[Callable, str]]
+    hessp: Optional[Callable]
+    constraints: Union[Dict, List[Dict]]
+    tol: Optional[float]
+    callback: Optional[Callable]
+    options: Optional[Dict[str, Any]]
 
 
 class Optimizer:
     @staticmethod
     def gradient_descent(
-        cost_func: Callable[[float], float],
-        initial_value: Optional[float] = None,
-        bounds: Optional[Tuple[float, float]] = None,
-        learning_rate: float = 0.01,
+        cost_func: Callable[[List[float]], float],
+        x0: Optional[Union[float, List[float]]] = None,
+        bounds: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None,
+        learning_rate: Union[float, List[float]] = 0.01,
         max_iter: int = 1000,
         tolerance: float = 1e-6,
     ) -> Dict[str, object]:
@@ -149,7 +167,7 @@ class Optimizer:
 
         Parameters:
             cost_func: The objective cost function to be minimized.
-            initial_value: The starting point for the optimization. If None, a random value is
+            x0: The starting point for the optimization. If None, a random value is
             selected.
             bounds: A tuple specifying the (min, max) range for the parameter value.
             Default is None (no bounds).
@@ -161,13 +179,13 @@ class Optimizer:
             Dict: A dictionary containing the final value of the parameter and the history of values
             during optimization.
         """
-        if initial_value is None:
-            initial_value = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
+        if x0 is None:
+            x0 = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
 
-        if bounds and not (bounds[0] <= initial_value <= bounds[1]):
-            raise ValueError(f"Initial value {initial_value} is out of bounds {bounds}.")
+        if bounds and not (bounds[0] <= x0 <= bounds[1]):
+            raise ValueError(f"Initial value {x0} is out of bounds {bounds}.")
 
-        current_value = initial_value
+        current_value = x0
         x_history = [current_value]
 
         for i in range(max_iter):
@@ -175,11 +193,15 @@ class Optimizer:
             next_value = current_value - learning_rate * gradient
 
             if bounds:
-                next_value = max(min(next_value, bounds[1]), bounds[0])
-                if next_value == bounds[0] or next_value == bounds[1]:
+                if isinstance(bounds, tuple):
+                    bounds = [bounds]
+                next_value = max(min(next_value, bounds[0][1]), bounds[0][0])
+                if next_value == bounds[0][0] or next_value == bounds[0][1]:
                     print(f"Bounds reached at iteration {i + 1}.")
                     x_history.append(next_value)
                     break
+            else:
+                next_value = current_value - learning_rate * gradient
 
             x_history.append(next_value)
 
@@ -188,6 +210,7 @@ class Optimizer:
                 break
 
             current_value = next_value
+
         else:
             raise RuntimeError("Maximum iterations reached without convergence.")
 
@@ -211,67 +234,85 @@ class Optimizer:
 
 def minimize(
     expression: str,
-    param: str,
+    param: Union[str, List[str]],
     optimizer: str,
     optimizer_kwargs: Optional[OptimizerKwargs] = None,
+    scipy_kwargs: Optional[ScipyOptimizerKwargs] = None,
     backend=Backend,
 ) -> Dict[str, object]:
-    """
-    Find the optimal parameter value that minimizes a given expression.
-
-    Parameters:
-        expression: The cost function to be optimized, provided as a string expression.
-        param: The parameter to be optimized, provided as a string.
-        optimizer: The name of the optimizer to use.
-        initial_params: The initial guess for the parameter. Default is None.
-        optimizer_kwargs: Additional arguments for the optimizer. Default is None.
-        backend: Backend to process the expression.
-
-    Returns:
-        Dict: A dictionary containing the optimal value of the parameter (`optimal_value`),
-              the corresponding minimum cost (`minimum_cost`), and the history of parameter values
-              (`x_history`).
-
-    Raises:
-        ValueError: If the specified optimizer is unknown.
-    """
+    """Find the optimal parameter value that minimizes a given expression."""
     if optimizer_kwargs is None:
         optimizer_kwargs = {}
+    if scipy_kwargs is None:
+        scipy_kwargs = {}
 
     param_symbol = symbols(param)
-    cost_func = backend.as_expression(expression)
-    cost_func_callable = lambdify(param_symbol, cost_func)
+    cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
 
     if optimizer == "gradient_descent":
-        initial_value = optimizer_kwargs.get("initial_value", optimizer_kwargs.get("initial_params", None))
-        if initial_value is not None:
-            initial_value = float(initial_value)
-        bounds = optimizer_kwargs.get("bounds", None)
-        bounds = optimizer_kwargs.get("bounds", None)
-        if bounds is not None:
-            lower_bound, upper_bound = bounds
-            if lower_bound is None:
-                lower_bound = float("-inf")
-            if upper_bound is None:
-                upper_bound = float("inf")
-            bounds = (float(lower_bound), float(upper_bound))
+        x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
+        x0 = float(x0) if x0 is not None else None
 
-        learning_rate = float(optimizer_kwargs.get("learning_rate", 0.01))
-        max_iter = int(optimizer_kwargs.get("max_iter", 1000))
-        tolerance = float(optimizer_kwargs.get("tolerance", 1e-6))
+        bounds = optimizer_kwargs.get("bounds")
+        if bounds:
+            lower_bound, upper_bound = bounds
+            bounds = (
+                float(lower_bound) if lower_bound is not None else float("-inf"),
+                float(upper_bound) if upper_bound is not None else float("inf"),
+            )
 
         optimization_result = Optimizer.gradient_descent(
             cost_func=cost_func_callable,
-            initial_value=initial_value,
+            x0=x0,
             bounds=bounds,
-            learning_rate=learning_rate,
-            max_iter=max_iter,
-            tolerance=tolerance,
+            learning_rate=float(optimizer_kwargs.get("learning_rate", 0.01)),
+            max_iter=int(optimizer_kwargs.get("max_iter", 1000)),
+            tolerance=float(optimizer_kwargs.get("tolerance", 1e-6)),
         )
-        opt_value = optimization_result["optimal_value"]
-        x_history = optimization_result["x_history"]
-        min_cost = cost_func_callable(opt_value)
+
+        return {
+            "optimal_value": optimization_result["optimal_value"],
+            "minimum_cost": cost_func_callable(optimization_result["optimal_value"]),
+            "x_history": optimization_result["x_history"],
+        }
+
+    elif optimizer == "scipy":
+
+        if SCIPY:
+            x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
+            bounds = optimizer_kwargs.get("bounds")
+            if bounds:
+                bounds = [bounds] if isinstance(bounds, tuple) else bounds
+
+            scipy_result = scipy_minimize(
+                fun=cost_func_callable,
+                x0=x0,
+                args=scipy_kwargs.get("args", ()),
+                method=scipy_kwargs.get("method"),
+                jac=scipy_kwargs.get("jac"),
+                hess=scipy_kwargs.get("hess"),
+                hessp=scipy_kwargs.get("hessp"),
+                bounds=scipy_kwargs.get("bounds", bounds),
+                constraints=scipy_kwargs.get("constraints", ()),
+                tol=scipy_kwargs.get("tol"),
+                callback=scipy_kwargs.get("callback"),
+                options=scipy_kwargs.get(
+                    "options",
+                    {
+                        "maxiter": optimizer_kwargs.get("max_iter", 1000),
+                        "disp": True,
+                    },
+                ),
+            )
+
+            return {
+                "optimal_value": float(scipy_result.x.item()) if scipy_result.x.size == 1 else scipy_result.x,
+                "minimum_cost": float(scipy_result.fun),
+                "x_history": [x0] + scipy_result.x.tolist() if scipy_result.x.size > 1 else [x0, scipy_result.x.item()],
+            }
+
+        else:
+            raise ImportError("Scipy is not installed. Please install scipy to use the 'scipy' optimizer.")
+
     else:
         raise ValueError(f"Unknown optimizer: {optimizer}")
-
-    return {"optimal_value": opt_value, "minimum_cost": min_cost, "x_history": x_history}

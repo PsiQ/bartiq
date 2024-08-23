@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import math
 
 import pytest
@@ -95,25 +96,41 @@ def test_failing_big_O_cases(expr, gens, expected):
 
 
 @pytest.mark.parametrize(
-    "cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost",
+    "cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost, tolerance",
     [
-        # Adjusted test case for minimizing the cosine function
         (
             "cos(x)",
             "x",
             {
+                "x0": 3.0,
                 "learning_rate": 0.5,
                 "max_iter": 10000,
                 "tolerance": 1e-6,
-                "initial_params": 3.0,
+                "bounds": (0, 2 * math.pi),
             },
             math.pi,
             -1.0,
+            1e-6,
+        ),
+        (
+            "x**2",
+            "x",
+            {
+                "x0": 10.0,
+                "learning_rate": 0.1,
+                "max_iter": 5000,
+                "tolerance": 1e-6,
+                "bounds": (-10, 10),
+            },
+            0.0,
+            0.0,
+            1e-6,
         ),
     ],
 )
-def test_minimize(cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost):
-
+def test_minimize_gradient_descent(
+    cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost, tolerance
+):
     result = minimize(
         expression=cost_expression,
         param=param,
@@ -121,5 +138,60 @@ def test_minimize(cost_expression, param, optimizer_kwargs, expected_optimal_val
         optimizer_kwargs=optimizer_kwargs,
     )
 
-    assert abs(result["optimal_value"] - expected_optimal_value) < 1e-6
-    assert abs(result["minimum_cost"] - expected_minimum_cost) < 1e-6
+    assert abs(result["optimal_value"] - expected_optimal_value) < tolerance
+    assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
+
+
+@pytest.mark.parametrize(
+    "cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value, expected_minimum_cost, tolerance",
+    [
+        (
+            "cos(x)",
+            "x",
+            {
+                "x0": 3.0,
+                "learning_rate": 0.1,
+                "max_iter": 20000,
+                "tolerance": 1e-6,
+                "bounds": (0, 2 * math.pi),
+            },
+            {
+                "method": "L-BFGS-B",
+                "tol": 1e-6,
+                "options": {"disp": False},
+            },
+            math.pi,
+            -1.0,
+            1e-5,
+        ),
+        # Test case for minimizing a quadratic function using scipy's Nelder-Mead method
+        (
+            "x**2",
+            "x",
+            {
+                "x0": 5.0,
+                "bounds": (-10, 10),
+            },
+            {
+                "method": "Nelder-Mead",
+                "tol": 1e-6,
+                "options": {"disp": False},
+            },
+            0.0,
+            0.0,
+            1e-5,
+        ),
+    ],
+)
+def test_minimize_scipy(cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value,
+                        expected_minimum_cost, tolerance):
+    result = minimize(
+        expression=cost_expression,
+        param=param,
+        optimizer="scipy",
+        optimizer_kwargs=optimizer_kwargs,
+        scipy_kwargs=scipy_kwargs,
+    )
+
+    assert abs(result["optimal_value"] - expected_optimal_value) < tolerance
+    assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
