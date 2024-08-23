@@ -209,7 +209,7 @@ class Optimizer:
         else:
             raise RuntimeError("Maximum iterations reached without convergence.")
 
-        return {"optimal_value": current_value, "x_history": x_history}
+        return {"optimal_value": current_value, "minimum_cost": cost_func(current_value), "x_history": x_history}
 
     @staticmethod
     def _numerical_gradient(f: Callable[[float], float], value: float, epsilon: float = 1e-8) -> float:
@@ -245,7 +245,7 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
 
     if optimizer == "gradient_descent":
-        x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
+        x0 = optimizer_kwargs.get("x0")
 
         bounds = optimizer_kwargs.get("bounds")
         if bounds:
@@ -267,7 +267,7 @@ def minimize(
     elif optimizer == "scipy":
 
         if SCIPY:
-            x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
+            x0 = optimizer_kwargs.get("x0")
             bounds = optimizer_kwargs.get("bounds")
             if bounds:
                 bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
@@ -280,7 +280,7 @@ def minimize(
                 jac=scipy_kwargs.get("jac"),
                 hess=scipy_kwargs.get("hess"),
                 hessp=scipy_kwargs.get("hessp"),
-                bounds=scipy_kwargs.get("bounds", bounds_scipy),
+                bounds=bounds_scipy,
                 constraints=scipy_kwargs.get("constraints", ()),
                 tol=scipy_kwargs.get("tol"),
                 callback=scipy_kwargs.get("callback"),
@@ -304,8 +304,4 @@ def minimize(
     else:
         raise ValueError(f"Unknown optimizer: {optimizer}")
 
-    return {
-        "optimal_value": optimization_result["optimal_value"],
-        "minimum_cost": cost_func_callable(optimization_result["optimal_value"]),
-        "x_history": optimization_result["x_history"],
-    }
+    return optimization_result
