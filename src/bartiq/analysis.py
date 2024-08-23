@@ -245,7 +245,7 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
 
     if optimizer == "gradient_descent":
-        x0 = optimizer_kwargs.get("x0")
+        x0 = float(optimizer_kwargs.get("x0")) if float(optimizer_kwargs.get("x0")) is not None else None
 
         bounds = optimizer_kwargs.get("bounds")
         if bounds:
