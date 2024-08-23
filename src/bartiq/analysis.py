@@ -132,9 +132,9 @@ def _make_term_expression(gens, term):
 
 
 class OptimizerKwargs(TypedDict, total=False):
-    x0: Optional[Union[float, List[float], int]]
-    bounds: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]]
-    learning_rate: Union[float, List[float]]
+    x0: Optional[float]
+    bounds: Optional[Tuple[float, float]]
+    learning_rate: float
     max_iter: int
     tolerance: float
 
@@ -154,13 +154,13 @@ class ScipyOptimizerKwargs(TypedDict, total=False):
 class Optimizer:
     @staticmethod
     def gradient_descent(
-        cost_func: Callable[[List[float]], float],
-        x0: Optional[Union[float, List[float]]] = None,
-        bounds: Optional[Union[Tuple[float, float], List[Tuple[float, float]]]] = None,
-        learning_rate: Union[float, List[float]] = 0.01,
+        cost_func: Callable[[float], float],
+        x0: Optional[float] = None,
+        bounds: Optional[Tuple[float, float]] = None,
+        learning_rate: float = 0.01,
         max_iter: int = 1000,
         tolerance: float = 1e-6,
-    ) -> Dict[str, object]:
+    ) -> Dict[str, Any]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
         parameter.
@@ -193,15 +193,10 @@ class Optimizer:
             next_value = current_value - learning_rate * gradient
 
             if bounds:
-                if isinstance(bounds, tuple):
-                    bounds = [bounds]
-                next_value = max(min(next_value, bounds[0][1]), bounds[0][0])
-                if next_value == bounds[0][0] or next_value == bounds[0][1]:
-                    print(f"Bounds reached at iteration {i + 1}.")
+                next_value = max(min(next_value, bounds[1]), bounds[0])
+                if next_value == bounds[0] or next_value == bounds[1]:
                     x_history.append(next_value)
                     break
-            else:
-                next_value = current_value - learning_rate * gradient
 
             x_history.append(next_value)
 
@@ -234,12 +229,12 @@ class Optimizer:
 
 def minimize(
     expression: str,
-    param: Union[str, List[str]],
+    param: str,
     optimizer: str,
     optimizer_kwargs: Optional[OptimizerKwargs] = None,
     scipy_kwargs: Optional[ScipyOptimizerKwargs] = None,
     backend=Backend,
-) -> Dict[str, object]:
+) -> Dict[str, Any]:
     """Find the optimal parameter value that minimizes a given expression."""
     if optimizer_kwargs is None:
         optimizer_kwargs = {}
@@ -269,12 +264,6 @@ def minimize(
             max_iter=int(optimizer_kwargs.get("max_iter", 1000)),
             tolerance=float(optimizer_kwargs.get("tolerance", 1e-6)),
         )
-
-        return {
-            "optimal_value": optimization_result["optimal_value"],
-            "minimum_cost": cost_func_callable(optimization_result["optimal_value"]),
-            "x_history": optimization_result["x_history"],
-        }
 
     elif optimizer == "scipy":
 
@@ -313,6 +302,16 @@ def minimize(
 
         else:
             raise ImportError("Scipy is not installed. Please install scipy to use the 'scipy' optimizer.")
-
+        optimization_result = {
+            "optimal_value": float(scipy_result.x.item()) if scipy_result.x.size == 1 else scipy_result.x,
+            "minimum_cost": float(scipy_result.fun),
+            "x_history": [x0] + scipy_result.x.tolist() if scipy_result.x.size > 1 else [x0, scipy_result.x.item()],
+        }
     else:
         raise ValueError(f"Unknown optimizer: {optimizer}")
+
+    return {
+        "optimal_value": optimization_result["optimal_value"],
+        "minimum_cost": cost_func_callable(optimization_result["optimal_value"]),
+        "x_history": optimization_result["x_history"],
+    }
