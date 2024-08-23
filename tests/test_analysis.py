@@ -183,8 +183,9 @@ def test_minimize_gradient_descent(
         ),
     ],
 )
-def test_minimize_scipy(cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value,
-                        expected_minimum_cost, tolerance):
+def test_minimize_scipy(
+    cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value, expected_minimum_cost, tolerance
+):
     result = minimize(
         expression=cost_expression,
         param=param,
