@@ -3952,4 +3952,4 @@ jupyter = ["ipytree", "ipywidgets", "traitlets"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "5a789ca27ede5c628c600ea72887bbf16444def80d7d11974609378defb575b3"
+content-hash = "1ea20be416772d6606c8dde47d5d3b863770c8bbbe74c9302afeb365c32a1f24"
