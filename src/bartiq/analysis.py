@@ -246,7 +246,6 @@ def minimize(
 
     if optimizer == "gradient_descent":
         x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
-        x0 = float(x0) if x0 is not None else None
 
         bounds = optimizer_kwargs.get("bounds")
         if bounds:
@@ -271,7 +270,7 @@ def minimize(
             x0 = optimizer_kwargs.get("x0", optimizer_kwargs.get("initial_params"))
             bounds = optimizer_kwargs.get("bounds")
             if bounds:
-                bounds = [bounds] if isinstance(bounds, tuple) else bounds
+                bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
 
             scipy_result = scipy_minimize(
                 fun=cost_func_callable,
@@ -281,7 +280,7 @@ def minimize(
                 jac=scipy_kwargs.get("jac"),
                 hess=scipy_kwargs.get("hess"),
                 hessp=scipy_kwargs.get("hessp"),
-                bounds=scipy_kwargs.get("bounds", bounds),
+                bounds=scipy_kwargs.get("bounds", bounds_scipy),
                 constraints=scipy_kwargs.get("constraints", ()),
                 tol=scipy_kwargs.get("tol"),
                 callback=scipy_kwargs.get("callback"),
