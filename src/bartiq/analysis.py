@@ -23,7 +23,7 @@ from bartiq.symbolics import sympy_backend
 Backend = sympy_backend
 
 try:
-    from scipy.optimize import minimize as scipy_minimize
+    from scipy.optimize import minimize as scipy_minimize  # type: ignore
 
     SCIPY = True
 except ImportError:
@@ -293,8 +293,7 @@ def minimize(
                     },
                 ),
             )
-
-            return {
+            optimization_result = {
                 "optimal_value": float(scipy_result.x.item()) if scipy_result.x.size == 1 else scipy_result.x,
                 "minimum_cost": float(scipy_result.fun),
                 "x_history": [x0] + scipy_result.x.tolist() if scipy_result.x.size > 1 else [x0, scipy_result.x.item()],
@@ -302,11 +301,7 @@ def minimize(
 
         else:
             raise ImportError("Scipy is not installed. Please install scipy to use the 'scipy' optimizer.")
-        optimization_result = {
-            "optimal_value": float(scipy_result.x.item()) if scipy_result.x.size == 1 else scipy_result.x,
-            "minimum_cost": float(scipy_result.fun),
-            "x_history": [x0] + scipy_result.x.tolist() if scipy_result.x.size > 1 else [x0, scipy_result.x.item()],
-        }
+
     else:
         raise ValueError(f"Unknown optimizer: {optimizer}")
 
