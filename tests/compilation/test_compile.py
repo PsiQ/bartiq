@@ -165,7 +165,7 @@ COMPILE_ERRORS_TEST_CASES = [
             ports={"in_foo": {"name": "in_foo", "direction": "input", "size": 1}},
             connections=[{"source": "in_foo", "target": "a.in_bar"}],
         ),
-        "The following constraint was violated when compiling root.a: a.in_bar = 2 evaluated into 1 = 2.",
+        "The following constraint was violated when compiling root.a: #in_bar = 2 evaluated into 1 = 2.",
     ),
     # Attempt to connect two different sizes to routine which has both inputs of the same size
     (
@@ -198,7 +198,7 @@ COMPILE_ERRORS_TEST_CASES = [
                 {"source": "b.out_0", "target": "c.in_1"},
             ],
         ),
-        "The following constraint was violated when compiling root.c: c.in_1 = 1 evaluated into 2 = 1",
+        "The following constraint was violated when compiling root.c: #in_1 = 1 evaluated into 2 = 1",
     ),
 ]
 

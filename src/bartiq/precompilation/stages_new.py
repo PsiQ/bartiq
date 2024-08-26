@@ -73,7 +73,7 @@ def _introduce_port_variables(
         if port.direction == PortDirection.output:
             new_ports[port.name] = port
         else:
-            new_variable_name = f"{unit.name}.{port.name}"
+            new_variable_name = f"#{port.name}"
             new_variable = backend.as_expression(new_variable_name)
             if is_single_parameter((size := backend.serialize(port.size))) and size != new_variable_name:
                 if size not in additional_local_variables:

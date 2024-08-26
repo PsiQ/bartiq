@@ -66,7 +66,7 @@ class CompilationUnit(Generic[T_expr]):
 
 def _port_from_bartiq(port: OldPort, backend: SymbolicBackend[T_expr]) -> Port[T_expr]:
     if port.size is None:
-        size = f"{port.parent.name}.{port.name}" if port.direction != "output" else port.name
+        size = f"#{port.name}"
     else:
         size = port.size
     return Port(name=port.name, direction=PortDirection(port.direction).value, size=backend.as_expression(size))

@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import warnings
+from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Iterable
@@ -134,6 +135,11 @@ def _compile_local_variables(
     return compiled_variables
 
 
+def _split_endpoint(endpoint: str) -> tuple[str | None, str]:
+    components = tuple(endpoint.split("."))
+    return components if len(components) == 2 else (None, components[0])
+
+
 def _compile(
     compilation_unit: CompilationUnit[T_expr],
     backend: SymbolicBackend[T_expr],
@@ -163,7 +169,7 @@ def _compile(
     }
 
     compiled_children: dict[str, CompilationUnit[T_expr]] = {}
-    available_port_sources: dict[str, T_expr] = {}
+    available_port_sources: defaultdict[str | None, dict[str, T_expr]] = defaultdict(dict)
 
     compiled_ports: dict[str, Port[T_expr]] = {
         name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
@@ -173,13 +179,14 @@ def _compile(
 
     for name, port in compiled_ports.items():
         if (target := compilation_unit.connections.get(name)) is not None:
-            available_port_sources[target] = port.size
+            unit, port_name = _split_endpoint(target)
+            available_port_sources[unit][f"#{port_name}"] = port.size
 
     for child in compilation_unit.sorted_children():
         compiled_child = _compile(
             child,
             backend,
-            {**_infer_input_map(child, inverted_param_links), **available_port_sources},
+            {**_infer_input_map(child, inverted_param_links), **available_port_sources[child.name]},
             context.descend(child.name),
             is_root=False,
         )
@@ -191,7 +198,8 @@ def _compile(
 
         for pname, port in compiled_child.ports.items():
             if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
-                available_port_sources[target] = port.size
+                unit, port_name = _split_endpoint(target)
+                available_port_sources[unit][f"#{port_name}"] = port.size
 
     children_variables = {
         f"{cname}.{rname}": resource.value
@@ -209,7 +217,8 @@ def _compile(
     for name, port in compilation_unit.ports.items():
         if port.direction == "output":
             compiled_ports[port.name] = replace(
-                port, size=_substitute_all(port.size, {**inputs, **available_port_sources, **local_variables}, backend)
+                port,
+                size=_substitute_all(port.size, {**inputs, **available_port_sources[None], **local_variables}, backend),
             )
 
     input_params = sorted(
