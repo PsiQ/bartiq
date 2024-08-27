@@ -157,7 +157,7 @@ def _compile(
     except ConstraintValidationError as e:
         raise BartiqCompilationError(
             f"The following constraint was violated when compiling {context.path}: "
-            + f"{e.args[0].lhs} = {e.args[1].rhs} evaluated into "
+            + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
@@ -169,7 +169,7 @@ def _compile(
     }
 
     compiled_children: dict[str, CompilationUnit[T_expr]] = {}
-    available_port_sources: defaultdict[str | None, dict[str, T_expr]] = defaultdict(dict)
+    connection_registry: defaultdict[str | None, dict[str, T_expr]] = defaultdict(dict)
 
     compiled_ports: dict[str, Port[T_expr]] = {
         name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
@@ -180,13 +180,13 @@ def _compile(
     for name, port in compiled_ports.items():
         if (target := compilation_unit.connections.get(name)) is not None:
             unit, port_name = _split_endpoint(target)
-            available_port_sources[unit][f"#{port_name}"] = port.size
+            connection_registry[unit][f"#{port_name}"] = port.size
 
     for child in compilation_unit.sorted_children():
         compiled_child = _compile(
             child,
             backend,
-            {**_infer_input_map(child, inverted_param_links), **available_port_sources[child.name]},
+            {**_infer_input_map(child, inverted_param_links), **connection_registry[child.name]},
             context.descend(child.name),
             is_root=False,
         )
@@ -199,7 +199,7 @@ def _compile(
         for pname, port in compiled_child.ports.items():
             if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
                 unit, port_name = _split_endpoint(target)
-                available_port_sources[unit][f"#{port_name}"] = port.size
+                connection_registry[unit][f"#{port_name}"] = port.size
 
     children_variables = {
         f"{cname}.{rname}": resource.value
@@ -218,7 +218,7 @@ def _compile(
         if port.direction == "output":
             compiled_ports[port.name] = replace(
                 port,
-                size=_substitute_all(port.size, {**inputs, **available_port_sources[None], **local_variables}, backend),
+                size=_substitute_all(port.size, {**inputs, **connection_registry[None], **local_variables}, backend),
             )
 
     input_params = sorted(

@@ -198,7 +198,7 @@ COMPILE_ERRORS_TEST_CASES = [
                 {"source": "b.out_0", "target": "c.in_1"},
             ],
         ),
-        "The following constraint was violated when compiling root.c: #in_1 = 1 evaluated into 2 = 1",
+        "The following constraint was violated when compiling root.c: #in_1 = #in_0 evaluated into 2 = 1",
     ),
 ]
 
