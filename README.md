@@ -1,4 +1,4 @@
-# Bartiq
+<h1><img src="docs/assets/logo.png" width=23> Bartiq</h1>
 
 ## What is bartiq
 
