@@ -1,4 +1,4 @@
-<h1><img src="docs/assets/logo.png" width=23> Bartiq</h1>
+<h1><img src="https://raw.githubusercontent.com/PsiQ/bartiq/main/docs/assets/logo.png" width=23> Bartiq</h1>
 
 ## What is bartiq
 
