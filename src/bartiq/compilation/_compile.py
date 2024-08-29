@@ -221,18 +221,21 @@ def _compile(
                 size=_substitute_all(port.size, {**inputs, **connection_registry[None], **local_variables}, backend),
             )
 
-    input_params = sorted(
-        set(symbol for resource in new_resources.values() for symbol in backend.free_symbols_in(resource.value))
-        .union(input_param for child in compiled_children.values() for input_param in child.input_params)
-        .union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
+    new_input_params = (
+        sorted(
+            set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr)).union(
+                symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size)
+            )
+        )
+        if inputs
+        else compilation_unit.input_params
     )
-
     # TODO: compute linked params here
 
     return replace(
         compilation_unit,
         children=compiled_children,
-        input_params=input_params,
+        input_params=new_input_params,
         linked_params={},
         ports=compiled_ports,
         resources=new_resources,

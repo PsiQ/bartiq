@@ -629,7 +629,7 @@
         type: other
         value: {type: str, value: 4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab +
             y_ba + y_bb}
-    input_params: [N, x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
+    input_params: [x_aa, x_ab, x_ba, x_bb, y_aa, y_ab, y_ba, y_bb]
 # Children and grandchildren, resources dependent on children, no ports, local variables in leaves
 - - name: root
     type: null
@@ -843,7 +843,6 @@
         name: z
         type: other
         value: {type: str, value: 6*N}
-    input_params: [N]
 # Constant input register sizes
 - - name: root
     type: null
@@ -1239,7 +1238,7 @@
         name: N
         type: other
         value: {type: str, value: X}
-    input_params: [X]
+    input_params: []
 # Pass down params to deep descendant and then costs back up
 - - name: root
     type: null
@@ -1396,7 +1395,7 @@
     - {source: in_1, target: a.in_1}
   - name: root
     type: null
-    input_params: [N]
+    input_params: []
     ports:
       in_0:
         name: in_0
@@ -1512,7 +1511,6 @@
       - {source: in_0, target: a.in_0}
       - {source: a.out_0, target: out_0}
   - name: root
-    input_params: [N]
     ports:
       in_0: {name: in_0, direction: input, size: N}
       out_0: {name: out_0, direction: output, size: N}
@@ -1554,7 +1552,6 @@
       - {source: in_0, target: a.in_0}
       - {source: a.out_0, target: out_0}
   - name: root
-    input_params: [N]
     ports:
       in_0: {name: in_0, direction: input, size: N}
       out_0: {name: out_0, direction: output, size: N}
@@ -1636,7 +1633,6 @@
       out_0: {name: out_0, direction: output, size: null}
     children:
       passthrough:
-        input_params: [N]
         name: passthrough
         ports:
           in_0: {name: in_0, direction: input, size: R}
@@ -1645,7 +1641,6 @@
       - {source: in_0, target: passthrough.in_0}
       - {source: passthrough.out_0, target: out_0}
   - name: root
-    input_params: [N]
     ports:
       in_0: {name: in_0, direction: input, size: N}
       out_0: {name: out_0, direction: output, size: N}
@@ -1673,7 +1668,6 @@
       - {source: in_0, target: a.thru_0}
       - {source: a.thru_0, target: out_0}
   - name: root
-    input_params: [N]
     ports:
       in_0: {name: in_0, direction: input, size: N}
       out_0: {name: out_0, direction: output, size: N}
@@ -1727,7 +1721,7 @@
       - {source: foo.through_0, target: out_0}
       - {source: foo.out_0, target: out_1}
   - name: root
-    input_params: [N, x, y, z]
+    input_params: [x, y, z]
     ports:
       in_0: {name: in_0, direction: input, size: N}
       out_0: {name: out_0, direction: output, size: "z + f(x, y)"}
