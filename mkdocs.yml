@@ -9,6 +9,7 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: assets/logo_white.png
   palette:
     primary: custom
     accent: custom
