@@ -22,11 +22,12 @@ from typing import Iterable
 from .. import PortDirection, Routine
 from .._routine_new import (
     CompilationUnit,
+    CompiledRoutine,
     Constraint,
     ConstraintStatus,
     Port,
     compilation_unit_from_bartiq,
-    compilation_unit_to_bartiq,
+    compiled_routine_to_bartiq,
 )
 from ..errors import BartiqCompilationError
 from ..precompilation.stages_new import (
@@ -101,7 +102,7 @@ def compile_routine(
     for stage in precompilation_stages:
         root_unit = stage(root_unit, backend)
     compiled_unit = _compile(root_unit, backend, {}, Context(root_unit.name))
-    compiled_routine = compilation_unit_to_bartiq(compiled_unit, backend)
+    compiled_routine = compiled_routine_to_bartiq(compiled_unit, backend)
     if not skip_verification:
         verification_result = verify_compiled_routine(compiled_routine, backend=backend)
         if not verification_result:
@@ -146,7 +147,7 @@ def _compile(
     inputs: dict[str, T_expr],
     context: Context,
     is_root: bool = False,
-) -> CompilationUnit[T_expr]:
+) -> CompiledRoutine[T_expr]:
     try:
         new_constraints = [
             compiled_constraint
@@ -162,14 +163,16 @@ def _compile(
         )
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
 
-    inverted_param_links: dict[str, T_expr] = {
+    inverted_param_links: dict[tuple[str, str], T_expr] = {
         target: _substitute_all(backend.as_expression(source), {**local_variables, **inputs}, backend)
         for source, targets in compilation_unit.linked_params.items()
         for target in targets
     }
 
-    compiled_children: dict[str, CompilationUnit[T_expr]] = {}
+    compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
     connection_registry: defaultdict[str | None, dict[str, T_expr]] = defaultdict(dict)
+
+    param_links = defaultdict[str, tuple[tuple[str, str], ...]](tuple)
 
     compiled_ports: dict[str, Port[T_expr]] = {
         name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
@@ -201,6 +204,9 @@ def _compile(
                 unit, port_name = _split_endpoint(target)
                 connection_registry[unit][f"#{port_name}"] = port.size
 
+        for param in compiled_child.input_params:
+            param_links[param] = param_links[param] + ((compiled_child.name, param),)
+
     children_variables = {
         f"{cname}.{rname}": resource.value
         for cname, child in compiled_children.items()
@@ -221,24 +227,22 @@ def _compile(
                 size=_substitute_all(port.size, {**inputs, **connection_registry[None], **local_variables}, backend),
             )
 
-    new_input_params = (
-        sorted(
-            set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr)).union(
-                symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size)
-            )
-        )
-        if inputs
-        else compilation_unit.input_params
+    new_input_params = sorted(
+        (
+            set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr))
+            if inputs
+            else set(compilation_unit.input_params)
+        ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
     # TODO: compute linked params here
 
-    return replace(
-        compilation_unit,
-        children=compiled_children,
+    return CompiledRoutine[T_expr](
+        name=compilation_unit.name,
+        type=compilation_unit.type,
         input_params=new_input_params,
-        linked_params={},
+        children=compiled_children,
         ports=compiled_ports,
         resources=new_resources,
-        local_variables=local_variables,
         constraints=new_constraints,
+        connections=compilation_unit.connections,
     )

@@ -44,7 +44,7 @@ class CompilationUnit(Generic[T_expr]):
     name: str
     type: Optional[str]
     input_params: Iterable[str]
-    linked_params: dict[str, tuple[str, str]]
+    linked_params: dict[str, tuple[tuple[str, str], ...]]
     local_variables: dict[str, T_expr]
     children: dict[str, Self]
     ports: dict[str, Port[T_expr]]
@@ -62,6 +62,18 @@ class CompilationUnit(Generic[T_expr]):
             predecessor_map[target.split(".")[0]].add(source.split(".")[0])
 
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
+
+
+@dataclass(frozen=True)
+class CompiledRoutine(Generic[T_expr]):
+    name: str
+    type: Optional[str]
+    input_params: Iterable[str]
+    children: dict[str, Self]
+    ports: dict[str, Port[T_expr]]
+    resources: dict[str, Resource[T_expr]]
+    connections: dict[str, str]
+    constraints: Iterable[Constraint[T_expr]] = ()
 
 
 def _port_from_bartiq(port: OldPort, backend: SymbolicBackend[T_expr]) -> Port[T_expr]:
@@ -98,14 +110,13 @@ def _resource_to_bartiq(resource: Resource[T_expr], backend: SymbolicBackend[T_e
     return OldResource(name=resource.name, type=resource.type, value=backend.serialize(resource.value))
 
 
-def compilation_unit_to_bartiq(compilation_unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> Routine:
+def compiled_routine_to_bartiq(compilation_unit: CompiledRoutine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine:
     return Routine(
         name=compilation_unit.name,
         type=compilation_unit.type,
         input_params=compilation_unit.input_params,
-        linked_params={source: targets for source, targets in compilation_unit.linked_params.items()},
         children={
-            name: compilation_unit_to_bartiq(child, backend) for name, child in compilation_unit.children.items()
+            name: compiled_routine_to_bartiq(child, backend) for name, child in compilation_unit.children.items()
         },
         ports={name: _port_to_bartiq(port, backend) for name, port in compilation_unit.ports.items()},
         resources={
