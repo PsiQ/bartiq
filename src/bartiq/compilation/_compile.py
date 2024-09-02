@@ -146,7 +146,6 @@ def _compile(
     backend: SymbolicBackend[T_expr],
     inputs: dict[str, T_expr],
     context: Context,
-    is_root: bool = False,
 ) -> CompiledRoutine[T_expr]:
     try:
         new_constraints = [
@@ -163,14 +162,14 @@ def _compile(
         )
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
 
-    inverted_param_links: dict[tuple[str, str], T_expr] = {
-        target: _substitute_all(backend.as_expression(source), {**local_variables, **inputs}, backend)
-        for source, targets in compilation_unit.linked_params.items()
-        for target in targets
-    }
+    parameter_map = defaultdict[str | None, dict[str, T_expr]](dict)
+
+    for source, targets in compilation_unit.linked_params.items():
+        evaluated_source = _substitute_all(backend.as_expression(source), {**local_variables, **inputs}, backend)
+        for child, param in targets:
+            parameter_map[child][param] = evaluated_source
 
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
-    connection_registry: defaultdict[str | None, dict[str, T_expr]] = defaultdict(dict)
 
     param_links = defaultdict[str, tuple[tuple[str, str], ...]](tuple)
 
@@ -183,16 +182,10 @@ def _compile(
     for name, port in compiled_ports.items():
         if (target := compilation_unit.connections.get(name)) is not None:
             unit, port_name = _split_endpoint(target)
-            connection_registry[unit][f"#{port_name}"] = port.size
+            parameter_map[unit][f"#{port_name}"] = port.size
 
     for child in compilation_unit.sorted_children():
-        compiled_child = _compile(
-            child,
-            backend,
-            {**_infer_input_map(child, inverted_param_links), **connection_registry[child.name]},
-            context.descend(child.name),
-            is_root=False,
-        )
+        compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
 
         # TODO: You can check here if the child failed to compile by
         # comparing if child's input params are a strict subset of
@@ -202,7 +195,7 @@ def _compile(
         for pname, port in compiled_child.ports.items():
             if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
                 unit, port_name = _split_endpoint(target)
-                connection_registry[unit][f"#{port_name}"] = port.size
+                parameter_map[unit][f"#{port_name}"] = port.size
 
         for param in compiled_child.input_params:
             param_links[param] = param_links[param] + ((compiled_child.name, param),)
@@ -224,7 +217,7 @@ def _compile(
         if port.direction == "output":
             compiled_ports[port.name] = replace(
                 port,
-                size=_substitute_all(port.size, {**inputs, **connection_registry[None], **local_variables}, backend),
+                size=_substitute_all(port.size, {**inputs, **parameter_map[None], **local_variables}, backend),
             )
 
     new_input_params = sorted(
