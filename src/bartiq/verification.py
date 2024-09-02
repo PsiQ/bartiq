@@ -163,7 +163,7 @@ def _verify_no_local_params(routine: Routine, backend: SymbolicBackend) -> list[
     for subroutine in routine.walk():
         resource_expressions = [resource.value for resource in subroutine.resources.values()]
         port_expressions = [port.size for port in subroutine.ports.values() if port.size is not None]
-        local_param_expressions = [local_variable.split("=")[1] for local_variable in subroutine.local_variables]
+        local_param_expressions = list(subroutine.local_variables.values())
 
         expressions = resource_expressions + port_expressions + local_param_expressions
 

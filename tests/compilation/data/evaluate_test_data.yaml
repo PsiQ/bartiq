@@ -2,6 +2,7 @@
 - - name: 'root'
     type: null
   - []
+  # - {} # TODO
   - name: 'root'
     type: null
 # Resource defined as a function of a single input param
@@ -13,7 +14,8 @@
         name: Q
         type: other
         value: {type: str, value: log2(x)}
-  - [x=120]
+  - [x = 120]
+  # - {x: 120}
   - name: 'root'
     type: null
     resources:
@@ -40,6 +42,7 @@
         value: {type: str, value: x * y}
     input_params: [x, y]
   - [x = 42]
+  # - {x: 42}
   - name: 'root'
     type: null
     ports:
@@ -80,6 +83,7 @@
         value: {type: str, value: x * y * N * M}
     input_params: [x, y]
   - [x = 2, N = 3]
+  # - {x: 2, N: 3}
   - name: 'root'
     type: null
     ports:
@@ -124,6 +128,7 @@
         value: {type: str, value: N * y * N * M}
     input_params: [N, y]
   - [N = 3]
+  # - {N: 3}
   - name: 'root'
     type: null
     ports:
@@ -169,21 +174,21 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: J}
+            size: {type: str, value: N}
           in_1:
             name: in_1
             direction: input
-            size: {type: str, value: K}
+            size: {type: str, value: M}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: x + y + J + K}
+            size: {type: str, value: x + y + N + M}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: x * y * J * K}
-        input_params: [x, y]
+            value: {type: str, value: x * y * N * M}
+        input_params: [x, y, N, M]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
@@ -193,8 +198,9 @@
         name: Q
         type: other
         value: {type: str, value: x * y * z * N * M}
-    input_params: [x, y, z]
+    input_params: [x, y, z, N, M]
   - [x = 2, N = 3, z = 4]
+  # - {x: 2, N: 3, z: 4}
   - name: 'root'
     type: null
     ports:
@@ -222,17 +228,17 @@
           in_1:
             name: in_1
             direction: input
-            size: {type: str, value: K}
+            size: {type: str, value: M}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: K + y + 5}
+            size: {type: str, value: M + y + 5}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: 6*K*y}
-        input_params: [y]
+            value: {type: str, value: 6*M*y}
+        input_params: [y, M]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
@@ -242,7 +248,7 @@
         name: Q
         type: other
         value: {type: str, value: 24*M*y}
-    input_params: [y]
+    input_params: [y, M]
 # Circuit with child and grandchild, registers being propagated
 - - name: 'root'
     type: null
@@ -271,19 +277,19 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: J}
+            size: {type: str, value: N}
           in_1:
             name: in_1
             direction: input
-            size: {type: str, value: K}
+            size: {type: str, value: M}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: x + y + z + J + K}
+            size: {type: str, value: x + y + z + N + M}
           out_1:
             name: out_1
             direction: output
-            size: {type: str, value: x + J}
+            size: {type: str, value: x + N}
         children:
           b:
             name: b
@@ -292,25 +298,25 @@
               in_0:
                 name: in_0
                 direction: input
-                size: {type: str, value: J}
+                size: {type: str, value: N}
               in_1:
                 name: in_1
                 direction: input
-                size: {type: str, value: K}
+                size: {type: str, value: M}
               out_0:
                 name: out_0
                 direction: output
-                size: {type: str, value: x + y + J + K}
+                size: {type: str, value: x + y + N + M}
               out_1:
                 name: out_1
                 direction: output
-                size: {type: str, value: x + J}
+                size: {type: str, value: x + N}
             resources:
               Q:
                 name: Q
                 type: other
-                value: {type: str, value: x * y * J * K}
-            input_params: [x, y]
+                value: {type: str, value: x * y * N * M}
+            input_params: [x, y, N, M]
         connections:
         - {source: in_0, target: b.in_0}
         - {source: in_1, target: b.in_1}
@@ -320,8 +326,8 @@
           Q:
             name: Q
             type: other
-            value: {type: str, value: z * x * y * J * K}
-        input_params: [x, y, z]
+            value: {type: str, value: z * x * y * N * M}
+        input_params: [x, y, z, N, M]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
@@ -332,8 +338,9 @@
         name: Q
         type: other
         value: {type: str, value: z * z * x * y * N * M}
-    input_params: [x, y, z]
+    input_params: [x, y, z, N, M]
   - [x = 2, N = 3, z = 4]
+  # - {x: 2, N: 3, z: 4}
   - name: 'root'
     type: null
     ports:
@@ -365,11 +372,11 @@
           in_1:
             name: in_1
             direction: input
-            size: {type: str, value: K}
+            size: {type: str, value: M}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: K + y + 9}
+            size: {type: str, value: M + y + 9}
           out_1:
             name: out_1
             direction: output
@@ -386,11 +393,11 @@
               in_1:
                 name: in_1
                 direction: input
-                size: {type: str, value: K}
+                size: {type: str, value: M}
               out_0:
                 name: out_0
                 direction: output
-                size: {type: str, value: K + y + 5}
+                size: {type: str, value: M + y + 5}
               out_1:
                 name: out_1
                 direction: output
@@ -399,8 +406,8 @@
               Q:
                 name: Q
                 type: other
-                value: {type: str, value: 6*K*y}
-            input_params: [y]
+                value: {type: str, value: 6*M*y}
+            input_params: [y, M]
         connections:
         - {source: in_0, target: b.in_0}
         - {source: in_1, target: b.in_1}
@@ -410,8 +417,8 @@
           Q:
             name: Q
             type: other
-            value: {type: str, value: 24*K*y}
-        input_params: [y]
+            value: {type: str, value: 24*M*y}
+        input_params: [y, M]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
@@ -422,7 +429,7 @@
         name: Q
         type: other
         value: {type: str, value: 96*M*y}
-    input_params: [y]
+    input_params: [y, M]
 # Chain of components (root -> a -> b -> c -> root), register sizes are propagated
 - - name: 'root'
     type: null
@@ -443,17 +450,17 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: M}
+            size: {type: str, value: N}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: M + x}
+            size: {type: str, value: N + x}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: M*x}
-        input_params: [x]
+            value: {type: str, value: N*x}
+        input_params: [x, N]
       b:
         name: b
         type: null
@@ -461,17 +468,17 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: K}
+            size: {type: str, value: N + x}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: K + y}
+            size: {type: str, value: N + x + y}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: K*y}
-        input_params: [y]
+            value: {type: str, value: (N + x)*y}
+        input_params: [x, y, N]
       c:
         name: c
         type: null
@@ -479,17 +486,17 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: L}
+            size: {type: str, value: N + x + y}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: L + z}
+            size: {type: str, value: N + x + y + z}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: L * z}
-        input_params: [z]
+            value: {type: str, value: (N + x + y) * z}
+        input_params: [x, y, z, N]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: a.out_0, target: b.in_0}
@@ -500,8 +507,9 @@
         name: Q
         type: other
         value: {type: str, value: N * x * y * z}
-    input_params: [x, y, z]
+    input_params: [x, y, z, N]
   - [x = 2, N = 3, z = 4]
+  # - {x: 2, N: 3, z: 4}
   - name: 'root'
     type: null
     ports:
@@ -556,16 +564,17 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: L}
+            size: {type: str, value: y + 5}
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: L + 4}
+            size: {type: str, value: y + 9}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: 4*L}
+            value: {type: str, value: 4*y + 20}
+        input_params: [y]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: a.out_0, target: b.in_0}
@@ -592,23 +601,6 @@
             direction: output
             size: {type: str, value: x}
         input_params: [x]
-      b:
-        name: b
-        type: null
-        ports:
-          in_0:
-            name: in_0
-            direction: input
-            size: {type: str, value: n}
-          in_1:
-            name: in_1
-            direction: input
-            size: {type: str, value: m}
-        resources:
-          Q:
-            name: Q
-            type: other
-            value: {type: str, value: n + m}
       a_1:
         name: a_1
         type: null
@@ -618,11 +610,29 @@
             direction: output
             size: {type: str, value: x + 1}
         input_params: [x]
+      b:
+        name: b
+        type: null
+        ports:
+          in_0:
+            name: in_0
+            direction: input
+            size: {type: str, value: x}
+          in_1:
+            name: in_1
+            direction: input
+            size: {type: str, value: x + 1}
+        resources:
+          Q:
+            name: Q
+            type: other
+            value: {type: str, value: 2*x + 1}
     connections:
     - {source: a_0.out_0, target: b.in_0}
     - {source: a_1.out_0, target: b.in_1}
     input_params: [x]
   - [x = 2]
+  # - {x: 2}
   - name: 'root'
     type: null
     children:
@@ -634,6 +644,14 @@
             name: out_0
             direction: output
             size: {type: str, value: '2'}
+      a_1:
+        name: a_1
+        type: null
+        ports:
+          out_0:
+            name: out_0
+            direction: output
+            size: {type: str, value: '3'}
       b:
         name: b
         type: null
@@ -651,14 +669,6 @@
             name: Q
             type: other
             value: {type: str, value: '5'}
-      a_1:
-        name: a_1
-        type: null
-        ports:
-          out_0:
-            name: out_0
-            direction: output
-            size: {type: str, value: '3'}
     connections:
     - {source: a_0.out_0, target: b.in_0}
     - {source: a_1.out_0, target: b.in_1}
@@ -672,6 +682,7 @@
         value: {type: str, value: 'max(a, 1)'}
     input_params: [a]
   - [a = 2]
+  # - {a: 2}
   - name: 'root'
     type: null
     resources:
@@ -693,6 +704,7 @@
         type: other
         value: {type: str, value: 'max(a, 1)'}
   - [a = 2]
+  # - {a: 2}
   - name: 'root'
     type: null
     ports:
@@ -751,6 +763,7 @@
                 name: out_0
                 direction: output
                 size: {type: str, value: N + 1}
+            input_params: [N]
           c:
             name: c
             type: null
@@ -759,6 +772,8 @@
                 name: in_0
                 direction: input
                 size: {type: str, value: M}
+            input_params: [M]
+        input_params: [N, M]
         connections:
         - {source: in_0, target: b.in_0}
         - {source: in_1, target: c.in_0}
@@ -770,24 +785,27 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: X}
+            size: {type: str, value: N + 1}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: 2 * X}
+            value: {type: str, value: 2 * N + 2}
+        input_params: [N]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
     - {source: a.out_0, target: x.in_0}
+    input_params: [N, M]
   - [N = 1]
+  # - {N: 1}
   - name: 'root'
     type: null
     ports:
       in_0:
         name: in_0
         direction: input
-        size: {type: str, value: '1'}
+        size: {type: str, value: 1}
       in_1:
         name: in_1
         direction: input
@@ -800,7 +818,7 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: '1'}
+            size: {type: str, value: 1}
           in_1:
             name: in_1
             direction: input
@@ -808,7 +826,7 @@
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: '2'}
+            size: {type: str, value: 2}
         children:
           b:
             name: b
@@ -817,11 +835,11 @@
               in_0:
                 name: in_0
                 direction: input
-                size: {type: str, value: '1'}
+                size: {type: str, value: 1}
               out_0:
                 name: out_0
                 direction: output
-                size: {type: str, value: '2'}
+                size: {type: str, value: 2}
           c:
             name: c
             type: null
@@ -830,6 +848,8 @@
                 name: in_0
                 direction: input
                 size: {type: str, value: M}
+            input_params: [M]
+        input_params: [M]
         connections:
         - {source: in_0, target: b.in_0}
         - {source: in_1, target: c.in_0}
@@ -841,16 +861,18 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: '2'}
+            size: {type: str, value: 2}
         resources:
           Q:
             name: Q
             type: other
-            value: {type: str, value: '4'}
+            value: {type: str, value: 4}
+        input_params: [N]
     connections:
     - {source: in_0, target: a.in_0}
     - {source: in_1, target: a.in_1}
     - {source: a.out_0, target: x.in_0}
+    input_params: [M]
 # Check that zero-sized registers are allowed
 - - name: 'root'
     type: null
@@ -871,17 +893,13 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: N}
-        input_params: [y]
+            size: {type: str, value: x - 1}
+        input_params: [x]
     connections:
     - {source: a.out_0, target: b.in_0}
-    input_params: [x, y]
-    linked_params:
-      x:
-      - [a, x]
-      y:
-      - [b, y]
+    input_params: [x]
   - [x = 1]
+  # - {x: 1}
   - name: 'root'
     type: null
     children:
@@ -892,7 +910,7 @@
           out_0:
             name: out_0
             direction: output
-            size: {type: str, value: '0'}
+            size: {type: str, value: 0}
       b:
         name: b
         type: null
@@ -900,14 +918,9 @@
           in_0:
             name: in_0
             direction: input
-            size: {type: str, value: '0'}
-        input_params: [y]
+            size: {type: str, value: 0}
     connections:
     - {source: a.out_0, target: b.in_0}
-    input_params: [y]
-    linked_params:
-      y:
-      - [b, y]
 # Make sure evaluation doesn't fail in presence of constant size register
 - - name: 'root'
     type: null
@@ -916,8 +929,9 @@
         name: in_0
         direction: input
         size: {type: str, value: '1'}
-    input_params: [x]
+    input_params: [x] # TODO: not sure if this is valid?
   - [x = 1]
+  # - {x: 1}
   - name: 'root'
     type: null
     ports:
@@ -926,6 +940,7 @@
         direction: input
         size: {type: str, value: '1'}
 # Check evaluation works when local_variables contains non-trivial expression.
+ # TODO: not sure if this test case is still valid?
 - - name: root
     type: null
     input_params: [L]
@@ -933,65 +948,11 @@
     resources:
       T_gates: {name: T_gates, type: additive, value: 8*ceiling(log_2(N))}
   - [L = 10]
+  # - {L: 10}
   - name: root
     type: null
-    local_variables: {'N': 'L/multiplicity(2,L)'}
     resources:
       T_gates: {name: T_gates, type: additive, value: '32'}
-# Linked params through multiple generations
-- - name: 'root'
-    type: null
-    input_params: [x, y]
-    linked_params:
-      x:
-      - [a, x]
-      y:
-      - [a, y]
-    children:
-      a:
-        name: a
-        type: null
-        input_params: [x, y]
-        linked_params:
-          x:
-          - [b, x]
-          y:
-          - [b, y]
-        children:
-          b:
-            name: b
-            type: null
-            input_params: [x, y]
-            resources:
-              Q:
-                name: Q
-                type: other
-                value: {type: str, value: x + y}
-  - [x=10]
-  - name: 'root'
-    type: null
-    input_params: [y]
-    linked_params:
-      y:
-      - [a, y]
-    children:
-      a:
-        name: a
-        type: null
-        input_params: [y]
-        linked_params:
-          y:
-          - [b, y]
-        children:
-          b:
-            name: b
-            type: null
-            input_params: [y]
-            resources:
-              Q:
-                name: Q
-                type: other
-                value: {type: str, value: y + 10}
 
 # Resource Q is assigned a constant value of pi
 - - name: root
@@ -1000,6 +961,7 @@
     resources:
       T_gates: {name: T_gates, type: additive, value: Q}
   - [Q = pi]
+  # - {Q: pi}
   - name: root
     type: null
     resources:
@@ -1012,6 +974,7 @@
     resources:
       T_gates: {name: T_gates, type: additive, value: Q}
   - [Q = sin(pi/2)]
+  # - {Q: sin(pi/2)}
   - name: root
     type: null
     resources:
@@ -1024,6 +987,7 @@
     resources:
       T_gates: {name: T_gates, type: additive, value: Q}
   - [Q = 5*e]
+  # - {Q: 5*e}
   - name: root
     type: null
     resources:
