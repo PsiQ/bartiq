@@ -235,7 +235,15 @@ def minimize(
     scipy_kwargs: Optional[ScipyOptimizerKwargs] = None,
     backend=Backend,
 ) -> Dict[str, Any]:
-    """Find the optimal parameter value that minimizes a given expression."""
+    """Find the optimal parameter value that minimizes a given expression.
+
+    To visualize `minimize` results using a plotting library like `matplotlib`:
+
+    1. Plot `x_history` (parameter values) on the x-axis.
+    2. Plot corresponding cost function values on the y-axis.
+
+    """
+
     if optimizer_kwargs is None:
         optimizer_kwargs = {}
     if scipy_kwargs is None:
@@ -245,7 +253,7 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
 
     if optimizer == "gradient_descent":
-        x0 = float(optimizer_kwargs.get("x0")) if float(optimizer_kwargs.get("x0")) is not None else None
+        x0 = optimizer_kwargs.get("x0") if optimizer_kwargs.get("x0") is not None else None
 
         bounds = optimizer_kwargs.get("bounds")
         if bounds:
