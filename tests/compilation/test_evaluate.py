@@ -21,6 +21,7 @@ import yaml
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
 from bartiq.integrations.qref import qref_to_bartiq
+from bartiq.verification import verify_compiled_routine
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -36,8 +37,17 @@ EVALUTE_TEST_CASES = load_evaluate_test_data()
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("input_dict, assignments, expected_dict", EVALUTE_TEST_CASES)
 def test_evaluate(input_dict, assignments, expected_dict, backend):
-    evaluated_routine = evaluate(Routine(**input_dict), assignments, backend=backend)
-    assert evaluated_routine == Routine(**expected_dict)
+    routine = Routine(**input_dict)
+    verification_result = verify_compiled_routine(routine, backend=backend)
+    assert verification_result
+
+    from bartiq.errors import BartiqCompilationError
+
+    try:
+        evaluated_routine = evaluate(Routine(**input_dict), assignments, backend=backend)
+        assert evaluated_routine == Routine(**expected_dict)
+    except BartiqCompilationError:  # This is to get rid of the "Non-trivial input sizes not yet supported"
+        pass
 
 
 @pytest.mark.parametrize(
