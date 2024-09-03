@@ -150,8 +150,8 @@ def test_minimize_gradient_descent(
             "x",
             {
                 "x0": 3.0,
-                "learning_rate": 0.1,
-                "max_iter": 20000,
+                "learning_rate": 0.5,
+                "max_iter": 10000,
                 "tolerance": 1e-6,
                 "bounds": (0, 2 * math.pi),
             },
@@ -196,3 +196,56 @@ def test_minimize_scipy(
 
     assert abs(result["optimal_value"] - expected_optimal_value) < tolerance
     assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
+
+
+lamda = sympy.symbols("lamda")
+
+df_active_volume = (
+    f"(2*ceiling(1.5*Max(18, 16*{lamda} + 32, 39*{lamda} + 47, 55*{lamda} + 54, 65*{lamda} + 54, "
+    f"16*{lamda} + ceiling(log(61/{lamda}, 2)) + 11, 39*{lamda} + ceiling(log(60/{lamda}, 2)) + 21, "
+    f"55*{lamda} + ceiling(log(37200/{lamda}, 2)) + 29, 65*{lamda} + ceiling(log(2400/{lamda}, 2)) + 42)) + 169)*"
+    f"(2*Max(18, 16*{lamda} + 32, 39*{lamda} + 47, 55*{lamda} + 54, 65*{lamda} + 54, "
+    f"16*{lamda} + ceiling(log(61/{lamda}, 2)) + 11, 39*{lamda} + ceiling(log(60/{lamda}, 2)) + 21, "
+    f"55*{lamda} + ceiling(log(37200/{lamda}, 2)) + 29, 65*{lamda} + ceiling(log(2400/{lamda}, 2)) + 42) + 112)"
+)
+
+
+@pytest.mark.parametrize(
+    "lamda_initial, lamda_bounds, expected_range",
+    [
+        (5, (1, 30), (4, 8)),
+    ],
+)
+def test_minimize_df_active_volume(lamda_initial, lamda_bounds, expected_range):
+    """
+    Test the minimization of the df_active_volume expression.
+
+    The df_active_volume expression is derived from the resource value of active
+    volume in double factorization, where 'lamda' is a variable parameter. The other
+    fixed parameters used as reference in the calculation are:
+
+    - N_spatial = 20
+    - R = 60
+    - M = 600
+    - N_givens = 40
+    - Ksi_l = 20
+    - b = 10
+
+    """
+
+    optimizer_kwargs = {
+        "x0": lamda_initial,
+        "bounds": lamda_bounds,
+        "learning_rate": 0.01,
+        "max_iter": 10000,
+        "tolerance": 1e-6,
+    }
+
+    result = minimize(
+        expression=df_active_volume,
+        param="lamda",
+        optimizer="gradient_descent",
+        optimizer_kwargs=optimizer_kwargs,
+    )
+    print(result["optimal_value"])
+    assert expected_range[0] <= result["optimal_value"] <= expected_range[1]

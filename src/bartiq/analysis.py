@@ -134,9 +134,9 @@ def _make_term_expression(gens, term):
 class OptimizerKwargs(TypedDict, total=False):
     x0: Optional[float]
     bounds: Optional[Tuple[float, float]]
-    learning_rate: float
-    max_iter: int
-    tolerance: float
+    learning_rate: Optional[float]
+    max_iter: Optional[int]
+    tolerance: Optional[float]
 
 
 class ScipyOptimizerKwargs(TypedDict, total=False):
@@ -146,7 +146,6 @@ class ScipyOptimizerKwargs(TypedDict, total=False):
     hess: Optional[Union[Callable, str]]
     hessp: Optional[Callable]
     constraints: Union[Dict, List[Dict]]
-    tol: Optional[float]
     callback: Optional[Callable]
     options: Optional[Dict[str, Any]]
 
@@ -275,10 +274,14 @@ def minimize(
     elif optimizer == "scipy":
 
         if SCIPY:
+            if not optimizer_kwargs.get("x0"):
+                raise ValueError("SciPy optimization requires an initial value 'x0'.")
+
             x0 = optimizer_kwargs.get("x0")
             bounds = optimizer_kwargs.get("bounds")
             if bounds:
                 bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
+            tol_scipy = optimizer_kwargs.get("tolerance")
 
             scipy_result = scipy_minimize(
                 fun=cost_func_callable,
@@ -290,7 +293,7 @@ def minimize(
                 hessp=scipy_kwargs.get("hessp"),
                 bounds=bounds_scipy,
                 constraints=scipy_kwargs.get("constraints", ()),
-                tol=scipy_kwargs.get("tol"),
+                tol=tol_scipy,
                 callback=scipy_kwargs.get("callback"),
                 options=scipy_kwargs.get(
                     "options",
