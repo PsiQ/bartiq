@@ -162,10 +162,16 @@ def _compile(
         )
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
 
+    # Parameter map holds all of the assignments as nested dictionary.
+    # The first level of nensting is the child name (or None for current routine assignments)
+    # The second level maps symbols to the expression that should be substituted for it.
     parameter_map = defaultdict[str | None, dict[str, T_expr]](dict)
 
+    # We start by populating it with freshly compiled local variables and inputs
+    parameter_map[None] = {**local_variables, **inputs}
+
     for source, targets in compilation_unit.linked_params.items():
-        evaluated_source = _substitute_all(backend.as_expression(source), {**local_variables, **inputs}, backend)
+        evaluated_source = _substitute_all(backend.as_expression(source), parameter_map[None], backend)
         for child, param in targets:
             parameter_map[child][param] = evaluated_source
 
