@@ -177,8 +177,6 @@ def _compile(
 
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
 
-    param_links = defaultdict[str, tuple[tuple[str, str], ...]](tuple)
-
     compiled_ports: dict[str, Port[T_expr]] = {
         name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
         for name, port in compilation_unit.ports.items()
@@ -202,9 +200,6 @@ def _compile(
             if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
                 unit, port_name = _split_endpoint(target)
                 parameter_map[unit][f"#{port_name}"] = port.size
-
-        for param in compiled_child.input_params:
-            param_links[param] = param_links[param] + ((compiled_child.name, param),)
 
     children_variables = {
         f"{cname}.{rname}": resource.value
