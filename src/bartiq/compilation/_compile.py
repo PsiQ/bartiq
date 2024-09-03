@@ -38,6 +38,8 @@ from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from ..verification import verify_compiled_routine, verify_uncompiled_routine
 
+ParameterTree = dict[str | None, dict[str, T_expr]]
+
 
 @dataclass(frozen=True)
 class Context:
@@ -141,6 +143,23 @@ def _split_endpoint(endpoint: str) -> tuple[str | None, str]:
     return components if len(components) == 2 else (None, components[0])
 
 
+def _compile_linked_params(
+    inputs: dict[str, T_expr], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T_expr]
+) -> ParameterTree[T_expr]:
+    parameter_map: ParameterTree[T_expr] = defaultdict(dict)
+
+    for source, targets in linked_params.items():
+        evaluated_source = _substitute_all(backend.as_expression(source), inputs, backend)
+        for child, param in targets:
+            parameter_map[child][param] = evaluated_source
+
+    return parameter_map
+
+
+def _merge_param_trees(tree_1: ParameterTree[T_expr], tree_2: ParameterTree[T_expr]) -> ParameterTree[T_expr]:
+    return {k: {**v, **tree_2.get(k, {})} for k, v in tree_1.items()}
+
+
 def _compile(
     compilation_unit: CompilationUnit[T_expr],
     backend: SymbolicBackend[T_expr],
@@ -165,20 +184,20 @@ def _compile(
     # Parameter map holds all of the assignments as nested dictionary.
     # The first level of nensting is the child name (or None for current routine assignments)
     # The second level maps symbols to the expression that should be substituted for it.
-    parameter_map = defaultdict[str | None, dict[str, T_expr]](dict)
+    parameter_map: ParameterTree[T_expr] = {name: {} for name in compilation_unit.children}
 
     # We start by populating it with freshly compiled local variables and inputs
     parameter_map[None] = {**local_variables, **inputs}
 
-    for source, targets in compilation_unit.linked_params.items():
-        evaluated_source = _substitute_all(backend.as_expression(source), parameter_map[None], backend)
-        for child, param in targets:
-            parameter_map[child][param] = evaluated_source
+    # Invert and merge linked params into parameter_map
+    parameter_map = _merge_param_trees(
+        parameter_map, _compile_linked_params(parameter_map[None], compilation_unit.linked_params, backend)
+    )
 
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
 
     compiled_ports: dict[str, Port[T_expr]] = {
-        name: replace(port, size=_substitute_all(port.size, {**inputs, **local_variables}, backend))
+        name: replace(port, size=_substitute_all(port.size, parameter_map[None], backend))
         for name, port in compilation_unit.ports.items()
         if port.direction != PortDirection.output
     }
@@ -207,10 +226,10 @@ def _compile(
         for rname, resource in child.resources.items()
     }
 
-    assignment_map = {**inputs, **children_variables, **local_variables}
+    parameter_map[None] = {**parameter_map[None], **children_variables}
 
     new_resources = {
-        name: replace(resource, value=_substitute_all(resource.value, assignment_map, backend))
+        name: replace(resource, value=_substitute_all(resource.value, parameter_map[None], backend))
         for name, resource in compilation_unit.resources.items()
     }
 
