@@ -17,7 +17,7 @@ import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Iterable
+from typing import Iterable, Optional
 
 from .. import PortDirection, Routine
 from .._routine_new import (
@@ -162,7 +162,7 @@ def _compile(
         )
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
 
-    parameter_map = defaultdict[str | None, dict[str, T_expr]](dict)
+    parameter_map = defaultdict[Optional[str], dict[str, T_expr]](dict)
 
     for source, targets in compilation_unit.linked_params.items():
         evaluated_source = _substitute_all(backend.as_expression(source), {**local_variables, **inputs}, backend)

@@ -25,6 +25,7 @@ from bartiq.compilation._symbolic_function import (
     define_expression_functions,
 )
 from bartiq.errors import BartiqCompilationError
+from bartiq.integrations.qref import qref_to_bartiq
 from bartiq.precompilation.stages_new import introduce_port_variables
 from bartiq.symbolics import sympy_backend
 
@@ -32,8 +33,8 @@ BACKEND = sympy_backend
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data_new.yaml") as f:
-        return [(Routine(**original), Routine(**expected)) for original, expected in yaml.safe_load(f)]
+    with open(Path(__file__).parent / "data/compile_test_data_new_qref.yaml") as f:
+        return [(qref_to_bartiq(original), qref_to_bartiq(expected)) for original, expected in yaml.safe_load(f)]
 
 
 COMPILE_TEST_DATA = load_compile_test_data()
