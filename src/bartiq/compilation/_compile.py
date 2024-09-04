@@ -19,7 +19,7 @@ from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Iterable, Optional
 
-from .. import PortDirection, Routine
+from .. import Routine
 from .._routine_new import (
     CompilationUnit,
     CompiledRoutine,
