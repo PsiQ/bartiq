@@ -17,7 +17,11 @@ import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
+<<<<<<< HEAD
 from typing import Iterable, Optional, cast
+=======
+from typing import Iterable, Optional
+>>>>>>> origin/mstechly/rewrite-tests-to-qref
 
 from .. import Routine
 from .._routine_new import (
