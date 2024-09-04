@@ -76,6 +76,9 @@ class CompilationUnit(Generic[T_expr]):
 
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
 
+    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T_expr]]:
+        return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
+
 
 @dataclass(frozen=True)
 class CompiledRoutine(Generic[T_expr]):

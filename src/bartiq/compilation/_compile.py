@@ -205,8 +205,7 @@ def _compile(
 
     compiled_ports: dict[str, Port[T_expr]] = {
         name: replace(port, size=_substitute_all(port.size, parameter_map[None], backend))
-        for name, port in compilation_unit.ports.items()
-        if port.direction != PortDirection.output
+        for name, port in compilation_unit.filter_ports(["input", "through"]).items()
     }
 
     for source_port, target in connections_map[None].items():
@@ -236,12 +235,11 @@ def _compile(
         for name, resource in compilation_unit.resources.items()
     }
 
-    for name, port in compilation_unit.ports.items():
-        if port.direction == "output":
-            compiled_ports[port.name] = replace(
-                port,
-                size=_substitute_all(port.size, parameter_map[None], backend),
-            )
+    for name, port in compilation_unit.filter_ports(["output"]).items():
+        compiled_ports[name] = replace(
+            port,
+            size=_substitute_all(port.size, parameter_map[None], backend),
+        )
 
     new_input_params = sorted(
         (
