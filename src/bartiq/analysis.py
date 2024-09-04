@@ -145,7 +145,7 @@ class ScipyOptimizerKwargs(TypedDict, total=False):
     jac: Optional[Union[Callable, str, bool]]
     hess: Optional[Union[Callable, str]]
     hessp: Optional[Callable]
-    constraints: Union[Dict, List[Dict]]
+    constraints: Union[Dict[str, Any], List[Dict[str, Any]]]
     callback: Optional[Callable]
     options: Optional[Dict[str, Any]]
 
@@ -229,7 +229,7 @@ class Optimizer:
 def minimize(
     expression: str,
     param: str,
-    optimizer: str,
+    optimizer: str = "gradient_descent",
     optimizer_kwargs: Optional[OptimizerKwargs] = None,
     scipy_kwargs: Optional[ScipyOptimizerKwargs] = None,
     backend=Backend,
@@ -239,7 +239,7 @@ def minimize(
     To visualize `minimize` results using a plotting library like `matplotlib`:
 
     1. Plot `x_history` (parameter values) on the x-axis.
-    2. Plot corresponding cost function values on the y-axis.
+    2. Plot `minimum_cost` on the y-axis.
 
     """
 
@@ -252,9 +252,9 @@ def minimize(
     cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
 
     if optimizer == "gradient_descent":
-        x0 = optimizer_kwargs.get("x0") if optimizer_kwargs.get("x0") is not None else None
-
+        x0 = optimizer_kwargs.get("x0")
         bounds = optimizer_kwargs.get("bounds")
+
         if bounds:
             lower_bound, upper_bound = bounds
             bounds = (
@@ -266,9 +266,9 @@ def minimize(
             cost_func=cost_func_callable,
             x0=x0,
             bounds=bounds,
-            learning_rate=float(optimizer_kwargs.get("learning_rate", 0.01)),
-            max_iter=int(optimizer_kwargs.get("max_iter", 1000)),
-            tolerance=float(optimizer_kwargs.get("tolerance", 1e-6)),
+            learning_rate=optimizer_kwargs.get("learning_rate", 0.01),
+            max_iter=optimizer_kwargs.get("max_iter", 1000),
+            tolerance=optimizer_kwargs.get("tolerance", 1e-6),
         )
 
     elif optimizer == "scipy":
@@ -279,8 +279,7 @@ def minimize(
 
             x0 = optimizer_kwargs.get("x0")
             bounds = optimizer_kwargs.get("bounds")
-            if bounds:
-                bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
+            bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
             tol_scipy = optimizer_kwargs.get("tolerance")
 
             scipy_result = scipy_minimize(
@@ -298,7 +297,7 @@ def minimize(
                 options=scipy_kwargs.get(
                     "options",
                     {
-                        "maxiter": optimizer_kwargs.get("max_iter", 1000),
+                        "maxiter": optimizer_kwargs.get("max_iter"),
                         "disp": True,
                     },
                 ),
