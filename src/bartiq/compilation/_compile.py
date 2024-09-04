@@ -25,6 +25,7 @@ from .._routine_new import (
     CompiledRoutine,
     Constraint,
     ConstraintStatus,
+    Endpoint,
     Port,
     compilation_unit_from_bartiq,
     compiled_routine_to_bartiq,
@@ -203,9 +204,8 @@ def _compile(
     }
 
     for name, port in compiled_ports.items():
-        if (target := compilation_unit.connections.get(name)) is not None:
-            unit, port_name = _split_endpoint(target)
-            parameter_map[unit][f"#{port_name}"] = port.size
+        if (target := compilation_unit.connections.get(Endpoint(None, name))) is not None:
+            parameter_map[target.routine_name][f"#{target.port_name}"] = port.size
 
     for child in compilation_unit.sorted_children():
         compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
@@ -216,9 +216,8 @@ def _compile(
         compiled_children[child.name] = compiled_child
 
         for pname, port in compiled_child.ports.items():
-            if target := compilation_unit.connections.get(f"{compiled_child.name}.{pname}"):
-                unit, port_name = _split_endpoint(target)
-                parameter_map[unit][f"#{port_name}"] = port.size
+            if (target := compilation_unit.connections.get(Endpoint(compiled_child.name, pname))) is not None:
+                parameter_map[target.routine_name][f"#{target.port_name}"] = port.size
 
     children_variables = {
         f"{cname}.{rname}": resource.value
@@ -237,7 +236,7 @@ def _compile(
         if port.direction == "output":
             compiled_ports[port.name] = replace(
                 port,
-                size=_substitute_all(port.size, {**inputs, **parameter_map[None], **local_variables}, backend),
+                size=_substitute_all(port.size, parameter_map[None], backend),
             )
 
     new_input_params = sorted(
