@@ -17,7 +17,7 @@ import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Iterable
+from typing import Iterable, Optional
 
 from .. import PortDirection, Routine
 from .._routine_new import (
@@ -161,6 +161,14 @@ def _merge_param_trees(tree_1: ParameterTree[T_expr], tree_2: ParameterTree[T_ex
     return {k: {**v, **tree_2.get(k, {})} for k, v in tree_1.items()}
 
 
+def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[Optional[str], dict[str, Endpoint]]:
+    tree = defaultdict[Optional[str], dict[str, Endpoint]](dict)
+    for source, target in connections.items():
+        tree[source.routine_name][source.port_name] = target
+
+    return tree
+
+
 def _compile(
     compilation_unit: CompilationUnit[T_expr],
     backend: SymbolicBackend[T_expr],
@@ -180,6 +188,9 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
+
+    connections_map = _expand_connections(compilation_unit.connections)
+
     local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
 
     # Parameter map holds all of the assignments as nested dictionary.
@@ -203,9 +214,8 @@ def _compile(
         if port.direction != PortDirection.output
     }
 
-    for name, port in compiled_ports.items():
-        if (target := compilation_unit.connections.get(Endpoint(None, name))) is not None:
-            parameter_map[target.routine_name][f"#{target.port_name}"] = port.size
+    for source_port, target in connections_map[None].items():
+        parameter_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
 
     for child in compilation_unit.sorted_children():
         compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
@@ -215,9 +225,8 @@ def _compile(
         # unit's input params).
         compiled_children[child.name] = compiled_child
 
-        for pname, port in compiled_child.ports.items():
-            if (target := compilation_unit.connections.get(Endpoint(compiled_child.name, pname))) is not None:
-                parameter_map[target.routine_name][f"#{target.port_name}"] = port.size
+        for source_port, target in connections_map[child.name].items():
+            parameter_map[target.routine_name][f"#{target.port_name}"] = compiled_child.ports[source_port].size
 
     children_variables = {
         f"{cname}.{rname}": resource.value
