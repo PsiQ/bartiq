@@ -19,6 +19,7 @@ from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Iterable, Optional, cast
 
+from ._common import evaluate_ports, evaluate_resources
 from .. import Routine
 from .._routine_new import (
     CompilationUnit,
@@ -196,10 +197,7 @@ def _compile(
 
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
 
-    compiled_ports: dict[str, Port[T_expr]] = {
-        name: replace(port, size=backend.substitute_all(port.size, parameter_map[None]))
-        for name, port in compilation_unit.filter_ports(["input", "through"]).items()
-    }
+    compiled_ports = evaluate_ports(compilation_unit.filter_ports(["input", "through"]), parameter_map[None], backend)
 
     parameter_map = _merge_param_trees(
         parameter_map, _param_tree_from_compiled_ports(connections_map[None], compiled_ports)
@@ -225,16 +223,12 @@ def _compile(
 
     parameter_map[None] = {**parameter_map[None], **children_variables}
 
-    new_resources = {
-        name: replace(resource, value=backend.substitute_all(resource.value, parameter_map[None]))
-        for name, resource in compilation_unit.resources.items()
-    }
+    new_resources = evaluate_resources(compilation_unit.resources, parameter_map[None], backend)
 
-    for name, port in compilation_unit.filter_ports(["output"]).items():
-        compiled_ports[name] = replace(
-            port,
-            size=backend.substitute_all(port.size, parameter_map[None]),
-        )
+    compiled_ports = {
+        **compiled_ports,
+        **evaluate_ports(compilation_unit.filter_ports(["output"]), parameter_map[None], backend)
+    }
 
     new_input_params = sorted(
         (
