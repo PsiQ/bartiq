@@ -17,7 +17,7 @@ import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Iterable, Optional
+from typing import Iterable, Optional, cast
 
 from .. import Routine
 from .._routine_new import (
@@ -36,7 +36,7 @@ from ..precompilation.stages_new import (
     PrecompilationStage,
 )
 from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T_expr
+from ..symbolics.backend import ComparisonResult, SymbolicBackend, T_expr
 from ..verification import verify_compiled_routine, verify_uncompiled_routine
 
 ParameterTree = dict[str | None, dict[str, T_expr]]
@@ -61,11 +61,9 @@ def _compile_constraint(
     lhs = _substitute_all(constraint.lhs, inputs, backend)
     rhs = _substitute_all(constraint.rhs, inputs, backend)
 
-    comparison = lhs - rhs
-
-    if comparison == 0:
+    if (comparison_result := backend.compare(lhs, rhs)) == ComparisonResult.equal:
         status = ConstraintStatus.satisfied
-    elif backend.is_constant_int(comparison):
+    elif comparison_result == ComparisonResult.unequal:
         status = ConstraintStatus.violated
     else:
         status = ConstraintStatus.inconclusive
@@ -196,6 +194,7 @@ def _compile(
     parameter_map: ParameterTree[T_expr] = {name: {} for name in compilation_unit.children}
 
     # We start by populating it with freshly compiled local variables and inputs
+    # {None: {a: 2}, b: {foo: 3, #in_1: N}}
     parameter_map[None] = {**local_variables, **inputs}
 
     # Invert and merge linked params into parameter_map

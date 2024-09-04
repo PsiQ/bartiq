@@ -26,6 +26,8 @@ from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
+from bartiq.symbolics.backend import ComparisonResult
+
 from ..compilation.types import Number
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
@@ -174,6 +176,15 @@ class SympyBackend:
     def serialize(self, expr: T_expr) -> str:
         """Return a textual representation of given expression."""
         return serialize_expression(expr)
+
+    def compare(self, lhs: T_expr, rhs: T_expr) -> ComparisonResult:
+        difference = (lhs - rhs).expand()
+        if difference == 0:
+            return ComparisonResult.equal
+        elif self.is_constant_int(difference):
+            return ComparisonResult.unequal
+        else:
+            return ComparisonResult.ambigous
 
 
 # Define sympy_backend for backwards compatibility

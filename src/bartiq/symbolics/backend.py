@@ -12,11 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from enum import Enum, auto
 from typing import Callable, Iterable, Optional, Protocol, TypeVar, Union
 
 from ..compilation.types import Number
 
 T_expr = TypeVar("T_expr")
+
+
+class ComparisonResult(Enum):
+    equal = auto()
+    unequal = auto()
+    ambigous = auto()
 
 
 class SymbolicBackend(Protocol[T_expr]):
@@ -54,3 +61,16 @@ class SymbolicBackend(Protocol[T_expr]):
 
     def parse_constant(self, expr: T_expr) -> T_expr:
         """Parse the expression, replacing known constants while ignoring case."""
+
+    def compare(self, lhs: T_expr, rhs: T_expr) -> ComparisonResult:
+        """Compare lhs and rhs, returning comparison result.
+
+        Note that unlike boolean values, comparison might be ambigous if the
+        backend fails to simplify or interpret the expressions being compared.
+
+        Therefore, meaning of the result should be interpreter as fallows:
+
+        - `ComparisonResult.equal`: `lhs` and `rhs` are certainly equal.
+        - `ComparisonResult.unequal': 'lhs' and 'rhs' are certainly not equal.
+        - `ComparisonResult.ambigous`: it is not known for certain if `lhs` and `rhs` are equal.
+        """
