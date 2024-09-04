@@ -139,11 +139,6 @@ def _compile_local_variables(
     return compiled_variables
 
 
-def _split_endpoint(endpoint: str) -> tuple[str | None, str]:
-    components = tuple(endpoint.split("."))
-    return components if len(components) == 2 else (None, components[0])
-
-
 def _compile_linked_params(
     inputs: dict[str, T_expr], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T_expr]
 ) -> ParameterTree[T_expr]:
