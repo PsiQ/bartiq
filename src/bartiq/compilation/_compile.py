@@ -17,11 +17,7 @@ import warnings
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-<<<<<<< HEAD
 from typing import Iterable, Optional, cast
-=======
-from typing import Iterable, Optional
->>>>>>> origin/mstechly/rewrite-tests-to-qref
 
 from .. import Routine
 from .._routine_new import (
@@ -62,8 +58,8 @@ class ConstraintValidationError(ValueError):
 def _compile_constraint(
     constraint: Constraint[T_expr], inputs: dict[str, T_expr], backend: SymbolicBackend[T_expr]
 ) -> Constraint[T_expr]:
-    lhs = _substitute_all(constraint.lhs, inputs, backend)
-    rhs = _substitute_all(constraint.rhs, inputs, backend)
+    lhs = backend.substitute_all(constraint.lhs, inputs)
+    rhs = backend.substitute_all(constraint.rhs, inputs)
 
     if (comparison_result := backend.compare(lhs, rhs)) == ComparisonResult.equal:
         status = ConstraintStatus.satisfied
@@ -78,14 +74,6 @@ def _compile_constraint(
         raise ConstraintValidationError(constraint, new_constraint)
 
     return new_constraint
-
-
-def _substitute_all(expr: T_expr, substitutions: dict[str, T_expr], backend: SymbolicBackend[T_expr]) -> T_expr:
-    actual_symbols = list(backend.free_symbols_in(expr))
-    for old, new in substitutions.items():
-        if old in actual_symbols:
-            expr = backend.substitute(expr, old, new)
-    return expr
 
 
 def compile_routine(
@@ -129,7 +117,7 @@ def _compile_local_variables(
     compiled_variables: dict[str, T_expr] = {}
     extended_inputs = inputs.copy()
     for variable in TopologicalSorter(predecessors).static_order():
-        compiled_value = _substitute_all(local_variables[variable], extended_inputs, backend)
+        compiled_value = backend.substitute_all(local_variables[variable], extended_inputs)
         extended_inputs[variable] = compiled_variables[variable] = compiled_value
     return compiled_variables
 
@@ -140,7 +128,7 @@ def _compile_linked_params(
     parameter_map: ParameterTree[T_expr] = defaultdict(dict)
 
     for source, targets in linked_params.items():
-        evaluated_source = _substitute_all(backend.as_expression(source), inputs, backend)
+        evaluated_source = backend.substitute_all(backend.as_expression(source), inputs)
         for child, param in targets:
             parameter_map[child][param] = evaluated_source
 
@@ -209,7 +197,7 @@ def _compile(
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
 
     compiled_ports: dict[str, Port[T_expr]] = {
-        name: replace(port, size=_substitute_all(port.size, parameter_map[None], backend))
+        name: replace(port, size=backend.substitute_all(port.size, parameter_map[None]))
         for name, port in compilation_unit.filter_ports(["input", "through"]).items()
     }
 
@@ -238,14 +226,14 @@ def _compile(
     parameter_map[None] = {**parameter_map[None], **children_variables}
 
     new_resources = {
-        name: replace(resource, value=_substitute_all(resource.value, parameter_map[None], backend))
+        name: replace(resource, value=backend.substitute_all(resource.value, parameter_map[None]))
         for name, resource in compilation_unit.resources.items()
     }
 
     for name, port in compilation_unit.filter_ports(["output"]).items():
         compiled_ports[name] = replace(
             port,
-            size=_substitute_all(port.size, parameter_map[None], backend),
+            size=backend.substitute_all(port.size, parameter_map[None]),
         )
 
     new_input_params = sorted(

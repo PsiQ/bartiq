@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from functools import singledispatchmethod
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Iterable, Mapping, Optional, Union
 
 import sympy
 from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
@@ -93,7 +93,7 @@ class SympyBackend:
 
     def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
-        return map(str, expr.free_symbols)
+        return tuple(map(str, expr.free_symbols))
 
     def functions_in(self, expr: T_expr) -> Iterable[str]:
         """Returns the (non-built-in) functions referenced in the expression."""
@@ -128,6 +128,11 @@ class SympyBackend:
     def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
         """Substitute occurrences of given symbol with an expression or numerical value."""
         return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
+
+    def substitute_all(self, expr: T_expr, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
+        symbols_in_expr = self.free_symbols_in(expr)
+        restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
+        return expr.subs(restricted_replacements)
 
     def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
         """Rename all instances of given function call."""

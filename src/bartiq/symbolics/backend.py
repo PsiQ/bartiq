@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from enum import Enum, auto
-from typing import Callable, Iterable, Optional, Protocol, TypeVar, Union
+from typing import Callable, Iterable, Mapping, Optional, Protocol, TypeVar, Union
 
 from ..compilation.types import Number
 
@@ -46,6 +46,9 @@ class SymbolicBackend(Protocol[T_expr]):
 
     def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
         """Substitute all occurrences of symbol in expr with given replacement."""
+
+    def substitute_all(self, expr: T_expr, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
+        """Substitute all occurrences of all symbols in expr with given replacements."""
 
     def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
         """Rename all instances of given function call."""
