@@ -266,9 +266,9 @@ def minimize(
             cost_func=cost_func_callable,
             x0=x0,
             bounds=bounds,
-            learning_rate=optimizer_kwargs.get("learning_rate", 0.01),
-            max_iter=optimizer_kwargs.get("max_iter", 1000),
-            tolerance=optimizer_kwargs.get("tolerance", 1e-6),
+            learning_rate=optimizer_kwargs.get("learning_rate") or 0.01,
+            max_iter=optimizer_kwargs.get("max_iter") or 1000,
+            tolerance=optimizer_kwargs.get("tolerance") or 1e-6,
         )
 
     elif optimizer == "scipy":
