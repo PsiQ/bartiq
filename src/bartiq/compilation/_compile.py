@@ -255,7 +255,6 @@ def _compile(
             else set(compilation_unit.input_params)
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
-    # TODO: compute linked params here
 
     return CompiledRoutine[T_expr](
         name=compilation_unit.name,
