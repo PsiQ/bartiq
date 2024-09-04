@@ -116,13 +116,6 @@ def compile_routine(
     return compiled_routine
 
 
-def _infer_input_map(
-    child: CompilationUnit[T_expr],
-    inverted_param_links: dict[tuple[str, str], T_expr],
-) -> dict[str, T_expr]:
-    return {input: value for (child_name, input), value in inverted_param_links.items() if child_name == child.name}
-
-
 def _compile_local_variables(
     local_variables: dict[str, T_expr], inputs: dict[str, T_expr], backend: SymbolicBackend[T_expr]
 ) -> dict[str, T_expr]:
@@ -162,6 +155,15 @@ def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[Optional[
         tree[source.routine_name][source.port_name] = target
 
     return tree
+
+
+def _param_tree_from_compiled_ports(
+    connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T_expr]]
+) -> ParameterTree[T_expr]:
+    param_map = defaultdict[Optional[str], dict[str, T_expr]](dict)
+    for source_port, target in connections_map.items():
+        param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
+    return param_map
 
 
 def _compile(
@@ -208,8 +210,9 @@ def _compile(
         for name, port in compilation_unit.filter_ports(["input", "through"]).items()
     }
 
-    for source_port, target in connections_map[None].items():
-        parameter_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
+    parameter_map = _merge_param_trees(
+        parameter_map, _param_tree_from_compiled_ports(connections_map[None], compiled_ports)
+    )
 
     for child in compilation_unit.sorted_children():
         compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
@@ -219,8 +222,9 @@ def _compile(
         # unit's input params).
         compiled_children[child.name] = compiled_child
 
-        for source_port, target in connections_map[child.name].items():
-            parameter_map[target.routine_name][f"#{target.port_name}"] = compiled_child.ports[source_port].size
+        parameter_map = _merge_param_trees(
+            parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
+        )
 
     children_variables = {
         f"{cname}.{rname}": resource.value
