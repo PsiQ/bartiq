@@ -16,8 +16,9 @@ import re
 from copy import copy
 from typing import Any, Callable, Iterable, Optional
 
+from bartiq.symbolics.utilities import infer_subresources
+
 from .. import Connection, Resource, ResourceType, Routine
-from ..compilation._symbolic_function import infer_subresources
 from ..errors import BartiqPrecompilationError
 from ..symbolics.backend import SymbolicBackend
 

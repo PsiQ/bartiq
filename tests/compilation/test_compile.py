@@ -20,10 +20,6 @@ import yaml
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
-from bartiq.compilation._symbolic_function import (
-    SymbolicFunction,
-    define_expression_functions,
-)
 from bartiq.errors import BartiqCompilationError
 from bartiq.integrations.qref import qref_to_bartiq
 from bartiq.precompilation.stages_new import introduce_port_variables
@@ -59,66 +55,6 @@ def f_2_conditional(x):
 
 def f_3_optional_inputs(a, b=2, c=3):
     return a + b * c
-
-
-DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA = [
-    # Testing function which can be interpreted symbolically
-    (
-        SymbolicFunction.assemble(["a", "b"], {"x": "f(a) + f(b)"}, BACKEND),
-        {"f": f_1_simple},
-        {"x": "a + b + 2"},
-    ),
-    # Testing function which cannot be interpreted symbolically due to having a condition
-    (
-        SymbolicFunction.assemble(["a"], {"x": "f(a) + a"}, BACKEND),
-        {"f": f_2_conditional},
-        {"x": "a + f(a)"},
-    ),
-    # Testing function with multiple inputs, some with default values ["x = a**2 + 2*a + 3*b"]
-    (
-        SymbolicFunction.assemble(["a", "b"], {"x": "f(a, b) + f(a, a, a)"}, BACKEND),
-        {"f": f_3_optional_inputs},
-        {"x": "a ^ 2 + 2*a + 3*b"},
-    ),
-    # Testing nested calls of a simple function
-    (
-        SymbolicFunction.assemble(["a"], {"x": "f(f(f(a)))"}, BACKEND),
-        {"f": f_1_simple},
-        {"x": "a + 3"},
-    ),
-]
-
-
-@pytest.mark.parametrize("function, functions_map, expected_output_expressions", DEFINED_EXPRESSION_FUNCTIONS_TEST_DATA)
-def test_defined_expression_functions(function, functions_map, expected_output_expressions):
-    new_function = define_expression_functions(function=function, functions_map=functions_map)
-    assert function.inputs == new_function.inputs
-    for output_symbol, output_variable in new_function.outputs.items():
-        for expression_function_name, expression_function_callable in functions_map.items():
-            assert output_variable.expression_functions[expression_function_name] == expression_function_callable
-        new_evaluated_expression = output_variable.evaluated_expression
-        assert expected_output_expressions[output_symbol] == new_evaluated_expression
-
-
-def mad_max(a, b):
-    return a + b
-
-
-@pytest.mark.parametrize(
-    "function, functions_map, expected_error",
-    [
-        (
-            SymbolicFunction.assemble(["a", "b"], {"x": "max(a, b)"}, BACKEND),
-            {"max": mad_max},
-            "Attempted to redefine built-in function max",
-        )
-    ],
-)
-def test_defined_expression_functions_errors(function, functions_map, expected_error):
-    with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
-        new_function = define_expression_functions(function=function, functions_map=functions_map)
-        for output_variable in new_function.outputs.values():
-            output_variable.evaluated_expression
 
 
 def test_compiling_correctly_propagates_global_functions():
