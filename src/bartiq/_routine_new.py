@@ -1,7 +1,8 @@
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from graphlib import TopologicalSorter
-from typing import Generic, Iterable, Optional
+from typing import Generic
 
 from typing_extensions import Self
 
@@ -42,14 +43,14 @@ class Resource(Generic[T_expr]):
 
 @dataclass(frozen=True)
 class Endpoint:
-    routine_name: Optional[str]
+    routine_name: str | None
     port_name: str
 
 
 @dataclass(frozen=True)
 class CompilationUnit(Generic[T_expr]):
     name: str
-    type: Optional[str]
+    type: str | None
     input_params: Iterable[str]
     linked_params: dict[str, tuple[tuple[str, str], ...]]
     local_variables: dict[str, T_expr]
@@ -70,8 +71,7 @@ class CompilationUnit(Generic[T_expr]):
     def sorted_children(self) -> Iterable[Self]:
         predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
         for source, target in self.inner_connections.items():
-            if source.routine_name == target.routine_name:
-                raise ValueError("cycle?")
+            assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
             predecessor_map[target.routine_name].add(source.routine_name)
 
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
@@ -83,7 +83,7 @@ class CompilationUnit(Generic[T_expr]):
 @dataclass(frozen=True)
 class CompiledRoutine(Generic[T_expr]):
     name: str
-    type: Optional[str]
+    type: str | None
     input_params: Iterable[str]
     children: dict[str, Self]
     ports: dict[str, Port[T_expr]]
@@ -124,6 +124,18 @@ def compilation_unit_from_bartiq(routine: Routine, backend: SymbolicBackend[T_ex
         resources={name: _resource_from_bartiq(resource, backend) for name, resource in routine.resources.items()},
         connections={source: target for source, target in map(_connection_from_bartiq, routine.connections)},
         local_variables={var: backend.as_expression(value) for var, value in routine.local_variables.items()},
+    )
+
+
+def compiled_routine_from_bartiq(routine: Routine, backend: SymbolicBackend[T_expr]) -> CompiledRoutine[T_expr]:
+    return CompiledRoutine(
+        name=routine.name,
+        type=routine.type,
+        input_params=tuple(sorted(routine.input_params)),
+        children={name: compiled_routine_from_bartiq(child, backend) for name, child in routine.children.items()},
+        ports={name: _port_from_bartiq(port, backend) for name, port in routine.ports.items()},
+        resources={name: _resource_from_bartiq(resource, backend) for name, resource in routine.resources.items()},
+        connections={source: target for source, target in map(_connection_from_bartiq, routine.connections)},
     )
 
 

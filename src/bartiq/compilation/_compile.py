@@ -19,7 +19,6 @@ from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Iterable, Optional, cast
 
-from ._common import evaluate_ports, evaluate_resources
 from .. import Routine
 from .._routine_new import (
     CompilationUnit,
@@ -39,6 +38,7 @@ from ..precompilation.stages_new import (
 from ..symbolics import sympy_backend
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T_expr
 from ..verification import verify_compiled_routine, verify_uncompiled_routine
+from ._common import evaluate_ports, evaluate_resources
 
 ParameterTree = dict[str | None, dict[str, T_expr]]
 
@@ -227,7 +227,7 @@ def _compile(
 
     compiled_ports = {
         **compiled_ports,
-        **evaluate_ports(compilation_unit.filter_ports(["output"]), parameter_map[None], backend)
+        **evaluate_ports(compilation_unit.filter_ports(["output"]), parameter_map[None], backend),
     }
 
     new_input_params = sorted(

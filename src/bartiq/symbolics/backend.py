@@ -17,7 +17,7 @@ from typing import Callable, Iterable, Mapping, Optional, Protocol, TypeVar, Uni
 
 from ..compilation.types import Number
 
-T_expr = TypeVar("T_expr")
+T_expr = TypeVar("T_expr", bound=Number, contravariant=True)
 
 
 class ComparisonResult(Enum):

@@ -13,10 +13,24 @@
 # limitations under the License.
 
 from collections import defaultdict
-from dataclasses import dataclass
-from typing import Any, Optional, Union, overload
+from dataclasses import dataclass, replace
+from typing import Any, Callable, Optional, TypeVar, Union, cast, overload
 
-from .. import Port, PortDirection, Routine
+from bartiq.compilation._common import (
+    evaluate_ports,
+    evaluate_ports_v2,
+    evaluate_resources,
+    evaluate_resources_v2,
+)
+
+from .. import Port as OldPort
+from .. import PortDirection, Routine
+from .._routine_new import (
+    CompiledRoutine,
+    Port,
+    compiled_routine_from_bartiq,
+    compiled_routine_to_bartiq,
+)
 from ..errors import BartiqCompilationError
 from ..routing import get_route
 from ..symbolics import sympy_backend
@@ -37,6 +51,9 @@ from ._utilities import (
     split_equation,
 )
 from .types import NUMBER_TYPES, FunctionsMap, Number
+
+T = TypeVar("T")
+S = TypeVar("S")
 
 
 @dataclass
@@ -110,13 +127,73 @@ def _evaluate(
     backend: SymbolicBackend[T_expr],
     functions_map: Optional[FunctionsMap],
 ) -> Routine:
-    # We do this to ensure we don't mutate the input object.
-    evaluated_routine = Routine(**routine.model_dump())
-    parsed_assignments = _parse_assignments(evaluated_routine, assignments, backend)
-    for parsed_assignment in parsed_assignments:
-        _evaluate_over_assignment(evaluated_routine, parsed_assignment, backend, functions_map)
+    if functions_map is None:
+        functions_map = {}
+    compiled_routine = compiled_routine_from_bartiq(routine, backend)
+    parsed_assignments = _make_assignments_dict(assignments, backend)
+    parsed_assignments = {assignment: backend.parse_constant(value) for assignment, value in parsed_assignments.items()}
+    evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
+    return compiled_routine_to_bartiq(evaluated_routine, backend)
 
-    return evaluated_routine
+
+def _evaluate_internal(
+    compiled_routine: CompiledRoutine[T_expr],
+    inputs: dict[str, T_expr],
+    backend: SymbolicBackend[T_expr],
+    functions_map: Optional[FunctionsMap],
+) -> CompiledRoutine[T_expr]:
+    return replace(
+        compiled_routine,
+        input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
+        ports=evaluate_ports_v2(compiled_routine.ports, inputs, functions_map, backend),
+        resources=evaluate_resources_v2(compiled_routine.resources, inputs, functions_map, backend),
+        children={
+            name: _evaluate_internal(child, inputs, backend=backend, functions_map=functions_map)
+            for name, child in compiled_routine.children.items()
+        },
+    )
+
+
+def _make_assignments_dict(assignments: list[str], backend: SymbolicBackend[T_expr]) -> dict[str, T_expr]:
+    assignment_map: dict[str, T_expr] = {}
+    for assignment in assignments:
+        lhs, rhs = assignment.split("=")
+        assignment_map[lhs.strip()] = backend.as_expression(rhs.strip())
+    return assignment_map
+
+
+def _transform_expressions_recursively(routine: CompiledRoutine[T], transform: Callable[[T], S]) -> CompiledRoutine[S]:
+    return cast(
+        CompiledRoutine[S],
+        replace(
+            routine,
+            resources={
+                name: replace(resource, value=transform(resource.value)) for name, resource in routine.resources.items()
+            },
+            ports={name: replace(port, size=transform(port.size)) for name, port in routine.ports.items()},
+            children={
+                name: _transform_expressions_recursively(child, transform) for name, child in routine.children.items()
+            },
+            constraints=[
+                replace(constraint, lhs=transform(constraint.lhs), rhs=transform(constraint.rhs))
+                for constraint in routine.constraints
+            ],
+        ),
+    )
+
+
+def _ensure_expressions(backend: SymbolicBackend[T_expr]) -> Callable[[T_expr | Number], T_expr]:
+    def _transform(expr: T_expr | Number) -> T_expr:
+        return backend.as_expression(expr) if isinstance(expr, NUMBER_TYPES) else expr
+
+    return _transform
+
+
+def _value_if_possible(expr: T_expr, backend: SymbolicBackend[T_expr]) -> Union[T_expr, Number]:
+    if (value := backend.value_of(expr)) is not None:
+        return value
+    else:
+        return expr
 
 
 def _parse_assignments(
@@ -218,7 +295,7 @@ def _evaluate_over_assignment(
     assert not register_sizes, f"Shouldn't have any more register sizes left to evaluate; found {register_sizes}"
 
 
-def _get_downstream_register_size_assignments(source_port: Port, value: Number) -> RegisterSizeAssignmentMap:
+def _get_downstream_register_size_assignments(source_port: OldPort, value: Number) -> RegisterSizeAssignmentMap:
     register_sizes = defaultdict(list)
 
     target_route = get_route(source_port, forward=True)

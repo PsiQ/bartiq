@@ -18,8 +18,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from functools import singledispatchmethod
-from typing import Callable, Iterable, Mapping, Optional, Union
+from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
 from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
@@ -42,7 +43,10 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 
-T_expr: TypeAlias = Expr
+T_expr: TypeAlias = Expr | Number
+
+T = TypeVar("T")
+P = ParamSpec("P")
 
 MATH_CONSTANTS = {
     "pi": sympy.pi,
@@ -50,6 +54,28 @@ MATH_CONSTANTS = {
     "oo": sympy.oo,
     "infinity": sympy.oo,
 }
+
+
+def empty_for_numbers(
+    func: Callable[Concatenate[SympyBackend, Expr, P], Iterable[T]]
+) -> Callable[Concatenate[SympyBackend, T_expr, P], Iterable[T]]:
+    def _inner(backend: SympyBackend, expr: T_expr, *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:
+        if isinstance(expr, Number):
+            return ()
+        return func(backend, expr, *args, **kwargs)
+
+    return _inner
+
+
+def identity_for_numbers(
+    func: Callable[Concatenate[SympyBackend, Expr, P], T_expr]
+) -> Callable[Concatenate[SympyBackend, T_expr, P], T_expr]:
+    def _inner(backend: SympyBackend, expr: T_expr, *args: P.args, **kwargs: P.kwargs) -> T_expr:
+        if isinstance(expr, Number):
+            return expr
+        return func(backend, expr, *args, **kwargs)
+
+    return _inner
 
 
 def parse_to_sympy(expression: str, debug=False) -> T_expr:
@@ -71,14 +97,14 @@ class SympyBackend:
         self.parse = parse_function
 
     @singledispatchmethod
-    def _as_expression(self, value: Union[str | int | float]) -> T_expr:
-        return sympify(value)
+    def _as_expression(self, value: Expr | Number) -> T_expr:
+        return value
 
     @_as_expression.register
     def _parse(self, value: str) -> T_expr:
         return parse_to_sympy(value)
 
-    def as_expression(self, value: Union[str | int | float]) -> T_expr:
+    def as_expression(self, value: str | T_expr) -> T_expr:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
@@ -91,10 +117,12 @@ class SympyBackend:
 
         return expr
 
+    @empty_for_numbers
     def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
         return tuple(map(str, expr.free_symbols))
 
+    @empty_for_numbers
     def functions_in(self, expr: T_expr) -> Iterable[str]:
         """Returns the (non-built-in) functions referenced in the expression."""
         return [
@@ -107,9 +135,11 @@ class SympyBackend:
         """Return an iterable over all built-in functions."""
         return BUILT_IN_FUNCTIONS
 
-    def value_of(self, expr: T_expr) -> Optional[Number]:
+    @identity_for_numbers
+    def value_of(self, expr: T_expr) -> Number | None:
         """Compute a numerical value of an expression, return None if it's not possible."""
-        # If numeric value possible, evaluate, otherwise return None
+        if isinstance(expr, Number):
+            return expr
         try:
             value = N(expr).round(n=NUM_DIGITS_PRECISION)
         except TypeError as e:
@@ -125,15 +155,17 @@ class SympyBackend:
             value = float(value)
         return value
 
-    def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
-        """Substitute occurrences of given symbol with an expression or numerical value."""
+    @identity_for_numbers
+    def substitute(self, expr: Expr, symbol: str, replacement: T_expr | Number) -> T_expr:
         return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
 
-    def substitute_all(self, expr: T_expr, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
+    @identity_for_numbers
+    def substitute_all(self, expr: T_expr, replacements: Mapping[str, T_expr]) -> T_expr:
         symbols_in_expr = self.free_symbols_in(expr)
         restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
         return expr.subs(restricted_replacements)
 
+    @identity_for_numbers
     def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
         """Rename all instances of given function call."""
         if old_name in BUILT_IN_FUNCTIONS:
@@ -152,12 +184,13 @@ class SympyBackend:
             lambda function: Function(new_name)(*function.args),
         )
 
+    @identity_for_numbers
     def define_function(self, expr: T_expr, func_name: str, function: Callable) -> T_expr:
         """Define an undefined function."""
         # Catch attempt to define special function names
         if func_name in BUILT_IN_FUNCTIONS:
             raise BartiqCompilationError(
-                f"Attempted to redefine the special function {func_name}; cannot " "define special functions."
+                f"Attempted to redefine the special function {func_name}; cannot define special functions."
             )
 
         # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
@@ -173,17 +206,19 @@ class SympyBackend:
     def is_constant_int(self, expr: T_expr):
         """Return True if a given expression represents a constant int and False otherwise."""
         try:
-            int(str(expr))
+            _ = int(str(expr))
             return True
         except ValueError:
             return False
 
     def serialize(self, expr: T_expr) -> str:
         """Return a textual representation of given expression."""
+        if isinstance(expr, Number):
+            return str(expr)
         return serialize_expression(expr)
 
     def compare(self, lhs: T_expr, rhs: T_expr) -> ComparisonResult:
-        difference = (lhs - rhs).expand()
+        difference = self.as_expression(lhs - rhs).expand()
         if difference == 0:
             return ComparisonResult.equal
         elif self.is_constant_int(difference):

@@ -157,11 +157,6 @@ def test_evaluate_with_functions_map(input_dict, assignments, functions_map, exp
     assert evaluated_routine == Routine(**expected_dict)
 
 
-def _nlz(num):
-    num = int(num)
-    return (num & -num).bit_length() - 1
-
-
 @pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine():
     # Compilation fails on Python 3.9 for the default recursion limit, so we increased it to make this test pass.
@@ -173,8 +168,7 @@ def test_compile_and_evaluate_double_factorization_routine():
 
     compiled_routine = compile_routine(routine)
     assignments = ["N_spatial=10", "R=54", "M=480", "b=10", "lamda=2", "N_givens=20", "Ksi_l=10"]
-    functions_map = {"nlz": _nlz}
-    evaluated_routine = evaluate(compiled_routine, assignments=assignments, functions_map=functions_map)
+    evaluated_routine = evaluate(compiled_routine, assignments=assignments)
     expected_resources = {
         "toffs": 260,
         "t_gates": 216,
