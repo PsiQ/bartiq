@@ -83,7 +83,7 @@ def compile_routine(
     backend: SymbolicBackend[T_expr] = sympy_backend,
     precompilation_stages: Iterable[PrecompilationStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
     skip_verification: bool = False,
-) -> Routine:
+) -> CompiledRoutine[T_expr]:
     if not skip_verification:
         verification_result = verify_uncompiled_routine(routine, backend=backend)
         if not verification_result:
@@ -95,16 +95,7 @@ def compile_routine(
     root_unit = compilation_unit_from_bartiq(routine, backend)
     for stage in precompilation_stages:
         root_unit = stage(root_unit, backend)
-    compiled_unit = _compile(root_unit, backend, {}, Context(root_unit.name))
-    compiled_routine = compiled_routine_to_bartiq(compiled_unit, backend)
-    if not skip_verification:
-        verification_result = verify_compiled_routine(compiled_routine, backend=backend)
-        if not verification_result:
-            warnings.warn(
-                "Found the following issues with the provided routine after the compilation has finished:"
-                f" {verification_result.problems}",
-            )
-    return compiled_routine
+    return _compile(root_unit, backend, {}, Context(root_unit.name))
 
 
 def _compile_local_variables(

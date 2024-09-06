@@ -20,6 +20,7 @@ import yaml
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
+from bartiq._routine_new import compiled_routine_to_bartiq
 from bartiq.errors import BartiqCompilationError
 from bartiq.integrations.qref import qref_to_bartiq
 from bartiq.precompilation.stages_new import introduce_port_variables
@@ -40,7 +41,7 @@ COMPILE_TEST_DATA = load_compile_test_data()
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile(routine, expected_routine):
     compiled_routine = compile_routine(routine, skip_verification=True)
-    assert compiled_routine == expected_routine
+    assert compiled_routine_to_bartiq(compiled_routine, BACKEND) == expected_routine
 
 
 def f_1_simple(x):
@@ -83,7 +84,7 @@ def test_compiling_correctly_propagates_global_functions():
 
     compiled_routine = compile_routine(routine)
 
-    assert compiled_routine.resources["X"].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
+    assert compiled_routine_to_bartiq(compiled_routine, BACKEND).resources["X"].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
 
 
 COMPILE_ERRORS_TEST_CASES = [

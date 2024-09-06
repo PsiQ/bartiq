@@ -20,6 +20,7 @@ import yaml
 
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
+from bartiq._routine_new import compiled_routine_to_bartiq
 from bartiq.integrations.qref import qref_to_bartiq
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
@@ -54,7 +55,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
-    compiled_routine = compile_routine(op)
+    compiled_routine = compiled_routine_to_bartiq(compile_routine(op), backend)
     evaluated_routine = evaluate(compiled_routine, assignments=assignments, backend=backend)
     for port_name, size in expected_sizes.items():
         assert evaluated_routine.ports[port_name].size == size
@@ -158,7 +159,7 @@ def test_evaluate_with_functions_map(input_dict, assignments, functions_map, exp
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues")
-def test_compile_and_evaluate_double_factorization_routine():
+def test_compile_and_evaluate_double_factorization_routine(backend):
     # Compilation fails on Python 3.9 for the default recursion limit, so we increased it to make this test pass.
     sys.setrecursionlimit(2000)
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
@@ -166,7 +167,7 @@ def test_compile_and_evaluate_double_factorization_routine():
 
     routine = qref_to_bartiq(qref_def)
 
-    compiled_routine = compile_routine(routine)
+    compiled_routine = compiled_routine_to_bartiq(compile_routine(routine), backend)
     assignments = ["N_spatial=10", "R=54", "M=480", "b=10", "lamda=2", "N_givens=20", "Ksi_l=10"]
     evaluated_routine = evaluate(compiled_routine, assignments=assignments)
     expected_resources = {
