@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import replace
-from typing import Optional, TypeVar, overload
+from typing import Mapping, Optional, TypeVar, overload
 
 from bartiq.compilation._common import evaluate_ports_v2, evaluate_resources_v2
 
@@ -25,16 +25,19 @@ from .._routine_new import (
 )
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
-from .types import FunctionsMap
+from .types import FunctionsMap, Number
 
 T = TypeVar("T")
 S = TypeVar("S")
 
 
+Assignments = Mapping[str, str | Number | T_expr]
+
+
 @overload
 def evaluate(
     routine: Routine,
-    assignments: list[str],
+    asignments: Assignments[T_expr],
     *,
     functions_map: Optional[FunctionsMap] = None,
 ) -> Routine:
@@ -44,7 +47,7 @@ def evaluate(
 @overload
 def evaluate(
     routine: Routine,
-    assignments: list[str],
+    assignments: Assignments[T_expr],
     *,
     backend: SymbolicBackend[T_expr],
     functions_map: Optional[FunctionsMap] = None,
@@ -83,8 +86,9 @@ def _evaluate(
     if functions_map is None:
         functions_map = {}
     compiled_routine = compiled_routine_from_bartiq(routine, backend)
-    parsed_assignments = _make_assignments_dict(assignments, backend)
-    parsed_assignments = {assignment: backend.parse_constant(value) for assignment, value in parsed_assignments.items()}
+    parsed_assignments = {
+        assignment: backend.parse_constant(backend.as_expression(value)) for assignment, value in assignments.items()
+    }
     evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
     return compiled_routine_to_bartiq(evaluated_routine, backend)
 

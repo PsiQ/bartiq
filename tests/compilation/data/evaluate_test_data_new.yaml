@@ -1,7 +1,6 @@
 # Null case
 - - {version: v1, program: {name: root, type: null}}
-  - []
-  # - {} # TODO
+  - {}
   - {version: v1, program: {name: root, type: null}}
 # Resource defined as a function of a single input param
 - - program:
@@ -14,8 +13,7 @@
         value: log2(x)
       type: null
     version: v1  
-  - [x = 120]
-  # - {x: 120}
+  - {x: 120}
   - program:
       name: root
       resources:
@@ -43,8 +41,7 @@
         value: x * y
       type: null
     version: v1  
-  - [x = 42]
-  # - {x: 42}
+  - {x: 42}
   - program:
       input_params:
       - y
@@ -84,8 +81,7 @@
         value: x * y * N * M
       type: null
     version: v1
-  - [x = 2, N = 3]
-  # - {x: 2, N: 3}
+  - {x: 2, N: 3}
   - program:
       input_params:
       - y
@@ -128,8 +124,7 @@
         value: N * y * N * M
       type: null
     version: v1
-  - [N = 3]
-  # - {N: 3}
+  - {N: 3}
   - program:
       input_params:
       - y
@@ -204,8 +199,7 @@
         value: x * y * z * N * M
       type: null
     version: v1
-  - [x = 2, N = 3, z = 4]
-  # - {x: 2, N: 3, z: 4}
+  - {x: 2, N: 3, z: 4}
   - program:
       children:
       - input_params:
@@ -351,8 +345,7 @@
         value: z * z * x * y * N * M
       type: null
     version: v1
-  - [x = 2, N = 3, z = 4]
-  # - {x: 2, N: 3, z: 4}
+  - {x: 2, N: 3, z: 4}
   - program:
       children:
       - children:
@@ -523,8 +516,7 @@
         value: N * x * y * z
       type: null
     version: v1
-  - [x = 2, N = 3, z = 4]
-  # - {x: 2, N: 3, z: 4}
+  - {x: 2, N: 3, z: 4}
   - program:
       children:
       - name: a
@@ -639,8 +631,7 @@
       name: root
       type: null
     version: v1
-  - [x = 2]
-  # - {x: 2}
+  - {x: 2}
   - program:
       children:
       - name: a_0
@@ -687,8 +678,7 @@
         value: max(a, 1)
       type: null
     version: v1
-  - [a = 2]
-  # - {a: 2}
+  - {a: 2}
   - program:
       name: root
       resources:
@@ -710,8 +700,7 @@
         value: max(a, 1)
       type: null
     version: v1
-  - [a = 2]
-  # - {a: 2}
+  - {a: 2}
   - program:
       name: root
       ports:
@@ -805,8 +794,7 @@
         size: M
       type: null
     version: v1
-  - [N = 1]
-  # - {N: 1}
+  - {N: 1}
   - program:
       children:
       - children:
@@ -904,8 +892,7 @@
       name: root
       type: null
     version: v1
-  - [x = 1]
-  # - {x: 1}
+  - {x: 1}
   - program:
       children:
       - name: a
@@ -929,7 +916,7 @@
 # Make sure evaluation doesn't fail in presence of constant size register
 - - program:
       input_params:
-      - x  # TODO: not sure if this is valid?
+      - x
       name: root
       ports:
       - direction: input
@@ -937,8 +924,7 @@
         size: '1'
       type: null
     version: v1
-  - [x = 1]
-  # - {x: 1}
+  - {x: 1}
   - program:
       name: root
       ports:
@@ -982,8 +968,7 @@
         value: Q
       type: null
     version: v1
-  - [Q = pi]
-  # - {Q: pi}
+  - {Q: pi}
   - program:
       name: root
       resources:
@@ -1003,8 +988,7 @@
         value: Q
       type: null
     version: v1
-  - [Q = sin(pi/2)]
-  # - {Q: sin(pi/2)}
+  - {Q: sin(pi/2)}
   - program:
       name: root
       resources:
@@ -1024,8 +1008,7 @@
         value: Q
       type: null
     version: v1
-  - [Q = 5*e]
-  # - {Q: 5*e}
+  - {Q: 5*e}
   - program:
       name: root
       resources:

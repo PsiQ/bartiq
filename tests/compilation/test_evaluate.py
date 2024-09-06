@@ -49,9 +49,9 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
 @pytest.mark.parametrize(
     "op, assignments, expected_sizes",
     [
-        (routine_with_passthrough(), ["N=10"], {"out_0": "10"}),
-        (routine_with_passthrough(a_out_size="N+2"), ["N=10"], {"out_0": "12"}),
-        (routine_with_two_passthroughs(), ["N=10", "M=7"], {"out_0": "10", "out_1": "7"}),
+        (routine_with_passthrough(), {"N": 10}, {"out_0": "10"}),
+        (routine_with_passthrough(a_out_size="N+2"), {"N": 10}, {"out_0": "12"}),
+        (routine_with_two_passthroughs(), {"N": 10, "M": 7}, {"out_0": "10", "out_1": "7"}),
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
@@ -113,7 +113,7 @@ def custom_function(a, b):
                 },
                 "input_params": ["N"],
             },
-            ["N = 5"],
+            {"N": 5},
             {"b.my_f": custom_function},
             {
                 "name": "root",
@@ -168,7 +168,7 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
     routine = qref_to_bartiq(qref_def)
 
     compiled_routine = compiled_routine_to_bartiq(compile_routine(routine), backend)
-    assignments = ["N_spatial=10", "R=54", "M=480", "b=10", "lamda=2", "N_givens=20", "Ksi_l=10"]
+    assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
     evaluated_routine = evaluate(compiled_routine, assignments=assignments)
     expected_resources = {
         "toffs": 260,

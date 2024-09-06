@@ -108,6 +108,7 @@ class SympyBackend:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
+    @identity_for_numbers
     def parse_constant(self, expr: T_expr) -> T_expr:
         """Parse the expression, replacing known constants while ignoring case."""
         for symbol_str, constant in MATH_CONSTANTS.items():
