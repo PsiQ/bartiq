@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Union
+from typing import Callable, TypeVar
 
 # Note: when we drop support for 3.9, we will be able to start
 # using the Number union with isinstance checks, thus eliminating
 # the need of separate NUMBER_TYPES
 NUMBER_TYPES = (int, float)
-Number = Union[int, float]
+Number = int | float
 
-FunctionsMap = dict[str, Callable]
+T_expr = TypeVar("T_expr", bound=Number)
+
+FunctionsMap = dict[str, Callable[[Number | T_expr], T_expr]]

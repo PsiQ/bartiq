@@ -29,7 +29,7 @@ class ComparisonResult(Enum):
 class SymbolicBackend(Protocol[T_expr]):
     """Protocol describing capabilities of backends used for manipulating symbolic expressions."""
 
-    def as_expression(self, value: Union[str, int, float]) -> T_expr:
+    def as_expression(self, value: T_expr | str) -> T_expr:
         """Convert given value into an expression native to this backend."""
 
     def free_symbols_in(self, expr: T_expr) -> Iterable[str]:

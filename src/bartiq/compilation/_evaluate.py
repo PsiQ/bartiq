@@ -18,11 +18,7 @@ from typing import Mapping, Optional, TypeVar, overload
 from bartiq.compilation._common import evaluate_ports_v2, evaluate_resources_v2
 
 from .. import Routine
-from .._routine_new import (
-    CompiledRoutine,
-    compiled_routine_from_bartiq,
-    compiled_routine_to_bartiq,
-)
+from .._routine_new import CompiledRoutine
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
 from .types import FunctionsMap, Number
@@ -31,31 +27,31 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
-Assignments = Mapping[str, str | Number | T_expr]
+Assignments = Mapping[str, str | T_expr]
 
 
 @overload
 def evaluate(
-    routine: Routine,
+    routine: CompiledRoutine[T_expr],
     asignments: Assignments[T_expr],
     *,
-    functions_map: Optional[FunctionsMap] = None,
-) -> Routine:
+    functions_map: FunctionsMap[T_expr] | None = None,
+) -> CompiledRoutine[T_expr]:
     pass  # pragma: no cover
 
 
 @overload
 def evaluate(
-    routine: Routine,
+    routine: CompiledRoutine[T_expr],
     assignments: Assignments[T_expr],
     *,
     backend: SymbolicBackend[T_expr],
-    functions_map: Optional[FunctionsMap] = None,
-) -> Routine:
+    functions_map: FunctionsMap[T_expr] | None = None,
+) -> CompiledRoutine[T_expr]:
     pass  # pragma: no cover
 
 
-def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None) -> Routine:
+def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None) -> CompiledRoutine[T_expr]:
     """Evaluates an estimate of a series of variable assignments.
 
     Args:
@@ -78,11 +74,11 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
 
 def _evaluate(
     compiled_routine: CompiledRoutine[T_expr],
-    assignments: list[str],
+    assignments: Assignments[T_expr],
     *,
     backend: SymbolicBackend[T_expr],
-    functions_map: Optional[FunctionsMap],
-) -> Routine:
+    functions_map: FunctionsMap[T_expr] | None = None,
+) -> CompiledRoutine[T_expr]:
     if functions_map is None:
         functions_map = {}
     parsed_assignments = {
@@ -96,7 +92,7 @@ def _evaluate_internal(
     compiled_routine: CompiledRoutine[T_expr],
     inputs: dict[str, T_expr],
     backend: SymbolicBackend[T_expr],
-    functions_map: Optional[FunctionsMap],
+    functions_map: FunctionsMap[T_expr] | None = None,
 ) -> CompiledRoutine[T_expr]:
     return replace(
         compiled_routine,
@@ -108,11 +104,3 @@ def _evaluate_internal(
             for name, child in compiled_routine.children.items()
         },
     )
-
-
-def _make_assignments_dict(assignments: list[str], backend: SymbolicBackend[T_expr]) -> dict[str, T_expr]:
-    assignment_map: dict[str, T_expr] = {}
-    for assignment in assignments:
-        lhs, rhs = assignment.split("=")
-        assignment_map[lhs.strip()] = backend.as_expression(rhs.strip())
-    return assignment_map
