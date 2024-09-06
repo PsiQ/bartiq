@@ -69,7 +69,7 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
         A new estimate with variables assigned to the desired values.
     """
     return _evaluate(
-        routine=routine,
+        compiled_routine=routine,
         assignments=assignments,
         backend=backend,
         functions_map=functions_map,
@@ -77,7 +77,7 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
 
 
 def _evaluate(
-    routine: Routine,
+    compiled_routine: CompiledRoutine[T_expr],
     assignments: list[str],
     *,
     backend: SymbolicBackend[T_expr],
@@ -85,12 +85,11 @@ def _evaluate(
 ) -> Routine:
     if functions_map is None:
         functions_map = {}
-    compiled_routine = compiled_routine_from_bartiq(routine, backend)
     parsed_assignments = {
         assignment: backend.parse_constant(backend.as_expression(value)) for assignment, value in assignments.items()
     }
     evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
-    return compiled_routine_to_bartiq(evaluated_routine, backend)
+    return evaluated_routine
 
 
 def _evaluate_internal(

@@ -20,7 +20,7 @@ import yaml
 
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
-from bartiq._routine_new import compiled_routine_to_bartiq
+from bartiq._routine_new import compiled_routine_from_bartiq, compiled_routine_to_bartiq
 from bartiq.integrations.qref import qref_to_bartiq
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
@@ -40,7 +40,9 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     from bartiq.errors import BartiqCompilationError
 
     try:
-        evaluated_routine = evaluate(qref_to_bartiq(input_dict), assignments, backend=backend)
+        compiled_routine = compiled_routine_from_bartiq(qref_to_bartiq(input_dict), backend)
+        evaluated_routine = evaluate(compiled_routine, assignments, backend=backend)
+        evaluated_routine = compiled_routine_to_bartiq(evaluated_routine, backend)
         assert evaluated_routine == qref_to_bartiq(expected_dict)
     except BartiqCompilationError:  # This is to get rid of the "Non-trivial input sizes not yet supported"
         pass
@@ -55,8 +57,8 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
-    compiled_routine = compiled_routine_to_bartiq(compile_routine(op), backend)
-    evaluated_routine = evaluate(compiled_routine, assignments=assignments, backend=backend)
+    compiled_routine = compile_routine(op)
+    evaluated_routine = compiled_routine_to_bartiq(evaluate(compiled_routine, assignments=assignments, backend=backend), backend)
     for port_name, size in expected_sizes.items():
         assert evaluated_routine.ports[port_name].size == size
 
@@ -154,8 +156,8 @@ def custom_function(a, b):
     ],
 )
 def test_evaluate_with_functions_map(input_dict, assignments, functions_map, expected_dict, backend):
-    evaluated_routine = evaluate(Routine(**input_dict), assignments, backend=backend, functions_map=functions_map)
-    assert evaluated_routine == Routine(**expected_dict)
+    evaluated_routine = evaluate(compiled_routine_from_bartiq(Routine(**input_dict), backend), assignments, backend=backend, functions_map=functions_map)
+    assert compiled_routine_to_bartiq(evaluated_routine, backend) == Routine(**expected_dict)
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues")
@@ -167,7 +169,7 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
 
     routine = qref_to_bartiq(qref_def)
 
-    compiled_routine = compiled_routine_to_bartiq(compile_routine(routine), backend)
+    compiled_routine = compile_routine(routine)
     assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
     evaluated_routine = evaluate(compiled_routine, assignments=assignments)
     expected_resources = {
