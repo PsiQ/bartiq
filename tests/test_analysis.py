@@ -9,7 +9,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
+# See the License for the sympyecific language governing permissions and
 # limitations under the License.
 
 
@@ -158,7 +158,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "L-BFGS-B",
                 "tol": 1e-6,
-                "options": {"disp": False},
+                "options": {"disympy": False},
             },
             math.pi,
             -1.0,
@@ -175,7 +175,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "Nelder-Mead",
                 "tol": 1e-6,
-                "options": {"disp": False},
+                "options": {"disympy": False},
             },
             0.0,
             0.0,
@@ -198,15 +198,14 @@ def test_minimize_scipy(
     assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
 
 
-lamda = sympy.symbols("lamda")
-
 df_active_volume = (
-    f"(2*ceiling(1.5*Max(18, 16*{lamda} + 32, 39*{lamda} + 47, 55*{lamda} + 54, 65*{lamda} + 54, "
-    f"16*{lamda} + ceiling(log(61/{lamda}, 2)) + 11, 39*{lamda} + ceiling(log(60/{lamda}, 2)) + 21, "
-    f"55*{lamda} + ceiling(log(37200/{lamda}, 2)) + 29, 65*{lamda} + ceiling(log(2400/{lamda}, 2)) + 42)) + 169)*"
-    f"(2*Max(18, 16*{lamda} + 32, 39*{lamda} + 47, 55*{lamda} + 54, 65*{lamda} + 54, "
-    f"16*{lamda} + ceiling(log(61/{lamda}, 2)) + 11, 39*{lamda} + ceiling(log(60/{lamda}, 2)) + 21, "
-    f"55*{lamda} + ceiling(log(37200/{lamda}, 2)) + 29, 65*{lamda} + ceiling(log(2400/{lamda}, 2)) + 42) + 112)"
+    "(2*ceiling(1.5*"
+    "Max(18, 16*lamda + 32, 39*lamda + 47, 55*lamda + 54, 65*lamda + 54, 16*lamda + ceiling(log(61/lamda)/log(2)) + 11,"
+    "39*lamda + ceiling(log(60/lamda)/log(2)) + 21, "
+    "55*lamda + ceiling(log(37200/lamda)/log(2)) + 29, 65*lamda + ceiling(log(2400/lamda)/log(2)) + 42)) + 169)*"
+    "(2*Max(18, 16*lamda + 32, 39*lamda + 47, 55*lamda + 54, 65*lamda + 54, "
+    "16*lamda + ceiling(log(61/lamda)/log(2)) + 11, 39*lamda + ceiling(log(60/lamda)/log(2)) + 21, "
+    "55*lamda + ceiling(log(37200/lamda)/log(2)) + 29, 65*lamda + ceiling(log(2400/lamda)/log(2)) + 42) + 112)"
 )
 
 
@@ -247,5 +246,4 @@ def test_minimize_df_active_volume(lamda_initial, lamda_bounds, expected_range):
         optimizer="gradient_descent",
         optimizer_kwargs=optimizer_kwargs,
     )
-    print(result["optimal_value"])
     assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
