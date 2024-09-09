@@ -18,12 +18,13 @@
 
 from __future__ import annotations
 
+from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from functools import singledispatchmethod
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
 
 import sympy
-from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
+from sympy import Expr, Function, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
@@ -48,6 +49,7 @@ T_expr: TypeAlias = Expr | Number
 T = TypeVar("T")
 P = ParamSpec("P")
 
+
 MATH_CONSTANTS = {
     "pi": sympy.pi,
     "E": sympy.exp(1),
@@ -56,29 +58,32 @@ MATH_CONSTANTS = {
 }
 
 
-def empty_for_numbers(
-    func: Callable[Concatenate[SympyBackend, Expr, P], Iterable[T]]
-) -> Callable[Concatenate[SympyBackend, T_expr, P], Iterable[T]]:
+ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
+TExprTransformer = Callable[Concatenate["SympyBackend", T_expr, P], T]
+
+
+def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer[P, Iterable[T]]:
     def _inner(backend: SympyBackend, expr: T_expr, *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:
-        if isinstance(expr, Number):
-            return ()
-        return func(backend, expr, *args, **kwargs)
+        return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
 
 
-def identity_for_numbers(
-    func: Callable[Concatenate[SympyBackend, Expr, P], T_expr]
-) -> Callable[Concatenate[SympyBackend, T_expr, P], T_expr]:
-    def _inner(backend: SympyBackend, expr: T_expr, *args: P.args, **kwargs: P.kwargs) -> T_expr:
-        if isinstance(expr, Number):
-            return expr
-        return func(backend, expr, *args, **kwargs)
+def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransformer[P, T | Number]:
+    def _inner(backend: SympyBackend, expr: T_expr, *args: P.args, **kwargs: P.kwargs) -> T | Number:
+        return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
 
 
-def parse_to_sympy(expression: str, debug=False) -> T_expr:
+class _SympyParser(Protocol[P]):
+
+    @abstractmethod
+    def __call__(self, expression: str, *args: P.args, **kwargs: P.kwargs) -> T_expr:
+        pass
+
+
+def parse_to_sympy(expression: str, debug: bool = False) -> T_expr:
     """Parse given mathematical expression into a sympy expression.
 
     Args:
@@ -93,7 +98,7 @@ def parse_to_sympy(expression: str, debug=False) -> T_expr:
 
 class SympyBackend:
 
-    def __init__(self, parse_function=parse_to_sympy):
+    def __init__(self, parse_function: _SympyParser[P] = parse_to_sympy):
         self.parse = parse_function
 
     @singledispatchmethod
@@ -109,7 +114,7 @@ class SympyBackend:
         return self._as_expression(value)
 
     @identity_for_numbers
-    def parse_constant(self, expr: T_expr) -> T_expr:
+    def parse_constant(self, expr: Expr) -> T_expr:
         """Parse the expression, replacing known constants while ignoring case."""
         for symbol_str, constant in MATH_CONSTANTS.items():
             expr = expr.subs(Symbol(symbol_str.casefold()), constant)
@@ -119,28 +124,17 @@ class SympyBackend:
         return expr
 
     @empty_for_numbers
-    def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
+    def free_symbols_in(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
-        return tuple(map(str, expr.free_symbols))
-
-    @empty_for_numbers
-    def functions_in(self, expr: T_expr) -> Iterable[str]:
-        """Returns the (non-built-in) functions referenced in the expression."""
-        return [
-            func_name
-            for atom in expr.atoms(*SYMPY_USER_FUNCTION_TYPES)
-            if (func_name := str(type(atom))) not in self.reserved_functions()
-        ]
+        return tuple(map(str, expr.free_symbols))  # type: ignore
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over all built-in functions."""
         return BUILT_IN_FUNCTIONS
 
     @identity_for_numbers
-    def value_of(self, expr: T_expr) -> Number | None:
+    def value_of(self, expr: Expr) -> Number | None:
         """Compute a numerical value of an expression, return None if it's not possible."""
-        if isinstance(expr, Number):
-            return expr
         try:
             value = N(expr).round(n=NUM_DIGITS_PRECISION)
         except TypeError as e:
@@ -161,31 +155,12 @@ class SympyBackend:
         return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
 
     @identity_for_numbers
-    def substitute_all(self, expr: T_expr, replacements: Mapping[str, T_expr]) -> T_expr:
+    def substitute_all(self, expr: Expr, replacements: Mapping[str, T_expr]) -> T_expr:
         symbols_in_expr = self.free_symbols_in(expr)
         restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
         return expr.subs(restricted_replacements)
 
-    @identity_for_numbers
-    def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
-        """Rename all instances of given function call."""
-        if old_name in BUILT_IN_FUNCTIONS:
-            raise BartiqCompilationError(
-                f"Attempted to rename the special function {old_name} (to {new_name}); cannot rename special functions."
-            )
-        if new_name in BUILT_IN_FUNCTIONS:
-            raise BartiqCompilationError(
-                f"Attempted to rename the function {old_name} to the special function {new_name}); "
-                " cannot rename functions to special functions."
-            )
-
-        # Rename the function
-        return expr.replace(
-            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == old_name,
-            lambda function: Function(new_name)(*function.args),
-        )
-
-    @identity_for_numbers
+    # @identity_for_numbers
     def define_function(self, expr: T_expr, func_name: str, function: Callable) -> T_expr:
         """Define an undefined function."""
         # Catch attempt to define special function names
@@ -226,6 +201,10 @@ class SympyBackend:
             return ComparisonResult.unequal
         else:
             return ComparisonResult.ambigous
+
+    @property
+    def expr_type(self) -> type[T_expr]:
+        return T_expr
 
 
 # Define sympy_backend for backwards compatibility

@@ -13,11 +13,11 @@
 # limitations under the License.
 
 from enum import Enum, auto
-from typing import Callable, Iterable, Mapping, Optional, Protocol, TypeVar, Union
+from typing import Callable, Iterable, Mapping, Optional, Protocol, Type, TypeVar, Union
 
 from ..compilation.types import Number
 
-T_expr = TypeVar("T_expr", bound=Number, contravariant=True)
+T_expr = TypeVar("T_expr")
 
 
 class ComparisonResult(Enum):
@@ -29,40 +29,36 @@ class ComparisonResult(Enum):
 class SymbolicBackend(Protocol[T_expr]):
     """Protocol describing capabilities of backends used for manipulating symbolic expressions."""
 
+    expr_type: type[T_expr]
+
     def as_expression(self, value: T_expr | str) -> T_expr:
         """Convert given value into an expression native to this backend."""
 
-    def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
+    def free_symbols_in(self, expr: T_expr, /) -> Iterable[str]:
         """Return an iterable over free symbols in given expression."""
-
-    def functions_in(self, expr: T_expr) -> Iterable[str]:
-        """Return an iterable over functions in expr."""
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over reserved functions."""
 
-    def value_of(self, expr: T_expr) -> Optional[Number]:
+    def value_of(self, expr: T_expr, /) -> Optional[Number]:
         """Return value of given expression."""
 
-    def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
+    def substitute(self, expr: T_expr, /, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
         """Substitute all occurrences of symbol in expr with given replacement."""
 
-    def substitute_all(self, expr: T_expr, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
+    def substitute_all(self, expr: T_expr, /, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
         """Substitute all occurrences of all symbols in expr with given replacements."""
 
-    def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
-        """Rename all instances of given function call."""
-
-    def define_function(self, expr: T_expr, func_name: str, function: Callable) -> T_expr:
+    def define_function(self, expr: T_expr, /, func_name: str, function: Callable) -> T_expr:
         """Define an undefined function."""
 
-    def is_constant_int(self, expr: T_expr) -> bool:
+    def is_constant_int(self, expr: T_expr, /) -> bool:
         """Return True if a given expression represents a constant int and False otherwise."""
 
-    def serialize(self, expr: T_expr) -> str:
+    def serialize(self, expr: T_expr, /) -> str:
         """Return a textual representation of given expression."""
 
-    def parse_constant(self, expr: T_expr) -> T_expr:
+    def parse_constant(self, expr: T_expr, /) -> T_expr:
         """Parse the expression, replacing known constants while ignoring case."""
 
     def compare(self, lhs: T_expr, rhs: T_expr) -> ComparisonResult:
