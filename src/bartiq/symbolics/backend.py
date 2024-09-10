@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from collections.abc import Iterable, Mapping
 from enum import Enum, auto
-from typing import Callable, Iterable, Mapping, Optional, Protocol, TypeVar, Union
+from typing import Callable, Protocol, TypeVar
 
 T_expr = TypeVar("T_expr")
 Number = int | float
@@ -39,13 +39,13 @@ class SymbolicBackend(Protocol[T_expr]):
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over reserved functions."""
 
-    def value_of(self, expr: T_expr, /) -> Optional[Number]:
+    def value_of(self, expr: T_expr, /) -> Number | None:
         """Return value of given expression."""
 
-    def substitute(self, expr: T_expr, /, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
+    def substitute(self, expr: T_expr, /, symbol: str, replacement: T_expr | Number) -> T_expr:
         """Substitute all occurrences of symbol in expr with given replacement."""
 
-    def substitute_all(self, expr: T_expr, /, replacements: Mapping[str, Union[T_expr, Number]]) -> T_expr:
+    def substitute_all(self, expr: T_expr, /, replacements: Mapping[str, T_expr | Number]) -> T_expr:
         """Substitute all occurrences of all symbols in expr with given replacements."""
 
     def define_function(self, expr: T_expr, /, func_name: str, function: Callable) -> T_expr:
