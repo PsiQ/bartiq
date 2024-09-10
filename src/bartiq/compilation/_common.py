@@ -19,6 +19,8 @@ from ..symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
 
+FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
+
 
 def _evaluate_expr(expr: TExpr[T], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]) -> TExpr[T]:
     expr = backend.substitute_all(expr, inputs)
@@ -28,20 +30,23 @@ def _evaluate_expr(expr: TExpr[T], inputs: dict[str, TExpr[T]], backend: Symboli
 def evaluate_ports(
     ports: dict[str, Port[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
 ) -> dict[str, Port[T]]:
-    return {name: replace(port, size=_evaluate_expr(port.size, inputs, backend)) for name, port in ports.items()}
+    return {
+        name: replace(port, size=_evaluate_expr(port.size, inputs, backend))  # type: ignore
+        for name, port in ports.items()
+    }
 
 
 def evaluate_resources(
     resources: dict[str, Resource[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
 ) -> dict[str, Resource[T]]:
     return {
-        name: replace(resource, value=_evaluate_expr(resource.value, inputs, backend))
+        name: replace(resource, value=_evaluate_expr(resource.value, inputs, backend))  # type: ignore
         for name, resource in resources.items()
     }
 
 
 def _evaluate_and_define_functions(
-    expr: TExpr[T], inputs: dict[str, TExpr[T]], custom_funcs: dict[str, Callable], backend: SymbolicBackend[T]
+    expr: TExpr[T], inputs: dict[str, TExpr[T]], custom_funcs: FunctionsMap[T], backend: SymbolicBackend[T]
 ) -> TExpr[T]:
     expr = backend.substitute_all(expr, inputs)
     for func_name, func in custom_funcs.items():
@@ -52,11 +57,13 @@ def _evaluate_and_define_functions(
 def evaluate_ports_v2(
     ports: dict[str, Port[T]],
     inputs: dict[str, TExpr[T]],
-    custom_funcs: dict[str, Callable],
+    custom_funcs: FunctionsMap[T],
     backend: SymbolicBackend[T],
 ) -> dict[str, Port[T]]:
     return {
-        name: replace(port, size=_evaluate_and_define_functions(port.size, inputs, custom_funcs, backend))
+        name: replace(
+            port, size=_evaluate_and_define_functions(port.size, inputs, custom_funcs, backend)  # type: ignore
+        )
         for name, port in ports.items()
     }
 
@@ -64,10 +71,13 @@ def evaluate_ports_v2(
 def evaluate_resources_v2(
     resources: dict[str, Resource[T]],
     inputs: dict[str, TExpr[T]],
-    custom_funcs: dict[str, Callable],
+    custom_funcs: FunctionsMap[T],
     backend: SymbolicBackend[T],
 ) -> dict[str, Resource[T]]:
     return {
-        name: replace(resource, value=_evaluate_and_define_functions(resource.value, inputs, custom_funcs, backend))
+        name: replace(
+            resource,
+            value=_evaluate_and_define_functions(resource.value, inputs, custom_funcs, backend),  # type: ignore
+        )
         for name, resource in resources.items()
     }

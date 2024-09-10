@@ -65,7 +65,9 @@ class ConstraintValidationError(ValueError):
         super().__init__(original_constraint, compiled_constraint)
 
 
-def _compile_constraint(constraint: Constraint[T], inputs: dict[str, T], backend: SymbolicBackend[T]) -> Constraint[T]:
+def _compile_constraint(
+    constraint: Constraint[T], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
+) -> Constraint[T]:
     lhs = backend.substitute_all(constraint.lhs, inputs)
     rhs = backend.substitute_all(constraint.rhs, inputs)
 
@@ -104,14 +106,14 @@ def compile_routine(
 
 
 def _compile_local_variables(
-    local_variables: dict[str, T], inputs: dict[str, T], backend: SymbolicBackend[T]
-) -> dict[str, T]:
+    local_variables: dict[str, TExpr[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
+) -> dict[str, TExpr[T]]:
     predecessors: dict[str, set[str]] = {
         var: set(other_var for other_var in backend.free_symbols_in(expr) if other_var in local_variables)
         for var, expr in local_variables.items()
     }
 
-    compiled_variables: dict[str, T] = {}
+    compiled_variables: dict[str, TExpr[T]] = {}
     extended_inputs = inputs.copy()
     for variable in TopologicalSorter(predecessors).static_order():
         compiled_value = backend.substitute_all(local_variables[variable], extended_inputs)
@@ -120,9 +122,9 @@ def _compile_local_variables(
 
 
 def _compile_linked_params(
-    inputs: dict[str, T], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T]
-) -> ParameterTree[T]:
-    parameter_map: ParameterTree[T] = defaultdict(dict)
+    inputs: dict[str, TExpr[T]], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T]
+) -> ParameterTree[TExpr[T]]:
+    parameter_map: ParameterTree[TExpr[T]] = defaultdict(dict)
 
     for source, targets in linked_params.items():
         evaluated_source = backend.substitute_all(backend.as_expression(source), inputs)
@@ -146,8 +148,8 @@ def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[str | Non
 
 def _param_tree_from_compiled_ports(
     connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T]]
-) -> ParameterTree[T]:
-    param_map = defaultdict[str | None, dict[str, T]](dict)
+) -> ParameterTree[TExpr[T]]:
+    param_map = defaultdict[str | None, dict[str, TExpr[T]]](dict)
     for source_port, target in connections_map.items():
         param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
     return param_map
@@ -156,7 +158,7 @@ def _param_tree_from_compiled_ports(
 def _compile(
     routine: Routine[T],
     backend: SymbolicBackend[T],
-    inputs: dict[str, T],
+    inputs: dict[str, TExpr[T]],
     context: Context,
 ) -> CompiledRoutine[T]:
     try:

@@ -4,7 +4,7 @@ from typing import Callable, TypeVar
 
 from .._routine import Constraint, PortDirection, Resource, ResourceType, Routine
 from ..compilation._utilities import is_single_parameter
-from ..symbolics.backend import SymbolicBackend
+from ..symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
 
@@ -36,8 +36,8 @@ def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend
             name=res_name,
             type=ResourceType.additive,
             value=sum(
-                (backend.as_expression(f"{child_name}.{res_name}") for child_name in children),
-                start=backend.as_expression(0),
+                (backend.as_expression(f"{child_name}.{res_name}") for child_name in children),  # type: ignore
+                0,
             ),
         )
         for res_name, children in child_resources_map.items()
@@ -52,7 +52,7 @@ def promote_unlinked_inputs(routine: Routine[T], backend: SymbolicBackend[T]) ->
     all_targets = [tuple(target) for _, targets in routine.linked_params.items() for target in targets]
 
     additional_param_links = {
-        f"{child.name}.{input}": [(child.name, input)]
+        f"{child.name}.{input}": ((child.name, input),)
         for child in routine.children.values()
         for input in child.input_params
         if (child.name, input) not in all_targets
@@ -67,7 +67,7 @@ def promote_unlinked_inputs(routine: Routine[T], backend: SymbolicBackend[T]) ->
 @postorder_transform
 def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     new_ports = {}
-    additional_local_variables: dict[str, T] = {}
+    additional_local_variables: dict[str, TExpr[T]] = {}
     new_input_params: list[str] = []
     additional_constraints: list[Constraint[T]] = []
     for port in routine.ports.values():
@@ -101,7 +101,7 @@ def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -
 
 
 def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
-    new_linked_params: dict[str, list[tuple[str, str]]] = {}
+    new_linked_params: dict[str, tuple[tuple[str, str], ...]] = {}
     children = routine.children.copy()
     for source_param, targets in routine.linked_params.items():
         current_links: list[tuple[str, str]] = []
@@ -116,14 +116,14 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
                 children[child_path] = replace(
                     children[child_path],
                     linked_params={
-                        new_input_param: [(further_path, target_param)],
+                        new_input_param: ((further_path, target_param),),
                         **children[child_path].linked_params,
                     },
                 )
                 current_links.append((child_path, new_input_param))
             else:
                 current_links.append((path, target_param))
-        new_linked_params[source_param] = current_links
+        new_linked_params[source_param] = tuple(current_links)
     return replace(
         routine,
         linked_params=new_linked_params,

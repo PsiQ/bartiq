@@ -14,11 +14,11 @@
 
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import Callable, TypeVar, overload
+from typing import Callable, TypeVar
 
 from .._routine import CompiledRoutine
 from ..symbolics import sympy_backend
-from ..symbolics.backend import Number, SymbolicBackend, TExpr
+from ..symbolics.backend import SymbolicBackend, TExpr
 from ._common import evaluate_ports_v2, evaluate_resources_v2
 
 T = TypeVar("T")
@@ -26,31 +26,16 @@ S = TypeVar("S")
 
 
 Assignments = Mapping[str, str | TExpr[T]]
-FunctionsMap = dict[str, Callable[[Number | TExpr[T]], TExpr[T]]]
+FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 
-@overload
-def evaluate(
-    routine: CompiledRoutine[T],
-    asignments: Assignments[T],
-    *,
-    functions_map: FunctionsMap[T] | None = None,
-) -> CompiledRoutine[T]:
-    pass  # pragma: no cover
-
-
-@overload
 def evaluate(
     routine: CompiledRoutine[T],
     assignments: Assignments[T],
     *,
-    backend: SymbolicBackend[T],
+    backend: SymbolicBackend[T] = sympy_backend,
     functions_map: FunctionsMap[T] | None = None,
 ) -> CompiledRoutine[T]:
-    pass  # pragma: no cover
-
-
-def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None) -> CompiledRoutine[T]:
     """Evaluates an estimate of a series of variable assignments.
 
     Args:
@@ -91,7 +76,7 @@ def _evaluate_internal(
     compiled_routine: CompiledRoutine[T],
     inputs: dict[str, TExpr[T]],
     backend: SymbolicBackend[T],
-    functions_map: FunctionsMap[T] | None = None,
+    functions_map: FunctionsMap[T],
 ) -> CompiledRoutine[T]:
     return replace(
         compiled_routine,
