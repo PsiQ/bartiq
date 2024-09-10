@@ -20,8 +20,8 @@ import yaml
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
-from bartiq import compile_routine, evaluate
-from bartiq._routine import compiled_routine_from_qref, routine_to_qref
+from bartiq import CompiledRoutine, compile_routine, evaluate
+from bartiq._routine import routine_to_qref
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -40,7 +40,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     from bartiq.errors import BartiqCompilationError
 
     try:
-        compiled_routine = compiled_routine_from_qref(SchemaV1(**input_dict), backend)
+        compiled_routine = CompiledRoutine.from_qref(SchemaV1(**input_dict), backend)
         evaluated_routine = evaluate(compiled_routine, assignments, backend=backend)
         evaluated_routine = routine_to_qref(evaluated_routine, backend)
         assert evaluated_routine == SchemaV1(**expected_dict)
@@ -130,7 +130,7 @@ def custom_function(a, b):
 )
 def test_evaluate_with_functions_map(input_dict, assignments, functions_map, expected_dict, backend):
     evaluated_routine = evaluate(
-        compiled_routine_from_qref(RoutineV1(**input_dict), backend),
+        CompiledRoutine.from_qref(RoutineV1(**input_dict), backend),
         assignments,
         backend=backend,
         functions_map=functions_map,
