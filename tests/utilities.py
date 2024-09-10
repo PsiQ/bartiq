@@ -14,8 +14,6 @@
 
 from qref.schema_v1 import RoutineV1
 
-from bartiq._routine import Routine
-
 
 def routine_with_passthrough(a_out_size="N"):
     """Routine with a passthrough, used for testing."""

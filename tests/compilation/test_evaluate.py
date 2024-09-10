@@ -21,9 +21,7 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine, evaluate
-from bartiq._routine import Routine
 from bartiq._routine_new import compiled_routine_from_qref, routine_to_qref
-from bartiq.integrations.qref import qref_to_bartiq
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
