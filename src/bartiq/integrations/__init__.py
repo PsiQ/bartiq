@@ -14,12 +14,9 @@
 
 try:
     from .jupyter.routine_explorer import explore_routine
-
-    additional_all = ["explore_routine"]
 except ImportError:
-    additional_all = []
+    pass
 
 from .latex import routine_to_latex
-from .qref import bartiq_to_qref, qref_to_bartiq
 
-__all__ = ["bartiq_to_qref", "qref_to_bartiq", "rotine_to_latex"] + additional_all
+__all__ = ["routine_to_latex", "explore_routine"]
