@@ -21,8 +21,8 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
-from bartiq.errors import BartiqCompilationError
 from bartiq.compilation.preprocessing import introduce_port_variables
+from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
 
 BACKEND = sympy_backend
@@ -93,13 +93,7 @@ COMPILE_ERRORS_TEST_CASES = [
         RoutineV1(
             name="root",
             type="dummy",
-            children=[
-                {
-                    "name": "a",
-                    "type": "dummy",
-                    "ports": [{"name": "in_bar", "direction": "input", "size": 2}]
-                }
-            ],
+            children=[{"name": "a", "type": "dummy", "ports": [{"name": "in_bar", "direction": "input", "size": 2}]}],
             ports=[{"name": "in_foo", "direction": "input", "size": 1}],
             connections=[{"source": "in_foo", "target": "a.in_bar"}],
         ),

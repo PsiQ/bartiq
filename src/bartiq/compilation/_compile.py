@@ -30,16 +30,13 @@ from .._routine_new import (
     ConstraintStatus,
     Endpoint,
     Port,
-    compiled_routine_to_qref,
+    routine_to_qref,
 )
 from ..errors import BartiqCompilationError
-from .preprocessing import (
-    DEFAULT_PRECOMPILATION_STAGES,
-    PrecompilationStage,
-)
 from ..symbolics import sympy_backend
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T_expr
 from ._common import evaluate_ports, evaluate_resources
+from .preprocessing import DEFAULT_PRECOMPILATION_STAGES, PreprocessingStage
 
 ParameterTree = dict[str | None, dict[str, T_expr]]
 
@@ -50,7 +47,7 @@ class CompilationResult(Generic[T_expr]):
     _backend: SymbolicBackend[T_expr]
 
     def to_qref(self) -> SchemaV1:
-        return compiled_routine_to_qref(self.compiled_routine, self._backend)
+        return routine_to_qref(self.compiled_routine, self._backend)
 
 
 @dataclass(frozen=True)
@@ -91,7 +88,7 @@ def compile_routine(
     routine: SchemaV1 | RoutineV1,
     *,
     backend: SymbolicBackend[T_expr] = sympy_backend,
-    precompilation_stages: Iterable[PrecompilationStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
+    precompilation_stages: Iterable[PreprocessingStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
     skip_verification: bool = False,
 ) -> CompilationResult[T_expr]:
     if not skip_verification:

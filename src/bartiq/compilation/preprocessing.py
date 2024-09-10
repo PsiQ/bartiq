@@ -7,10 +7,10 @@ from .._routine_new import CompilationUnit, Constraint, Resource
 from ..compilation._utilities import is_single_parameter
 from ..symbolics.backend import SymbolicBackend, T_expr
 
-PrecompilationStage = Callable[[CompilationUnit[T_expr], SymbolicBackend[T_expr]], CompilationUnit[T_expr]]
+PreprocessingStage = Callable[[CompilationUnit[T_expr], SymbolicBackend[T_expr]], CompilationUnit[T_expr]]
 
 
-def postorder_transform(transform: PrecompilationStage[T_expr]) -> PrecompilationStage[T_expr]:
+def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingStage[T_expr]:
     def _inner(unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> CompilationUnit[T_expr]:
         return transform(
             replace(unit, children={child.name: _inner(child, backend) for child in unit.children.values()}), backend
