@@ -1,6 +1,6 @@
 from qref.schema_v1 import RoutineV1
 
-from bartiq._routine_new import CompilationUnit, routine_to_qref
+from bartiq._routine import Routine, routine_to_qref
 from bartiq.compilation.preprocessing import (
     PreprocessingStage,
     add_default_additive_resources,
@@ -8,7 +8,7 @@ from bartiq.compilation.preprocessing import (
 
 
 def _apply_stage(qref_obj: RoutineV1, stage: PreprocessingStage, backend) -> RoutineV1:
-    routine = CompilationUnit.from_qref(qref_obj, backend)
+    routine = Routine.from_qref(qref_obj, backend)
     preprocessed_routine = stage(routine, backend)
     return routine_to_qref(preprocessed_routine, backend).program
 

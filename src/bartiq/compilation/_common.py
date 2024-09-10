@@ -1,7 +1,7 @@
 from dataclasses import replace
 from typing import Callable
 
-from .._routine_new import Port, Resource
+from .._routine import Port, Resource
 from ..symbolics.backend import SymbolicBackend, T_expr
 
 

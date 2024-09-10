@@ -14,20 +14,19 @@
 
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import TypeVar, overload
+from typing import Callable, TypeVar, overload
 
-from bartiq.compilation._common import evaluate_ports_v2, evaluate_resources_v2
-
-from .._routine_new import CompiledRoutine
+from .._routine import CompiledRoutine
 from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T_expr
-from .types import FunctionsMap
+from ..symbolics.backend import Number, SymbolicBackend, T_expr
+from ._common import evaluate_ports_v2, evaluate_resources_v2
 
 T = TypeVar("T")
 S = TypeVar("S")
 
 
 Assignments = Mapping[str, str | T_expr]
+FunctionsMap = dict[str, Callable[[Number | T_expr], T_expr]]
 
 
 @overload

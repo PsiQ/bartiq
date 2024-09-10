@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from enum import Enum, auto
-from typing import Callable, Iterable, Mapping, Optional, Protocol, Type, TypeVar, Union
-
-from ..compilation.types import Number
+from typing import Callable, Iterable, Mapping, Optional, Protocol, TypeVar, Union
 
 T_expr = TypeVar("T_expr")
+Number = int | float
 
 
 class ComparisonResult(Enum):

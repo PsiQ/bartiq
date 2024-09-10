@@ -24,15 +24,13 @@ from functools import singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
 
 import sympy
-from sympy import Expr, Function, N, Order, Symbol, symbols
+from sympy import Expr, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
-from bartiq.symbolics.backend import ComparisonResult
-
-from ..compilation.types import Number
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
+from .backend import ComparisonResult, Number
 from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
 from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression

@@ -2,16 +2,15 @@ from collections import defaultdict
 from dataclasses import replace
 from typing import Callable
 
-from .._routine import PortDirection, ResourceType
-from .._routine_new import CompilationUnit, Constraint, Resource
+from .._routine import Constraint, PortDirection, Resource, ResourceType, Routine
 from ..compilation._utilities import is_single_parameter
 from ..symbolics.backend import SymbolicBackend, T_expr
 
-PreprocessingStage = Callable[[CompilationUnit[T_expr], SymbolicBackend[T_expr]], CompilationUnit[T_expr]]
+PreprocessingStage = Callable[[Routine[T_expr], SymbolicBackend[T_expr]], Routine[T_expr]]
 
 
 def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingStage[T_expr]:
-    def _inner(unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> CompilationUnit[T_expr]:
+    def _inner(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
         return transform(
             replace(unit, children={child.name: _inner(child, backend) for child in unit.children.values()}), backend
         )
@@ -20,9 +19,7 @@ def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingS
 
 
 @postorder_transform
-def add_default_additive_resources(
-    unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]
-) -> CompilationUnit[T_expr]:
+def add_default_additive_resources(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     child_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
     for child in unit.children.values():
@@ -45,7 +42,7 @@ def add_default_additive_resources(
 
 
 @postorder_transform
-def promote_unlinked_inputs(unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> CompilationUnit[T_expr]:
+def promote_unlinked_inputs(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     all_targets = [tuple(target) for _, targets in unit.linked_params.items() for target in targets]
 
     additional_param_links = {
@@ -62,9 +59,7 @@ def promote_unlinked_inputs(unit: CompilationUnit[T_expr], backend: SymbolicBack
 
 
 @postorder_transform
-def _introduce_port_variables(
-    unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]
-) -> CompilationUnit[T_expr]:
+def _introduce_port_variables(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     new_ports = {}
     additional_local_variables: dict[str, T_expr] = {}
     new_input_params: list[str] = []
@@ -93,15 +88,13 @@ def _introduce_port_variables(
     )
 
 
-def introduce_port_variables(
-    unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]
-) -> CompilationUnit[T_expr]:
+def introduce_port_variables(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     return replace(
         unit, children={name: _introduce_port_variables(child, backend) for name, child in unit.children.items()}
     )
 
 
-def propagate_linked_params(unit: CompilationUnit[T_expr], backend: SymbolicBackend[T_expr]) -> CompilationUnit[T_expr]:
+def propagate_linked_params(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     new_linked_params: dict[str, list[tuple[str, str]]] = {}
     children = unit.children.copy()
     for source_param, targets in unit.linked_params.items():

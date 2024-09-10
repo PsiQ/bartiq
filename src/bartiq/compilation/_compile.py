@@ -23,13 +23,13 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 
-from .._routine_new import (
-    CompilationUnit,
+from .._routine import (
     CompiledRoutine,
     Constraint,
     ConstraintStatus,
     Endpoint,
     Port,
+    Routine,
     routine_to_qref,
 )
 from ..errors import BartiqCompilationError
@@ -97,7 +97,7 @@ def compile_routine(
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-    root_unit = CompilationUnit[T_expr].from_qref(routine, backend)
+    root_unit = Routine[T_expr].from_qref(routine, backend)
     for stage in precompilation_stages:
         root_unit = stage(root_unit, backend)
     return CompilationResult(
@@ -156,7 +156,7 @@ def _param_tree_from_compiled_ports(
 
 
 def _compile(
-    compilation_unit: CompilationUnit[T_expr],
+    compilation_unit: Routine[T_expr],
     backend: SymbolicBackend[T_expr],
     inputs: dict[str, T_expr],
     context: Context,
