@@ -33,7 +33,7 @@ from .._routine_new import (
     compiled_routine_to_qref,
 )
 from ..errors import BartiqCompilationError
-from ..precompilation.stages_new import (
+from .preprocessing import (
     DEFAULT_PRECOMPILATION_STAGES,
     PrecompilationStage,
 )

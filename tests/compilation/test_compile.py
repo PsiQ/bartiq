@@ -22,7 +22,7 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq.errors import BartiqCompilationError
-from bartiq.precompilation.stages_new import introduce_port_variables
+from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.symbolics import sympy_backend
 
 BACKEND = sympy_backend
