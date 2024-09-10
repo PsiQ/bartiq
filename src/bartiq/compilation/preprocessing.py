@@ -10,19 +10,20 @@ PreprocessingStage = Callable[[Routine[T_expr], SymbolicBackend[T_expr]], Routin
 
 
 def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingStage[T_expr]:
-    def _inner(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+    def _inner(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
         return transform(
-            replace(unit, children={child.name: _inner(child, backend) for child in unit.children.values()}), backend
+            replace(routine, children={child.name: _inner(child, backend) for child in routine.children.values()}),
+            backend,
         )
 
     return _inner
 
 
 @postorder_transform
-def add_default_additive_resources(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def add_default_additive_resources(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     child_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
-    for child in unit.children.values():
+    for child in routine.children.values():
         for resource in child.resources.values():
             if resource.type == ResourceType.additive:
                 child_resources_map[resource.name].add(child.name)
@@ -35,36 +36,36 @@ def add_default_additive_resources(unit: Routine[T_expr], backend: SymbolicBacke
             value=sum((backend.as_expression(f"{child_name}.{res_name}") for child_name in children), start=0),
         )
         for res_name, children in child_resources_map.items()
-        if res_name not in unit.resources
+        if res_name not in routine.resources
     }
 
-    return replace(unit, resources={**unit.resources, **additional_resources})
+    return replace(routine, resources={**routine.resources, **additional_resources})
 
 
 @postorder_transform
-def promote_unlinked_inputs(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
-    all_targets = [tuple(target) for _, targets in unit.linked_params.items() for target in targets]
+def promote_unlinked_inputs(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+    all_targets = [tuple(target) for _, targets in routine.linked_params.items() for target in targets]
 
     additional_param_links = {
         f"{child.name}.{input}": [(child.name, input)]
-        for child in unit.children.values()
+        for child in routine.children.values()
         for input in child.input_params
         if (child.name, input) not in all_targets
     }
     return replace(
-        unit,
-        input_params=tuple([*unit.input_params, *additional_param_links]),
-        linked_params={**unit.linked_params, **additional_param_links},
+        routine,
+        input_params=tuple([*routine.input_params, *additional_param_links]),
+        linked_params={**routine.linked_params, **additional_param_links},
     )
 
 
 @postorder_transform
-def _introduce_port_variables(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def _introduce_port_variables(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     new_ports = {}
     additional_local_variables: dict[str, T_expr] = {}
     new_input_params: list[str] = []
     additional_constraints: list[Constraint[T_expr]] = []
-    for port in unit.ports.values():
+    for port in routine.ports.values():
         if port.direction == PortDirection.output:
             new_ports[port.name] = port
         else:
@@ -80,24 +81,24 @@ def _introduce_port_variables(unit: Routine[T_expr], backend: SymbolicBackend[T_
             new_ports[port.name] = replace(port, size=new_variable)
             new_input_params.append(new_variable_name)
     return replace(
-        unit,
+        routine,
         ports=new_ports,
-        input_params=tuple([*unit.input_params, *new_input_params]),
-        local_variables={**unit.local_variables, **additional_local_variables},
-        constraints=tuple([*unit.constraints, *additional_constraints]),
+        input_params=tuple([*routine.input_params, *new_input_params]),
+        local_variables={**routine.local_variables, **additional_local_variables},
+        constraints=tuple([*routine.constraints, *additional_constraints]),
     )
 
 
-def introduce_port_variables(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def introduce_port_variables(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     return replace(
-        unit, children={name: _introduce_port_variables(child, backend) for name, child in unit.children.items()}
+        routine, children={name: _introduce_port_variables(child, backend) for name, child in routine.children.items()}
     )
 
 
-def propagate_linked_params(unit: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def propagate_linked_params(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
     new_linked_params: dict[str, list[tuple[str, str]]] = {}
-    children = unit.children.copy()
-    for source_param, targets in unit.linked_params.items():
+    children = routine.children.copy()
+    for source_param, targets in routine.linked_params.items():
         current_links: list[tuple[str, str]] = []
         for path, target_param in targets:
             parts = path.split(".", 1)
@@ -119,7 +120,7 @@ def propagate_linked_params(unit: Routine[T_expr], backend: SymbolicBackend[T_ex
                 current_links.append((path, target_param))
         new_linked_params[source_param] = current_links
     return replace(
-        unit,
+        routine,
         linked_params=new_linked_params,
         children={name: propagate_linked_params(child, backend) for name, child in children.items()},
     )

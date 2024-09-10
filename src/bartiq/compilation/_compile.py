@@ -97,12 +97,10 @@ def compile_routine(
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-    root_unit = Routine[T_expr].from_qref(routine, backend)
+    root = Routine[T_expr].from_qref(routine, backend)
     for stage in precompilation_stages:
-        root_unit = stage(root_unit, backend)
-    return CompilationResult(
-        compiled_routine=_compile(root_unit, backend, {}, Context(root_unit.name)), _backend=backend
-    )
+        root = stage(root, backend)
+    return CompilationResult(compiled_routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
 
 
 def _compile_local_variables(
@@ -156,7 +154,7 @@ def _param_tree_from_compiled_ports(
 
 
 def _compile(
-    compilation_unit: Routine[T_expr],
+    routine: Routine[T_expr],
     backend: SymbolicBackend[T_expr],
     inputs: dict[str, T_expr],
     context: Context,
@@ -164,7 +162,7 @@ def _compile(
     try:
         new_constraints = [
             compiled_constraint
-            for constraint in compilation_unit.constraints
+            for constraint in routine.constraints
             if (compiled_constraint := _compile_constraint(constraint, inputs, backend)).status
             != ConstraintStatus.satisfied
         ]
@@ -175,14 +173,14 @@ def _compile(
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
 
-    connections_map = _expand_connections(compilation_unit.connections)
+    connections_map = _expand_connections(routine.connections)
 
-    local_variables = _compile_local_variables(compilation_unit.local_variables, inputs, backend)
+    local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
 
     # Parameter map holds all of the assignments as nested dictionary.
     # The first level of nensting is the child name (or None for current routine assignments)
     # The second level maps symbols to the expression that should be substituted for it.
-    parameter_map: ParameterTree[T_expr] = {name: {} for name in compilation_unit.children}
+    parameter_map: ParameterTree[T_expr] = {name: {} for name in routine.children}
 
     # We start by populating it with freshly compiled local variables and inputs
     # {None: {a: 2}, b: {foo: 3, #in_1: N}}
@@ -190,23 +188,19 @@ def _compile(
 
     # Invert and merge linked params into parameter_map
     parameter_map = _merge_param_trees(
-        parameter_map, _compile_linked_params(parameter_map[None], compilation_unit.linked_params, backend)
+        parameter_map, _compile_linked_params(parameter_map[None], routine.linked_params, backend)
     )
 
     compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
 
-    compiled_ports = evaluate_ports(compilation_unit.filter_ports(["input", "through"]), parameter_map[None], backend)
+    compiled_ports = evaluate_ports(routine.filter_ports(["input", "through"]), parameter_map[None], backend)
 
     parameter_map = _merge_param_trees(
         parameter_map, _param_tree_from_compiled_ports(connections_map[None], compiled_ports)
     )
 
-    for child in compilation_unit.sorted_children():
+    for child in routine.sorted_children():
         compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
-
-        # TODO: You can check here if the child failed to compile by
-        # comparing if child's input params are a strict subset of
-        # unit's input params).
         compiled_children[child.name] = compiled_child
 
         parameter_map = _merge_param_trees(
@@ -221,28 +215,28 @@ def _compile(
 
     parameter_map[None] = {**parameter_map[None], **children_variables}
 
-    new_resources = evaluate_resources(compilation_unit.resources, parameter_map[None], backend)
+    new_resources = evaluate_resources(routine.resources, parameter_map[None], backend)
 
     compiled_ports = {
         **compiled_ports,
-        **evaluate_ports(compilation_unit.filter_ports(["output"]), parameter_map[None], backend),
+        **evaluate_ports(routine.filter_ports(["output"]), parameter_map[None], backend),
     }
 
     new_input_params = sorted(
         (
             set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr))
             if inputs
-            else set(compilation_unit.input_params)
+            else set(routine.input_params)
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
 
     return CompiledRoutine[T_expr](
-        name=compilation_unit.name,
-        type=compilation_unit.type,
+        name=routine.name,
+        type=routine.type,
         input_params=new_input_params,
         children=compiled_children,
         ports=compiled_ports,
         resources=new_resources,
         constraints=new_constraints,
-        connections=compilation_unit.connections,
+        connections=routine.connections,
     )
