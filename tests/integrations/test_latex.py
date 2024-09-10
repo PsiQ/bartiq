@@ -13,59 +13,59 @@
 # limitations under the License.
 
 import pytest
+from qref.schema_v1 import RoutineV1
 
-from bartiq import Routine
 from bartiq.integrations.latex import routine_to_latex
 
 LATEX_TEST_CASES = [
     # Null case
     (
-        Routine(name="root"),
+        RoutineV1(name="root"),
         {},
-        "\n&\\text{Routine \\textrm{(root)}}\n",
+        "\n&\\text{RoutineV1 \\textrm{(root)}}\n",
     ),
     # Only input parameters
     (
-        Routine(name="root", input_params=["x", "y"]),
+        RoutineV1(name="root", input_params=["x", "y"]),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Input parameters:}}\\
 &x, y
 """,
     ),
     # Path-prefixed input parameters
     (
-        Routine(
+        RoutineV1(
             name="root",
             input_params=["subroutine.x_a", "y_b"],
-            children={"subroutine": {"name": "subroutine", "input_params": ["x_a"]}},
+            children=[{"name": "subroutine", "input_params": ["x_a"]}],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Input parameters:}}\\
 &\text{subroutine}.\!x_{\text{a}}, y_{\text{b}}
 """,
     ),
     # Only inherited_params
     (
-        Routine(
+        RoutineV1(
             name="root",
-            linked_params={
-                "x": [("a", "i_0"), ("c", "j_1")],
-                "y": [("d", "k_2"), ("e", "l_3")],
-            },
-            children={
-                "a": {"name": "a", "input_params": ["i_0"]},
-                "c": {"name": "c", "input_params": ["j_1"]},
-                "d": {"name": "d", "input_params": ["k_2"]},
-                "e": {"name": "e", "input_params": ["l_3"]},
-            },
+            linked_params=[
+                {"source": "x", "targets": ["a.i_0", "c.j_1"]},
+                {"source": "y", "targets": ["d.k_2", "e.l_3"]},
+            ],
+            children=[
+                {"name": "a", "input_params": ["i_0"]},
+                {"name": "c", "input_params": ["j_1"]},
+                {"name": "d", "input_params": ["k_2"]},
+                {"name": "e", "input_params": ["l_3"]},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Linked parameters:}}\\
 &x: \text{a}.\!i_{\text{0}}, \text{c}.\!j_{\text{1}}\\
 &y: \text{d}.\!k_{\text{2}}, \text{e}.\!l_{\text{3}}
@@ -73,24 +73,24 @@ LATEX_TEST_CASES = [
     ),
     # Only input register sizes
     (
-        Routine(
+        RoutineV1(
             name="root",
-            ports={
-                "in_0": {"name": "in_0", "size": "a", "direction": "input"},
-                "b": {"name": "b", "size": "b", "direction": "input"},
-            },
+            ports=[
+                {"name": "in_0", "size": "a", "direction": "input"},
+                {"name": "b", "size": "b", "direction": "input"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Input ports:}}\\
-&\text{in\_0} = a\\
-&\text{b} = b
+&\text{b} = b\\
+&\text{in\_0} = a
 """,
     ),
     # Only local parameters
     (
-        Routine(
+        RoutineV1(
             name="root",
             input_params=["a", "b"],
             local_variables={
@@ -100,7 +100,7 @@ LATEX_TEST_CASES = [
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Input parameters:}}\\
 &a, b\newline
 &\underline{\text{Local variables:}}\\
@@ -110,33 +110,33 @@ LATEX_TEST_CASES = [
     ),
     # Only output ports
     (
-        Routine(
+        RoutineV1(
             name="root",
-            ports={
-                "in_0": {"name": "in_0", "size": "2", "direction": "output"},
-                "b": {"name": "b", "size": "3", "direction": "output"},
-            },
+            ports=[
+                {"name": "in_0", "size": "2", "direction": "output"},
+                {"name": "b", "size": "3", "direction": "output"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Output ports:}}\\
-&\text{in\_0} = 2\\
-&\text{b} = 3
+&\text{b} = 3\\
+&\text{in\_0} = 2
 """,
     ),
     # Only costs
     (
-        Routine(
+        RoutineV1(
             name="root",
-            resources={
-                "x": {"name": "x", "value": 0, "type": "additive"},
-                "y": {"name": "y", "value": 1, "type": "additive"},
-            },
+            resources=[
+                {"name": "x", "value": 0, "type": "additive"},
+                {"name": "y", "value": 1, "type": "additive"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Resources:}}\\
 &x = 0\\
 &y = 1
@@ -144,36 +144,36 @@ LATEX_TEST_CASES = [
     ),
     # The whole shebang
     (
-        Routine(
+        RoutineV1(
             name="root",
             input_params=["x", "y"],
-            ports={
-                "in_0": {"name": "in_0", "size": "a", "direction": "input"},
-                "in_b": {"name": "in_b", "size": "b", "direction": "input"},
-                "out_0": {"name": "out_0", "size": "2", "direction": "output"},
-                "out_b": {"name": "out_b", "size": "3", "direction": "output"},
-            },
-            linked_params={
-                "x": [("a", "i_0"), ("c", "j_1")],
-                "y": [("d", "k_2"), ("e", "l_3")],
-            },
-            children={
-                "a": {"name": "a", "input_params": ["i_0"]},
-                "c": {"name": "c", "input_params": ["j_1"]},
-                "d": {"name": "d", "input_params": ["k_2"]},
-                "e": {"name": "e", "input_params": ["l_3"]},
-            },
+            ports=[
+                {"name": "in_0", "size": "a", "direction": "input"},
+                {"name": "in_b", "size": "b", "direction": "input"},
+                {"name": "out_0", "size": "2", "direction": "output"},
+                {"name": "out_b", "size": "3", "direction": "output"},
+            ],
+            linked_params=[
+                {"source": "x", "targets": ["a.i_0", "c.j_1"]},
+                {"source": "y", "targets": ["d.k_2", "e.l_3"]},
+            ],
+            children=[
+                {"name": "a", "input_params": ["i_0"]},
+                {"name": "c", "input_params": ["j_1"]},
+                {"name": "d", "input_params": ["k_2"]},
+                {"name": "e", "input_params": ["l_3"]},
+            ],
             local_variables={
                 "x_foo": "a.i_0 + a",
                 "y_bar": "b * c.j_1",
             },
-            resources={
-                "t": {"name": "t", "value": 0, "type": "additive"},
-            },
+            resources=[
+                {"name": "t", "value": 0, "type": "additive"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Input parameters:}}\\
 &x, y\newline
 &\underline{\text{Linked parameters:}}\\
@@ -194,20 +194,20 @@ LATEX_TEST_CASES = [
     ),
     # Different whitespace around operands in assignment string
     (
-        Routine(
+        RoutineV1(
             name="root",
             local_variables={
                 "a": "1+2",
                 "b": "3+4",
             },
-            resources={
-                "c": {"name": "c", "value": "a + b", "type": "additive"},
-                "d": {"name": "d", "value": "a-b", "type": "additive"},
-            },
+            resources=[
+                {"name": "c", "value": "a + b", "type": "additive"},
+                {"name": "d", "value": "a-b", "type": "additive"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Local variables:}}\\
 &a = 3\\
 &b = 7\newline
@@ -219,23 +219,23 @@ LATEX_TEST_CASES = [
     # Don't hide non-root costs (default)
     # Add children, make sure you include them in implementation
     (
-        Routine(
+        RoutineV1(
             name="root",
-            children={
-                "a": {
+            children=[
+                {
                     "name": "a",
-                    "resources": {
-                        "y": {"name": "y", "value": "2", "type": "additive"},
-                    },
+                    "resources": [
+                        {"name": "y", "value": "2", "type": "additive"},
+                    ],
                 },
-            },
-            resources={
-                "x": {"name": "x", "value": "1", "type": "additive"},
-            },
+            ],
+            resources=[
+                {"name": "x", "value": "1", "type": "additive"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Resources:}}\\
 &x = 1\\
 &\text{a}.\!y = 2
@@ -243,38 +243,38 @@ LATEX_TEST_CASES = [
     ),
     # Hide non-root costs
     (
-        Routine(
+        RoutineV1(
             name="root",
-            children={
-                "a": {
+            children=[
+                {
                     "name": "a",
-                    "resources": {
-                        "y": {"name": "y", "value": "2", "type": "additive"},
-                    },
+                    "resources": [
+                        {"name": "y", "value": "2", "type": "additive"},
+                    ],
                 },
-            },
-            resources={
-                "x": {"name": "x", "value": "1", "type": "additive"},
-            },
+            ],
+            resources=[
+                {"name": "x", "value": "1", "type": "additive"},
+            ],
         ),
         {"show_non_root_resources": False},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Resources:}}\\
 &x = 1
 """,
     ),
     # Sum over all subresources
     (
-        Routine(
+        RoutineV1(
             name="root",
-            resources={
-                "N_x": {"name": "N_x", "value": "sum(~.N_x)", "type": "additive"},
-            },
+            resources=[
+                {"name": "N_x", "value": "sum(~.N_x)", "type": "additive"},
+            ],
         ),
         {},
         r"""
-&\text{Routine \textrm{(root)}}\newline
+&\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Resources:}}\\
 &N_{\text{x}} = \operatorname{sum}{\left(\text{~}.\!N_{\text{x}} \right)}
 """,
