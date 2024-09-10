@@ -17,10 +17,12 @@ from pathlib import Path
 
 import pytest
 import yaml
+from qref import SchemaV1
+from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine, evaluate
 from bartiq._routine import Routine
-from bartiq._routine_new import compiled_routine_from_bartiq, compiled_routine_to_bartiq
+from bartiq._routine_new import compiled_routine_from_qref, compiled_routine_to_qref
 from bartiq.integrations.qref import qref_to_bartiq
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
@@ -40,10 +42,10 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     from bartiq.errors import BartiqCompilationError
 
     try:
-        compiled_routine = compiled_routine_from_bartiq(qref_to_bartiq(input_dict), backend)
+        compiled_routine = compiled_routine_from_qref(SchemaV1(**input_dict), backend)
         evaluated_routine = evaluate(compiled_routine, assignments, backend=backend)
-        evaluated_routine = compiled_routine_to_bartiq(evaluated_routine, backend)
-        assert evaluated_routine == qref_to_bartiq(expected_dict)
+        evaluated_routine = compiled_routine_to_qref(evaluated_routine, backend)
+        assert evaluated_routine == SchemaV1(**expected_dict)
     except BartiqCompilationError:  # This is to get rid of the "Non-trivial input sizes not yet supported"
         pass
 
@@ -57,10 +59,10 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
-    compiled_routine = compile_routine(op)
-    evaluated_routine = compiled_routine_to_bartiq(evaluate(compiled_routine, assignments=assignments, backend=backend), backend)
+    result = compile_routine(op)
+    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments, backend=backend)
     for port_name, size in expected_sizes.items():
-        assert evaluated_routine.ports[port_name].size == size
+        assert str(evaluated_routine.ports[port_name].size) == str(size)
 
 
 def custom_function(a, b):
@@ -77,42 +79,39 @@ def custom_function(a, b):
             {
                 "name": "root",
                 "type": "foo",
-                "children": {
-                    "a": {
+                "children": [
+                    {
                         "name": "a",
                         "type": "a",
-                        "resources": {
-                            "X": {
+                        "resources": [
+                            {
                                 "name": "X",
                                 "type": "other",
-                                "value": {"type": "str", "value": "2*N + a.unknown_fun(1)"},
+                                "value": "2*N + a.unknown_fun(1)",
                             }
-                        },
+                        ],
                         "input_params": ["N"],
                     },
-                    "b": {
+                    {
                         "name": "b",
                         "type": "b",
-                        "resources": {
-                            "X": {
+                        "resources": [
+                            {
                                 "name": "X",
                                 "type": "other",
-                                "value": {"type": "str", "value": "b.my_f(N, 2) + 3"},
+                                "value": "b.my_f(N, 2) + 3",
                             }
-                        },
+                        ],
                         "input_params": ["N"],
                     },
-                },
-                "resources": {
-                    "X": {
+                ],
+                "resources": [
+                    {
                         "name": "X",
                         "type": "other",
-                        "value": {
-                            "type": "str",
-                            "value": "2*N + b.my_f(N, 2) + 3 + a.unknown_fun(1)",
-                        },
+                        "value": "2*N + b.my_f(N, 2) + 3 + a.unknown_fun(1)"
                     }
-                },
+                ],
                 "input_params": ["N"],
             },
             {"N": 5},
@@ -120,44 +119,44 @@ def custom_function(a, b):
             {
                 "name": "root",
                 "type": "foo",
-                "children": {
-                    "a": {
+                "children": [
+                    {
                         "name": "a",
                         "type": "a",
-                        "resources": {
-                            "X": {
+                        "resources": [
+                            {
                                 "name": "X",
                                 "type": "other",
-                                "value": {"type": "str", "value": "a.unknown_fun(1) + 10"},
+                                "value": "a.unknown_fun(1) + 10"
                             }
-                        },
+                        ],
                     },
-                    "b": {
+                    {
                         "name": "b",
                         "type": "b",
-                        "resources": {
-                            "X": {
+                        "resources": [
+                            {
                                 "name": "X",
                                 "type": "other",
-                                "value": {"type": "str", "value": "10"},
+                                "value": "10" 
                             }
-                        },
+                        ],
                     },
-                },
-                "resources": {
-                    "X": {
+                ],
+                "resources": [
+                    {
                         "name": "X",
                         "type": "other",
-                        "value": {"type": "str", "value": "a.unknown_fun(1) + 20"},
+                        "value": "a.unknown_fun(1) + 20"
                     }
-                },
+                ],
             },
         ),
     ],
 )
 def test_evaluate_with_functions_map(input_dict, assignments, functions_map, expected_dict, backend):
-    evaluated_routine = evaluate(compiled_routine_from_bartiq(Routine(**input_dict), backend), assignments, backend=backend, functions_map=functions_map)
-    assert compiled_routine_to_bartiq(evaluated_routine, backend) == Routine(**expected_dict)
+    evaluated_routine = evaluate(compiled_routine_from_qref(RoutineV1(**input_dict), backend), assignments, backend=backend, functions_map=functions_map)
+    assert compiled_routine_to_qref(evaluated_routine, backend).program == RoutineV1(**expected_dict)
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues")
@@ -165,13 +164,12 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
     # Compilation fails on Python 3.9 for the default recursion limit, so we increased it to make this test pass.
     sys.setrecursionlimit(2000)
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
-        qref_def = yaml.safe_load(f)
+        routine = SchemaV1(**yaml.safe_load(f))
 
-    routine = qref_to_bartiq(qref_def)
 
-    compiled_routine = compile_routine(routine)
+    result = compile_routine(routine)
     assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
-    evaluated_routine = evaluate(compiled_routine, assignments=assignments)
+    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments)
     expected_resources = {
         "toffs": 260,
         "t_gates": 216,

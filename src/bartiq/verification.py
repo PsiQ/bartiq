@@ -18,7 +18,7 @@ from qref.verification import verify_topology
 
 from . import Routine
 from .integrations.qref import bartiq_to_qref
-from .symbolics.backend import SymbolicBackend
+from .symbolics.backend import SymbolicBackend, T_expr
 
 
 @dataclass
@@ -48,7 +48,7 @@ def verify_routine_topology(routine: Routine) -> VerificationOutput:
     return VerificationOutput(problems=verify_topology(qref_routine).problems)
 
 
-def verify_uncompiled_routine(routine: Routine, backend: SymbolicBackend) -> VerificationOutput:
+def verify_uncompiled_routine(routine: Routine, backend: SymbolicBackend[T_expr]) -> VerificationOutput:
     """Verifies whether an uncompiled routine has correct format.
 
     This function checks:

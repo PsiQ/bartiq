@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Mapping
 from dataclasses import replace
-from typing import Mapping, Optional, TypeVar, overload
+from typing import TypeVar, overload
 
 from bartiq.compilation._common import evaluate_ports_v2, evaluate_resources_v2
 
-from .. import Routine
 from .._routine_new import CompiledRoutine
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T_expr
-from .types import FunctionsMap, Number
+from .types import FunctionsMap
 
 T = TypeVar("T")
 S = TypeVar("S")

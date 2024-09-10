@@ -13,13 +13,16 @@
 # limitations under the License.
 from __future__ import annotations
 
-import warnings
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Iterable, Optional, cast
+from typing import Generic
 
-from .. import Routine
+from qref import SchemaV1
+from qref.schema_v1 import RoutineV1
+from qref.verification import verify_topology
+
 from .._routine_new import (
     CompilationUnit,
     CompiledRoutine,
@@ -27,8 +30,7 @@ from .._routine_new import (
     ConstraintStatus,
     Endpoint,
     Port,
-    compilation_unit_from_bartiq,
-    compiled_routine_to_bartiq,
+    compiled_routine_to_qref,
 )
 from ..errors import BartiqCompilationError
 from ..precompilation.stages_new import (
@@ -37,10 +39,18 @@ from ..precompilation.stages_new import (
 )
 from ..symbolics import sympy_backend
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T_expr
-from ..verification import verify_compiled_routine, verify_uncompiled_routine
 from ._common import evaluate_ports, evaluate_resources
 
 ParameterTree = dict[str | None, dict[str, T_expr]]
+
+
+@dataclass
+class CompilationResult(Generic[T_expr]):
+    compiled_routine: CompiledRoutine[T_expr]
+    _backend: SymbolicBackend[T_expr]
+
+    def to_qref(self) -> SchemaV1:
+        return compiled_routine_to_qref(self.compiled_routine, self._backend)
 
 
 @dataclass(frozen=True)
@@ -78,24 +88,24 @@ def _compile_constraint(
 
 
 def compile_routine(
-    routine: Routine,
+    routine: SchemaV1 | RoutineV1,
     *,
     backend: SymbolicBackend[T_expr] = sympy_backend,
     precompilation_stages: Iterable[PrecompilationStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
     skip_verification: bool = False,
-) -> CompiledRoutine[T_expr]:
+) -> CompilationResult[T_expr]:
     if not skip_verification:
-        verification_result = verify_uncompiled_routine(routine, backend=backend)
-        if not verification_result:
+        if not (verification_result := verify_topology(routine)):
             problems = [problem + "\n" for problem in verification_result.problems]
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-
-    root_unit = compilation_unit_from_bartiq(routine, backend)
+    root_unit = CompilationUnit[T_expr].from_qref(routine, backend)
     for stage in precompilation_stages:
         root_unit = stage(root_unit, backend)
-    return _compile(root_unit, backend, {}, Context(root_unit.name))
+    return CompilationResult(
+        compiled_routine=_compile(root_unit, backend, {}, Context(root_unit.name)), _backend=backend
+    )
 
 
 def _compile_local_variables(
@@ -131,8 +141,8 @@ def _merge_param_trees(tree_1: ParameterTree[T_expr], tree_2: ParameterTree[T_ex
     return {k: {**v, **tree_2.get(k, {})} for k, v in tree_1.items()}
 
 
-def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[Optional[str], dict[str, Endpoint]]:
-    tree = defaultdict[Optional[str], dict[str, Endpoint]](dict)
+def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[str | None, dict[str, Endpoint]]:
+    tree = defaultdict[str | None, dict[str, Endpoint]](dict)
     for source, target in connections.items():
         tree[source.routine_name][source.port_name] = target
 
@@ -142,7 +152,7 @@ def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[Optional[
 def _param_tree_from_compiled_ports(
     connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T_expr]]
 ) -> ParameterTree[T_expr]:
-    param_map = defaultdict[Optional[str], dict[str, T_expr]](dict)
+    param_map = defaultdict[str | None, dict[str, T_expr]](dict)
     for source_port, target in connections_map.items():
         param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
     return param_map

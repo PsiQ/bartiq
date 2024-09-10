@@ -203,8 +203,8 @@
   - program:
       children:
       - input_params:
-        - y
         - M
+        - y
         name: a
         ports:
         - direction: input

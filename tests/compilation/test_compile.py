@@ -17,12 +17,11 @@ from pathlib import Path
 
 import pytest
 import yaml
+from qref import SchemaV1
+from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
-from bartiq._routine import Routine
-from bartiq._routine_new import compiled_routine_to_bartiq
 from bartiq.errors import BartiqCompilationError
-from bartiq.integrations.qref import qref_to_bartiq
 from bartiq.precompilation.stages_new import introduce_port_variables
 from bartiq.symbolics import sympy_backend
 
@@ -31,7 +30,7 @@ BACKEND = sympy_backend
 
 def load_compile_test_data():
     with open(Path(__file__).parent / "data/compile_test_data_new_qref.yaml") as f:
-        return [(qref_to_bartiq(original), qref_to_bartiq(expected)) for original, expected in yaml.safe_load(f)]
+        return [(SchemaV1(**original), SchemaV1(**expected)) for original, expected in yaml.safe_load(f)]
 
 
 COMPILE_TEST_DATA = load_compile_test_data()
@@ -40,8 +39,8 @@ COMPILE_TEST_DATA = load_compile_test_data()
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile(routine, expected_routine):
-    compiled_routine = compile_routine(routine, skip_verification=True)
-    assert compiled_routine_to_bartiq(compiled_routine, BACKEND) == expected_routine
+    compiled_routine = compile_routine(routine, skip_verification=True).to_qref()
+    assert compiled_routine == expected_routine
 
 
 def f_1_simple(x):
@@ -59,78 +58,79 @@ def f_3_optional_inputs(a, b=2, c=3):
 
 
 def test_compiling_correctly_propagates_global_functions():
-    routine = Routine(
+    routine = RoutineV1(
         name="root",
         type="dummy",
-        resources={"X": {"name": "X", "value": "a.X + b.X + c.X", "type": "other"}},
-        children={
-            "a": Routine(
+        resources=[{"name": "X", "value": "a.X + b.X + c.X", "type": "other"}],
+        children=[
+            RoutineV1(
                 name="a",
-                type="dummy",
-                resources={"X": {"name": "X", "value": "O(1) + 5", "type": "other"}},
+                type="other",
+                resources=[{"name": "X", "value": "O(1) + 5", "type": "other"}],
             ),
-            "b": Routine(
+            RoutineV1(
                 name="b",
-                type="dummy",
-                resources={"X": {"name": "X", "value": "O(1)", "type": "other"}},
+                type="other",
+                resources=[{"name": "X", "value": "O(1)", "type": "other"}],
             ),
-            "c": Routine(
+            RoutineV1(
                 name="c",
-                type="dummy",
-                resources={"X": {"name": "X", "value": "g(7) + f(1, 2, 3)", "type": "other"}},
+                type="other",
+                resources=[{"name": "X", "value": "g(7) + f(1, 2, 3)", "type": "other"}],
             ),
-        },
+        ],
     )
 
-    compiled_routine = compile_routine(routine)
+    result = compile_routine(routine)
 
-    assert compiled_routine_to_bartiq(compiled_routine, BACKEND).resources["X"].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
+    # resources[0] is the only resource X
+    assert result.to_qref().program.resources[0].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
 
 
 COMPILE_ERRORS_TEST_CASES = [
     # Attempt to assign inconsistent constant register sizes
     (
-        Routine(
+        RoutineV1(
             name="root",
             type="dummy",
-            children={
-                "a": {
+            children=[
+                {
                     "name": "a",
                     "type": "dummy",
-                    "ports": {"in_bar": {"name": "in_bar", "direction": "input", "size": 2}},
+                    "ports": [{"name": "in_bar", "direction": "input", "size": 2}]
                 }
-            },
-            ports={"in_foo": {"name": "in_foo", "direction": "input", "size": 1}},
+            ],
+            ports=[{"name": "in_foo", "direction": "input", "size": 1}],
             connections=[{"source": "in_foo", "target": "a.in_bar"}],
         ),
         "The following constraint was violated when compiling root.a: #in_bar = 2 evaluated into 1 = 2.",
     ),
     # Attempt to connect two different sizes to routine which has both inputs of the same size
     (
-        Routine(
+        RoutineV1(
             name="root",
             type="dummy",
-            children={
-                "a": {
+            children=[
+                {
                     "name": "a",
                     "type": "dummy",
-                    "ports": {"out_0": {"name": "out_0", "direction": "output", "size": 1}},
+                    "ports": [{"name": "out_0", "direction": "output", "size": 1}],
                 },
-                "b": {
+                {
                     "name": "b",
                     "type": "dummy",
-                    "ports": {"out_0": {"name": "out_0", "direction": "output", "size": 2}},
+                    "ports": [{"name": "out_0", "direction": "output", "size": 2}],
                 },
-                "c": {
+                {
                     "name": "c",
                     "type": "dummy",
-                    "ports": {
-                        "out_0": {"name": "out_0", "direction": "output", "size": "2*N"},
-                        "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                        "in_1": {"name": "in_1", "direction": "input", "size": "N"},
-                    },
+                    "ports": [
+                        {"name": "out_0", "direction": "output", "size": "2*N"},
+                        {"name": "in_0", "direction": "input", "size": "N"},
+                        {"name": "in_1", "direction": "input", "size": "N"},
+                    ],
                 },
-            },
+            ],
             connections=[
                 {"source": "a.out_0", "target": "c.in_0"},
                 {"source": "b.out_0", "target": "c.in_1"},
