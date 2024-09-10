@@ -18,39 +18,39 @@ from typing import Callable, TypeVar, overload
 
 from .._routine import CompiledRoutine
 from ..symbolics import sympy_backend
-from ..symbolics.backend import Number, SymbolicBackend, T_expr
+from ..symbolics.backend import Number, SymbolicBackend, TExpr
 from ._common import evaluate_ports_v2, evaluate_resources_v2
 
 T = TypeVar("T")
 S = TypeVar("S")
 
 
-Assignments = Mapping[str, str | T_expr]
-FunctionsMap = dict[str, Callable[[Number | T_expr], T_expr]]
+Assignments = Mapping[str, str | TExpr[T]]
+FunctionsMap = dict[str, Callable[[Number | TExpr[T]], TExpr[T]]]
 
 
 @overload
 def evaluate(
-    routine: CompiledRoutine[T_expr],
-    asignments: Assignments[T_expr],
+    routine: CompiledRoutine[T],
+    asignments: Assignments[T],
     *,
-    functions_map: FunctionsMap[T_expr] | None = None,
-) -> CompiledRoutine[T_expr]:
+    functions_map: FunctionsMap[T] | None = None,
+) -> CompiledRoutine[T]:
     pass  # pragma: no cover
 
 
 @overload
 def evaluate(
-    routine: CompiledRoutine[T_expr],
-    assignments: Assignments[T_expr],
+    routine: CompiledRoutine[T],
+    assignments: Assignments[T],
     *,
-    backend: SymbolicBackend[T_expr],
-    functions_map: FunctionsMap[T_expr] | None = None,
-) -> CompiledRoutine[T_expr]:
+    backend: SymbolicBackend[T],
+    functions_map: FunctionsMap[T] | None = None,
+) -> CompiledRoutine[T]:
     pass  # pragma: no cover
 
 
-def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None) -> CompiledRoutine[T_expr]:
+def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None) -> CompiledRoutine[T]:
     """Evaluates an estimate of a series of variable assignments.
 
     Args:
@@ -72,12 +72,12 @@ def evaluate(routine, assignments, *, backend=sympy_backend, functions_map=None)
 
 
 def _evaluate(
-    compiled_routine: CompiledRoutine[T_expr],
-    assignments: Assignments[T_expr],
+    compiled_routine: CompiledRoutine[T],
+    assignments: Assignments[T],
     *,
-    backend: SymbolicBackend[T_expr],
-    functions_map: FunctionsMap[T_expr] | None = None,
-) -> CompiledRoutine[T_expr]:
+    backend: SymbolicBackend[T],
+    functions_map: FunctionsMap[T] | None = None,
+) -> CompiledRoutine[T]:
     if functions_map is None:
         functions_map = {}
     parsed_assignments = {
@@ -88,11 +88,11 @@ def _evaluate(
 
 
 def _evaluate_internal(
-    compiled_routine: CompiledRoutine[T_expr],
-    inputs: dict[str, T_expr],
-    backend: SymbolicBackend[T_expr],
-    functions_map: FunctionsMap[T_expr] | None = None,
-) -> CompiledRoutine[T_expr]:
+    compiled_routine: CompiledRoutine[T],
+    inputs: dict[str, TExpr[T]],
+    backend: SymbolicBackend[T],
+    functions_map: FunctionsMap[T] | None = None,
+) -> CompiledRoutine[T]:
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),

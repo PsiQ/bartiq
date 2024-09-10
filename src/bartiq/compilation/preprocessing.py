@@ -1,16 +1,18 @@
 from collections import defaultdict
 from dataclasses import replace
-from typing import Callable
+from typing import Callable, TypeVar
 
 from .._routine import Constraint, PortDirection, Resource, ResourceType, Routine
 from ..compilation._utilities import is_single_parameter
-from ..symbolics.backend import SymbolicBackend, T_expr
+from ..symbolics.backend import SymbolicBackend
 
-PreprocessingStage = Callable[[Routine[T_expr], SymbolicBackend[T_expr]], Routine[T_expr]]
+T = TypeVar("T")
+
+PreprocessingStage = Callable[[Routine[T], SymbolicBackend[T]], Routine[T]]
 
 
-def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingStage[T_expr]:
-    def _inner(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[T]:
+    def _inner(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
         return transform(
             replace(routine, children={child.name: _inner(child, backend) for child in routine.children.values()}),
             backend,
@@ -20,7 +22,7 @@ def postorder_transform(transform: PreprocessingStage[T_expr]) -> PreprocessingS
 
 
 @postorder_transform
-def add_default_additive_resources(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     child_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
     for child in routine.children.values():
@@ -28,12 +30,15 @@ def add_default_additive_resources(routine: Routine[T_expr], backend: SymbolicBa
             if resource.type == ResourceType.additive:
                 child_resources_map[resource.name].add(child.name)
 
-    additional_resources: dict[str, Resource[T_expr]] = {
+    additional_resources: dict[str, Resource[T]] = {
         # The eefault here is to satisfy the typechecker
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
-            value=sum((backend.as_expression(f"{child_name}.{res_name}") for child_name in children), start=0),
+            value=sum(
+                (backend.as_expression(f"{child_name}.{res_name}") for child_name in children),
+                start=backend.as_expression(0),
+            ),
         )
         for res_name, children in child_resources_map.items()
         if res_name not in routine.resources
@@ -43,7 +48,7 @@ def add_default_additive_resources(routine: Routine[T_expr], backend: SymbolicBa
 
 
 @postorder_transform
-def promote_unlinked_inputs(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def promote_unlinked_inputs(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     all_targets = [tuple(target) for _, targets in routine.linked_params.items() for target in targets]
 
     additional_param_links = {
@@ -60,11 +65,11 @@ def promote_unlinked_inputs(routine: Routine[T_expr], backend: SymbolicBackend[T
 
 
 @postorder_transform
-def _introduce_port_variables(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     new_ports = {}
-    additional_local_variables: dict[str, T_expr] = {}
+    additional_local_variables: dict[str, T] = {}
     new_input_params: list[str] = []
-    additional_constraints: list[Constraint[T_expr]] = []
+    additional_constraints: list[Constraint[T]] = []
     for port in routine.ports.values():
         if port.direction == PortDirection.output:
             new_ports[port.name] = port
@@ -89,13 +94,13 @@ def _introduce_port_variables(routine: Routine[T_expr], backend: SymbolicBackend
     )
 
 
-def introduce_port_variables(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     return replace(
         routine, children={name: _introduce_port_variables(child, backend) for name, child in routine.children.items()}
     )
 
 
-def propagate_linked_params(routine: Routine[T_expr], backend: SymbolicBackend[T_expr]) -> Routine[T_expr]:
+def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     new_linked_params: dict[str, list[tuple[str, str]]] = {}
     children = routine.children.copy()
     for source_param, targets in routine.linked_params.items():

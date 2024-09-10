@@ -35,7 +35,7 @@ def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: boo
     routine = routine if isinstance(routine, RoutineV1) else routine.program
     lines = [
         _format_object_header(routine),
-        *[format_line(data) for getter, format_line in SECTIONS if (data := getter(routine))],
+        *[format_line(data) for getter, format_line in SECTIONS if (data := getter(routine))],  # type: ignore
     ]
 
     # We deal with resources separately due to show_non_root_resources option
@@ -192,8 +192,7 @@ def _format_resources(routine: RoutineV1, show_non_root_resources: bool) -> str 
         subroutines_to_process = [r for r in _walk(routine) if r is not routine]
         for subroutine in subroutines_to_process:
             lines += _get_resources_lines(subroutine.resources, subroutine.name)
-    if len(lines) > 0:
-        return _format_section_multi_line("Resources", lines)
+    return _format_section_multi_line("Resources", lines) if lines else None
 
 
 def _get_resources_lines(resources: Iterable[ResourceV1], path: str | None = None) -> list[str]:

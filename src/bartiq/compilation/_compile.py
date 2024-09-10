@@ -17,7 +17,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic
+from typing import Generic, TypeVar
 
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
@@ -34,17 +34,19 @@ from .._routine import (
 )
 from ..errors import BartiqCompilationError
 from ..symbolics import sympy_backend
-from ..symbolics.backend import ComparisonResult, SymbolicBackend, T_expr
+from ..symbolics.backend import ComparisonResult, SymbolicBackend, TExpr
 from ._common import evaluate_ports, evaluate_resources
 from .preprocessing import DEFAULT_PRECOMPILATION_STAGES, PreprocessingStage
 
-ParameterTree = dict[str | None, dict[str, T_expr]]
+T = TypeVar("T")
+
+ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 
 @dataclass
-class CompilationResult(Generic[T_expr]):
-    compiled_routine: CompiledRoutine[T_expr]
-    _backend: SymbolicBackend[T_expr]
+class CompilationResult(Generic[T]):
+    compiled_routine: CompiledRoutine[T]
+    _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
         return routine_to_qref(self.compiled_routine, self._backend)
@@ -59,13 +61,11 @@ class Context:
 
 
 class ConstraintValidationError(ValueError):
-    def __init__(self, original_constraint: Constraint[T_expr], compiled_constraint: Constraint[T_expr]):
+    def __init__(self, original_constraint: Constraint[T], compiled_constraint: Constraint[T]):
         super().__init__(original_constraint, compiled_constraint)
 
 
-def _compile_constraint(
-    constraint: Constraint[T_expr], inputs: dict[str, T_expr], backend: SymbolicBackend[T_expr]
-) -> Constraint[T_expr]:
+def _compile_constraint(constraint: Constraint[T], inputs: dict[str, T], backend: SymbolicBackend[T]) -> Constraint[T]:
     lhs = backend.substitute_all(constraint.lhs, inputs)
     rhs = backend.substitute_all(constraint.rhs, inputs)
 
@@ -87,31 +87,31 @@ def _compile_constraint(
 def compile_routine(
     routine: SchemaV1 | RoutineV1,
     *,
-    backend: SymbolicBackend[T_expr] = sympy_backend,
-    precompilation_stages: Iterable[PreprocessingStage[T_expr]] = DEFAULT_PRECOMPILATION_STAGES,
+    backend: SymbolicBackend[T] = sympy_backend,
+    precompilation_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PRECOMPILATION_STAGES,
     skip_verification: bool = False,
-) -> CompilationResult[T_expr]:
+) -> CompilationResult[T]:
     if not skip_verification:
         if not (verification_result := verify_topology(routine)):
             problems = [problem + "\n" for problem in verification_result.problems]
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-    root = Routine[T_expr].from_qref(routine, backend)
+    root = Routine[T].from_qref(routine, backend)
     for stage in precompilation_stages:
         root = stage(root, backend)
     return CompilationResult(compiled_routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
 
 
 def _compile_local_variables(
-    local_variables: dict[str, T_expr], inputs: dict[str, T_expr], backend: SymbolicBackend[T_expr]
-) -> dict[str, T_expr]:
+    local_variables: dict[str, T], inputs: dict[str, T], backend: SymbolicBackend[T]
+) -> dict[str, T]:
     predecessors: dict[str, set[str]] = {
         var: set(other_var for other_var in backend.free_symbols_in(expr) if other_var in local_variables)
         for var, expr in local_variables.items()
     }
 
-    compiled_variables: dict[str, T_expr] = {}
+    compiled_variables: dict[str, T] = {}
     extended_inputs = inputs.copy()
     for variable in TopologicalSorter(predecessors).static_order():
         compiled_value = backend.substitute_all(local_variables[variable], extended_inputs)
@@ -120,9 +120,9 @@ def _compile_local_variables(
 
 
 def _compile_linked_params(
-    inputs: dict[str, T_expr], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T_expr]
-) -> ParameterTree[T_expr]:
-    parameter_map: ParameterTree[T_expr] = defaultdict(dict)
+    inputs: dict[str, T], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T]
+) -> ParameterTree[T]:
+    parameter_map: ParameterTree[T] = defaultdict(dict)
 
     for source, targets in linked_params.items():
         evaluated_source = backend.substitute_all(backend.as_expression(source), inputs)
@@ -132,7 +132,7 @@ def _compile_linked_params(
     return parameter_map
 
 
-def _merge_param_trees(tree_1: ParameterTree[T_expr], tree_2: ParameterTree[T_expr]) -> ParameterTree[T_expr]:
+def _merge_param_trees(tree_1: ParameterTree[T], tree_2: ParameterTree[T]) -> ParameterTree[T]:
     return {k: {**v, **tree_2.get(k, {})} for k, v in tree_1.items()}
 
 
@@ -145,20 +145,20 @@ def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[str | Non
 
 
 def _param_tree_from_compiled_ports(
-    connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T_expr]]
-) -> ParameterTree[T_expr]:
-    param_map = defaultdict[str | None, dict[str, T_expr]](dict)
+    connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T]]
+) -> ParameterTree[T]:
+    param_map = defaultdict[str | None, dict[str, T]](dict)
     for source_port, target in connections_map.items():
         param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
     return param_map
 
 
 def _compile(
-    routine: Routine[T_expr],
-    backend: SymbolicBackend[T_expr],
-    inputs: dict[str, T_expr],
+    routine: Routine[T],
+    backend: SymbolicBackend[T],
+    inputs: dict[str, T],
     context: Context,
-) -> CompiledRoutine[T_expr]:
+) -> CompiledRoutine[T]:
     try:
         new_constraints = [
             compiled_constraint
@@ -180,7 +180,7 @@ def _compile(
     # Parameter map holds all of the assignments as nested dictionary.
     # The first level of nensting is the child name (or None for current routine assignments)
     # The second level maps symbols to the expression that should be substituted for it.
-    parameter_map: ParameterTree[T_expr] = {name: {} for name in routine.children}
+    parameter_map: ParameterTree[T] = {name: {} for name in routine.children}
 
     # We start by populating it with freshly compiled local variables and inputs
     # {None: {a: 2}, b: {foo: 3, #in_1: N}}
@@ -191,7 +191,7 @@ def _compile(
         parameter_map, _compile_linked_params(parameter_map[None], routine.linked_params, backend)
     )
 
-    compiled_children: dict[str, CompiledRoutine[T_expr]] = {}
+    compiled_children: dict[str, CompiledRoutine[T]] = {}
 
     compiled_ports = evaluate_ports(routine.filter_ports(["input", "through"]), parameter_map[None], backend)
 
@@ -230,7 +230,7 @@ def _compile(
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
 
-    return CompiledRoutine[T_expr](
+    return CompiledRoutine[T](
         name=routine.name,
         type=routine.type,
         input_params=new_input_params,

@@ -17,13 +17,15 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from graphlib import TopologicalSorter
-from typing import Generic, Literal, cast
+from typing import Generic, Literal, TypeVar, cast
 
 from qref import SchemaV1
 from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
 from typing_extensions import Self, TypedDict
 
-from .symbolics.backend import SymbolicBackend, T_expr
+from .symbolics.backend import SymbolicBackend, TExpr
+
+T = TypeVar("T")
 
 
 class ResourceType(str, Enum):
@@ -50,24 +52,24 @@ class ConstraintStatus(Enum):
 
 
 @dataclass(frozen=True)
-class Constraint(Generic[T_expr]):
-    lhs: T_expr
-    rhs: T_expr
+class Constraint(Generic[T]):
+    lhs: TExpr[T]
+    rhs: TExpr[T]
     status: ConstraintStatus = ConstraintStatus.inconclusive
 
 
 @dataclass(frozen=True)
-class Port(Generic[T_expr]):
+class Port(Generic[T]):
     name: str
     direction: str
-    size: T_expr
+    size: TExpr[T]
 
 
 @dataclass(frozen=True)
-class Resource(Generic[T_expr]):
+class Resource(Generic[T]):
     name: str
     type: ResourceType
-    value: T_expr
+    value: TExpr[T]
 
 
 @dataclass(frozen=True)
@@ -76,27 +78,27 @@ class Endpoint:
     port_name: str
 
 
-class _CommonRoutineParams(TypedDict, Generic[T_expr]):
+class _CommonRoutineParams(TypedDict, Generic[T]):
     name: str
     type: str | None
     input_params: Iterable[str]
-    ports: dict[str, Port[T_expr]]
-    resources: dict[str, Resource[T_expr]]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
 
 
 @dataclass(frozen=True)
-class Routine(Generic[T_expr]):
+class Routine(Generic[T]):
     name: str
     type: str | None
     input_params: Iterable[str]
     linked_params: dict[str, tuple[tuple[str, str], ...]]
-    local_variables: dict[str, T_expr]
+    local_variables: dict[str, TExpr[T]]
     children: dict[str, Self]
-    ports: dict[str, Port[T_expr]]
-    resources: dict[str, Resource[T_expr]]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
-    constraints: Iterable[Constraint[T_expr]] = ()
+    constraints: Iterable[Constraint[T]] = ()
 
     @property
     def inner_connections(self) -> dict[Endpoint, Endpoint]:
@@ -114,15 +116,13 @@ class Routine(Generic[T_expr]):
 
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
 
-    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T_expr]]:
+    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
-    def from_qref(
-        cls: type[Routine[T_expr]], qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T_expr]
-    ) -> Routine[T_expr]:
+    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> Routine[T]:
         program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
-        return Routine[T_expr](
+        return Routine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
             local_variables={var: backend.as_expression(expr) for var, expr in program.local_variables.items()},
             linked_params={
@@ -134,30 +134,28 @@ class Routine(Generic[T_expr]):
 
 
 @dataclass(frozen=True)
-class CompiledRoutine(Generic[T_expr]):
+class CompiledRoutine(Generic[T]):
     name: str
     type: str | None
     input_params: Iterable[str]
     children: dict[str, Self]
-    ports: dict[str, Port[T_expr]]
-    resources: dict[str, Resource[T_expr]]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
-    constraints: Iterable[Constraint[T_expr]] = ()
+    constraints: Iterable[Constraint[T]] = ()
 
     @classmethod
-    def from_qref(
-        cls: type[CompiledRoutine[T_expr]], qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T_expr]
-    ) -> CompiledRoutine[T_expr]:
+    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
         program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
-        return CompiledRoutine[T_expr](
+        return CompiledRoutine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
 
 
 def _common_routine_dict_from_qref(
-    qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T_expr]
-) -> _CommonRoutineParams[T_expr]:
+    qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]
+) -> _CommonRoutineParams[T]:
     program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
     return {
         "name": program.name,
@@ -177,15 +175,12 @@ def _rsplit_once(target: str) -> tuple[str, str]:
     return (parts[0], parts[1])
 
 
-def _port_from_qref(port: PortV1, backend: SymbolicBackend[T_expr]) -> Port[T_expr]:
-    if port.size is None:
-        size = f"#{port.name}"
-    else:
-        size = port.size
+def _port_from_qref(port: PortV1, backend: SymbolicBackend[T]) -> Port[T]:
+    size = f"#{port.name}" if port.size is None else port.size
     return Port(name=port.name, direction=port.direction, size=backend.as_expression(str(size)))
 
 
-def _resource_from_qref(resource: ResourceV1, backend: SymbolicBackend[T_expr]) -> Resource[T_expr]:
+def _resource_from_qref(resource: ResourceV1, backend: SymbolicBackend[T]) -> Resource[T]:
     assert resource.value is not None, f"Resource {resource.name} has value of None, and this cannot be compiled."
     return Resource(name=resource.name, type=ResourceType(resource.type), value=backend.as_expression(resource.value))
 
@@ -194,7 +189,7 @@ def _endpoint_from_qref(endpoint: str) -> Endpoint:
     return Endpoint(*endpoint.split(".")) if "." in endpoint else Endpoint(None, endpoint)
 
 
-def _port_to_qref(port: Port[T_expr], backend: SymbolicBackend[T_expr]) -> PortV1:
+def _port_to_qref(port: Port[T], backend: SymbolicBackend[T]) -> PortV1:
     return PortV1(
         name=port.name,
         size=backend.serialize(port.size),
@@ -202,7 +197,7 @@ def _port_to_qref(port: Port[T_expr], backend: SymbolicBackend[T_expr]) -> PortV
     )
 
 
-def _resource_to_qref(resource: Resource[T_expr], backend: SymbolicBackend[T_expr]) -> ResourceV1:
+def _resource_to_qref(resource: Resource[T], backend: SymbolicBackend[T]) -> ResourceV1:
     return ResourceV1(name=resource.name, type=resource.type.value, value=backend.serialize(resource.value))
 
 
@@ -210,17 +205,15 @@ def _endpoint_to_qref(endpoint: Endpoint) -> str:
     return endpoint.port_name if endpoint.routine_name is None else f"{endpoint.routine_name}.{endpoint.port_name}"
 
 
-def routine_to_qref(routine: Routine[T_expr] | CompiledRoutine[T_expr], backend: SymbolicBackend[T_expr]) -> SchemaV1:
+def routine_to_qref(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> SchemaV1:
     return SchemaV1(version="v1", program=_routine_to_qref_program(routine, backend))
 
 
-def _routine_to_qref_program(
-    routine: Routine[T_expr] | CompiledRoutine[T_expr], backend: SymbolicBackend[T_expr]
-) -> RoutineV1:
+def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> RoutineV1:
     kwargs = (
         {
             "linked_params": {source: targets for source, targets in routine.linked_params.items()},
-            "local_variables": {var: backend.as_expression(expr) for var, expr in routine.local_variables},
+            "local_variables": {var: backend.as_expression(expr) for var, expr in routine.local_variables.items()},
         }
         if isinstance(routine, Routine)
         else {}
