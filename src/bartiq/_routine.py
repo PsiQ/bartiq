@@ -126,7 +126,7 @@ class Routine(Generic[T]):
             children={child.name: cls.from_qref(child, backend) for child in program.children},
             local_variables={var: backend.as_expression(expr) for var, expr in program.local_variables.items()},
             linked_params={
-                str(param.source): tuple(_rsplit_once(target) for target in param.targets)
+                str(param.source): tuple(((split := target.rsplit(".", 1))[0], split[1]) for target in param.targets)
                 for param in program.linked_params
             },
             **_common_routine_dict_from_qref(qref_obj, backend),
@@ -167,12 +167,6 @@ def _common_routine_dict_from_qref(
             _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
         },
     }
-
-
-def _rsplit_once(target: str) -> tuple[str, str]:
-    parts = target.rsplit(".", 1)
-    assert len(parts) == 2, f"Expected a string with at least one dot, got {target}."
-    return (parts[0], parts[1])
 
 
 def _port_from_qref(port: PortV1, backend: SymbolicBackend[T]) -> Port[T]:
