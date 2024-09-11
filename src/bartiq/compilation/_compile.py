@@ -40,6 +40,20 @@ from .preprocessing import DEFAULT_PRECOMPILATION_STAGES, PreprocessingStage
 
 T = TypeVar("T")
 
+# ParameterTree is a structure we use to build up our knowledge about
+# parameters during successive compilation stages.
+# In the context of any given rouine, non-None keys store dictionaries
+# mapping children's variables into the values that have to be
+# substituted into them.
+# For instance, consider, the following parameter tree:
+# {"a": {"x": N, "y": 2}, "b": {"x": 3"}}
+# It means, that when processing "a" we should substitue x=N
+# and y=2, and when processing child "b" we should substitute x=3.
+# A special key None represents routine currently being compiled.
+# For instance, the following parameter tree:
+# {None: {"#out_0": N}}
+# tells us that the output port of the routine currently being
+# procesed should have size set to N.
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 
