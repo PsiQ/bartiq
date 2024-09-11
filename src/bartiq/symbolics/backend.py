@@ -48,7 +48,7 @@ class SymbolicBackend(Protocol[T]):
     def substitute_all(self, expr: TExpr[T], /, replacements: Mapping[str, TExpr[T] | Number]) -> TExpr[T]:
         """Substitute all occurrences of all symbols in expr with given replacements."""
 
-    def define_function(self, expr: TExpr[T], /, func_name: str, function: Callable) -> TExpr[T]:
+    def define_function(self, expr: TExpr[T], /, func_name: str, function: Callable[[TExpr[T]], TExpr[T]]) -> TExpr[T]:
         """Define an undefined function."""
 
     def is_constant_int(self, expr: TExpr[T], /) -> bool:

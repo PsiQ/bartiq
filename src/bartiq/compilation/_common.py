@@ -17,32 +17,9 @@ from typing import Callable, TypeVar
 from .._routine import Port, Resource
 from ..symbolics.backend import SymbolicBackend, TExpr
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
-
-
-def _evaluate_expr(expr: TExpr[T], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]) -> TExpr[T]:
-    expr = backend.substitute_all(expr, inputs)
-    return value if (value := backend.value_of(expr)) is not None else expr
-
-
-def evaluate_ports(
-    ports: dict[str, Port[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
-) -> dict[str, Port[T]]:
-    return {
-        name: replace(port, size=_evaluate_expr(port.size, inputs, backend))  # type: ignore
-        for name, port in ports.items()
-    }
-
-
-def evaluate_resources(
-    resources: dict[str, Resource[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
-) -> dict[str, Resource[T]]:
-    return {
-        name: replace(resource, value=_evaluate_expr(resource.value, inputs, backend))  # type: ignore
-        for name, resource in resources.items()
-    }
 
 
 def _evaluate_and_define_functions(
@@ -54,12 +31,13 @@ def _evaluate_and_define_functions(
     return value if (value := backend.value_of(expr)) is not None else expr
 
 
-def evaluate_ports_v2(
+def evaluate_ports(
     ports: dict[str, Port[T]],
     inputs: dict[str, TExpr[T]],
-    custom_funcs: FunctionsMap[T],
     backend: SymbolicBackend[T],
+    custom_funcs: FunctionsMap[T] | None = None,
 ) -> dict[str, Port[T]]:
+    custom_funcs = {} if custom_funcs is None else custom_funcs
     return {
         name: replace(
             port, size=_evaluate_and_define_functions(port.size, inputs, custom_funcs, backend)  # type: ignore
@@ -68,12 +46,13 @@ def evaluate_ports_v2(
     }
 
 
-def evaluate_resources_v2(
+def evaluate_resources(
     resources: dict[str, Resource[T]],
     inputs: dict[str, TExpr[T]],
-    custom_funcs: FunctionsMap[T],
     backend: SymbolicBackend[T],
+    custom_funcs: FunctionsMap[T] | None = None,
 ) -> dict[str, Resource[T]]:
+    custom_funcs = {} if custom_funcs is None else custom_funcs
     return {
         name: replace(
             resource,

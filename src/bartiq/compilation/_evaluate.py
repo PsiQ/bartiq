@@ -19,7 +19,7 @@ from typing import Callable, TypeVar
 from .._routine import CompiledRoutine
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, TExpr
-from ._common import evaluate_ports_v2, evaluate_resources_v2
+from ._common import evaluate_ports, evaluate_resources
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -67,8 +67,8 @@ def _evaluate_internal(
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
-        ports=evaluate_ports_v2(compiled_routine.ports, inputs, functions_map, backend),
-        resources=evaluate_resources_v2(compiled_routine.resources, inputs, functions_map, backend),
+        ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
+        resources=evaluate_resources(compiled_routine.resources, inputs, backend, functions_map),
         children={
             name: _evaluate_internal(child, inputs, backend=backend, functions_map=functions_map)
             for name, child in compiled_routine.children.items()
