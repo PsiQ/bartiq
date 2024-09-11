@@ -31,7 +31,7 @@ def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend
                 child_resources_map[resource.name].add(child.name)
 
     additional_resources: dict[str, Resource[T]] = {
-        # The eefault here is to satisfy the typechecker
+        # The default here is to satisfy the typechecker
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
