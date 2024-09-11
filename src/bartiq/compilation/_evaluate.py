@@ -30,7 +30,7 @@ FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 
 def evaluate(
-    routine: CompiledRoutine[T],
+    compiled_routine: CompiledRoutine[T],
     assignments: Assignments[T],
     *,
     backend: SymbolicBackend[T] = sympy_backend,
@@ -48,21 +48,6 @@ def evaluate(
     Returns:
         A new estimate with variables assigned to the desired values.
     """
-    return _evaluate(
-        compiled_routine=routine,
-        assignments=assignments,
-        backend=backend,
-        functions_map=functions_map,
-    )
-
-
-def _evaluate(
-    compiled_routine: CompiledRoutine[T],
-    assignments: Assignments[T],
-    *,
-    backend: SymbolicBackend[T],
-    functions_map: FunctionsMap[T] | None = None,
-) -> CompiledRoutine[T]:
     if functions_map is None:
         functions_map = {}
     parsed_assignments = {
