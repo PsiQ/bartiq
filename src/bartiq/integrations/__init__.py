@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from .jupyter.routine_explorer import explore_routine
-except ImportError:
-    pass
-
 from .latex import routine_to_latex
 
-__all__ = ["routine_to_latex", "explore_routine"]
+__all__ = ["routine_to_latex"]
+
+try:
+    from .jupyter.routine_explorer import explore_routine
+
+    __all__.append("explore_routine")
+except ImportError:
+    pass
