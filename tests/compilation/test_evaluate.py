@@ -27,7 +27,7 @@ from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
 
 def load_evaluate_test_data():
-    with open(Path(__file__).parent / "data/evaluate_test_data_new.yaml") as f:
+    with open(Path(__file__).parent / "data/evaluate_test_data.yaml") as f:
         return yaml.safe_load(f)
 
 

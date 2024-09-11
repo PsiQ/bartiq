@@ -29,7 +29,7 @@ BACKEND = sympy_backend
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data_new_qref.yaml") as f:
+    with open(Path(__file__).parent / "data/compile_test_data.yaml") as f:
         return [(SchemaV1(**original), SchemaV1(**expected)) for original, expected in yaml.safe_load(f)]
 
 
