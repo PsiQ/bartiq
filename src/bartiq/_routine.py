@@ -101,7 +101,7 @@ class Routine(Generic[T]):
     constraints: Iterable[Constraint[T]] = ()
 
     @property
-    def inner_connections(self) -> dict[Endpoint, Endpoint]:
+    def _inner_connections(self) -> dict[Endpoint, Endpoint]:
         return {
             source: target
             for source, target in self.connections.items()
@@ -110,7 +110,7 @@ class Routine(Generic[T]):
 
     def sorted_children(self) -> Iterable[Self]:
         predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
-        for source, target in self.inner_connections.items():
+        for source, target in self._inner_connections.items():
             assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
             predecessor_map[target.routine_name].add(source.routine_name)
 
