@@ -180,7 +180,7 @@ def _compile(
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
 
     # Parameter map holds all of the assignments as nested dictionary.
-    # The first level of nensting is the child name (or None for current routine assignments)
+    # The first level of nesting is the child name (or None for current routine assignments).
     # The second level maps symbols to the expression that should be substituted for it.
     parameter_map: ParameterTree[T] = {name: {} for name in routine.children}
 
