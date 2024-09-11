@@ -177,6 +177,13 @@ class SympyBackend:
         except ValueError:
             return False
 
+    def is_single_parameter(self, expr: TExpr[Expr]) -> bool:
+        """Determine if the expression is a single parameter.
+
+        For SymPy backend, single parameters are just instances of Symbol.
+        """
+        return isinstance(expr, Symbol)
+
     def serialize(self, expr: TExpr[Expr]) -> str:
         """Return a textual representation of given expression."""
         if isinstance(expr, Number):

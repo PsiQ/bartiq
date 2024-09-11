@@ -3,7 +3,6 @@ from dataclasses import replace
 from typing import Callable, TypeVar
 
 from .._routine import Constraint, PortDirection, Resource, ResourceType, Routine
-from ..compilation._utilities import is_single_parameter
 from ..symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
@@ -75,7 +74,7 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
         else:
             new_variable_name = f"#{port.name}"
             new_variable = backend.as_expression(new_variable_name)
-            if is_single_parameter((size := backend.serialize(port.size))) and size != new_variable_name:
+            if (size := backend.serialize(port.size)) != new_variable_name and backend.is_single_parameter(port.size):
                 if size not in additional_local_variables:
                     additional_local_variables[size] = new_variable
                 else:

@@ -76,3 +76,25 @@ def test_attempt_to_define_builtin_function_fails():
 
     with pytest.raises(BartiqCompilationError):
         sympy_backend.define_function(expr, "cos", _f)
+
+
+@pytest.mark.parametrize(
+    "expression, expected",
+    [
+        # Good params
+        ("x", True),
+        ("lambda", True),
+        ("one", True),
+        ("some.path.to.param", True),
+        ("some.path.to.#port.param", True),
+        # Bad params
+        ("x + y", False),
+        ("1", False),
+        ("3.141", False),
+        ("N+1", False),
+        ("ceil(log_2(N))", False),
+        (None, False),
+    ],
+)
+def test_single_parameters_are_correctly_recognized(expression, expected):
+    assert sympy_backend.is_single_parameter(sympy_backend.as_expression(expression)) == expected

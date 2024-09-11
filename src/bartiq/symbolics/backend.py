@@ -60,6 +60,9 @@ class SymbolicBackend(Protocol[T]):
     def parse_constant(self, expr: TExpr[T], /) -> TExpr[T]:
         """Parse the expression, replacing known constants while ignoring case."""
 
+    def is_single_parameter(self, expr: TExpr[T], /) -> bool:
+        """Determine if given expression is a single paramater."""
+
     def compare(self, lhs: TExpr[T], rhs: TExpr[T]) -> ComparisonResult:
         """Compare lhs and rhs, returning comparison result.
 
