@@ -199,7 +199,6 @@ def _compile(
     parameter_map: ParameterTree[T] = {name: {} for name in routine.children}
 
     # We start by populating it with freshly compiled local variables and inputs
-    # {None: {a: 2}, b: {foo: 3, #in_1: N}}
     parameter_map[None] = {**local_variables, **inputs}
 
     # Invert and merge linked params into parameter_map
