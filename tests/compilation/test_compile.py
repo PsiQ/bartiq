@@ -23,9 +23,6 @@ from qref.schema_v1 import RoutineV1
 from bartiq import compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.errors import BartiqCompilationError
-from bartiq.symbolics import sympy_backend
-
-BACKEND = sympy_backend
 
 
 def load_compile_test_data():
@@ -38,8 +35,8 @@ COMPILE_TEST_DATA = load_compile_test_data()
 
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
-def test_compile(routine, expected_routine):
-    compiled_routine = compile_routine(routine, skip_verification=True).to_qref()
+def test_compile(routine, expected_routine, backend):
+    compiled_routine = compile_routine(routine, skip_verification=False, backend=backend).to_qref()
     assert compiled_routine == expected_routine
 
 
@@ -136,6 +133,8 @@ COMPILE_ERRORS_TEST_CASES = [
 
 
 @pytest.mark.parametrize("routine, expected_error", COMPILE_ERRORS_TEST_CASES)
-def test_compile_errors(routine, expected_error):
+def test_compile_errors(routine, expected_error, backend):
     with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
-        compile_routine(routine, precompilation_stages=[introduce_port_variables], skip_verification=True)
+        compile_routine(
+            routine, precompilation_stages=[introduce_port_variables], backend=backend, skip_verification=True
+        )
