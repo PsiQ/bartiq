@@ -36,17 +36,18 @@ def evaluate(
     backend: SymbolicBackend[T] = sympy_backend,
     functions_map: FunctionsMap[T] | None = None,
 ) -> CompiledRoutine[T]:
-    """Evaluates an estimate of a series of variable assignments.
+    """Substitutes variables into compiled routine.
 
     Args:
-        routine: Routine to evaluate. Note: this must have been compiled already.
-        assignments: A list of variable assignments, such as ``['x = 10', 'y = 3.141']``.
+        compiled_routine: a compiled routine to be evaluated.
+        assignments: A dictionary mapping a subste of input params of `compiled_routine` either into concrete
+            values, or other expressions. Expressions can be provided either as concrete instances of symbolic
+            expressions understood by backend, or via strings, e.g. `{"N": 2, "M": "k+3"}.
         backend: A backend used for manipulating symbolic expressions.
-        functions_map: A dictionary with string keys and callable functions as values. If any of the routines contains
-            a function matching the key in this dict, it will be replaced by calling corresponding value of this dict.
+        functions_map: A dictionary mapping function names to their concrete implementations.
 
     Returns:
-        A new estimate with variables assigned to the desired values.
+        A new instance of CompiledRoutine with appropriate substitutions made.
     """
     if functions_map is None:
         functions_map = {}
