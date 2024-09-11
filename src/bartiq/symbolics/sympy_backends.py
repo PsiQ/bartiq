@@ -187,7 +187,7 @@ class SympyBackend:
         difference = self.as_expression(lhs - rhs)
         if not isinstance(difference, Number):
             difference = difference.expand()
-        if difference == 0:
+        if difference == 0 or difference == 0.0:  # In sympy 0.0 is different than 0
             return ComparisonResult.equal
         elif self.is_constant_int(difference):
             return ComparisonResult.unequal
