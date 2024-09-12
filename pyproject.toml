@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bartiq"
-version = "0.4.0"
+version = "0.5.1"
 description = "Symbolic Quantum Resource Estimation compilation"
 authors = ["PsiQuantum, Corp."]
 license = "Apache 2.0"
@@ -12,7 +12,7 @@ python = "^3.10"
 pydantic = "^2.7"
 sympy = "^1.12"
 pyparsing ="~3.1.2"
-qref = "0.6.2"
+qref = "0.7.0"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.
@@ -45,6 +45,7 @@ mkdocs-jupyter = "^0.24.7"
 mkdocs-git-committers-plugin-2 = "^2.3.0"
 mkdocs-git-revision-date-localized-plugin = "^1.2.5"
 mike = "^2.0.0"
+matplotlib = "^3.9.1.post1"
 
 
 [tool.poetry-dynamic-versioning]
