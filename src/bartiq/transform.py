@@ -14,19 +14,26 @@
 
 
 import copy
-from collections import defaultdict
-from typing import Any, Dict, List, Set
+from dataclasses import replace
+from graphlib import TopologicalSorter
+from typing import Any, TypeVar
 
 from bartiq import Resource, ResourceType, Routine
 from bartiq.symbolics import sympy_backend
-from bartiq.verification import verify_uncompiled_routine
+from bartiq.symbolics.backend import SymbolicBackend, TExpr
 
 BACKEND = sympy_backend
 
 
+T = TypeVar("T")
+
+
 def add_aggregated_resources(
-    routine: Routine, aggregation_dict: Dict[str, Dict[str, Any]], remove_decomposed: bool = True, backend=BACKEND
-) -> Routine:
+    routine: Routine[T],
+    aggregation_dict: dict[str, dict[str, Any]],
+    remove_decomposed: bool = True,
+    backend: SymbolicBackend[T] = sympy_backend,
+) -> Routine[T]:
     """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
@@ -48,20 +55,22 @@ def add_aggregated_resources(
         Routine: The program with aggregated resources.
 
     """
-    verify_uncompiled_routine(routine, backend=backend)
-
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict)
-    for subroutine in routine.walk():
-        _add_aggregated_resources_to_subroutine(subroutine, expanded_aggregation_dict, remove_decomposed, backend)
-    return routine
+    return _add_aggregated_resources_to_subroutine(routine, expanded_aggregation_dict, remove_decomposed, backend)
 
 
 def _add_aggregated_resources_to_subroutine(
-    subroutine: Routine, expanded_aggregation_dict: Dict[str, Dict[str, Any]], remove_decomposed: bool, backend=BACKEND
-) -> Routine:
-
+    subroutine: Routine[T],
+    expanded_aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
+    remove_decomposed: bool,
+    backend: SymbolicBackend[T] = BACKEND,
+) -> Routine[T]:
+    new_children = {
+        name: _add_aggregated_resources_to_subroutine(child, expanded_aggregation_dict, remove_decomposed, backend)
+        for name, child in subroutine.children.items()
+    }
     if not hasattr(subroutine, "resources") or not subroutine.resources:
-        return subroutine
+        return replace(subroutine, children=new_children)
 
     aggregated_resources = copy.copy(subroutine.resources)
     for resource_name in subroutine.resources:
@@ -72,41 +81,49 @@ def _add_aggregated_resources_to_subroutine(
                 multiplier_expr = backend.as_expression(multiplier)
                 if sub_res in aggregated_resources:
                     current_value_expr = backend.as_expression(aggregated_resources[sub_res].value)
-                    aggregated_resources[sub_res].value = str(current_value_expr + multiplier_expr * resource_expr)
+                    aggregated_resources[sub_res] = replace(
+                        aggregated_resources[sub_res],
+                        value=current_value_expr + multiplier_expr * resource_expr,  # type: ignore
+                    )
                 else:
-                    new_resource = Resource(
+                    new_resource = Resource[T](
                         name=sub_res,
                         type=subroutine.resources[resource_name].type,
-                        value=str(multiplier_expr * resource_expr),
+                        value=multiplier_expr * resource_expr,  # type: ignore
                     )
                     aggregated_resources[sub_res] = new_resource
             if remove_decomposed:
                 del aggregated_resources[resource_name]
             else:
-                aggregated_resources[resource_name].type = ResourceType.other
+                aggregated_resources[resource_name] = replace(
+                    aggregated_resources[resource_name], type=ResourceType.other
+                )
 
-    subroutine.resources = aggregated_resources
-    return subroutine
+    return replace(subroutine, resources=aggregated_resources, children=new_children)
 
 
-def _expand_aggregation_dict(aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Dict[str, Any]]:
+def _expand_aggregation_dict(
+    aggregation_dict: dict[str, dict[str, str | TExpr[T]]], backend: SymbolicBackend[T] = BACKEND
+) -> dict[str, dict[str, TExpr[T]]]:
     """Expand the aggregation dictionary to handle nested resources.
     Args:
         aggregation_dict: The input aggregation dictionary.
     Returns:
         Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
     """
-
     sorted_resources = _topological_sort(aggregation_dict)
-
-    expanded_dict = {}
+    expanded_dict: dict[str, dict[str, TExpr[T]]] = {}
     for resource in sorted_resources:
-        if resource in aggregation_dict:
-            expanded_dict[resource] = _expand_resource(resource, aggregation_dict)
+        expanded_dict[resource] = _expand_resource(resource, aggregation_dict, expanded_dict, backend)
     return expanded_dict
 
 
-def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]], backend=BACKEND) -> Dict[str, Any]:
+def _expand_resource(
+    resource: str,
+    aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
+    expanded_dict: dict[str, dict[str, TExpr[T]]],
+    backend: SymbolicBackend[T] = BACKEND,
+) -> dict[str, TExpr[T]]:
     """Recursively expand resource mapping to handle nested resources and detect circular dependencies.
     Args:
         resource: The resource to expand.
@@ -117,27 +134,23 @@ def _expand_resource(resource: str, aggregation_dict: Dict[str, Dict[str, Any]],
 
     expanded_mapping = {k: backend.as_expression(v) for k, v in aggregation_dict[resource].items()}
 
-    res_to_expand = list(expanded_mapping.keys())
+    for current in list(expanded_mapping):
+        # Recursively expand the nested resources
+        for sub_res, sub_multiplier in expanded_dict.get(current, {}).items():
+            sub_multiplier_expr = backend.as_expression(sub_multiplier)
+            expanded_expr = backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr  # type: ignore
+            if sub_res in expanded_mapping:
+                expanded_mapping[sub_res] = expanded_mapping[sub_res] + expanded_expr  # type: ignore
+            else:
+                expanded_mapping[sub_res] = expanded_expr
 
-    for current in res_to_expand[:]:
         if current in aggregation_dict:
-            # Recursively expand the nested resources
-            sub_mapping = _expand_resource(current, aggregation_dict, backend)
-            for sub_res, sub_multiplier in sub_mapping.items():
-                sub_multiplier_expr = backend.as_expression(sub_multiplier)
-                expanded_expr = backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
-                if sub_res in expanded_mapping:
-                    expanded_mapping[sub_res] = str(backend.as_expression(expanded_mapping[sub_res]) + expanded_expr)
-                else:
-                    expanded_mapping[sub_res] = str(expanded_expr)
-                    res_to_expand.append(sub_res)
-
             del expanded_mapping[current]
 
     return expanded_mapping
 
 
-def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
+def _topological_sort(aggregation_dict: dict[str, dict[str, Any]]) -> list[str]:
     """Perform a topological sort on the aggregation dictionary to determine the order of resource expansion.
     Args:
         aggregation_dict : The input aggregation dictionary where keys are resource names
@@ -149,27 +162,9 @@ def _topological_sort(aggregation_dict: Dict[str, Dict[str, Any]]) -> List[str]:
         ValueError: If a circular dependency is detected in the aggregation dictionary.
     """
 
-    def dfs(res):
-        # Helper function to perform DFS
-        if res in visiting:
-            raise ValueError(f"Circular dependency detected: {' -> '.join(visiting[visiting.index(res):])} -> {res}")
+    predecessors: dict[str, set[str]] = {
+        var: set(other_var for other_var in dependants if other_var in aggregation_dict)
+        for var, dependants in aggregation_dict.items()
+    }
 
-        if res not in visited:
-            visiting.append(res)
-            for neighbor in default_agg_dict[res]:
-                dfs(neighbor)
-            visiting.remove(res)
-            visited.add(res)
-            result.append(res)
-
-    visited: Set[str] = set()
-    visiting: List[str] = []
-    result: List[str] = []
-    default_agg_dict: Dict[str, Any] = defaultdict(list, aggregation_dict)
-
-    resources = list(default_agg_dict.keys())
-    for res in resources:
-        if res not in visited:
-            dfs(res)
-
-    return result
+    return list(TopologicalSorter(predecessors).static_order())
