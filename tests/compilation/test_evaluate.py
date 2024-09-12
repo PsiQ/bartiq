@@ -21,7 +21,6 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import CompiledRoutine, compile_routine, evaluate
-from bartiq._routine import routine_to_qref
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -38,9 +37,8 @@ EVALUTE_TEST_CASES = load_evaluate_test_data()
 @pytest.mark.parametrize("input_dict, assignments, expected_dict", EVALUTE_TEST_CASES)
 def test_evaluate(input_dict, assignments, expected_dict, backend):
     compiled_routine = CompiledRoutine.from_qref(SchemaV1(**input_dict), backend)
-    evaluated_routine = evaluate(compiled_routine, assignments, backend=backend)
-    evaluated_routine = routine_to_qref(evaluated_routine, backend)
-    assert evaluated_routine == SchemaV1(**expected_dict)
+    result = evaluate(compiled_routine, assignments, backend=backend)
+    assert result.to_qref() == SchemaV1(**expected_dict)
 
 
 @pytest.mark.parametrize(
@@ -53,7 +51,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
     result = compile_routine(op)
-    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments, backend=backend)
+    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments, backend=backend).evaluated_routine
     for port_name, size in expected_sizes.items():
         assert str(evaluated_routine.ports[port_name].size) == str(size)
 
@@ -124,13 +122,13 @@ def custom_function(a, b):
     ],
 )
 def test_evaluate_with_functions_map(input_dict, assignments, functions_map, expected_dict, backend):
-    evaluated_routine = evaluate(
+    result = evaluate(
         CompiledRoutine.from_qref(RoutineV1(**input_dict), backend),
         assignments,
         backend=backend,
         functions_map=functions_map,
     )
-    assert routine_to_qref(evaluated_routine, backend).program == RoutineV1(**expected_dict)
+    assert result.to_qref().program == RoutineV1(**expected_dict)
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues")
@@ -142,7 +140,7 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
 
     result = compile_routine(routine)
     assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
-    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments)
+    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments).evaluated_routine
     expected_resources = {
         "toffs": 260,
         "t_gates": 216,

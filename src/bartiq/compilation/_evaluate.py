@@ -13,10 +13,12 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from dataclasses import replace
-from typing import Callable, TypeVar
+from dataclasses import dataclass, replace
+from typing import Callable, Generic, TypeVar
 
-from .._routine import CompiledRoutine
+from qref import SchemaV1
+
+from .._routine import CompiledRoutine, routine_to_qref
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, TExpr
 from ._common import evaluate_ports, evaluate_resources
@@ -29,13 +31,22 @@ Assignments = Mapping[str, str | TExpr[T]]
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 
+@dataclass
+class EvaluationResult(Generic[T]):
+    evaluated_routine: CompiledRoutine[T]
+    _backend: SymbolicBackend[T]
+
+    def to_qref(self) -> SchemaV1:
+        return routine_to_qref(self.evaluated_routine, self._backend)
+
+
 def evaluate(
     compiled_routine: CompiledRoutine[T],
     assignments: Assignments[T],
     *,
     backend: SymbolicBackend[T] = sympy_backend,
     functions_map: FunctionsMap[T] | None = None,
-) -> CompiledRoutine[T]:
+) -> EvaluationResult[T]:
     """Substitutes variables into compiled routine.
 
     Args:
@@ -55,7 +66,7 @@ def evaluate(
         assignment: backend.parse_constant(backend.as_expression(value)) for assignment, value in assignments.items()
     }
     evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
-    return evaluated_routine
+    return EvaluationResult(evaluated_routine=evaluated_routine, _backend=backend)
 
 
 def _evaluate_internal(
