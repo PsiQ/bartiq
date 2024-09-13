@@ -22,6 +22,7 @@ traitlets = { version = "^5.14.3", optional = true }
 
 [tool.poetry.extras]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
+optimization = ["scipy"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -33,7 +34,6 @@ black = "^24.4.1"
 isort = "^5.13.2"
 notebook = "^7.1.3"
 nbconvert = "^7.16.4"
-scipy = "1.13.1"
 
 
 [tool.poetry.group.docs.dependencies]
