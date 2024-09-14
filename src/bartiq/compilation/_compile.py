@@ -59,11 +59,11 @@ ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 @dataclass
 class CompilationResult(Generic[T]):
-    compiled_routine: CompiledRoutine[T]
+    routine: CompiledRoutine[T]
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        return routine_to_qref(self.compiled_routine, self._backend)
+        return routine_to_qref(self.routine, self._backend)
 
 
 @dataclass(frozen=True)
@@ -101,7 +101,7 @@ def _compile_constraint(
 
 
 def compile_routine(
-    routine: SchemaV1 | RoutineV1,
+    routine: SchemaV1 | RoutineV1 | Routine[T],
     *,
     backend: SymbolicBackend[T] = sympy_backend,
     precompilation_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PRECOMPILATION_STAGES,
@@ -113,10 +113,14 @@ def compile_routine(
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-    root = Routine[T].from_qref(routine, backend)
+    if isinstance(routine, Routine):
+        root = routine
+    else:
+        root = Routine[T].from_qref(routine, backend)
+
     for stage in precompilation_stages:
         root = stage(root, backend)
-    return CompilationResult(compiled_routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
+    return CompilationResult(routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
 
 
 def _compile_local_variables(

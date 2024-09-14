@@ -33,11 +33,11 @@ FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 @dataclass
 class EvaluationResult(Generic[T]):
-    evaluated_routine: CompiledRoutine[T]
+    routine: CompiledRoutine[T]
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        return routine_to_qref(self.evaluated_routine, self._backend)
+        return routine_to_qref(self.routine, self._backend)
 
 
 def evaluate(
@@ -66,7 +66,7 @@ def evaluate(
         assignment: backend.parse_constant(backend.as_expression(value)) for assignment, value in assignments.items()
     }
     evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
-    return EvaluationResult(evaluated_routine=evaluated_routine, _backend=backend)
+    return EvaluationResult(routine=evaluated_routine, _backend=backend)
 
 
 def _evaluate_internal(

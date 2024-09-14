@@ -51,7 +51,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
     result = compile_routine(op)
-    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments, backend=backend).evaluated_routine
+    evaluated_routine = evaluate(result.routine, assignments=assignments, backend=backend).routine
     for port_name, size in expected_sizes.items():
         assert str(evaluated_routine.ports[port_name].size) == str(size)
 
@@ -140,7 +140,7 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
 
     result = compile_routine(routine)
     assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
-    evaluated_routine = evaluate(result.compiled_routine, assignments=assignments).evaluated_routine
+    evaluated_routine = evaluate(result.routine, assignments=assignments).routine
     expected_resources = {
         "toffs": 260,
         "t_gates": 216,
