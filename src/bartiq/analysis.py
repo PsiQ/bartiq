@@ -14,9 +14,10 @@
 
 import random
 import warnings
+from sys import modules
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
-from sympy import Expr, Function, Poly, Symbol, lambdify, prod, symbols
+from sympy import Expr, Function, Poly, Symbol, lambdify, prod
 
 from bartiq.symbolics import sympy_backend
 
@@ -25,9 +26,9 @@ Backend = sympy_backend
 try:
     from scipy.optimize import minimize as scipy_minimize  # type: ignore
 
-    SCIPY = True
+    SCIPY_AVAILABLE = True
 except ImportError:
-    SCIPY = False
+    SCIPY_AVAILABLE = False
 
 
 class BigO:
@@ -200,7 +201,6 @@ class Optimizer:
             x_history.append(next_value)
 
             if abs(gradient) < tolerance:
-                print(f"Convergence reached after {i + 1} iterations.")
                 break
 
             current_value = next_value
@@ -248,8 +248,15 @@ def minimize(
     if scipy_kwargs is None:
         scipy_kwargs = {}
 
-    param_symbol = symbols(param)
-    cost_func_callable = lambdify(param_symbol, backend.as_expression(expression))
+    param_symbol = Symbol(param)
+
+    def cost_func_callable(x:Symbol[float]) -> float:
+        scalar_x = x[0]
+
+        result = backend.substitute(expression, param_symbol, scalar_x)
+
+        return backend.value_of(result)
+
 
     if optimizer == "gradient_descent":
         x0 = optimizer_kwargs.get("x0")
@@ -273,7 +280,7 @@ def minimize(
 
     elif optimizer == "scipy":
 
-        if SCIPY:
+        if SCIPY_AVAILABLE:
             if not optimizer_kwargs.get("x0"):
                 raise ValueError("SciPy optimization requires an initial value 'x0'.")
 
@@ -315,3 +322,4 @@ def minimize(
         raise ValueError(f"Unknown optimizer: {optimizer}")
 
     return optimization_result
+
