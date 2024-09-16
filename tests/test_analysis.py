@@ -9,7 +9,7 @@
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the sympyecific language governing permissions and
+# See the License for the specific language governing permissions and
 # limitations under the License.
 
 
@@ -215,27 +215,12 @@ df_active_volume = (
         (5, (1, 30), (4, 8)),
     ],
 )
-def test_minimize_df_active_volume(lamda_initial, lamda_bounds, expected_range):
-    """
-    Test the minimization of the df_active_volume expression.
-
-    The df_active_volume expression is derived from the resource value of active
-    volume in double factorization, where 'lamda' is a variable parameter. The other
-    fixed parameters used as reference in the calculation are:
-
-    - N_spatial = 20
-    - R = 60
-    - M = 600
-    - N_givens = 40
-    - Ksi_l = 20
-    - b = 10
-
-    """
+def test_minimize_df_active_volume_gradient_descent(lamda_initial, lamda_bounds, expected_range):
 
     optimizer_kwargs = {
         "x0": lamda_initial,
         "bounds": lamda_bounds,
-        "learning_rate": 0.01,
+        "learning_rate": 0.001,
         "max_iter": 10000,
         "tolerance": 1e-6,
     }
@@ -246,4 +231,39 @@ def test_minimize_df_active_volume(lamda_initial, lamda_bounds, expected_range):
         optimizer="gradient_descent",
         optimizer_kwargs=optimizer_kwargs,
     )
+    print(f"Gradient Descent Optimizer Result: {result}")
+
+    assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
+
+
+@pytest.mark.parametrize(
+    "lamda_initial, lamda_bounds, expected_range",
+    [
+        (25, (1, 50), (1, 8)),
+    ],
+)
+def test_minimize_df_active_volume_scipy(lamda_initial, lamda_bounds, expected_range):
+
+    optimizer_kwargs = {
+        "x0": lamda_initial,
+        "bounds": lamda_bounds,
+        "learning_rate": 0.001,
+        "max_iter": 10000,
+        "tolerance": 1e-6,
+    }
+    scipy_kwargs = {
+        "method": "L-BFGS-B",
+        "tol": 1e-6,
+        "options": {"disp": False},
+    }
+
+    result = minimize(
+        expression=df_active_volume,
+        param="lamda",
+        optimizer="scipy",
+        optimizer_kwargs=optimizer_kwargs,
+        scipy_kwargs=scipy_kwargs,
+    )
+    print(f"SciPy Optimizer Result: {result}")
+
     assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
