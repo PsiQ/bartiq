@@ -14,11 +14,11 @@
 
 import random
 import warnings
-from sys import modules
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
-from sympy import Expr, Function, Poly, Symbol, lambdify, prod
+from sympy import Expr, Function, Poly, Symbol, prod  # type: ignore
 
+from bartiq.compilation.types import NUMBER_TYPES
 from bartiq.symbolics import sympy_backend
 
 Backend = sympy_backend
@@ -248,15 +248,17 @@ def minimize(
     if scipy_kwargs is None:
         scipy_kwargs = {}
 
-    param_symbol = Symbol(param)
+    expression = backend.as_expression(expression)
 
-    def cost_func_callable(x:Symbol[float]) -> float:
-        scalar_x = x[0]
+    def cost_func_callable(x) -> float:
+        if not isinstance(x, NUMBER_TYPES):
+            x = x[0]
 
-        result = backend.substitute(expression, param_symbol, scalar_x)
-
-        return backend.value_of(result)
-
+        substituted_expr = backend.substitute(expression, param, x)
+        result = backend.value_of(substituted_expr)
+        if result is None:
+            raise ValueError(f"Evaluation failed for x={x}")
+        return float(result)
 
     if optimizer == "gradient_descent":
         x0 = optimizer_kwargs.get("x0")
