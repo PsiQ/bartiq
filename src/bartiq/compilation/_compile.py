@@ -36,7 +36,7 @@ from ..errors import BartiqCompilationError
 from ..symbolics import sympy_backend
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, TExpr
 from ._common import evaluate_ports, evaluate_resources
-from .preprocessing import DEFAULT_PRECOMPILATION_STAGES, PreprocessingStage
+from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 T = TypeVar("T")
 
@@ -59,10 +59,20 @@ ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 @dataclass
 class CompilationResult(Generic[T]):
+    """
+    Datastructure for storing results of the compilation.
+
+    Attributes:
+        routine: compiled routine
+        _backend: a backend used for manipulating symbolic expressions.
+
+    """
+
     routine: CompiledRoutine[T]
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
+        """Converts `routine` to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 
@@ -75,6 +85,8 @@ class Context:
 
 
 class ConstraintValidationError(ValueError):
+    """Raised when a constraint in the compilation process is violated."""
+
     def __init__(self, original_constraint: Constraint[T], compiled_constraint: Constraint[T]):
         super().__init__(original_constraint, compiled_constraint)
 
@@ -104,10 +116,24 @@ def compile_routine(
     routine: SchemaV1 | RoutineV1 | Routine[T],
     *,
     backend: SymbolicBackend[T] = sympy_backend,
-    precompilation_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PRECOMPILATION_STAGES,
+    preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
-    if not skip_verification:
+    """Performs symbolic compilation of a given routine.
+
+    Compilation in this context means taking a routine that's defined in terms of variables defined within the scope
+    of a given routine and returning a routinedefined in terms of top-level variables.
+
+    Args:
+        routine: routine to be compiled.
+        backend: a backend used for manipulating symbolic expressions.
+        preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
+            compiled by Bartiq.
+        skip_verification: a flag indicating whether verification of the routine should skipped.
+
+
+    """
+    if not skip_verification and not isinstance(routine, Routine):
         if not (verification_result := verify_topology(routine)):
             problems = [problem + "\n" for problem in verification_result.problems]
             raise BartiqCompilationError(
@@ -118,7 +144,7 @@ def compile_routine(
     else:
         root = Routine[T].from_qref(routine, backend)
 
-    for stage in precompilation_stages:
+    for stage in preprocessing_stages:
         root = stage(root, backend)
     return CompilationResult(routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
 

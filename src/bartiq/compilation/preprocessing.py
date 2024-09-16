@@ -11,6 +11,16 @@ PreprocessingStage = Callable[[Routine[T], SymbolicBackend[T]], Routine[T]]
 
 
 def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[T]:
+    """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
+
+    Args:
+        transform: a function accepting a routine and a symbolic backend and returning a new routine.
+
+    Returns:
+        A function with the same signature as `transform`. The function works by traversing the hierarchical graph
+        in postorder, applying `transform` to each child before applying it to the parent.
+    """
+
     def _inner(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
         return transform(
             replace(routine, children={child.name: _inner(child, backend) for child in routine.children.values()}),
@@ -22,6 +32,19 @@ def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[
 
 @postorder_transform
 def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Adds additive resources to all the ancestors of a particular having this resource.
+
+    Since additive resources follow simple rules (value of a resource is equal to sum of the resources
+    of it's children), rather than defining it for all the subroutines, we can just have it defined for
+    appropriate leaves and then "bubble it up" using this preprocessing transformation.
+
+    Args:
+        routine: routine to be preprocessed
+        backend: a backend used for manipulating symbolic expressions.
+
+    Returns:
+        A routine with all the additive resources defined appropriately at all levels of the hierarchy.
+    """
     child_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
     for child in routine.children.values():
@@ -47,6 +70,19 @@ def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend
 
 @postorder_transform
 def promote_unlinked_inputs(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Adds unlinked child params to the parent.
+
+    If a leaf subroutine had some parameters which are not accessible from the top level routine,
+    we would not be able compile it. Therefore, this function takes any `input_param` which is not
+    linked to the parent and adds it to the parent alongside a corresponding link.
+
+    Args:
+        routine: routine to be preprocessed
+        backend: a backend used for manipulating symbolic expressions.
+
+    Returns:
+        A routine with the missing links added.
+    """
     all_targets = [tuple(target) for _, targets in routine.linked_params.items() for target in targets]
 
     additional_param_links = {
@@ -93,12 +129,31 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
 
 
 def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Adds variables representing port sizes to a routine.
+
+    Args:
+        routine: routine to be preprocessed
+        backend: a backend used for manipulating symbolic expressions.
+
+    Returns:
+        A routine with the extra variables representing port sizes.
+    """
+
     return replace(
         routine, children={name: _introduce_port_variables(child, backend) for name, child in routine.children.items()}
     )
 
 
 def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Turns parameter links of level deeper than one into series of direct links.
+
+    Args:
+        routine: routine to be preprocessed
+        backend: a backend used for manipulating symbolic expressions.
+
+    Returns:
+        A routine with the deep linked params decomposed and approprietly defined at each level.
+    """
     new_linked_params: dict[str, tuple[tuple[str, str], ...]] = {}
     children = routine.children.copy()
     for source_param, targets in routine.linked_params.items():
@@ -129,7 +184,7 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
     )
 
 
-DEFAULT_PRECOMPILATION_STAGES = (
+DEFAULT_PREPROCESSING_STAGES = (
     add_default_additive_resources,
     propagate_linked_params,
     promote_unlinked_inputs,

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._compile import compile_routine
-from ._evaluate import evaluate
+from ._compile import CompilationResult, ConstraintValidationError, compile_routine
+from ._evaluate import EvaluationResult, evaluate
 
-__all__ = ["compile_routine", "evaluate"]
+__all__ = ["compile_routine", "CompilationResult", "ConstraintValidationError", "evaluate", "EvaluationResult"]

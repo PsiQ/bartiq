@@ -136,5 +136,5 @@ COMPILE_ERRORS_TEST_CASES = [
 def test_compile_errors(routine, expected_error, backend):
     with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
         compile_routine(
-            routine, precompilation_stages=[introduce_port_variables], backend=backend, skip_verification=True
+            routine, preprocessing_stages=[introduce_port_variables], backend=backend, skip_verification=True
         )

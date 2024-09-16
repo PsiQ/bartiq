@@ -33,10 +33,19 @@ FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 @dataclass
 class EvaluationResult(Generic[T]):
+    """
+    Datastructure for storing results of the evaluation.
+
+    Attributes:
+        routine: evaluated routine
+        _backend: a backend used for manipulating symbolic expressions.
+    """
+
     routine: CompiledRoutine[T]
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
+        """Converts `routine` to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 
@@ -51,11 +60,11 @@ def evaluate(
 
     Args:
         compiled_routine: a compiled routine to be evaluated.
-        assignments: A dictionary mapping a subste of input params of `compiled_routine` either into concrete
+        assignments: a dictionary mapping a subset of input params of `compiled_routine` either into concrete
             values, or other expressions. Expressions can be provided either as concrete instances of symbolic
             expressions understood by backend, or via strings, e.g. `{"N": 2, "M": "k+3"}.
-        backend: A backend used for manipulating symbolic expressions.
-        functions_map: A dictionary mapping function names to their concrete implementations.
+        backend: a backend used for manipulating symbolic expressions.
+        functions_map: a dictionary mapping function names to their concrete implementations.
 
     Returns:
         A new instance of CompiledRoutine with appropriate substitutions made.
