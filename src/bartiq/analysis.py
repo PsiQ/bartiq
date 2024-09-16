@@ -157,9 +157,10 @@ class Optimizer:
         cost_func: Callable[[float], float],
         x0: Optional[float] = None,
         bounds: Optional[Tuple[float, float]] = None,
-        learning_rate: float = 0.01,
-        max_iter: int = 1000,
-        tolerance: float = 1e-6,
+        learning_rate: float = 0.000001,
+        max_iter: int = 10000,
+        tolerance: float = 1e-8,
+        momentum: float = 0.9,
     ) -> Dict[str, Any]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
@@ -174,6 +175,7 @@ class Optimizer:
             learning_rate: The step size for each iteration. Default is 0.01.
             max_iter: The maximum number of iterations to perform. Default is 1000.
             tolerance: The tolerance level for stopping criteria. Default is 1e-6.
+            momentum: The momentum factor to control the influence of previous updates.
 
         Returns:
             Dict: A dictionary containing the final value of the parameter and the history of values
@@ -186,22 +188,27 @@ class Optimizer:
             raise ValueError(f"Initial value {x0} is out of bounds {bounds}.")
 
         current_value = x0
+        velocity = float(0)
+
         x_history = [current_value]
 
         for i in range(max_iter):
             gradient = Optimizer._numerical_gradient(cost_func, current_value)
-            next_value = current_value - learning_rate * gradient
+
+            velocity = momentum * velocity - learning_rate * gradient
+            next_value = current_value + velocity
 
             if bounds:
                 next_value = max(min(next_value, bounds[1]), bounds[0])
                 if next_value == bounds[0] or next_value == bounds[1]:
                     x_history.append(next_value)
+                    current_value = next_value
                     break
-
-            x_history.append(next_value)
 
             if abs(gradient) < tolerance:
                 break
+
+            x_history.append(next_value)
 
             current_value = next_value
 

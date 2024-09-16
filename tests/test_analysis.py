@@ -212,7 +212,7 @@ df_active_volume = (
 @pytest.mark.parametrize(
     "lamda_initial, lamda_bounds, expected_range",
     [
-        (5, (1, 30), (4, 8)),
+        (25, (1, 30), (1, 2)),
     ],
 )
 def test_minimize_df_active_volume_gradient_descent(lamda_initial, lamda_bounds, expected_range):
@@ -220,7 +220,7 @@ def test_minimize_df_active_volume_gradient_descent(lamda_initial, lamda_bounds,
     optimizer_kwargs = {
         "x0": lamda_initial,
         "bounds": lamda_bounds,
-        "learning_rate": 0.001,
+        "learning_rate": 1e-7,
         "max_iter": 10000,
         "tolerance": 1e-6,
     }
@@ -231,15 +231,13 @@ def test_minimize_df_active_volume_gradient_descent(lamda_initial, lamda_bounds,
         optimizer="gradient_descent",
         optimizer_kwargs=optimizer_kwargs,
     )
-    print(f"Gradient Descent Optimizer Result: {result}")
-
     assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
 
 
 @pytest.mark.parametrize(
     "lamda_initial, lamda_bounds, expected_range",
     [
-        (25, (1, 50), (1, 8)),
+        (25, (1, 50), (1, 2)),
     ],
 )
 def test_minimize_df_active_volume_scipy(lamda_initial, lamda_bounds, expected_range):
@@ -264,6 +262,5 @@ def test_minimize_df_active_volume_scipy(lamda_initial, lamda_bounds, expected_r
         optimizer_kwargs=optimizer_kwargs,
         scipy_kwargs=scipy_kwargs,
     )
-    print(f"SciPy Optimizer Result: {result}")
 
     assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
