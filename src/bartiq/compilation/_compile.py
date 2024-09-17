@@ -121,7 +121,8 @@ def compile_routine(
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
-    In this context, compilation means transforming a routine defined in terms of routine-local variables into one defined in terms of global input parameters.
+    In this context, compilation means transforming a routine defined in terms of routine-local variables into
+    one defined in terms of global input parameters.
 
     Args:
         routine: routine to be compiled.
