@@ -121,15 +121,14 @@ def compile_routine(
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
-    Compilation in this context means taking a routine that's defined in terms of variables defined within the scope
-    of a given routine and returning a routinedefined in terms of top-level variables.
+    In this context, compilation means transforming a routine defined in terms of routine-local variables into one defined in terms of global input parameters.
 
     Args:
         routine: routine to be compiled.
         backend: a backend used for manipulating symbolic expressions.
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
-        skip_verification: a flag indicating whether verification of the routine should skipped.
+        skip_verification: a flag indicating whether verification of the routine should be skipped.
 
 
     """
