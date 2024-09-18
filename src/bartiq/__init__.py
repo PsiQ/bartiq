@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._routine import Connection, Port, PortDirection, Resource, ResourceType, Routine
+from ._routine import CompiledRoutine, PortDirection, Resource, ResourceType, Routine
 from .compilation import compile_routine, evaluate
 from .symbolics import sympy_backend
 
 __all__ = [
-    "Routine",
-    "Port",
-    "Connection",
-    "Resource",
     "PortDirection",
     "ResourceType",
+    "Routine",
+    "Resource",
+    "CompiledRoutine",
     "compile_routine",
     "evaluate",
     "sympy_backend",

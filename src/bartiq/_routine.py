@@ -11,42 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# Note:
-#     This module makes heavy use of Pydantic and its validation components.
-#     In case the use of name "validation" is confusing, please see pydantic documentation:
-#     https://docs.pydantic.dev/latest/concepts/models/ .
-
 from __future__ import annotations
 
-from collections import Counter, defaultdict
-from enum import Enum
-from typing import Annotated, Any, Iterable, Optional, Sequence, TypeVar, Union, cast
+from collections.abc import Iterable
+from dataclasses import dataclass
+from enum import Enum, auto
+from graphlib import TopologicalSorter
+from typing import Generic, Literal, TypeVar, cast
 
-from pydantic import BaseModel as _BaseModel
-from pydantic import (
-    BeforeValidator,
-    Field,
-    PlainSerializer,
-    StringConstraints,
-    field_serializer,
-    field_validator,
-)
-from qref.schema_v1 import NAME_PATTERN
-from typing_extensions import Self
+from qref import SchemaV1
+from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
+from typing_extensions import Self, TypedDict
 
-T = TypeVar("T", bound="Routine")
+from .symbolics.backend import SymbolicBackend, TExpr
 
-TYPE_LOOKUP = {
-    int: "int",
-    float: "float",
-    str: "str",
-    type(None): None,
-}
-
-Value = Union[int, float, str]
-Symbol = str
-_Name = Annotated[str, StringConstraints(pattern=rf"^{NAME_PATTERN}$")]
+T = TypeVar("T")
 
 
 class ResourceType(str, Enum):
@@ -66,380 +45,184 @@ class PortDirection(str, Enum):
     through = "through"
 
 
-def _serialize_value(value: Optional[Value]) -> dict[str, Union[str, int, float, None]]:
-    return {"type": TYPE_LOOKUP[type(value)], "value": value}
+class ConstraintStatus(Enum):
+    inconclusive = auto()
+    satisfied = auto()
+    violated = auto()
 
 
-def _deserialize_value(v: Union[dict[str, Any], Value]) -> Value:
-    if isinstance(v, dict):
-        return v["value"]
-    else:
-        return v
+@dataclass(frozen=True)
+class Constraint(Generic[T]):
+    lhs: TExpr[T]
+    rhs: TExpr[T]
+    status: ConstraintStatus = ConstraintStatus.inconclusive
 
 
-AnnotatedValue = Annotated[Value, BeforeValidator(_deserialize_value), PlainSerializer(_serialize_value)]
+@dataclass(frozen=True)
+class Port(Generic[T]):
+    name: str
+    direction: str
+    size: TExpr[T]
 
 
-def _resolve_port(selector: str, children: dict[str, Routine], ports: dict[str, Port]):
-    *child_selector, port_name = selector.split(".")
-    return children[child_selector[0]].ports[port_name] if child_selector else ports[port_name]
+@dataclass(frozen=True)
+class Resource(Generic[T]):
+    name: str
+    type: ResourceType
+    value: TExpr[T]
 
 
-def _parse_connection_dict(connection: dict[str, str], children: dict[str, Routine], ports: dict) -> Connection:
-    try:
-        return Connection(
-            source=_resolve_port(connection["source"], children, ports),
-            target=_resolve_port(connection["target"], children, ports),
+@dataclass(frozen=True)
+class Endpoint:
+    routine_name: str | None
+    port_name: str
+
+
+class _CommonRoutineParams(TypedDict, Generic[T]):
+    name: str
+    type: str | None
+    input_params: Iterable[str]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
+    connections: dict[Endpoint, Endpoint]
+
+
+@dataclass(frozen=True)
+class Routine(Generic[T]):
+    name: str
+    type: str | None
+    input_params: Iterable[str]
+    linked_params: dict[str, tuple[tuple[str, str], ...]]
+    local_variables: dict[str, TExpr[T]]
+    children: dict[str, Self]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
+    connections: dict[Endpoint, Endpoint]
+    constraints: Iterable[Constraint[T]] = ()
+
+    @property
+    def _inner_connections(self) -> dict[Endpoint, Endpoint]:
+        return {
+            source: target
+            for source, target in self.connections.items()
+            if source.routine_name is not None and target.routine_name is not None
+        }
+
+    def sorted_children(self) -> Iterable[Self]:
+        predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
+        for source, target in self._inner_connections.items():
+            assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
+            predecessor_map[target.routine_name].add(source.routine_name)
+
+        return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
+
+    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
+        return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
+
+    @classmethod
+    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> Routine[T]:
+        program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+        return Routine[T](
+            children={child.name: cls.from_qref(child, backend) for child in program.children},
+            local_variables={var: backend.as_expression(expr) for var, expr in program.local_variables.items()},
+            linked_params={
+                str(param.source): tuple(((split := target.rsplit(".", 1))[0], split[1]) for target in param.targets)
+                for param in program.linked_params
+            },
+            **_common_routine_dict_from_qref(qref_obj, backend),
         )
-    # If we wouldn't re-raise KeyError as ValueError, pydantic validation would have confusing error message.
-    except KeyError as e:
-        raise ValueError(
-            "Inconsistent children data when parsing connections. Most probably some of the "
-            "child routine failed to validate or the names used in connections don't match the routines."
-        ) from e
 
 
-def _find_descendant(selector, children):
-    direct_child_selector, *sub_selector = selector.split(".", 1)
-    try:
-        child = children[direct_child_selector]
-        return child.find_descendant(sub_selector[0]) if sub_selector else child
-    except (KeyError, ValueError) as e:
-        raise ValueError("Child {selector} not found.") from e
+@dataclass(frozen=True)
+class CompiledRoutine(Generic[T]):
+    name: str
+    type: str | None
+    input_params: Iterable[str]
+    children: dict[str, Self]
+    ports: dict[str, Port[T]]
+    resources: dict[str, Resource[T]]
+    connections: dict[Endpoint, Endpoint]
+    constraints: Iterable[Constraint[T]] = ()
+
+    @classmethod
+    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
+        program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+        return CompiledRoutine[T](
+            children={child.name: cls.from_qref(child, backend) for child in program.children},
+            **_common_routine_dict_from_qref(qref_obj, backend),
+        )
 
 
-def _update_parent(children, parent: Routine) -> None:
-    for child in children:
-        child.parent = parent
-
-
-def _sort_children_topologically(routine: T) -> Iterable[T]:
-    """Sort children of given routine topologically.
-
-    This function uses Kahn's algorithm, see:
-    https://en.wikipedia.org/wiki/Topological_sorting
-
-    Topological order is not unique, but guarantees that if two children a and b
-    are joined by the edge a->b, then a will appear in the order before b
-    (but not necessarily just before).
-    """
-    # Extract connections that are relevant to children ordering, i.e. only the ones
-    # that connect two children (and not children with parent).
-    # For each such connection we only preserve the name of the source and target child,
-    # the names of children will serves as names of nodes in graph.
-    graph_edges = set(
-        (cn.source.parent.name, cn.target.parent.name)  # type: ignore
-        for cn in routine.connections
-        if cn.source.parent is not routine and cn.target.parent is not routine
-    )
-
-    # Count number of incoming edges for each node, this will be used for
-    # detecting dangling nodes.
-    in_degrees = Counter(target for _, target in graph_edges)
-
-    # Also, construct adjacency list, this will help us to virtually "remove"
-    # edges and make some nodes dangle!
-    adjacencies = defaultdict(set)
-
-    for source, target in graph_edges:
-        adjacencies[source].add(target)
-
-    # Find dangling nodes, i.e. ones that don't have any incoming edge.
-    dangling_nodes = [name for name in routine.children if in_degrees[name] == 0]
-
-    # Proceed while there are any dangling nodes
-    while dangling_nodes:
-        # Pick one such node and remove all edges that go out of it
-        current_node = dangling_nodes.pop()
-        for dst in adjacencies[current_node]:
-            # Actually, we don't have to perform any removal, it is sufficient
-            # to decrease indegree of the other end of the edge.
-            in_degrees[dst] -= 1
-
-            # If it was the last incoming edge, we found a new dangling node,
-            # and hence we add it to the list of dangling nodes.
-            if in_degrees[dst] == 0:
-                dangling_nodes.append(dst)
-        # Finally, yield child corresponding to current node and move to the next one.
-        yield cast(T, routine.children[current_node])
-
-    # If there was an edge that we didn't "remove", it must mean there was a cycle.
-    # We have to raise an error because the ordering we found so far is
-    # incomplete and incorrect.
-    if any(deg > 0 for deg in in_degrees.values()):
-        raise ValueError(f"A cycle occurred while sorting children of routine {routine.name}.")
-
-
-class BaseModel(_BaseModel):
-    """Base class for all our models.
-
-    The model uses enum values for serialization and allows for arbitrary types,
-    which is needed for handling sympy symbols.
-    """
-
-    model_config = {
-        "arbitrary_types_allowed": True,
-        "use_enum_values": True,
-        "extra": "forbid",
+def _common_routine_dict_from_qref(
+    qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]
+) -> _CommonRoutineParams[T]:
+    program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+    return {
+        "name": program.name,
+        "type": program.type,
+        "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
+        "input_params": tuple(program.input_params),
+        "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
+        "connections": {
+            _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
+        },
     }
 
 
-class Routine(BaseModel):
-    """Subroutine in a quantum program.
+def _port_from_qref(port: PortV1, backend: SymbolicBackend[T]) -> Port[T]:
+    size = f"#{port.name}" if port.size is None else port.size
+    return Port(name=port.name, direction=port.direction, size=backend.as_expression(str(size)))
 
-    Attributes:
-        name: Name of the subroutine.
-        type: Type of the subroutine, might be None.
-        ports: Dictionary mapping port name to corresponding Port object with the same name.
-        parent: A Routine whose this routine is subroutine of. Might be None, in which
-            case the routine is considered to be root of computation.
-        children: Dictionary mapping name of subroutine of this routine into routine
-            object with the same name.
-        connections: List of connections objects, containing all the directed edges between
-            either ports of this routine and ports of its children or ports of two children.
-            Importantly, by convention, connection objects cannot descend further then one
-            generation (i.e. there might not be a connection between routine and its
-            grandchild).
-        resources: Dictionary mapping name of the resource to corresponding Resource object.
-        input_params: Sequence of symbols determining inputs for this routine.
-        local_variables: Convenience aliases to expressions commonly used within this Routine.
-            For instance, for a Routine with input parameter d one of the local variables
-            can be N=ceil(log_2(d)).
-        linked_params: Dictionary defining relations between parameters of this routine and
-            parameters of its children. This dictionary is keyed with this routine's
-            symbols, with the corresponding values being list of pairs (child, param) to
-            which the symbol is connected to. Unlike connections, parameters links might
-            descend further than one generation.
-        meta: Addictional free-form information associated with this routine.
-    """
 
-    name: _Name
-    type: Optional[str] = None
-    ports: dict[str, Port] = Field(default_factory=dict)
-    parent: Optional[Self] = Field(exclude=True, default=None)
-    children: dict[str, Routine] = Field(default_factory=dict)
-    connections: list[Connection] = Field(default_factory=list)
-    resources: dict[str, Resource] = Field(default_factory=dict)
-    input_params: Sequence[Symbol] = Field(default_factory=list)
-    local_variables: dict[str, str] = Field(default_factory=dict)
-    linked_params: dict[Symbol, list[tuple[str, Symbol]]] = Field(default_factory=dict)
-    meta: Optional[dict[str, Any]] = Field(default_factory=dict)
+def _resource_from_qref(resource: ResourceV1, backend: SymbolicBackend[T]) -> Resource[T]:
+    assert resource.value is not None, f"Resource {resource.name} has value of None, and this cannot be compiled."
+    return Resource(name=resource.name, type=ResourceType(resource.type), value=backend.as_expression(resource.value))
 
-    def __init__(self, **data: Any):
-        sanitized_data = {k: v for k, v in data.items() if v != [] and v != {}}
-        super().__init__(**sanitized_data)
-        _update_parent(self.ports.values(), self)
-        _update_parent(self.connections, self)
-        _update_parent(self.children.values(), self)
-        _update_parent(self.resources.values(), self)
 
-    def __repr__(self):
-        return f'<{self.__class__.__name__} name="{self.name}">'
+def _endpoint_from_qref(endpoint: str) -> Endpoint:
+    return Endpoint(*endpoint.split(".")) if "." in endpoint else Endpoint(None, endpoint)
 
-    def __eq__(self, other: Any):
-        return isinstance(other, Routine) and self.model_dump() == other.model_dump()
 
-    def walk(self) -> Iterable[Self]:
-        """Iterates through all the ancestry, deep-first."""
-        for child in _sort_children_topologically(self):
-            yield from child.walk()
-        yield self
+def _port_to_qref(port: Port[T], backend: SymbolicBackend[T]) -> PortV1:
+    return PortV1(
+        name=port.name,
+        size=backend.serialize(port.size),
+        direction=cast(Literal["input", "output", "through"], port.direction),
+    )
 
-    @property
-    def input_ports(self) -> dict[str, Port]:
-        """Dictionary of input ports of this routine."""
-        return {
-            port_name: port
-            for port_name, port in self.ports.items()
-            if port.direction in (PortDirection.input, PortDirection.through)
+
+def _resource_to_qref(resource: Resource[T], backend: SymbolicBackend[T]) -> ResourceV1:
+    return ResourceV1(name=resource.name, type=resource.type.value, value=backend.serialize(resource.value))
+
+
+def _endpoint_to_qref(endpoint: Endpoint) -> str:
+    return endpoint.port_name if endpoint.routine_name is None else f"{endpoint.routine_name}.{endpoint.port_name}"
+
+
+def routine_to_qref(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> SchemaV1:
+    return SchemaV1(version="v1", program=_routine_to_qref_program(routine, backend))
+
+
+def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> RoutineV1:
+    kwargs = (
+        {
+            "linked_params": {source: targets for source, targets in routine.linked_params.items()},
+            "local_variables": {var: backend.as_expression(expr) for var, expr in routine.local_variables.items()},
         }
+        if isinstance(routine, Routine)
+        else {}
+    )
 
-    @property
-    def output_ports(self) -> dict[str, Port]:
-        """Dictionary of output ports of this routine."""
-        return {
-            port_name: port
-            for port_name, port in self.ports.items()
-            if port.direction in (PortDirection.output, PortDirection.through)
-        }
-
-    @property
-    def is_leaf(self) -> bool:
-        """Return True if this routine is a leaf, and false otherwise.
-
-        By the definition, a routine is a leaf iff it has no children.
-        """
-        return len(self.children) == 0
-
-    @property
-    def is_root(self) -> bool:
-        """Return True if this routine is a root, and false otherwise.
-
-        By the definition, a routine is a root iff it doesn't have a parent.
-        """
-        return self.parent is None
-
-    @field_validator("connections", mode="before")
-    @classmethod
-    def _validate_connections(cls, v, values) -> list[Connection]:
-        return [
-            (
-                connection
-                if isinstance(connection, Connection)
-                else _parse_connection_dict(
-                    connection,
-                    values.data.get("children", {}),
-                    values.data.get("ports", {}),
-                )
-            )
-            for connection in v
-        ]
-
-    @field_serializer("connections")
-    def _serialize_connections(self, connections):
-        return [connection.model_dump() for connection in sorted(connections, key=Connection.model_dump_json)]
-
-    @field_serializer("input_params")
-    def _serialize_input_params(self, input_params):
-        return sorted(input_params)
-
-    def find_descendant(self, selector: str) -> Routine:
-        """Given a selector of a child, return the corresponding routine.
-
-        Args:
-            selector: a string comprising sequence of names determining the child.
-                For instance, a string "a.b.c" mean child with name "c" of
-                routine with name "b", which itself is a child of routine "a"
-                which is a child of self. If empty string is provided, returns itself.
-
-        Returns:
-            Routine corresponding to given selector.
-
-        Raises:
-            ValueError: if given child is not found.
-        """
-        if selector == "":
-            return self
-        else:
-            return _find_descendant(selector, self.children)
-
-    def relative_path_from(self, ancestor: Optional[Routine], exclude_root_name: bool = False) -> str:
-        """Return relative path to the ancestor.
-
-        Args:
-            ancestor: Ancestor from which a relative path to self should be found.
-            exclude_root_name: if True, removes the name of the root from the relative path, if it is present.
-
-        Returns:
-            selector s such that ancestor.find_descendant(s) is self.
-
-        Raises:
-            ValueError: If ancestor is not, in fact, an ancestor of self.
-        """
-
-        # For root node return an empty string
-        if self.parent is None and ancestor is None and exclude_root_name:
-            return ""
-        if self.parent is ancestor:
-            return self.name
-        else:
-            try:
-                return f"{self.parent.relative_path_from(ancestor, exclude_root_name=exclude_root_name)}.{self.name}"  # type: ignore # noqa: E501
-            except (ValueError, AttributeError) as e:
-                raise ValueError("Ancestor not found.") from e
-
-    def absolute_path(self, exclude_root_name: bool = False) -> str:
-        """Returns a path from root.
-
-        Args:
-            exclude_root_name: If true, excludes name of root from the path. Default: False
-        """
-        if self.parent is None and exclude_root_name:
-            return ""
-        else:
-            return self.relative_path_from(None, exclude_root_name=exclude_root_name).removeprefix(".")
-
-    def _repr_markdown_(self):
-        from .integrations.latex import routine_to_latex
-
-        return routine_to_latex(self)
-
-
-class Resource(BaseModel):
-    """Resource associated with a routine.
-
-    Attributes:
-        name: Name of the resource.
-        type: Type of the resource.
-        parent: Routine whose resource this object represents.
-        value: Value of the resources, either concrete one or a variable.
-    """
-
-    name: _Name
-    type: ResourceType
-    parent: Optional[Routine] = Field(exclude=True, default=None)
-    value: AnnotatedValue
-
-    def __repr__(self):
-        return f'<{self.__class__.__name__} name="{self.name}" value="{self.value}">'
-
-
-class Port(BaseModel):
-    """Class representing a port.
-
-    Attributes:
-        name: Name of this port.
-        parent: Routine to which this port belongs to.
-        direction: Direction of this port. Port can be either input, output or
-            bidirectional.
-        size: Size of this port. It might be a concrete value or a variable.
-        meta: Additional free-form data associated with this port.
-    """
-
-    name: _Name
-    parent: Optional[Routine] = Field(exclude=True, default=None)
-    direction: PortDirection
-    size: Optional[AnnotatedValue]
-    meta: Optional[dict[str, Any]] = Field(default_factory=dict)
-
-    def __repr__(self):
-        parent_name = "none" if self.parent is None else self.parent.name
-        size_value = "None" if self.size is None else f'"{self.size}"'
-        return f"{self.__class__.__name__}({parent_name}.#{self.name}, size={size_value}, {self.direction})"
-
-    def absolute_path(self, exclude_root_name: bool = False) -> str:
-        """Returns a path from root.
-
-        Args:
-            exclude_root_name: If true, excludes name of root from the path. Default: False
-        """
-        assert self.parent is not None
-        if self.parent.absolute_path(exclude_root_name=exclude_root_name) == "":
-            return f"#{self.name}"
-        else:
-            return f"{self.parent.absolute_path(exclude_root_name=exclude_root_name)}.#{self.name}"
-
-
-class Connection(BaseModel):
-    """Connection between two ports.
-
-    Attributes:
-        source: Port which the connection comes from.
-        target: Port the connection targets.
-        parent: Routine this connection belongs to. Note: it is marked as Optional
-            only because of how Routine objects are internally constructed. In
-            correctly constructed routines, no actual connection should have
-            a None as a parent.
-    """
-
-    source: Port
-    target: Port
-    parent: Optional[Routine] = Field(exclude=True, default=None)
-
-    def __repr__(self):
-        parent_name = "none" if self.parent is None else self.parent.name
-        return f"{self.__class__.__name__}({parent_name}.#{self.source.name} -> {parent_name}.#{self.target.name})"
-
-    @field_serializer("source", "target")
-    def _serialize_port(self, port):
-        return port.name if port.parent is self.parent else f"{port.parent.name}.{port.name}"
+    return RoutineV1(
+        name=routine.name,
+        type=routine.type,
+        input_params=routine.input_params,
+        children=[_routine_to_qref_program(child, backend) for child in routine.children.values()],
+        ports=[_port_to_qref(port, backend) for port in routine.ports.values()],
+        resources=[_resource_to_qref(resource, backend) for resource in routine.resources.values()],
+        connections=[
+            {"source": _endpoint_to_qref(source), "target": _endpoint_to_qref(target)}
+            for source, target in routine.connections.items()
+        ],
+        **kwargs,
+    )

@@ -12,23 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This module is an implementation of SymbolicBackend protocol (with T_expr = sympy.Expr)
+# This module is an implementation of SymbolicBackend protocol (with TExpr[S] = sympy.Expr)
 # See https://peps.python.org/pep-0544/#modules-as-implementations-of-protocols
 # for explanation how a module can implement a protocol.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from functools import singledispatchmethod
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, Function, N, Order, Symbol, symbols, sympify
+from sympy import Expr, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
-from ..compilation.types import Number
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
+from .backend import ComparisonResult, Number, TExpr
 from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
 from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression
@@ -40,7 +41,11 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 
-T_expr: TypeAlias = Expr
+S: TypeAlias = Expr | Number
+
+T = TypeVar("T")
+P = ParamSpec("P")
+
 
 MATH_CONSTANTS = {
     "pi": sympy.pi,
@@ -50,7 +55,25 @@ MATH_CONSTANTS = {
 }
 
 
-def parse_to_sympy(expression: str, debug=False) -> T_expr:
+ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
+TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
+
+
+def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer[P, Iterable[T]]:
+    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:
+        return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
+
+    return _inner
+
+
+def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransformer[P, T | Number]:
+    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> T | Number:
+        return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
+
+    return _inner
+
+
+def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
     """Parse given mathematical expression into a sympy expression.
 
     Args:
@@ -65,22 +88,23 @@ def parse_to_sympy(expression: str, debug=False) -> T_expr:
 
 class SympyBackend:
 
-    def __init__(self, parse_function=parse_to_sympy):
+    def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
 
     @singledispatchmethod
-    def _as_expression(self, value: Union[str | int | float]) -> T_expr:
-        return sympify(value)
+    def _as_expression(self, value: TExpr[Expr]) -> TExpr[Expr]:
+        return value
 
     @_as_expression.register
-    def _parse(self, value: str) -> T_expr:
+    def _parse(self, value: str) -> TExpr[Expr]:
         return parse_to_sympy(value)
 
-    def as_expression(self, value: Union[str | int | float]) -> T_expr:
+    def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
-    def parse_constant(self, expr: T_expr) -> T_expr:
+    @identity_for_numbers
+    def parse_constant(self, expr: Expr) -> TExpr[Expr]:
         """Parse the expression, replacing known constants while ignoring case."""
         for symbol_str, constant in MATH_CONSTANTS.items():
             expr = expr.subs(Symbol(symbol_str.casefold()), constant)
@@ -89,25 +113,18 @@ class SympyBackend:
 
         return expr
 
-    def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
+    @empty_for_numbers
+    def free_symbols_in(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
-        return map(str, expr.free_symbols)
-
-    def functions_in(self, expr: T_expr) -> Iterable[str]:
-        """Returns the (non-built-in) functions referenced in the expression."""
-        return [
-            func_name
-            for atom in expr.atoms(*SYMPY_USER_FUNCTION_TYPES)
-            if (func_name := str(type(atom))) not in self.reserved_functions()
-        ]
+        return tuple(map(str, expr.free_symbols))  # type: ignore
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over all built-in functions."""
         return BUILT_IN_FUNCTIONS
 
-    def value_of(self, expr: T_expr) -> Optional[Number]:
+    @identity_for_numbers
+    def value_of(self, expr: Expr) -> Number | None:
         """Compute a numerical value of an expression, return None if it's not possible."""
-        # If numeric value possible, evaluate, otherwise return None
         try:
             value = N(expr).round(n=NUM_DIGITS_PRECISION)
         except TypeError as e:
@@ -123,34 +140,23 @@ class SympyBackend:
             value = float(value)
         return value
 
-    def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
-        """Substitute occurrences of given symbol with an expression or numerical value."""
+    @identity_for_numbers
+    def substitute(self, expr: Expr, symbol: str, replacement: TExpr[Expr] | Number) -> TExpr[Expr]:
         return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
 
-    def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
-        """Rename all instances of given function call."""
-        if old_name in BUILT_IN_FUNCTIONS:
-            raise BartiqCompilationError(
-                f"Attempted to rename the special function {old_name} (to {new_name}); cannot rename special functions."
-            )
-        if new_name in BUILT_IN_FUNCTIONS:
-            raise BartiqCompilationError(
-                f"Attempted to rename the function {old_name} to the special function {new_name}); "
-                " cannot rename functions to special functions."
-            )
+    @identity_for_numbers
+    def substitute_all(self, expr: Expr, replacements: Mapping[str, TExpr[Expr]]) -> TExpr[Expr]:
+        symbols_in_expr = self.free_symbols_in(expr)
+        restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
+        return expr.subs(restricted_replacements)
 
-        # Rename the function
-        return expr.replace(
-            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == old_name,
-            lambda function: Function(new_name)(*function.args),
-        )
-
-    def define_function(self, expr: T_expr, func_name: str, function: Callable) -> T_expr:
+    @identity_for_numbers
+    def define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
         """Define an undefined function."""
         # Catch attempt to define special function names
         if func_name in BUILT_IN_FUNCTIONS:
             raise BartiqCompilationError(
-                f"Attempted to redefine the special function {func_name}; cannot " "define special functions."
+                f"Attempted to redefine the special function {func_name}; cannot define special functions."
             )
 
         # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
@@ -163,17 +169,37 @@ class SympyBackend:
         except TypeError:
             return expr
 
-    def is_constant_int(self, expr: T_expr):
+    def is_constant_int(self, expr: TExpr[Expr]):
         """Return True if a given expression represents a constant int and False otherwise."""
         try:
-            int(str(expr))
+            _ = int(str(expr))
             return True
         except ValueError:
             return False
 
-    def serialize(self, expr: T_expr) -> str:
+    def is_single_parameter(self, expr: TExpr[Expr]) -> bool:
+        """Determine if the expression is a single parameter.
+
+        For SymPy backend, single parameters are just instances of Symbol.
+        """
+        return isinstance(expr, Symbol)
+
+    def serialize(self, expr: TExpr[Expr]) -> str:
         """Return a textual representation of given expression."""
+        if isinstance(expr, Number):
+            return str(expr)
         return serialize_expression(expr)
+
+    def compare(self, lhs: TExpr[Expr], rhs: TExpr[Expr]) -> ComparisonResult:
+        difference = self.as_expression(lhs - rhs)
+        if not isinstance(difference, Number):
+            difference = difference.expand()
+        if difference == 0 or difference == 0.0:  # In sympy 0.0 is different than 0
+            return ComparisonResult.equal
+        elif self.is_constant_int(difference):
+            return ComparisonResult.unequal
+        else:
+            return ComparisonResult.ambigous
 
 
 # Define sympy_backend for backwards compatibility
