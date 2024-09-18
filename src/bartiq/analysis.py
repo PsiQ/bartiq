@@ -15,11 +15,10 @@
 import random
 import warnings
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union, Type
 
 from sympy import Expr, Function, Poly, Symbol, prod  # type: ignore
 
-from bartiq.compilation.types import NUMBER_TYPES
 from bartiq.symbolics import sympy_backend
 
 Backend = sympy_backend
@@ -259,7 +258,7 @@ def minimize(
     expression = backend.as_expression(expression)
 
     def cost_func_callable(x) -> float:
-        if not isinstance(x, NUMBER_TYPES):
+        if not isinstance(x, (int, float)):
             x = x[0]
 
         substituted_expr = backend.substitute(expression, param, x)
