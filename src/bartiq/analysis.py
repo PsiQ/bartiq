@@ -14,6 +14,7 @@
 
 import random
 import warnings
+
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 from sympy import Expr, Function, Poly, Symbol, prod  # type: ignore
@@ -32,7 +33,7 @@ except ImportError:
 
 
 class BigO:
-    def __init__(self, expr: Expr, variable: Optional[Symbol] = None):
+    def __init__(self, expr: Expr, variable: Symbol | None = None):
         """Class for representing expressions in Big O notation.
 
         It analyzes given expression and returns all the Big O terms in it.
@@ -92,7 +93,7 @@ def _add_big_o_function(expr: Expr) -> Expr:
     return Function("O")(expr)
 
 
-def _convert_to_big_O(expr: Expr, gens: Optional[list[Expr]] = None) -> Expr:
+def _convert_to_big_O(expr: Expr, gens: list[Expr] | None = None) -> Expr:
     gens = gens or []
     if len(expr.free_symbols) == 0:
         return _add_big_o_function(1)

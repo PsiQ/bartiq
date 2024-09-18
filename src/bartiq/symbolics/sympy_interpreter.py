@@ -159,6 +159,14 @@ class multiplicity(Function):
         return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
 
 
+class nlz(Function):
+    @classmethod
+    def eval(cls, n):
+        if isinstance(n, Integer):
+            n = int(n)
+            return (n & -n).bit_length() - 1
+
+
 SPECIAL_FUNCS = {
     "mod": Mod,
     "max": Max,
@@ -212,6 +220,7 @@ SPECIAL_FUNCS = {
     "lambertw": LambertW,
     "heaviside": Heaviside,
     "multiplicity": multiplicity,
+    "nlz": nlz,
 }
 
 

@@ -9,13 +9,8 @@ For some quantum algorithms, the expression for their cost might depend on the i
 - using [piecewise sympy function](https://docs.sympy.org/latest/modules/functions/elementary.html#piecewise)
 - using user-defined functions instead of sympy expressions
 
-
 However, all these methods introduce additional complexities which may or may not be appropriate for a given use-case. Ultimately, bartiq does not provide any native approach for dynamic definition of routines based on the topology, so users are responsible for such decision-making prior to compilation.
 
-
-## Non-trivial port sizes
-
-Right now bartiq does not support use of arbitrary expressions for input port sizes, but rather requires input port sizes to be constant or defined by as a single parameter. In the case that this isn't sufficient, it can be somewhat circumvented by introducing `local_variables`, but it's not elegant solution and might cause some unforeseen issues in the compilation process. Please reach out to a `bartiq` core developers if you are interested in this use-case and we will support you as needed.
 
 ## Qubit counts
 

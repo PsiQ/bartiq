@@ -11,46 +11,67 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Iterable, Mapping
+from enum import Enum, auto
+from typing import Callable, Protocol, TypeAlias, TypeVar
 
-from typing import Callable, Iterable, Optional, Protocol, TypeVar, Union
+Number = int | float
+T = TypeVar("T")
 
-from ..compilation.types import Number
-
-T_expr = TypeVar("T_expr")
+TExpr: TypeAlias = Number | T
 
 
-class SymbolicBackend(Protocol[T_expr]):
+class ComparisonResult(Enum):
+    equal = auto()
+    unequal = auto()
+    ambigous = auto()
+
+
+class SymbolicBackend(Protocol[T]):
     """Protocol describing capabilities of backends used for manipulating symbolic expressions."""
 
-    def as_expression(self, value: Union[str, int, float]) -> T_expr:
+    def as_expression(self, value: TExpr[T] | str) -> TExpr[T]:
         """Convert given value into an expression native to this backend."""
 
-    def free_symbols_in(self, expr: T_expr) -> Iterable[str]:
+    def free_symbols_in(self, expr: TExpr[T], /) -> Iterable[str]:
         """Return an iterable over free symbols in given expression."""
-
-    def functions_in(self, expr: T_expr) -> Iterable[str]:
-        """Return an iterable over functions in expr."""
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over reserved functions."""
 
-    def value_of(self, expr: T_expr) -> Optional[Number]:
+    def value_of(self, expr: TExpr[T], /) -> Number | None:
         """Return value of given expression."""
 
-    def substitute(self, expr: T_expr, symbol: str, replacement: Union[T_expr, Number]) -> T_expr:
+    def substitute(self, expr: TExpr[T], /, symbol: str, replacement: TExpr[T] | Number) -> TExpr[T]:
         """Substitute all occurrences of symbol in expr with given replacement."""
 
-    def rename_function(self, expr: T_expr, old_name: str, new_name: str) -> T_expr:
-        """Rename all instances of given function call."""
+    def substitute_all(self, expr: TExpr[T], /, replacements: Mapping[str, TExpr[T] | Number]) -> TExpr[T]:
+        """Substitute all occurrences of all symbols in expr with given replacements."""
 
-    def define_function(self, expr: T_expr, func_name: str, function: Callable) -> T_expr:
+    def define_function(self, expr: TExpr[T], /, func_name: str, function: Callable[[TExpr[T]], TExpr[T]]) -> TExpr[T]:
         """Define an undefined function."""
 
-    def is_constant_int(self, expr: T_expr) -> bool:
+    def is_constant_int(self, expr: TExpr[T], /) -> bool:
         """Return True if a given expression represents a constant int and False otherwise."""
 
-    def serialize(self, expr: T_expr) -> str:
+    def serialize(self, expr: TExpr[T], /) -> str:
         """Return a textual representation of given expression."""
 
-    def parse_constant(self, expr: T_expr) -> T_expr:
+    def parse_constant(self, expr: TExpr[T], /) -> TExpr[T]:
         """Parse the expression, replacing known constants while ignoring case."""
+
+    def is_single_parameter(self, expr: TExpr[T], /) -> bool:
+        """Determine if given expression is a single paramater."""
+
+    def compare(self, lhs: TExpr[T], rhs: TExpr[T]) -> ComparisonResult:
+        """Compare lhs and rhs, returning comparison result.
+
+        Note that unlike boolean values, comparison might be ambigous if the
+        backend fails to simplify or interpret the expressions being compared.
+
+        Therefore, meaning of the result should be interpreter as fallows:
+
+        - `ComparisonResult.equal`: `lhs` and `rhs` are certainly equal.
+        - `ComparisonResult.unequal': 'lhs' and 'rhs' are certainly not equal.
+        - `ComparisonResult.ambigous`: it is not known for certain if `lhs` and `rhs` are equal.
+        """

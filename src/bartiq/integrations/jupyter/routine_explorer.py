@@ -14,9 +14,9 @@
 
 import ipywidgets as widgets
 from ipytree import Node, Tree
+from qref import SchemaV1
+from qref.schema_v1 import RoutineV1
 from traitlets import Unicode
-
-from bartiq import Routine
 
 from ..latex import routine_to_latex
 
@@ -29,7 +29,7 @@ class _RoutineTree(Tree):
     selected_routine_resources = Unicode(default_value="Please select a routine")
     # NOTE: the choice of 1000 here is arbitrary,
 
-    def __init__(self, routine: Routine, debug_mode: bool = False):
+    def __init__(self, routine: RoutineV1 | SchemaV1, debug_mode: bool = False):
         super().__init__(multiple_selection=False)
         self._debug_mode = debug_mode
         self._node_routine_lookup: dict = {}
@@ -37,7 +37,8 @@ class _RoutineTree(Tree):
         self._add_click_events()
         self.root_node.selected = True
 
-    def _build_tree(self, routine: Routine) -> None:
+    def _build_tree(self, routine: SchemaV1 | RoutineV1) -> None:
+        routine = routine if isinstance(routine, RoutineV1) else routine.program
         root_name = routine.name or DEFAULT_ROOT_NAME
         root_node = Node(root_name)
         self._node_routine_lookup[root_node] = routine
@@ -45,8 +46,8 @@ class _RoutineTree(Tree):
         self.add_node(root_node)
         self._add_child_nodes(routine, root_node)
 
-    def _add_child_nodes(self, routine: Routine, node: Node) -> None:
-        for child_routine in routine.children.values():
+    def _add_child_nodes(self, routine: RoutineV1, node: Node) -> None:
+        for child_routine in routine.children:
             child_node = Node(child_routine.name)
             self._node_routine_lookup[child_node] = child_routine
             node.add_node(child_node)
@@ -69,7 +70,7 @@ class _RoutineTree(Tree):
             self.selected_routine_resources = rf"{html_string}"
 
 
-def explore_routine(routine: Routine) -> widgets.HBox:
+def explore_routine(routine: SchemaV1 | RoutineV1) -> widgets.HBox:
     """Widget faciliting exploration of routine's costs.
 
     Args:

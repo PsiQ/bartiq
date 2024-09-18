@@ -12,46 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from bartiq._routine import Routine
+from qref.schema_v1 import RoutineV1
 
 
 def routine_with_passthrough(a_out_size="N"):
     """Routine with a passthrough, used for testing."""
-    return Routine(
+    return RoutineV1(
         name="root",
         input_params=["N"],
-        ports={
-            "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-            "out_0": {"name": "out_0", "direction": "output", "size": None},
-        },
-        children={
-            "a": Routine(
+        ports=[
+            {"name": "in_0", "direction": "input", "size": "N"},
+            {"name": "out_0", "direction": "output", "size": None},
+        ],
+        children=[
+            RoutineV1(
                 name="a",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                    "out_0": {"name": "out_0", "direction": "output", "size": f"{a_out_size}"},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": "N"},
+                    {"name": "out_0", "direction": "output", "size": f"{a_out_size}"},
+                ],
             ),
-            "b": Routine(
+            RoutineV1(
                 name="b",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": None},
-                    "out_0": {"name": "out_0", "direction": "output", "size": None},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": None},
+                    {"name": "out_0", "direction": "output", "size": None},
+                ],
                 connections=[{"source": "in_0", "target": "out_0"}],
             ),
-            "c": Routine(
+            RoutineV1(
                 name="c",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": None},
-                    "out_0": {"name": "out_0", "direction": "output", "size": None},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": None},
+                    {"name": "out_0", "direction": "output", "size": None},
+                ],
                 connections=[{"source": "in_0", "target": "out_0"}],
             ),
-        },
+        ],
         connections=[
             {"source": "in_0", "target": "a.in_0"},
             {"source": "a.out_0", "target": "b.in_0"},
@@ -64,48 +64,48 @@ def routine_with_passthrough(a_out_size="N"):
 
 def routine_with_two_passthroughs():
     """Routine with a two passthroughs, used for testing."""
-    return Routine(
+    return RoutineV1(
         name="root",
         type=None,
         input_params=["N"],
-        ports={
-            "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-            "in_1": {"name": "in_1", "direction": "input", "size": "M"},
-            "out_0": {"name": "out_0", "direction": "output", "size": None},
-            "out_1": {"name": "out_1", "direction": "output", "size": None},
-        },
-        children={
-            "a": Routine(
+        ports=[
+            {"name": "in_0", "direction": "input", "size": "N"},
+            {"name": "in_1", "direction": "input", "size": "M"},
+            {"name": "out_0", "direction": "output", "size": None},
+            {"name": "out_1", "direction": "output", "size": None},
+        ],
+        children=[
+            RoutineV1(
                 name="a",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                    "out_0": {"name": "out_0", "direction": "output", "size": "N"},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": "N"},
+                    {"name": "out_0", "direction": "output", "size": "N"},
+                ],
             ),
-            "b": Routine(
+            RoutineV1(
                 name="b",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": "N"},
-                    "out_0": {"name": "out_0", "direction": "output", "size": "N"},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": "N"},
+                    {"name": "out_0", "direction": "output", "size": "N"},
+                ],
             ),
-            "c": Routine(
+            RoutineV1(
                 name="c",
                 type=None,
-                ports={
-                    "in_0": {"name": "in_0", "direction": "input", "size": None},
-                    "in_1": {"name": "in_1", "direction": "input", "size": None},
-                    "out_0": {"name": "out_0", "direction": "output", "size": None},
-                    "out_1": {"name": "out_1", "direction": "output", "size": None},
-                },
+                ports=[
+                    {"name": "in_0", "direction": "input", "size": None},
+                    {"name": "in_1", "direction": "input", "size": None},
+                    {"name": "out_0", "direction": "output", "size": None},
+                    {"name": "out_1", "direction": "output", "size": None},
+                ],
                 connections=[
                     {"source": "in_0", "target": "out_0"},
                     {"source": "in_1", "target": "out_1"},
                 ],
             ),
-        },
+        ],
         connections=[
             {"source": "in_0", "target": "a.in_0"},
             {"source": "in_1", "target": "b.in_0"},
