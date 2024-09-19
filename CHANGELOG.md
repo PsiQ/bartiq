@@ -26,6 +26,7 @@
 ### Miscellaneous Chores
 
 * release 0.6.0 ([2fb6a35](https://github.com/PsiQ/bartiq/commit/2fb6a359ac09f5ad055182c540366e1b8f0a455f))
+* drop support for Python 3.9
 
 ## [0.5.1](https://github.com/PsiQ/bartiq/compare/v0.5.0...v0.5.1) (2024-08-13)
 
