@@ -53,7 +53,25 @@ violation of some of its assumptions, and preprocesses the routine so that all t
 As an example, suppose some port `in_0` has size `1`. Bartiq replaces this size with `#in_0`, and then adds a
 constraint saying that `#in_0 = 1`.
 
-Existence of preprocessing allows user for writing more concise and readable routines, while at the same time
+
+Currently, there are following preprocessing stages:
+
+1. Introduction of default additive resources. This stage allows users to define the additive resources for leafs,
+   and then adds the same resource to each of the higher-level routines, by defining it as a sum of the resource over all children that define it.
+   In the example we discussed previously, this preprocessing step would allow uas to skip the definition of
+   `x` resoruce in `root` and instead have it automatically defined by Bartiq.
+2. Propagation of linked params. In this stage all linked parameters reaching further than to the direct
+   descendant are converted into a series of direct parameter links. This is useful, because you can e.g.
+   link parameter from the top-level routine to a parameter arbitrarily deep in the program structure,
+   and it will still work, despite Bartiq's compilation engine requirement on having only direct links.
+3. Promotion of ulinked inputs. Compilation cannot handle parameters that are not linked or pased through
+   connections. To avoid unnecessary compilation errors, Bartiq will promote such parameter to a parameter
+   linked to newly introduced parent's input.
+4. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
+   equal to a single-parameter expression of known name, while also introducing constraints to make sure
+   that no information is lost in the process.
+
+It is hopefully clear by now that preprocessing allows user for writing more concise and readable routines, while at the same time
 ensuring that strict requirements of compilation engine are met.
 
 ### Step 2: Recursive compilation of routines
