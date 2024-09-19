@@ -21,18 +21,18 @@ In order to quickly get started with `bartiq`, you can load Alias Sampling as an
 
 ```python
 import json
-from bartiq import Routine, compile_routine, evaluate
-from bartiq.integrations import qref_to_bartiq
+from bartiq import compile_routine, evaluate
+from qref import SchemaV1
 
 with open("alias_sampling_basic.json", "r") as f:
     routine_dict = json.load(f)
 
-uncompiled_routine = qref_to_bartiq(routine_dict)
-compiled_routine = compile_routine(uncompiled_routine)
+uncompiled_routine = SchemaV1(**routine_dict)
+compiled_routine = compile_routine(uncompiled_routine).routine
 
-assignments = ["L=100", "mu=10"]
+assignments = {"L": 100, "mu": 10}
 
-evaluated_routine = evaluate(compiled_routine, assignments)
+evaluated_routine = evaluate(compiled_routine, assignments).routine gs
 ```
 
 Now in order to inspect the results you can do:
