@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-import sys
 from pathlib import Path
 
 import pytest
@@ -161,8 +160,6 @@ def test_evaluation_raises_error_when_constraint_is_violated(backend):
 
 @pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine(backend):
-    # Compilation fails on Python 3.9 for the default recursion limit, so we increased it to make this test pass.
-    sys.setrecursionlimit(2000)
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
         routine = SchemaV1(**yaml.safe_load(f))
 
