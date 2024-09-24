@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import sys
+import re
 from pathlib import Path
 
 import pytest
@@ -21,6 +20,7 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import CompiledRoutine, compile_routine, evaluate
+from bartiq.errors import BartiqCompilationError
 
 from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
@@ -131,10 +131,35 @@ def test_evaluate_with_functions_map(input_dict, assignments, functions_map, exp
     assert result.to_qref().program == RoutineV1(**expected_dict)
 
 
+def test_evaluation_raises_error_when_constraint_is_violated(backend):
+    qref_routine = {
+        "name": "root",
+        "children": [
+            {
+                "name": "a",
+                "ports": [
+                    {"name": "in_0", "size": "N", "direction": "input"},
+                    {"name": "in_1", "size": "N", "direction": "input"},
+                ],
+            },
+        ],
+        "ports": [
+            {"name": "in_0", "size": "K", "direction": "input"},
+            {"name": "in_1", "size": "M", "direction": "input"},
+        ],
+        "connections": ["in_0 -> a.in_0", "in_1 -> a.in_1"],
+    }
+
+    compiled_routine = compile_routine(RoutineV1(**qref_routine), backend=backend).routine
+
+    expected_error = "The following constraint was violated when compiling root.a: M = K evaluated into 2 = 1."
+
+    with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
+        _ = evaluate(compiled_routine, {"K": 1, "M": 2}, backend=backend)
+
+
 @pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine(backend):
-    # Compilation fails on Python 3.9 for the default recursion limit, so we increased it to make this test pass.
-    sys.setrecursionlimit(2000)
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
         routine = SchemaV1(**yaml.safe_load(f))
 
