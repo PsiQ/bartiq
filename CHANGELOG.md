@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.6.0](https://github.com/PsiQ/bartiq/compare/v0.5.1...v0.6.0) (2024-09-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* New compilation engine ([#115](https://github.com/PsiQ/bartiq/issues/115))
+
+### Features
+
+* New compilation engine ([#115](https://github.com/PsiQ/bartiq/issues/115)) ([cf79586](https://github.com/PsiQ/bartiq/commit/cf79586354b0ab8dcd708b29bf3caf02cc999ffa))
+
+
+### Bug Fixes
+
+* Add a parameter to control the removal of decomposed resources in the aggregation function ([#109](https://github.com/PsiQ/bartiq/issues/109)) ([37acec8](https://github.com/PsiQ/bartiq/commit/37acec8f7e7e2f5b338b9b44486ae3f283ec1ee0))
+
+
+### Documentation
+
+* new tutorial for advanced alias sampling examples and aggregation function ([4a3d789](https://github.com/PsiQ/bartiq/commit/4a3d789b58e6cdce398a81e7ca686c72e0082454))
+* Update compilation docs ([#119](https://github.com/PsiQ/bartiq/issues/119)) ([4492a2c](https://github.com/PsiQ/bartiq/commit/4492a2c3cb87cad34be437d7288af871a4697fd5))
+
+
+### Miscellaneous Chores
+
+* release 0.6.0 ([eefe37a](https://github.com/PsiQ/bartiq/commit/eefe37add4bc47fc51048fe9793e04a32e1dbe3e))
+
 ## [0.5.1](https://github.com/PsiQ/bartiq/compare/v0.5.0...v0.5.1) (2024-08-13)
 
 
