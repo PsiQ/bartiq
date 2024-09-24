@@ -18,10 +18,18 @@ from typing import Callable, Generic, TypeVar
 
 from qref import SchemaV1
 
+from bartiq.errors import BartiqCompilationError
+
 from .._routine import CompiledRoutine, routine_to_qref
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, TExpr
-from ._common import evaluate_ports, evaluate_resources
+from ._common import (
+    ConstraintValidationError,
+    Context,
+    evaluate_constraints,
+    evaluate_ports,
+    evaluate_resources,
+)
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -74,7 +82,9 @@ def evaluate(
     parsed_assignments = {
         assignment: backend.parse_constant(backend.as_expression(value)) for assignment, value in assignments.items()
     }
-    evaluated_routine = _evaluate_internal(compiled_routine, parsed_assignments, backend, functions_map)
+    evaluated_routine = _evaluate_internal(
+        compiled_routine, parsed_assignments, backend, functions_map, Context(compiled_routine.name)
+    )
     return EvaluationResult(routine=evaluated_routine, _backend=backend)
 
 
@@ -83,14 +93,26 @@ def _evaluate_internal(
     inputs: dict[str, TExpr[T]],
     backend: SymbolicBackend[T],
     functions_map: FunctionsMap[T],
+    context: Context,
 ) -> CompiledRoutine[T]:
+    try:
+        new_constraints = evaluate_constraints(compiled_routine.constraints, inputs, backend)
+    except ConstraintValidationError as e:
+        raise BartiqCompilationError(
+            f"The following constraint was violated when compiling {context.path}: "
+            + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
+            + f"{e.args[1].lhs} = {e.args[1].rhs}."
+        )
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
         ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
         resources=evaluate_resources(compiled_routine.resources, inputs, backend, functions_map),
+        constraints=new_constraints,
         children={
-            name: _evaluate_internal(child, inputs, backend=backend, functions_map=functions_map)
+            name: _evaluate_internal(
+                child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)
+            )
             for name, child in compiled_routine.children.items()
         },
     )

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from graphlib import TopologicalSorter
 from typing import Generic, TypeVar
 
@@ -23,19 +23,17 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 
-from .._routine import (
-    CompiledRoutine,
-    Constraint,
-    ConstraintStatus,
-    Endpoint,
-    Port,
-    Routine,
-    routine_to_qref,
-)
+from .._routine import CompiledRoutine, Endpoint, Port, Routine, routine_to_qref
 from ..errors import BartiqCompilationError
 from ..symbolics import sympy_backend
-from ..symbolics.backend import ComparisonResult, SymbolicBackend, TExpr
-from ._common import evaluate_ports, evaluate_resources
+from ..symbolics.backend import SymbolicBackend, TExpr
+from ._common import (
+    ConstraintValidationError,
+    Context,
+    evaluate_constraints,
+    evaluate_ports,
+    evaluate_resources,
+)
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 T = TypeVar("T")
@@ -74,42 +72,6 @@ class CompilationResult(Generic[T]):
     def to_qref(self) -> SchemaV1:
         """Converts `routine` to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
-
-
-@dataclass(frozen=True)
-class Context:
-    path: str
-
-    def descend(self, next_path: str) -> Context:
-        return replace(self, path=".".join((self.path, next_path)))
-
-
-class ConstraintValidationError(ValueError):
-    """Raised when a constraint in the compilation process is violated."""
-
-    def __init__(self, original_constraint: Constraint[T], compiled_constraint: Constraint[T]):
-        super().__init__(original_constraint, compiled_constraint)
-
-
-def _compile_constraint(
-    constraint: Constraint[T], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
-) -> Constraint[T]:
-    lhs = backend.substitute_all(constraint.lhs, inputs)
-    rhs = backend.substitute_all(constraint.rhs, inputs)
-
-    if (comparison_result := backend.compare(lhs, rhs)) == ComparisonResult.equal:
-        status = ConstraintStatus.satisfied
-    elif comparison_result == ComparisonResult.unequal:
-        status = ConstraintStatus.violated
-    else:
-        status = ConstraintStatus.inconclusive
-
-    new_constraint = Constraint(lhs=lhs, rhs=rhs, status=status)
-
-    if new_constraint.status == ConstraintStatus.violated:
-        raise ConstraintValidationError(constraint, new_constraint)
-
-    return new_constraint
 
 
 def compile_routine(
@@ -206,12 +168,7 @@ def _compile(
     context: Context,
 ) -> CompiledRoutine[T]:
     try:
-        new_constraints = [
-            compiled_constraint
-            for constraint in routine.constraints
-            if (compiled_constraint := _compile_constraint(constraint, inputs, backend)).status
-            != ConstraintStatus.satisfied
-        ]
+        new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
     except ConstraintValidationError as e:
         raise BartiqCompilationError(
             f"The following constraint was violated when compiling {context.path}: "
