@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import math
+
 import pytest
 import sympy
 from sympy.abc import x, y
 
-from bartiq.analysis import BigO
+from bartiq.analysis import BigO, minimize
 
 
 @pytest.mark.parametrize(
@@ -90,3 +93,174 @@ def test_adding_BigO_expressions():
 )
 def test_failing_big_O_cases(expr, gens, expected):
     pytest.xfail()
+
+
+@pytest.mark.parametrize(
+    "cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost, tolerance",
+    [
+        (
+            "cos(x)",
+            "x",
+            {
+                "x0": 3.0,
+                "learning_rate": 0.5,
+                "max_iter": 10000,
+                "tolerance": 1e-6,
+                "bounds": (0, 2 * math.pi),
+            },
+            math.pi,
+            -1.0,
+            1e-6,
+        ),
+        (
+            "x**2",
+            "x",
+            {
+                "x0": 10.0,
+                "learning_rate": 0.1,
+                "max_iter": 5000,
+                "tolerance": 1e-6,
+                "bounds": (-10, 10),
+            },
+            0.0,
+            0.0,
+            1e-6,
+        ),
+    ],
+)
+def test_minimize_gradient_descent(
+    cost_expression, param, optimizer_kwargs, expected_optimal_value, expected_minimum_cost, tolerance
+):
+    result = minimize(
+        expression=cost_expression,
+        param=param,
+        optimizer="gradient_descent",
+        optimizer_kwargs=optimizer_kwargs,
+    )
+
+    assert abs(result["optimal_value"] - expected_optimal_value) < tolerance
+    assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
+
+
+@pytest.mark.parametrize(
+    "cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value, expected_minimum_cost, tolerance",
+    [
+        (
+            "cos(x)",
+            "x",
+            {
+                "x0": 3.0,
+                "learning_rate": 0.5,
+                "max_iter": 10000,
+                "tolerance": 1e-6,
+                "bounds": (0, 2 * math.pi),
+            },
+            {
+                "method": "L-BFGS-B",
+                "tol": 1e-6,
+                "options": {"disympy": False},
+            },
+            math.pi,
+            -1.0,
+            1e-5,
+        ),
+        # Test case for minimizing a quadratic function using scipy's Nelder-Mead method
+        (
+            "x**2",
+            "x",
+            {
+                "x0": 5.0,
+                "bounds": (-10, 10),
+            },
+            {
+                "method": "Nelder-Mead",
+                "tol": 1e-6,
+                "options": {"disympy": False},
+            },
+            0.0,
+            0.0,
+            1e-5,
+        ),
+    ],
+)
+def test_minimize_scipy(
+    cost_expression, param, optimizer_kwargs, scipy_kwargs, expected_optimal_value, expected_minimum_cost, tolerance
+):
+    result = minimize(
+        expression=cost_expression,
+        param=param,
+        optimizer="scipy",
+        optimizer_kwargs=optimizer_kwargs,
+        scipy_kwargs=scipy_kwargs,
+    )
+
+    assert abs(result["optimal_value"] - expected_optimal_value) < tolerance
+    assert abs(result["minimum_cost"] - expected_minimum_cost) < tolerance
+
+
+df_active_volume = (
+    "(2*ceiling(1.5*"
+    "Max(18, 16*lamda + 32, 39*lamda + 47, 55*lamda + 54, 65*lamda + 54, 16*lamda + ceiling(log(61/lamda)/log(2)) + 11,"
+    "39*lamda + ceiling(log(60/lamda)/log(2)) + 21, "
+    "55*lamda + ceiling(log(37200/lamda)/log(2)) + 29, 65*lamda + ceiling(log(2400/lamda)/log(2)) + 42)) + 169)*"
+    "(2*Max(18, 16*lamda + 32, 39*lamda + 47, 55*lamda + 54, 65*lamda + 54, "
+    "16*lamda + ceiling(log(61/lamda)/log(2)) + 11, 39*lamda + ceiling(log(60/lamda)/log(2)) + 21, "
+    "55*lamda + ceiling(log(37200/lamda)/log(2)) + 29, 65*lamda + ceiling(log(2400/lamda)/log(2)) + 42) + 112)"
+)
+
+
+@pytest.mark.parametrize(
+    "lamda_initial, lamda_bounds, expected_range",
+    [
+        (25, (1, 30), (1, 2)),
+    ],
+)
+def test_minimize_df_active_volume_gradient_descent(lamda_initial, lamda_bounds, expected_range):
+
+    optimizer_kwargs = {
+        "x0": lamda_initial,
+        "bounds": lamda_bounds,
+        "learning_rate": 1e-7,
+        "max_iter": 10000,
+        "tolerance": 1e-6,
+    }
+
+    result = minimize(
+        expression=df_active_volume,
+        param="lamda",
+        optimizer="gradient_descent",
+        optimizer_kwargs=optimizer_kwargs,
+    )
+    assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
+
+
+@pytest.mark.parametrize(
+    "lamda_initial, lamda_bounds, expected_range",
+    [
+        (25, (1, 50), (1, 2)),
+    ],
+)
+def test_minimize_df_active_volume_scipy(lamda_initial, lamda_bounds, expected_range):
+
+    optimizer_kwargs = {
+        "x0": lamda_initial,
+        "bounds": lamda_bounds,
+        "learning_rate": 0.001,
+        "max_iter": 10000,
+        "tolerance": 1e-6,
+    }
+    scipy_kwargs = {
+        "method": "L-BFGS-B",
+        "tol": 1e-6,
+        "options": {"disp": False},
+    }
+
+    result = minimize(
+        expression=df_active_volume,
+        param="lamda",
+        optimizer="scipy",
+        optimizer_kwargs=optimizer_kwargs,
+        scipy_kwargs=scipy_kwargs,
+    )
+
+    assert expected_range[0] <= result["optimal_value"] <= expected_range[1]
