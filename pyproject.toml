@@ -19,8 +19,6 @@ qref = "0.7.0"
 ipytree = { version = "^0.2.2", optional = true }
 ipywidgets = { version = "^8.1.2", optional = true }
 traitlets = { version = "^5.14.3", optional = true }
-mkdocstrings = ">=0.26.1,"
-mkdocstrings-python = ">=1.11.1"
 
 [tool.poetry.extras]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
@@ -48,6 +46,8 @@ mkdocs-git-committers-plugin-2 = "^2.3.0"
 mkdocs-git-revision-date-localized-plugin = "^1.2.5"
 mike = "^2.0.0"
 matplotlib = "^3.9.1.post1"
+mkdocstrings = ">=0.26.1,"
+mkdocstrings-python = ">=1.11.1"
 
 
 [tool.poetry-dynamic-versioning]
