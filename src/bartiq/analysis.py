@@ -156,8 +156,8 @@ class Optimizer:
         cost_func: Callable[[float], float],
         x0: Optional[float] = None,
         bounds: Optional[Tuple[float, float]] = None,
-        learning_rate: float = 0.000001,
-        max_iter: int = 10000,
+        learning_rate: float = 1e-6,
+        max_iter: int = 1000,
         tolerance: float = 1e-8,
         momentum: float = 0.9,
     ) -> Dict[str, Any]:
@@ -171,9 +171,9 @@ class Optimizer:
             selected.
             bounds: A tuple specifying the (min, max) range for the parameter value.
             Default is None (no bounds).
-            learning_rate: The step size for each iteration. Default is 0.01.
+            learning_rate: The step size for each iteration. Default is 1e-6.
             max_iter: The maximum number of iterations to perform. Default is 1000.
-            tolerance: The tolerance level for stopping criteria. Default is 1e-6.
+            tolerance: The tolerance level for stopping criteria. Default is 1e-8.
             momentum: The momentum factor to control the influence of previous updates.
 
         Returns:
@@ -187,7 +187,7 @@ class Optimizer:
             raise ValueError(f"Initial value {x0} is out of bounds {bounds}.")
 
         current_value = x0
-        velocity = float(0)
+        velocity = 0.0
 
         x_history = [current_value]
 
