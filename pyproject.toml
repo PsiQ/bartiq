@@ -19,6 +19,7 @@ qref = "0.7.0"
 ipytree = { version = "^0.2.2", optional = true }
 ipywidgets = { version = "^8.1.2", optional = true }
 traitlets = { version = "^5.14.3", optional = true }
+scipy = { version = "^1.14.1", optional = true }
 
 [tool.poetry.extras]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
