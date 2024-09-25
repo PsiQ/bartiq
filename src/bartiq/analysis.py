@@ -14,8 +14,7 @@
 
 import random
 import warnings
-
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
 
 from sympy import Expr, Function, Poly, Symbol, prod  # type: ignore
 
