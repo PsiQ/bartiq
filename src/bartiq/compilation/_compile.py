@@ -20,6 +20,7 @@ from graphlib import TopologicalSorter
 from typing import Generic, TypeVar
 
 from qref import SchemaV1
+from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 
@@ -101,10 +102,7 @@ def compile_routine(
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: {problems}",
             )
-    if isinstance(routine, Routine):
-        root = routine
-    else:
-        root = Routine[T].from_qref(routine, backend)
+    root = routine if isinstance(routine, Routine) else Routine[T].from_qref(ensure_routine(routine), backend)
 
     for stage in preprocessing_stages:
         root = stage(root, backend)
