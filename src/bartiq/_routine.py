@@ -122,6 +122,7 @@ class Routine(Generic[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> Routine[T]:
+        """Load Routine from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         return Routine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
@@ -147,6 +148,7 @@ class CompiledRoutine(Generic[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
+        """Load CompiledRoutine from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         return CompiledRoutine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
