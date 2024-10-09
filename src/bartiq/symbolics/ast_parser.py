@@ -73,6 +73,7 @@ _IDENTIFIER = r"[_a-zA-Z]\w*"
 _NAMESPACE_IDENTIFIER = rf"{_IDENTIFIER}(\.{_IDENTIFIER})*"
 _PORT_PATTERN = rf"#({_NAMESPACE_IDENTIFIER})"
 _WILDCARD_PATTERN = rf"(({_IDENTIFIER})?)~"
+_LAMBDA_PATTERN = r"(?<![_A-Za-z])lambda(?![A-Za-z])"
 _IN_PATTERN = r"(^|[^\w])in($|[^\w])"
 
 _RESTRICTED_NAMES = {"__lambda__": "lambda", "__in__": "in"}
@@ -133,7 +134,7 @@ def _contains_lambda(expression):
 
 
 def _replace_lambda(expression):
-    return expression.replace("lambda", "__lambda__")
+    return re.sub(_LAMBDA_PATTERN, "__lambda__", expression)
 
 
 # Preprocessing stage replacing symbols named lambda with symbols named __lambda__
