@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0](https://github.com/PsiQ/bartiq/compare/v0.6.0...v0.7.0) (2024-10-09)
+
+
+### Features
+
+* Add Single-Parameter Optimization Module to Bartiq ([#118](https://github.com/PsiQ/bartiq/issues/118)) ([e407474](https://github.com/PsiQ/bartiq/commit/e4074741b41fabf3737fde00d5fcd22138e46652))
+* Use ensure_routine to streamline conversion from Qref to Bartiq ([#125](https://github.com/PsiQ/bartiq/issues/125)) ([c03e5f0](https://github.com/PsiQ/bartiq/commit/c03e5f037e01c37e643334ce9a736802d7d6dd2b))
+
+
+### Bug Fixes
+
+* Fix LaTeX rendering in docs ([#124](https://github.com/PsiQ/bartiq/issues/124)) ([1976ae9](https://github.com/PsiQ/bartiq/commit/1976ae9c0eed9e48a86b8a2e9cd0909b92522ac9))
+* handling of function names with "lambda" in them ([#128](https://github.com/PsiQ/bartiq/issues/128)) ([63ad716](https://github.com/PsiQ/bartiq/commit/63ad7169f94b425b01224bc1e34ae0f3b6957275))
+
+
+### Documentation
+
+* add advanced tutorial to docs ([#129](https://github.com/PsiQ/bartiq/issues/129)) ([2f659a3](https://github.com/PsiQ/bartiq/commit/2f659a3a5772a6d7df0f9bcca16796ec9a763142))
+
 ## [0.6.0](https://github.com/PsiQ/bartiq/compare/v0.5.1...v0.6.0) (2024-09-19)
 
 
