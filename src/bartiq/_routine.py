@@ -20,6 +20,7 @@ from graphlib import TopologicalSorter
 from typing import Generic, Literal, TypeVar, cast
 
 from qref import SchemaV1
+from qref.functools import AnyQrefType, ensure_routine
 from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
 from typing_extensions import Self, TypedDict
 
@@ -120,8 +121,9 @@ class Routine(Generic[T]):
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
-    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> Routine[T]:
-        program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+    def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> Routine[T]:
+        """Load Routine from a QREF definition, using specified backend for parsing expressions."""
+        program = ensure_routine(qref_obj)
         return Routine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
             local_variables={var: backend.as_expression(expr) for var, expr in program.local_variables.items()},
@@ -145,18 +147,17 @@ class CompiledRoutine(Generic[T]):
     constraints: Iterable[Constraint[T]] = ()
 
     @classmethod
-    def from_qref(cls, qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-        program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+    def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
+        """Load CompiledRoutine from a QREF definition, using specified backend for parsing expressions."""
+        program = ensure_routine(qref_obj)
         return CompiledRoutine[T](
             children={child.name: cls.from_qref(child, backend) for child in program.children},
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
 
 
-def _common_routine_dict_from_qref(
-    qref_obj: SchemaV1 | RoutineV1, backend: SymbolicBackend[T]
-) -> _CommonRoutineParams[T]:
-    program = qref_obj.program if isinstance(qref_obj, SchemaV1) else qref_obj
+def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
+    program = ensure_routine(qref_obj)
     return {
         "name": program.name,
         "type": program.type,
