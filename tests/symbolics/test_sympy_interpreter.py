@@ -377,6 +377,8 @@ PARSE_TEST_CASES = [
     ("a.in", Symbol("a.in")),
     ("a.in.b", Symbol("a.in.b")),
     ("in.b", Symbol("in.b")),
+    # Lambda as a part of function name
+    ("calc_lambda(x)", Function("calc_lambda")(Symbol("x"))),
 ]
 
 
