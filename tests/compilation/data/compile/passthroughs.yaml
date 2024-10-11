@@ -1,0 +1,304 @@
+# Root and a child with passthrough port
+- - program:
+      children:
+      - connections:
+        - source: in_0
+          target: out_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - connections:
+        - source: in_0
+          target: out_0
+        input_params:
+        - N
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      input_params:
+      - N
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      type: null
+    version: v1
+# Passhtrough through child and a grandchild, propagating parameter
+- - program:
+      children:
+      - children:
+        - connections:
+          - source: in_0
+            target: out_0
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: null
+          - direction: output
+            name: out_0
+            size: null
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - connections:
+          - source: in_0
+            target: out_0
+          input_params:
+          - N
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        input_params:
+        - N
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      input_params:
+      - N
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      type: null
+    version: v1
+# Passhtrough through child and a grandchild, propagating constant
+- - program:
+      children:
+      - children:
+        - connections:
+          - source: in_0
+            target: out_0
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: null
+          - direction: output
+            name: out_0
+            size: null
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: 42
+      - direction: output
+        name: out_0
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - connections:
+          - source: in_0
+            target: out_0
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: '42'
+          - direction: output
+            name: out_0
+            size: '42'
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: '42'
+        - direction: output
+          name: out_0
+          size: '42'
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '42'
+      - direction: output
+        name: out_0
+        size: '42'
+      type: null
+    version: v1
+# Propagation of param through children (this is how we introduced passthroughs)
+- - program:
+      children:
+      - name: passthrough
+        ports:
+        - direction: input
+          name: in_0
+          size: R
+        - direction: output
+          name: out_0
+          size: R
+        type: null
+      connections:
+      - source: in_0
+        target: passthrough.in_0
+      - source: passthrough.out_0
+        target: out_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - input_params:
+        - N
+        name: passthrough
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        type: null
+      connections:
+      - source: in_0
+        target: passthrough.in_0
+      - source: passthrough.out_0
+        target: out_0
+      input_params:
+      - N
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      type: null
+    version: v1

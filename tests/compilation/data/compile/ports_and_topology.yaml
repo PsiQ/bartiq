@@ -1,0 +1,567 @@
+# Constant input register sizes
+- - program:
+      children:
+      - name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: input
+          name: in_1
+          size: M
+        - direction: output
+          name: out_0
+          size: N
+        - direction: output
+          name: out_1
+          size: M
+        resources:
+        - name: y
+          type: other
+          value: N + M
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '1'
+      - direction: input
+        name: in_1
+        size: '2'
+      - direction: output
+        name: out_0
+        size: '1'
+      - direction: output
+        name: out_1
+        size: '2'
+      resources:
+      - name: z
+        type: other
+        value: a.y
+      type: null
+    version: v1
+  - program:
+      children:
+      - name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: '1'
+        - direction: input
+          name: in_1
+          size: '2'
+        - direction: output
+          name: out_0
+          size: '1'
+        - direction: output
+          name: out_1
+          size: '2'
+        resources:
+        - name: y
+          type: other
+          value: '3'
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '1'
+      - direction: input
+        name: in_1
+        size: '2'
+      - direction: output
+        name: out_0
+        size: '1'
+      - direction: output
+        name: out_1
+        size: '2'
+      resources:
+      - name: z
+        type: other
+        value: '3'
+      type: null
+    version: v1
+# Constant input register size with children inputs being described by the same variable
+- - program:
+      children:
+      - name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: input
+          name: in_1
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        - direction: output
+          name: out_1
+          size: N
+        resources:
+        - name: y
+          type: other
+          value: 2*N
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '2'
+      - direction: input
+        name: in_1
+        size: '2'
+      - direction: output
+        name: out_0
+        size: '2'
+      - direction: output
+        name: out_1
+        size: '2'
+      resources:
+      - name: z
+        type: other
+        value: a.y
+      type: null
+    version: v1
+  - program:
+      children:
+      - name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: '2'
+        - direction: input
+          name: in_1
+          size: '2'
+        - direction: output
+          name: out_0
+          size: '2'
+        - direction: output
+          name: out_1
+          size: '2'
+        resources:
+        - name: y
+          type: other
+          value: '4'
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '2'
+      - direction: input
+        name: in_1
+        size: '2'
+      - direction: output
+        name: out_0
+        size: '2'
+      - direction: output
+        name: out_1
+        size: '2'
+      resources:
+      - name: z
+        type: other
+        value: '4'
+      type: null
+    version: v1
+# Constant register size comes from non-root
+- - program:
+      children:
+      - name: a
+        ports:
+        - direction: output
+          name: out_0
+          size: '1'
+        type: null
+      - name: b
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        type: null
+      connections:
+      - source: a.out_0
+        target: b.in_0
+      - source: b.out_0
+        target: out_0
+      name: root
+      ports:
+      - direction: output
+        name: out_0
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - name: a
+        ports:
+        - direction: output
+          name: out_0
+          size: '1'
+        type: null
+      - name: b
+        ports:
+        - direction: input
+          name: in_0
+          size: '1'
+        - direction: output
+          name: out_0
+          size: '1'
+        type: null
+      connections:
+      - source: a.out_0
+        target: b.in_0
+      - source: b.out_0
+        target: out_0
+      name: root
+      ports:
+      - direction: output
+        name: out_0
+        size: '1'
+      type: null
+    version: v1
+# Parent's and child's ports are connected and the port sizes are defined in both cases (not None)
+- - program:
+      children:
+      - children:
+        - name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: Z
+          - direction: output
+            name: out_0
+            size: Z
+          resources:
+          - name: B
+            type: other
+            value: Z
+          type: null
+        connections:
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: b.in_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: Y
+        - direction: output
+          name: out_0
+          size: null
+        resources:
+        - name: A
+          type: other
+          value: b.B
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: X
+      - direction: output
+        name: out_0
+        size: null
+      resources:
+      - name: N
+        type: other
+        value: a.A
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - X
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: X
+          - direction: output
+            name: out_0
+            size: X
+          resources:
+          - name: B
+            type: other
+            value: X
+          type: null
+        connections:
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: b.in_0
+        input_params:
+        - X
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: X
+        - direction: output
+          name: out_0
+          size: X
+        resources:
+        - name: A
+          type: other
+          value: X
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      input_params:
+      - X
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: X
+      - direction: output
+        name: out_0
+        size: X
+      resources:
+      - name: N
+        type: other
+        value: X
+      type: null
+    version: v1
+# Child's port with symbolic size resolved through multiple levels of hierarchy.
+- - program:
+      children:
+      - children:
+        - children:
+          - name: c
+            ports:
+            - direction: input
+              name: in_0
+              size: '1'
+            - direction: input
+              name: in_1
+              size: P
+            - direction: output
+              name: out_0
+              size: '1'
+            - direction: output
+              name: out_1
+              size: P
+            type: null
+          connections:
+          - source: c.out_0
+            target: out_0
+          - source: c.out_1
+            target: out_1
+          - source: in_0
+            target: c.in_0
+          - source: in_1
+            target: c.in_1
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: null
+          - direction: input
+            name: in_1
+            size: null
+          - direction: output
+            name: out_0
+            size: null
+          - direction: output
+            name: out_1
+            size: null
+          type: null
+        connections:
+        - source: b.out_0
+          target: out_0
+        - source: b.out_1
+          target: out_1
+        - source: in_0
+          target: b.in_0
+        - source: in_1
+          target: b.in_1
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: input
+          name: in_1
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        - direction: output
+          name: out_1
+          size: null
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '1'
+      - direction: input
+        name: in_1
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      - direction: output
+        name: out_1
+        size: null
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children:
+          - input_params:
+            - N
+            name: c
+            ports:
+            - direction: input
+              name: in_0
+              size: '1'
+            - direction: input
+              name: in_1
+              size: N
+            - direction: output
+              name: out_0
+              size: '1'
+            - direction: output
+              name: out_1
+              size: N
+            type: null
+          connections:
+          - source: c.out_0
+            target: out_0
+          - source: c.out_1
+            target: out_1
+          - source: in_0
+            target: c.in_0
+          - source: in_1
+            target: c.in_1
+          input_params:
+          - N
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: '1'
+          - direction: input
+            name: in_1
+            size: N
+          - direction: output
+            name: out_0
+            size: '1'
+          - direction: output
+            name: out_1
+            size: N
+          type: null
+        connections:
+        - source: b.out_0
+          target: out_0
+        - source: b.out_1
+          target: out_1
+        - source: in_0
+          target: b.in_0
+        - source: in_1
+          target: b.in_1
+        input_params:
+        - N
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: '1'
+        - direction: input
+          name: in_1
+          size: N
+        - direction: output
+          name: out_0
+          size: '1'
+        - direction: output
+          name: out_1
+          size: N
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: a.out_1
+        target: out_1
+      - source: in_0
+        target: a.in_0
+      - source: in_1
+        target: a.in_1
+      input_params:
+      - N
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: '1'
+      - direction: input
+        name: in_1
+        size: N
+      - direction: output
+        name: out_0
+        size: '1'
+      - direction: output
+        name: out_1
+        size: N
+      type: null
+    version: v1

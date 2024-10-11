@@ -26,8 +26,11 @@ from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
 
 
 def load_evaluate_test_data():
-    with open(Path(__file__).parent / "data/evaluate_test_data.yaml") as f:
-        return yaml.safe_load(f)
+    test_files_path = Path(__file__).parent / "data/evaluate/"
+    for path in sorted(test_files_path.rglob("*.yaml")):
+        with open(path) as f:
+            for data in yaml.safe_load(f):
+                yield data
 
 
 EVALUTE_TEST_CASES = load_evaluate_test_data()

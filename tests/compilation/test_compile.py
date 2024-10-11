@@ -26,8 +26,11 @@ from bartiq.errors import BartiqCompilationError
 
 
 def load_compile_test_data():
-    with open(Path(__file__).parent / "data/compile_test_data.yaml") as f:
-        return [(SchemaV1(**original), SchemaV1(**expected)) for original, expected in yaml.safe_load(f)]
+    test_files_path = Path(__file__).parent / "data/compile/"
+    for path in sorted(test_files_path.rglob("*.yaml")):
+        with open(path) as f:
+            for original, expected in yaml.safe_load(f):
+                yield (SchemaV1(**original), SchemaV1(**expected))
 
 
 COMPILE_TEST_DATA = load_compile_test_data()
