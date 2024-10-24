@@ -33,6 +33,9 @@ class SymbolicBackend(Protocol[T]):
     def as_expression(self, value: TExpr[T] | str) -> TExpr[T]:
         """Convert given value into an expression native to this backend."""
 
+    def as_native(self, expr: TExpr[T]) -> str | int | float:
+        """Convert given expression as an instance of a native type."""
+
     def free_symbols_in(self, expr: TExpr[T], /) -> Iterable[str]:
         """Return an iterable over free symbols in given expression."""
 

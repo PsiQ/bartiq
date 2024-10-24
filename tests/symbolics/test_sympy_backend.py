@@ -98,3 +98,17 @@ def test_attempt_to_define_builtin_function_fails():
 )
 def test_single_parameters_are_correctly_recognized(expression, expected):
     assert sympy_backend.is_single_parameter(sympy_backend.as_expression(expression)) == expected
+
+
+@pytest.mark.parametrize(
+    "expression_str, expected_value", [("N", "N"), ("k * j + i", "i + j*k"), ("2.5", 2.5), ("4", 4)]
+)
+def test_expressions_are_correctly_converted_to_native_types_based_on_their_category(
+    expression_str, expected_value, backend
+):
+    expr = backend.as_expression(expression_str)
+
+    native_value = backend.as_native(expr)
+
+    assert isinstance(native_value, type(expected_value))  # Needed because e.g. 4.0 == 4, value is not enough
+    assert native_value == expected_value
