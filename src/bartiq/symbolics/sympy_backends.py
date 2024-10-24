@@ -205,7 +205,7 @@ class SympyBackend:
         else:
             return ComparisonResult.ambigous
 
-    def func(self, func_name: str) -> Callable[[...], TExpr[Expr]]:
+    def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
         try:
             return SPECIAL_FUNCS[func_name]
         except KeyError:
