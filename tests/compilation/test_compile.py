@@ -22,7 +22,7 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
-from bartiq.errors import BartiqCompilationError
+from bartiq.errors import BartiqCompilationError, BartiqPrecompilationError
 
 
 def load_compile_test_data():
@@ -169,3 +169,20 @@ def test_compilation_introduces_constraints_stemming_from_relation_between_port_
     constraint = compiled_routine.children["a"].constraints[0]
     assert constraint.lhs == backend.as_expression("K")
     assert constraint.rhs == backend.as_expression("2 ** K")
+
+
+def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variable(backend):
+    routine = {
+        "name": "root",
+        "type": "dummy",
+        "children": [
+            {"name": "a", "type": "dummy", "ports": [{"name": "in_0", "direction": "input", "size": "N + M"}]}
+        ],
+        "ports": [{"name": "in_0", "direction": "input", "size": "K"}],
+        "connections": ["in_0 -> a.in_0"],
+    }
+
+    with pytest.raises(
+        BartiqPrecompilationError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
+    ):
+        compile_routine(routine, backend=backend)
