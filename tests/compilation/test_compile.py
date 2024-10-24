@@ -141,3 +141,31 @@ def test_compile_errors(routine, expected_error, backend):
         compile_routine(
             routine, preprocessing_stages=[introduce_port_variables], backend=backend, skip_verification=True
         )
+
+
+def test_compilation_introduces_constraints_stemming_from_relation_between_port_sizes(backend):
+    routine = RoutineV1(
+        name="root",
+        type="dummy",
+        children=[
+            {
+                "name": "a",
+                "type": "dummy",
+                "ports": [
+                    {"name": "in_0", "direction": "input", "size": "N"},
+                    {"name": "in_1", "direction": "input", "size": "2 ** N"},
+                ],
+            }
+        ],
+        ports=[
+            {"name": "in_0", "size": "K", "direction": "input"},
+            {"name": "in_1", "size": "K", "direction": "input"},
+        ],
+        connections=["in_0 -> a.in_0", "in_1 -> a.in_1"],
+    )
+
+    compiled_routine = compile_routine(routine, backend=backend).routine
+
+    constraint = compiled_routine.children["a"].constraints[0]
+    assert constraint.lhs == backend.as_expression("K")
+    assert constraint.rhs == backend.as_expression("2 ** K")
