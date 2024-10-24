@@ -127,15 +127,19 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
         elif backend.is_constant_int(port.size):
             additional_constraints.append(Constraint(new_variable, port.size))
         elif not backend.is_single_parameter(port.size):
-            for symbol in backend.free_symbols_in(port.size):
+            missing_symbols = [
+                symbol
+                for symbol in backend.free_symbols_in(port.size)
                 if (
                     symbol not in routine.input_params
                     and symbol not in routine.local_variables
                     and symbol not in additional_local_variables
-                ):
-                    raise BartiqPrecompilationError(
-                        f"Size of the port {port.name} depends on symbol {symbol} which is undefined."
-                    )
+                )
+            ]
+            if missing_symbols:
+                raise BartiqPrecompilationError(
+                    f"Size of the port {port.name} depends on symbols {missing_symbols} which are undefined."
+                )
             new_size = backend.substitute_all(port.size, additional_local_variables)
             new_ports[port.name] = replace(port, size=new_size)
             additional_constraints.append(Constraint(new_variable, new_size))
