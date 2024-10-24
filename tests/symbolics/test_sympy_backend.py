@@ -112,3 +112,18 @@ def test_expressions_are_correctly_converted_to_native_types_based_on_their_cate
 
     assert isinstance(native_value, type(expected_value))  # Needed because e.g. 4.0 == 4, value is not enough
     assert native_value == expected_value
+
+
+@pytest.mark.parametrize(
+    "func_name, arg_str, expected_native_result",
+    [("ceil", 2, 2), ("sin", "PI", 0), ("sin", "x", "sin(x)"), ("sin", "PI/6", 0.5)],
+)
+def test_functions_obtained_from_backend_can_be_called_to_obtain_new_expressions(
+    func_name, arg_str, expected_native_result, backend
+):
+    func = backend.func(func_name)
+    arg = backend.as_expression(arg_str)
+
+    result = func(arg)
+
+    assert backend.as_native(result) == expected_native_result

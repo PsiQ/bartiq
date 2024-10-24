@@ -205,6 +205,12 @@ class SympyBackend:
         else:
             return ComparisonResult.ambigous
 
+    def func(self, func_name: str) -> Callable[[...], TExpr[Expr]]:
+        try:
+            return SPECIAL_FUNCS[func_name]
+        except KeyError:
+            return sympy.Function(func_name)
+
 
 # Define sympy_backend for backwards compatibility
 sympy_backend = SympyBackend(parse_to_sympy)
