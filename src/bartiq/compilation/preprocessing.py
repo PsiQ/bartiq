@@ -2,7 +2,9 @@ from collections import defaultdict
 from dataclasses import replace
 from typing import Callable, TypeVar
 
-from .._routine import Constraint, PortDirection, Resource, ResourceType, Routine
+from bartiq.errors import BartiqPrecompilationError
+
+from .._routine import Constraint, Port, PortDirection, Resource, ResourceType, Routine
 from ..symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
@@ -104,7 +106,14 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
     additional_local_variables: dict[str, TExpr[T]] = {}
     new_input_params: list[str] = []
     additional_constraints: list[Constraint[T]] = []
-    for port in routine.ports.values():
+
+    # We sort ports so that single-parameter ones are preceeding non-trivial ones.
+    # This is because for ports with non-trivial sizes we need to be able to
+    # verify if all the free symbols are properly defined.
+    def _sort_key(port: Port[T]) -> tuple[bool, str]:
+        return (not backend.is_single_parameter(port.size), port.name)
+
+    for port in sorted(routine.ports.values(), key=_sort_key):
         if port.direction == PortDirection.output:
             new_ports[port.name] = port
         else:
@@ -117,6 +126,19 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
                     additional_constraints.append(Constraint(new_variable, additional_local_variables[size]))
             elif backend.is_constant_int(port.size):
                 additional_constraints.append(Constraint(new_variable, port.size))
+            elif not backend.is_single_parameter(port.size):
+                for symbol in backend.free_symbols_in(port.size):
+                    if (
+                        symbol not in routine.input_params
+                        and symbol not in routine.local_variables
+                        and symbol not in additional_local_variables
+                    ):
+                        raise BartiqPrecompilationError(
+                            f"Size of the port {port.name} depends on symbol {symbol} which is undefined."
+                        )
+                new_size = backend.substitute_all(port.size, additional_local_variables)
+                new_ports[port.name] = replace(port, size=new_size)
+                additional_constraints.append(Constraint(new_variable, new_size))
             new_ports[port.name] = replace(port, size=new_variable)
             new_input_params.append(new_variable_name)
     return replace(
@@ -138,7 +160,6 @@ def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -
     Returns:
         A routine with the extra variables representing port sizes.
     """
-
     return replace(
         routine, children={name: _introduce_port_variables(child, backend) for name, child in routine.children.items()}
     )
