@@ -22,7 +22,7 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
-from bartiq.errors import BartiqCompilationError
+from bartiq.errors import BartiqCompilationError, BartiqPrecompilationError
 
 
 def load_compile_test_data():
@@ -141,3 +141,82 @@ def test_compile_errors(routine, expected_error, backend):
         compile_routine(
             routine, preprocessing_stages=[introduce_port_variables], backend=backend, skip_verification=True
         )
+
+
+@pytest.mark.parametrize(
+    "routine, expected_lhs, expected_rhs",
+    [
+        (
+            {
+                "name": "root",
+                "type": "dummy",
+                "children": [
+                    {
+                        "name": "a",
+                        "type": "dummy",
+                        "ports": [
+                            {"name": "in_0", "direction": "input", "size": "N"},
+                            {"name": "in_1", "direction": "input", "size": "2 ** N"},
+                        ],
+                    }
+                ],
+                "ports": [
+                    {"name": "in_0", "size": "K", "direction": "input"},
+                    {"name": "in_1", "size": "K", "direction": "input"},
+                ],
+                "connections": ["in_0 -> a.in_0", "in_1 -> a.in_1"],
+            },
+            "K",
+            "2 ** K",
+        ),
+        (
+            {
+                "name": "root",
+                "type": "dummy",
+                "children": [
+                    {
+                        "name": "a",
+                        "type": "dummy",
+                        "ports": [
+                            {"name": "in_0", "direction": "input", "size": "N"},
+                            {"name": "in_1", "direction": "input", "size": "f(g(N)) + N + 1"},
+                        ],
+                    }
+                ],
+                "ports": [
+                    {"name": "in_0", "size": "K", "direction": "input"},
+                    {"name": "in_1", "size": "K", "direction": "input"},
+                ],
+                "connections": ["in_0 -> a.in_0", "in_1 -> a.in_1"],
+            },
+            "K",
+            "f(g(K)) + K + 1",
+        ),
+    ],
+)
+def test_compilation_introduces_constraints_stemming_from_relation_between_port_sizes(
+    routine, expected_lhs, expected_rhs, backend
+):
+
+    compiled_routine = compile_routine(routine, backend=backend).routine
+
+    constraint = compiled_routine.children["a"].constraints[0]
+    assert constraint.lhs == backend.as_expression(expected_lhs)
+    assert constraint.rhs == backend.as_expression(expected_rhs)
+
+
+def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variable(backend):
+    routine = {
+        "name": "root",
+        "type": "dummy",
+        "children": [
+            {"name": "a", "type": "dummy", "ports": [{"name": "in_0", "direction": "input", "size": "N + M"}]}
+        ],
+        "ports": [{"name": "in_0", "direction": "input", "size": "K"}],
+        "connections": ["in_0 -> a.in_0"],
+    }
+
+    with pytest.raises(
+        BartiqPrecompilationError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
+    ):
+        compile_routine(routine, backend=backend)
