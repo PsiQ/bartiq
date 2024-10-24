@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/PsiQ/bartiq/compare/v0.7.0...v0.8.0) (2024-10-24)
+
+
+### Features
+
+* Enable casting to native types and obtaining backend-native functions ([#135](https://github.com/PsiQ/bartiq/issues/135)) ([11628ff](https://github.com/PsiQ/bartiq/commit/11628ff63fce116d6cf018c726f5d6682557ab0f))
+
+
+### Bug Fixes
+
+* Fix nontrivial input port size support ([#133](https://github.com/PsiQ/bartiq/issues/133)) ([759a367](https://github.com/PsiQ/bartiq/commit/759a367a2b0505e91edcd57ca940e38465b48772))
+
 ## [0.7.0](https://github.com/PsiQ/bartiq/compare/v0.6.0...v0.7.0) (2024-10-09)
 
 
