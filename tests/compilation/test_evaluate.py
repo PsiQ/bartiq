@@ -116,7 +116,7 @@ def custom_function(a, b):
                     {
                         "name": "b",
                         "type": "b",
-                        "resources": [{"name": "X", "type": "other", "value": "10"}],
+                        "resources": [{"name": "X", "type": "other", "value": 10}],
                     },
                 ],
                 "resources": [{"name": "X", "type": "other", "value": "a.unknown_fun(1) + 20"}],

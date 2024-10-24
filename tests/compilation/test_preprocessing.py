@@ -24,17 +24,17 @@ def test_adding_additive_resources(backend):
                 "name": "a",
                 "type": None,
                 "resources": [
-                    {"name": "N_toffs", "type": "additive", "value": "1"},
-                    {"name": "N_meas", "type": "additive", "value": "5"},
+                    {"name": "N_toffs", "type": "additive", "value": 1},
+                    {"name": "N_meas", "type": "additive", "value": 5},
                 ],
             },
             {
                 "name": "b",
                 "type": None,
                 "resources": [
-                    {"name": "N_toffs", "type": "additive", "value": "2"},
-                    {"name": "N_rots", "type": "additive", "value": "3"},
-                    {"name": "N_x", "type": "other", "value": "1"},
+                    {"name": "N_toffs", "type": "additive", "value": 2},
+                    {"name": "N_rots", "type": "additive", "value": 3},
+                    {"name": "N_x", "type": "other", "value": 1},
                 ],
             },
         ],

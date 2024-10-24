@@ -113,6 +113,10 @@ class SympyBackend:
 
         return expr
 
+    @identity_for_numbers
+    def as_native(self, expr: Expr) -> str | int | float:
+        return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
+
     @empty_for_numbers
     def free_symbols_in(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
@@ -200,6 +204,12 @@ class SympyBackend:
             return ComparisonResult.unequal
         else:
             return ComparisonResult.ambigous
+
+    def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
+        try:
+            return SPECIAL_FUNCS[func_name]
+        except KeyError:
+            return sympy.Function(func_name)
 
 
 # Define sympy_backend for backwards compatibility

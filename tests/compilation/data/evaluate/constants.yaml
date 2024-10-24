@@ -15,7 +15,7 @@
       resources:
       - name: T_gates
         type: additive
-        value: '3.14159265358979'
+        value: 3.14159265358979
       type: null
     version: v1
 # Resource Q is assigned a constant value of sin(pi/2)
@@ -35,7 +35,7 @@
       resources:
       - name: T_gates
         type: additive
-        value: "1"
+        value: 1
       type: null
     version: v1
 # Resource Q is assigned a constant value of 5*e
@@ -55,6 +55,6 @@
       resources:
       - name: T_gates
         type: additive
-        value: "13.5914091422952"
+        value: 13.5914091422952
       type: null
     version: v1

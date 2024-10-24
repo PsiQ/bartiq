@@ -33,6 +33,9 @@ class SymbolicBackend(Protocol[T]):
     def as_expression(self, value: TExpr[T] | str) -> TExpr[T]:
         """Convert given value into an expression native to this backend."""
 
+    def as_native(self, expr: TExpr[T]) -> str | int | float:
+        """Convert given expression as an instance of a native type."""
+
     def free_symbols_in(self, expr: TExpr[T], /) -> Iterable[str]:
         """Return an iterable over free symbols in given expression."""
 
@@ -75,3 +78,6 @@ class SymbolicBackend(Protocol[T]):
         - `ComparisonResult.unequal': 'lhs' and 'rhs' are certainly not equal.
         - `ComparisonResult.ambigous`: it is not known for certain if `lhs` and `rhs` are equal.
         """
+
+    def func(self, func_name: str) -> Callable[..., TExpr[T]]:
+        """Obtain an implementation of a function with given name."""
