@@ -12,14 +12,14 @@
         type: other
         value: log2(x)
       type: null
-    version: v1  
+    version: v1
   - {x: 120}
   - program:
       name: root
       resources:
       - name: Q
         type: other
-        value: "6.90689059560852"
+        value: 6.90689059560852
       type: null
     version: v1
 # Port size is a function of input params, value of one param is provided for evaluation
@@ -40,7 +40,7 @@
         type: other
         value: x * y
       type: null
-    version: v1  
+    version: v1
   - {x: 42}
   - program:
       input_params:
@@ -52,7 +52,7 @@
         size: y + 42
       - direction: input
         name: out_0
-        size: "1"
+        size: 1
       resources:
       - name: Q
         type: other
@@ -89,7 +89,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "3"
+        size: 3
       - direction: input
         name: in_1
         size: M
@@ -132,7 +132,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "3"
+        size: 3
       - direction: input
         name: in_1
         size: M
@@ -209,7 +209,7 @@
         ports:
         - direction: input
           name: in_0
-          size: "3"
+          size: 3
         - direction: input
           name: in_1
           size: M
@@ -235,7 +235,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "3"
+        size: 3
       - direction: input
         name: in_1
         size: M
@@ -356,7 +356,7 @@
           ports:
           - direction: input
             name: in_0
-            size: "3"
+            size: 3
           - direction: input
             name: in_1
             size: M
@@ -365,7 +365,7 @@
             size: M + y + 5
           - direction: output
             name: out_1
-            size: "5"
+            size: 5
           resources:
           - name: Q
             type: other
@@ -387,7 +387,7 @@
         ports:
         - direction: input
           name: in_0
-          size: "3"
+          size: 3
         - direction: input
           name: in_1
           size: M
@@ -396,7 +396,7 @@
           size: M + y + 9
         - direction: output
           name: out_1
-          size: "5"
+          size: 5
         resources:
         - name: Q
           type: other
@@ -418,7 +418,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "3"
+        size: 3
       - direction: input
         name: in_1
         size: M
@@ -427,7 +427,7 @@
         size: M + y + 13
       - direction: output
         name: out_1
-        size: "5"
+        size: 5
       resources:
       - name: Q
         type: other
@@ -523,14 +523,14 @@
         ports:
         - direction: input
           name: in_0
-          size: "3"
+          size: 3
         - direction: output
           name: out_0
-          size: "5"
+          size: 5
         resources:
         - name: Q
           type: other
-          value: "6"
+          value: 6
         type: null
       - input_params:
         - y
@@ -538,7 +538,7 @@
         ports:
         - direction: input
           name: in_0
-          size: "5"
+          size: 5
         - direction: output
           name: out_0
           size: y + 5
@@ -577,7 +577,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "3"
+        size: 3
       - direction: output
         name: out_0
         size: y + 9
@@ -638,26 +638,26 @@
         ports:
         - direction: output
           name: out_0
-          size: "2"
+          size: 2
         type: null
       - name: a_1
         ports:
         - direction: output
           name: out_0
-          size: "3"
+          size: 3
         type: null
       - name: b
         ports:
         - direction: input
           name: in_0
-          size: "2"
+          size: 2
         - direction: input
           name: in_1
-          size: "3"
+          size: 3
         resources:
         - name: Q
           type: other
-          value: "5"
+          value: 5
         type: null
       connections:
       - source: a_0.out_0
@@ -684,7 +684,7 @@
       resources:
       - name: Q
         type: other
-        value: "2"
+        value: 2
       type: null
     version: v1
 # Check that expressions are simplified (for input register size assignment)
@@ -706,11 +706,11 @@
       ports:
       - direction: input
         name: in_0
-        size: "2"
+        size: 2
       resources:
       - name: Q
         type: other
-        value: "2"
+        value: 2
       type: null
     version: v1
 # Check all upstream evaluations have happened before a given downstream leaf is reached
@@ -802,10 +802,10 @@
           ports:
           - direction: input
             name: in_0
-            size: "1"
+            size: 1
           - direction: output
             name: out_0
-            size: "2"
+            size: 2
           type: null
         - input_params:
           - M
@@ -828,23 +828,23 @@
         ports:
         - direction: input
           name: in_0
-          size: "1"
+          size: 1
         - direction: input
           name: in_1
           size: M
         - direction: output
           name: out_0
-          size: "2"
+          size: 2
         type: null
       - name: x
         ports:
         - direction: input
           name: in_0
-          size: "2"
+          size: 2
         resources:
         - name: Q
           type: other
-          value: "4"
+          value: 4
         type: null
       connections:
       - source: a.out_0
@@ -859,7 +859,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "1"
+        size: 1
       - direction: input
         name: in_1
         size: M
@@ -899,13 +899,13 @@
         ports:
         - direction: output
           name: out_0
-          size: "0"
+          size: 0
         type: null
       - name: b
         ports:
         - direction: input
           name: in_0
-          size: "0"
+          size: 0
         type: null
       connections:
       - source: a.out_0
@@ -930,7 +930,7 @@
       ports:
       - direction: input
         name: in_0
-        size: "1"
+        size: 1
       type: null
     version: v1
 # Check evaluation works when local_variables contains non-trivial expression.

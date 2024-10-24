@@ -187,13 +187,13 @@ def _endpoint_from_qref(endpoint: str) -> Endpoint:
 def _port_to_qref(port: Port[T], backend: SymbolicBackend[T]) -> PortV1:
     return PortV1(
         name=port.name,
-        size=backend.serialize(port.size),
+        size=backend.as_native(port.size),
         direction=cast(Literal["input", "output", "through"], port.direction),
     )
 
 
 def _resource_to_qref(resource: Resource[T], backend: SymbolicBackend[T]) -> ResourceV1:
-    return ResourceV1(name=resource.name, type=resource.type.value, value=backend.serialize(resource.value))
+    return ResourceV1(name=resource.name, type=resource.type.value, value=backend.as_native(resource.value))
 
 
 def _endpoint_to_qref(endpoint: Endpoint) -> str:

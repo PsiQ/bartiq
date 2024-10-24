@@ -211,10 +211,10 @@
           ports:
           - direction: input
             name: in_0
-            size: '42'
+            size: 42
           - direction: output
             name: out_0
-            size: '42'
+            size: 42
           type: null
         connections:
         - source: a.out_0
@@ -225,10 +225,10 @@
         ports:
         - direction: input
           name: in_0
-          size: '42'
+          size: 42
         - direction: output
           name: out_0
-          size: '42'
+          size: 42
         type: null
       connections:
       - source: a.out_0
@@ -239,10 +239,10 @@
       ports:
       - direction: input
         name: in_0
-        size: '42'
+        size: 42
       - direction: output
         name: out_0
-        size: '42'
+        size: 42
       type: null
     version: v1
 # Propagation of param through children (this is how we introduced passthroughs)
