@@ -113,37 +113,37 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
     def _sort_key(port: Port[T]) -> tuple[bool, str]:
         return (not backend.is_single_parameter(port.size), port.name)
 
-    for port in sorted(routine.ports.values(), key=_sort_key):
-        if port.direction == PortDirection.output:
-            new_ports[port.name] = port
-        else:
-            new_variable_name = f"#{port.name}"
-            new_variable = backend.as_expression(new_variable_name)
-            if (size := backend.serialize(port.size)) != new_variable_name and backend.is_single_parameter(port.size):
-                if size not in additional_local_variables:
-                    additional_local_variables[size] = new_variable
-                else:
-                    additional_constraints.append(Constraint(new_variable, additional_local_variables[size]))
-            elif backend.is_constant_int(port.size):
-                additional_constraints.append(Constraint(new_variable, port.size))
-            elif not backend.is_single_parameter(port.size):
-                for symbol in backend.free_symbols_in(port.size):
-                    if (
-                        symbol not in routine.input_params
-                        and symbol not in routine.local_variables
-                        and symbol not in additional_local_variables
-                    ):
-                        raise BartiqPrecompilationError(
-                            f"Size of the port {port.name} depends on symbol {symbol} which is undefined."
-                        )
-                new_size = backend.substitute_all(port.size, additional_local_variables)
-                new_ports[port.name] = replace(port, size=new_size)
-                additional_constraints.append(Constraint(new_variable, new_size))
-            new_ports[port.name] = replace(port, size=new_variable)
-            new_input_params.append(new_variable_name)
+    # We only process non-output ports, as only they can introduce new input params and local
+    # variables.
+    non_output_ports = routine.filter_ports((PortDirection.input, PortDirection.through)).values()
+    for port in sorted(non_output_ports, key=_sort_key):
+        new_variable_name = f"#{port.name}"
+        new_variable = backend.as_expression(new_variable_name)
+        if port.size != new_variable and backend.is_single_parameter(port.size):
+            if (size := backend.serialize(port.size)) not in additional_local_variables:
+                additional_local_variables[size] = new_variable
+            else:
+                additional_constraints.append(Constraint(new_variable, additional_local_variables[size]))
+        elif backend.is_constant_int(port.size):
+            additional_constraints.append(Constraint(new_variable, port.size))
+        elif not backend.is_single_parameter(port.size):
+            for symbol in backend.free_symbols_in(port.size):
+                if (
+                    symbol not in routine.input_params
+                    and symbol not in routine.local_variables
+                    and symbol not in additional_local_variables
+                ):
+                    raise BartiqPrecompilationError(
+                        f"Size of the port {port.name} depends on symbol {symbol} which is undefined."
+                    )
+            new_size = backend.substitute_all(port.size, additional_local_variables)
+            new_ports[port.name] = replace(port, size=new_size)
+            additional_constraints.append(Constraint(new_variable, new_size))
+        new_ports[port.name] = replace(port, size=new_variable)
+        new_input_params.append(new_variable_name)
     return replace(
         routine,
-        ports=new_ports,
+        ports={**new_ports, **routine.filter_ports((PortDirection.output,))},
         input_params=tuple([*routine.input_params, *new_input_params]),
         local_variables={**routine.local_variables, **additional_local_variables},
         constraints=tuple([*routine.constraints, *additional_constraints]),
