@@ -1,0 +1,751 @@
+# Basic case with a numeric count and a constant sequence
+- - program:
+      children:
+      - name: a
+        ports:
+        - direction: through
+          name: thru_0
+          size: null
+        resources:
+        - name: y
+          type: additive
+          value: N
+        - name: z
+          type: multiplicative
+          value: N
+        type: null
+      connections:
+      - source: a.thru_0
+        target: out_0
+      - source: in_0
+        target: a.thru_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      repetition:
+        count: 10
+        sequence:
+          type: constant
+          multiplier: 1
+      type: null
+    version: v1
+  - program:
+      children:
+      - input_params:
+        - N
+        name: a
+        ports:
+        - direction: through
+          name: thru_0
+          size: N
+        resources:
+        - name: y
+          type: additive
+          value: N
+        - name: z
+          type: multiplicative
+          value: N
+        type: null
+      connections:
+      - source: a.thru_0
+        target: out_0
+      - source: in_0
+        target: a.thru_0
+      input_params:
+      - N
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      repetition:
+        count: 10
+        sequence:
+          type: constant
+          multiplier: 1
+      resources:
+      - name: y
+        type: additive
+        value: 10*N
+      - name: z
+        type: multiplicative
+        value: N ^ 10
+      type: null
+    version: v1
+# Basic case with a symbolic count (with a function) and a constant sequence
+- - program:
+      children:
+      - name: a
+        ports:
+        - direction: through
+          name: thru_0
+          size: null
+        resources:
+        - name: y
+          type: additive
+          value: N
+        - name: z
+          type: multiplicative
+          value: fun(N)
+        type: null
+      connections:
+      - source: a.thru_0
+        target: out_0
+      - source: in_0
+        target: a.thru_0
+      input_params:
+      - alpha
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      repetition:
+        count: alpha
+        sequence:
+          type: constant
+          multiplier: 1
+      type: null
+    version: v1
+  - program:
+      children:
+      - input_params:
+        - N
+        name: a
+        ports:
+        - direction: through
+          name: thru_0
+          size: N
+        resources:
+        - name: y
+          type: additive
+          value: N
+        - name: z
+          type: multiplicative
+          value: fun(N)
+        type: null
+      connections:
+      - source: a.thru_0
+        target: out_0
+      - source: in_0
+        target: a.thru_0
+      input_params:
+      - N
+      - alpha
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      repetition:
+        count: alpha
+        sequence:
+          type: constant
+          multiplier: 1
+      resources:
+      - name: y
+        type: additive
+        value: N*alpha
+      - name: z
+        type: multiplicative
+        value: fun(N) ^ alpha
+
+      type: null
+    version: v1
+# Two repetitions in parallel
+- - program:
+      children:
+      - name: child_0
+        ports:
+        - direction: input
+          name: in_0
+          size: X
+        - direction: output
+          name: out_0
+          size: X
+        children:
+        - name: core_subroutine
+          ports:
+          - direction: through
+            name: my_port
+            size: X
+          resources:
+          - name: rotations
+            type: additive
+            value: 7
+        connections:
+        - source: in_0
+          target: core_subroutine.my_port
+        - source: core_subroutine.my_port
+          target: out_0
+        repetition:
+          count: X
+          sequence:
+            type: geometric
+            ratio: 1.5
+      - name: child_1
+        ports:
+        - direction: input
+          name: in_0
+          size: Y
+        - direction: output
+          name: out_0
+          size: Y
+        children:
+        - name: core_subroutine
+          ports:
+          - direction: through
+            name: my_port
+            size: Y
+          resources:
+          - name: rotations
+            type: additive
+            value: 7
+        connections:
+        - source: in_0
+          target: core_subroutine.my_port
+        - source: core_subroutine.my_port
+          target: out_0
+        repetition:
+          count: Y
+          sequence:
+            type: arithmetic
+            difference: 3
+            initial_term: 2
+      connections:
+      - source: in_0
+        target: child_0.in_0
+      - source: child_0.out_0
+        target: out_0
+      - source: in_1
+        target: child_1.in_0
+      - source: child_1.out_0
+        target: out_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: input
+        name: in_1
+        size: M
+      - direction: output
+        name: out_0
+        size: N
+      - direction: output
+        name: out_1
+        size: M
+    version: v1
+  - program:
+      children:
+      - name: child_0
+        input_params:
+          - N
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        children:
+        - name: core_subroutine
+          input_params:
+            - N
+          ports:
+          - direction: through
+            name: my_port
+            size: N
+          resources:
+          - name: rotations
+            type: additive
+            value: 7
+        connections:
+        - source: in_0
+          target: core_subroutine.my_port
+        - source: core_subroutine.my_port
+          target: out_0
+        repetition:
+          count: N
+          sequence:
+            type: geometric
+            ratio: 1.5
+        resources:
+        - name: rotations
+          type: additive
+          value: "14.0*1.5 ^ N - 14.0"
+      - name: child_1
+        input_params:
+          - M
+        ports:
+        - direction: input
+          name: in_0
+          size: M
+        - direction: output
+          name: out_0
+          size: M
+        children:
+        - name: core_subroutine
+          input_params:
+            - M
+          ports:
+          - direction: through
+            name: my_port
+            size: M
+          resources:
+          - name: rotations
+            type: additive
+            value: 7
+        connections:
+        - source: in_0
+          target: core_subroutine.my_port
+        - source: core_subroutine.my_port
+          target: out_0
+        repetition:
+          count: M
+          sequence:
+            type: arithmetic
+            difference: 3
+            initial_term: 2
+        resources:
+        - name: rotations
+          type: additive
+          value: "3.5*M*(3*M + 1)"
+      input_params:
+        - M
+        - N
+      connections:
+      - source: in_0
+        target: child_0.in_0
+      - source: child_0.out_0
+        target: out_0
+      - source: in_1
+        target: child_1.in_0
+      - source: child_1.out_0
+        target: out_1
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: input
+        name: in_1
+        size: M
+      - direction: output
+        name: out_0
+        size: N
+      - direction: output
+        name: out_1
+        size: M
+      resources:
+      - name: rotations
+        type: additive
+        value: "14.0*1.5 ^ N + 3.5*M*(3*M + 1) - 14.0"
+
+    version: v1
+# Repeated routine with substructure
+- - program:
+      children:
+      - name: repeated
+        children:
+        - children:
+          - children:
+            - name: c
+              ports:
+              - direction: input
+                name: in_0
+                size: 1
+              - direction: input
+                name: in_1
+                size: P
+              - direction: output
+                name: out_0
+                size: 1
+              - direction: output
+                name: out_1
+                size: P
+              type: null
+            connections:
+            - source: c.out_0
+              target: out_0
+            - source: c.out_1
+              target: out_1
+            - source: in_0
+              target: c.in_0
+            - source: in_1
+              target: c.in_1
+            name: b
+            ports:
+            - direction: input
+              name: in_0
+              size: null
+            - direction: input
+              name: in_1
+              size: null
+            - direction: output
+              name: out_0
+              size: null
+            - direction: output
+              name: out_1
+              size: null
+            type: null
+          connections:
+          - source: b.out_0
+            target: out_0
+          - source: b.out_1
+            target: out_1
+          - source: in_0
+            target: b.in_0
+          - source: in_1
+            target: b.in_1
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: null
+          - direction: input
+            name: in_1
+            size: null
+          - direction: output
+            name: out_0
+            size: null
+          - direction: output
+            name: out_1
+            size: null
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: a.out_1
+          target: out_1
+        - source: in_0
+          target: a.in_0
+        - source: in_1
+          target: a.in_1
+        ports:
+        - direction: input
+          name: in_0
+          size: 1
+        - direction: input
+          name: in_1
+          size: N
+        - direction: output
+          name: out_0
+          size: null
+        - direction: output
+          name: out_1
+          size: null
+        type: null
+      connections:
+      - source: in_0
+        target: repeated.in_0
+      - source: in_1
+        target: repeated.in_1
+      - source: repeated.out_0
+        target: out_0
+      - source: repeated.out_1
+        target: out_1
+      input_params:
+      - alpha
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: 1
+      - direction: input
+        name: in_1
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      - direction: output
+        name: out_1
+        size: null
+      repetition:
+        count: alpha
+        sequence:
+          type: constant
+          multiplier: 1
+      type: null
+    version: v1
+  - program:
+      children:
+      - name: repeated
+        children:
+        - name: a
+          children:
+          - name: b
+            children:
+            - name: c
+              input_params:
+              - N
+              ports:
+              - direction: input
+                name: in_0
+                size: 1
+              - direction: input
+                name: in_1
+                size: N
+              - direction: output
+                name: out_0
+                size: 1
+              - direction: output
+                name: out_1
+                size: N
+              type: null
+            connections:
+            - source: c.out_0
+              target: out_0
+            - source: c.out_1
+              target: out_1
+            - source: in_0
+              target: c.in_0
+            - source: in_1
+              target: c.in_1
+            input_params:
+            - N
+            ports:
+            - direction: input
+              name: in_0
+              size: 1
+            - direction: input
+              name: in_1
+              size: N
+            - direction: output
+              name: out_0
+              size: 1
+            - direction: output
+              name: out_1
+              size: N
+            type: null
+          connections:
+          - source: b.out_0
+            target: out_0
+          - source: b.out_1
+            target: out_1
+          - source: in_0
+            target: b.in_0
+          - source: in_1
+            target: b.in_1
+          input_params:
+          - N
+          ports:
+          - direction: input
+            name: in_0
+            size: 1
+          - direction: input
+            name: in_1
+            size: N
+          - direction: output
+            name: out_0
+            size: 1
+          - direction: output
+            name: out_1
+            size: N
+          type: null
+        connections:
+        - source: a.out_0
+          target: out_0
+        - source: a.out_1
+          target: out_1
+        - source: in_0
+          target: a.in_0
+        - source: in_1
+          target: a.in_1
+        input_params:
+        - N
+        ports:
+        - direction: input
+          name: in_0
+          size: 1
+        - direction: input
+          name: in_1
+          size: N
+        - direction: output
+          name: out_0
+          size: 1
+        - direction: output
+          name: out_1
+          size: N
+        type: null
+      connections:
+      - source: in_0
+        target: repeated.in_0
+      - source: in_1
+        target: repeated.in_1
+      - source: repeated.out_0
+        target: out_0
+      - source: repeated.out_1
+        target: out_1
+      input_params:
+      - N
+      - alpha
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: 1
+      - direction: input
+        name: in_1
+        size: N
+      - direction: output
+        name: out_0
+        size: 1
+      - direction: output
+        name: out_1
+        size: N
+      repetition:
+        count: alpha
+        sequence:
+          type: constant
+          multiplier: 1
+      type: null
+    version: v1
+# Repeated routine with another repetition inside
+- - program:
+      children:
+      - name: a
+        children:
+        - name: b
+          ports:
+          - direction: through
+            name: thru_0
+            size: N
+          resources:
+          - name: y
+            type: additive
+            value: N
+          - name: z
+            type: multiplicative
+            value: N
+          type: null
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: null
+        connections:
+        - source: b.thru_0
+          target: out_0
+        - source: in_0
+          target: b.thru_0
+        repetition:
+          count: N
+          sequence:
+            type: arithmetic
+            difference: 2
+            initial_term: 1
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: null
+      repetition:
+        count: 10
+        sequence:
+          type: constant
+          multiplier: 1
+      type: null
+    version: v1
+  - program:
+      children:
+      - name: a
+        children:
+        - name: b
+          ports:
+          - direction: through
+            name: thru_0
+            size: N
+          resources:
+          - name: y
+            type: additive
+            value: N
+          - name: z
+            type: multiplicative
+            value: N
+          input_params:
+          - N
+          repetition: null # TODO: This shouldn't be necessary
+          type: null
+        input_params:
+        - N
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        connections:
+        - source: b.thru_0
+          target: out_0
+        - source: in_0
+          target: b.thru_0
+        repetition:
+          count: N
+          sequence:
+            type: arithmetic
+            difference: 2
+            initial_term: 1
+        resources:
+        - name: y
+          type: additive
+          value: 1.0*N ^ 3
+        - name: z
+          type: multiplicative
+          value: 0.564189583547756*2 ^ N*N ^ N*gamma(N + 0.5)
+        type: null
+      connections:
+      - source: a.out_0
+        target: out_0
+      - source: in_0
+        target: a.in_0
+      name: root
+      input_params:
+      - N
+      ports:
+      - direction: input
+        name: in_0
+        size: N
+      - direction: output
+        name: out_0
+        size: N
+      repetition:
+        count: 10
+        sequence:
+          type: constant
+          multiplier: 1
+      resources:
+      - name: y
+        type: additive
+        value: 10.0*N ^ 3
+      - name: z
+        type: multiplicative
+        value: 0.00326776364305339*2 ^ (10*N)*N ^ (10*N)*gamma(N + 0.5) ^ 10
+      type: null
+    version: v1

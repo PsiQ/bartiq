@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from dataclasses import replace
 from typing import Callable, TypeVar
@@ -32,12 +33,13 @@ def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[
     return _inner
 
 
+# TODO: add tests for this
 @postorder_transform
-def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
-    """Adds additive resources to all the ancestors of a particular having this resource.
+def add_default_additive_and_multiplicative_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Adds additive and multiplicative resources to all the ancestors of a particular having this resource.
 
-    Since additive resources follow simple rules (value of a resource is equal to sum of the resources
-    of it's children), rather than defining it for all the subroutines, we can just have it defined for
+    Since additive/ multiplicative resources follow simple rules (value of a resource is equal to sum/product of
+    the resources of it's children), rather than defining it for all the subroutines, we can just have it defined for
     appropriate leaves and then "bubble it up" using this preprocessing transformation.
 
     Args:
@@ -47,14 +49,17 @@ def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend
     Returns:
         A routine with all the additive resources defined appropriately at all levels of the hierarchy.
     """
-    child_resources_map: defaultdict[str, set[str]] = defaultdict(set)
+    child_additive_resources_map: defaultdict[str, set[str]] = defaultdict(set)
+    child_multiplicative_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
     for child in routine.children.values():
         for resource in child.resources.values():
             if resource.type == ResourceType.additive:
-                child_resources_map[resource.name].add(child.name)
+                child_additive_resources_map[resource.name].add(child.name)
+            if resource.type == ResourceType.multiplicative:
+                child_multiplicative_resources_map[resource.name].add(child.name)
 
-    additional_resources: dict[str, Resource[T]] = {
+    additive_resources: dict[str, Resource[T]] = {
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
@@ -63,11 +68,24 @@ def add_default_additive_resources(routine: Routine[T], backend: SymbolicBackend
                 0,
             ),
         )
-        for res_name, children in child_resources_map.items()
+        for res_name, children in child_additive_resources_map.items()
         if res_name not in routine.resources
     }
 
-    return replace(routine, resources={**routine.resources, **additional_resources})
+    multiplicative_resources: dict[str, Resource[T]] = {
+        res_name: Resource(
+            name=res_name,
+            type=ResourceType.multiplicative,
+            value=math.prod(
+                (backend.as_expression(f"{child_name}.{res_name}") for child_name in children),  # type: ignore
+            ),
+        )
+        for res_name, children in child_multiplicative_resources_map.items()
+        if res_name not in routine.resources
+    }
+
+    extra_resources = {**additive_resources, **multiplicative_resources}
+    return replace(routine, resources={**routine.resources, **extra_resources})
 
 
 @postorder_transform
@@ -170,7 +188,7 @@ def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -
 
 
 def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
-    """Turns parameter links of level deeper than one into series of direct links.
+    """Turns parameter links of level deeper than one into sequence of direct links.
 
     Args:
         routine: routine to be preprocessed
@@ -210,7 +228,7 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
 
 
 DEFAULT_PREPROCESSING_STAGES = (
-    add_default_additive_resources,
+    add_default_additive_and_multiplicative_resources,
     propagate_linked_params,
     promote_unlinked_inputs,
     introduce_port_variables,

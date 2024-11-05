@@ -81,3 +81,9 @@ class SymbolicBackend(Protocol[T]):
 
     def func(self, func_name: str) -> Callable[..., TExpr[T]]:
         """Obtain an implementation of a function with given name."""
+
+    def sum(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
+        """Express a sum of terms expressed using `iterator_symbol`."""
+
+    def product(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
+        """Express a product of terms expressed using `iterator_symbol`."""
