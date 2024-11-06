@@ -4,7 +4,6 @@ from qref.functools import accepts_all_qref_types
 from qref.schema_v1 import RoutineV1
 
 
-# TODO: Add tests for this
 @dataclass
 class RepetitionsVerificationOutput:
     """Dataclass containing the output of the repetitions verification"""
@@ -48,9 +47,9 @@ def _verify_routine_repetition(routine: RoutineV1, ancestor_path: tuple[str, ...
 def _ensure_one_child(routine: RoutineV1, ancestor_path: tuple[str, ...] = ()) -> list[str]:
     routine_path = ancestor_path + (routine.name,)
     if len(routine.children) == 0 and routine.repetition is not None:
-        return f"Routine with repetition doesn't contain any children: {routine_path}."
+        return [f"Routine with repetition doesn't contain any children: {routine_path}."]
     elif len(routine.children) > 1 and routine.repetition is not None:
-        return f"Routine with repetition contains more than one child: {routine_path}."
+        return [f"Routine with repetition contains more than one child: {routine_path}."]
     else:
         return []
 
@@ -58,6 +57,9 @@ def _ensure_one_child(routine: RoutineV1, ancestor_path: tuple[str, ...] = ()) -
 def _ensure_no_resources(routine: RoutineV1, ancestor_path: tuple[str, ...] = ()) -> list[str]:
     routine_path = ancestor_path + (routine.name,)
     if len(routine.resources) != 0 and routine.repetition is not None:
-        return f"Routine with repetition should not contain any resources: {routine_path}."
+        return [
+            f"Routine with repetition should not contain any resources: {routine_path}, "
+            f"resources: {[resource.name for resource in routine.resources]}."
+        ]
     else:
         return []

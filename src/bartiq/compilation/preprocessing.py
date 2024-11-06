@@ -33,7 +33,6 @@ def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[
     return _inner
 
 
-# TODO: add tests for this
 @postorder_transform
 def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
     """Propagate additive and multiplicative resources to all the ancestors of a child having these resources.
