@@ -213,7 +213,6 @@ def test_custom_sequence_is_correct(unit_cost, count):
 
 
 def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
-
     term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
     routine = _routine_with_repetition(
         {
@@ -225,3 +224,34 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
 
     with pytest.raises(BartiqCompilationError):
         _ = compile_routine(routine).routine
+
+
+@pytest.mark.parametrize(
+    "repetition_dict",
+    (
+        {"count": "N", "sequence": {"type": "constant", "multiplier": 3}},
+        {"count": "N", "sequence": {"type": "arithmetic", "initial_term": 1, "difference": 3}},
+        {"count": "N", "sequence": {"type": "geometric", "ratio": "x"}},
+        {
+            "count": 10,
+            "sequence": {
+                "type": "closed_form",
+                "sum": "ceil(log2(N)) + N**2 - N*(N-1)",
+                "prod": "ceil(log2(N)) + N**2 - N*(N-1)",
+                "num_terms_symbol": "N",
+            },
+        },
+        {
+            "count": "N",
+            "sequence": {
+                "type": "custom",
+                "term_expression": "i**2 - 2*i + 7 + ceil(log2((i+1)*5))",
+                "iterator_symbol": "i",
+            },
+        },
+    ),
+)
+def test_repetition_serializes_to_qref(repetition_dict):
+    routine = _routine_with_repetition(repetition_dict)
+    compilation_result = compile_routine(routine)
+    compilation_result.to_qref()
