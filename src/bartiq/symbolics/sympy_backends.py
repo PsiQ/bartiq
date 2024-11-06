@@ -215,7 +215,7 @@ class SympyBackend:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
-    def product(self, term: TExpr[T], iterator_symbol: T, start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def prod(self, term: TExpr[T], iterator_symbol: T, start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 

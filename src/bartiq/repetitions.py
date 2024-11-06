@@ -30,9 +30,10 @@ from qref.schema_v1 import (
 from .errors import BartiqCompilationError
 from .symbolics.backend import SymbolicBackend, TExpr
 
-# from .compilation._common import _evaluate_and_define_functions
-
+# We need it because type `T` doesn't define any arithmetic operations.
+# mypy: disable-error-code="operator"
 T = TypeVar("T")
+
 
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
@@ -42,7 +43,7 @@ FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 def _evaluate_and_define_functions(
     expr: TExpr[T], inputs: dict[str, TExpr[T]], custom_funcs: FunctionsMap[T], backend: SymbolicBackend[T]
 ) -> TExpr[T]:
-    expr = backend.substitute_all(expr, inputs)  # TODO: check if we use
+    expr = backend.substitute_all(expr, inputs)
     for func_name, func in custom_funcs.items():
         expr = backend.define_function(expr, func_name, func)
     return value if (value := backend.value_of(expr)) is not None else expr
@@ -56,10 +57,10 @@ class ConstantSequence(Generic[T]):
     type: Literal["constant"]
     multiplier: TExpr[T]
 
-    def apply_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return count * self.multiplier * expr
 
-    def apply_product(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return expr ** (count * self.multiplier)
 
     def substitute_symbols(
@@ -81,10 +82,10 @@ class ArithmeticSequence(Generic[T]):
     initial_term: TExpr[T]
     difference: TExpr[T]
 
-    def apply_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return 0.5 * count * (2 * self.initial_term + (count - 1) * self.difference) * expr
 
-    def apply_product(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return (
             self.difference**count
             * backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference + count)})")
@@ -111,15 +112,13 @@ class GeometricSequence(Generic[T]):
     type: Literal["geometric"]
     ratio: TExpr[T]
 
-    def apply_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return expr * (1 - self.ratio ** (count)) / (1 - self.ratio)
 
-    def apply_product(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return expr * (count + 1) * self.ratio ** ((count) * (count + 1) / 2)
 
-    def substitute_symbols(
-        self, inputs, backend: SymbolicBackend[T], functions_map=None
-    ) -> ArithmeticSequence[Generic[T]]:
+    def substitute_symbols(self, inputs, backend: SymbolicBackend[T], functions_map=None) -> GeometricSequence[T]:
         if functions_map is None:
             functions_map = {}
         new_ratio = _evaluate_and_define_functions(self.ratio, inputs, functions_map, backend)
@@ -137,27 +136,29 @@ class ClosedFormSequence(Generic[T]):
     prod: TExpr[T] | None
     num_terms_symbol: TExpr[T]
 
-    def apply_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         if self.sum is not None:
             inputs = {backend.serialize(self.num_terms_symbol): count}
             return expr * _evaluate_and_define_functions(self.sum, inputs, {}, backend)
         else:
-            return BartiqCompilationError("Cannot apply sum for ClosedFormSequence, as sum is not defined.")
+            raise BartiqCompilationError("Cannot evaluate sum for ClosedFormSequence, as sum is not defined.")
 
-    def apply_product(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         if self.prod is not None:
             inputs = {backend.serialize(self.num_terms_symbol): count}
             return expr * _evaluate_and_define_functions(self.prod, inputs, {}, backend)
         else:
-            return BartiqCompilationError("Cannot apply product for ClosedFormSequence, as sum is not defined.")
+            raise BartiqCompilationError("Cannot evaluate product for ClosedFormSequence, as sum is not defined.")
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
     ) -> ArithmeticSequence[T]:
         if functions_map is None:
             functions_map = {}
-        new_sum = _evaluate_and_define_functions(self.sum, inputs, functions_map, backend)
-        new_prod = _evaluate_and_define_functions(self.prod, inputs, functions_map, backend)
+        if self.sum is not None:
+            new_sum = _evaluate_and_define_functions(self.sum, inputs, functions_map, backend)
+        if self.prod is not None:
+            new_prod = _evaluate_and_define_functions(self.prod, inputs, functions_map, backend)
         new_num_terms = _evaluate_and_define_functions(self.num_terms_symbol, inputs, functions_map, backend)
 
         return replace(self, sum=new_sum, prod=new_prod, num_terms_symbol=new_num_terms)
@@ -174,19 +175,19 @@ class CustomSequence(Generic[T]):
     term_expression: TExpr[T]
     iterator_symbol: str = "i"
 
-    def apply_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return backend.sum(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
 
-    def apply_product(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
-        return backend.product(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
+    def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+        return backend.prod(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
     ) -> ArithmeticSequence[T]:
         if functions_map is None:
             functions_map = {}
-        # TODO: add test for this
-        if self.iterator_symbol in inputs:
+
+        if self.iterator_symbol in inputs.values():
             raise BartiqCompilationError(
                 f"Tried to replace symbol that's used as iterator symbol in a sequence: {self.iterator_symbol}."
             )
@@ -202,14 +203,13 @@ class Repetition(Generic[T]):
     count: TExpr[T]
     sequence: ConstantSequence | ArithmeticSequence | GeometricSequence | ClosedFormSequence | CustomSequence
 
-    # TODO: "apply" or perhaps "generate" would be better?
-    def apply_sequence_sum(self, expr: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def sequence_sum(self, expr: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         """Returns an expression representing a sum of a sequence."""
-        return self.sequence.apply_sum(expr, self.count, backend)
+        return self.sequence.get_sum(expr, self.count, backend)
 
-    def apply_sequence_product(self, expr: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    def sequence_prod(self, expr: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         """Returns an expression representing a product of a sequence."""
-        return self.sequence.apply_product(expr, self.count, backend)
+        return self.sequence.get_prod(expr, self.count, backend)
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None

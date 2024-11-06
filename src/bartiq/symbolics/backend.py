@@ -85,5 +85,5 @@ class SymbolicBackend(Protocol[T]):
     def sum(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
         """Express a sum of terms expressed using `iterator_symbol`."""
 
-    def product(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
+    def prod(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""

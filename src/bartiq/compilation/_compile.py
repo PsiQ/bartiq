@@ -188,9 +188,9 @@ def _process_repeated_resources(
         assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
     for resource in child_resources.values():
         if resource.type == "additive":
-            new_value = repetition.apply_sequence_sum(resource.value, backend)
+            new_value = repetition.sequence_sum(resource.value, backend)
         elif resource.type == "multiplicative":
-            new_value = repetition.apply_sequence_product(resource.value, backend)
+            new_value = repetition.sequence_prod(resource.value, backend)
         else:
             raise BartiqCompilationError(
                 f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'

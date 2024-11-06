@@ -35,10 +35,10 @@ def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[
 
 # TODO: add tests for this
 @postorder_transform
-def add_default_additive_and_multiplicative_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
-    """Adds additive and multiplicative resources to all the ancestors of a particular having this resource.
+def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
+    """Propagate additive and multiplicative resources to all the ancestors of a child having these resources.
 
-    Since additive/ multiplicative resources follow simple rules (value of a resource is equal to sum/product of
+    Since additive/multiplicative resources follow simple rules (value of a resource is equal to sum/product of
     the resources of it's children), rather than defining it for all the subroutines, we can just have it defined for
     appropriate leaves and then "bubble it up" using this preprocessing transformation.
 
@@ -59,7 +59,7 @@ def add_default_additive_and_multiplicative_resources(routine: Routine[T], backe
             if resource.type == ResourceType.multiplicative:
                 child_multiplicative_resources_map[resource.name].add(child.name)
 
-    additive_resources: dict[str, Resource[T]] = {
+    additive_resources: dict[str, Resource[T]] = {  # TODO: try removing & adding [T] to the Resource below?
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
@@ -228,7 +228,7 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
 
 
 DEFAULT_PREPROCESSING_STAGES = (
-    add_default_additive_and_multiplicative_resources,
+    propagate_child_resources,
     propagate_linked_params,
     promote_unlinked_inputs,
     introduce_port_variables,

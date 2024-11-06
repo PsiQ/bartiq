@@ -19,6 +19,7 @@ from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine, evaluate
+from bartiq.errors import BartiqCompilationError
 
 
 def _routine_with_repetition(repetition_dict: dict) -> RoutineV1:
@@ -155,7 +156,7 @@ def _closed_form_prod(unit_cost, count):
 
 @pytest.mark.parametrize("unit_cost", [(1, 1), (7, 0.9)])
 @pytest.mark.parametrize("count", [1, 4, 9])
-def test_closed_form_sequence_is_correct(unit_cost, count, backend):
+def test_closed_form_sequence_is_correct(unit_cost, count):
     unit_T, unit_prob = unit_cost
     sum = "ceil(log2(N)) + N**2 - N*(N-1)"
     prod = "ceil(log2(N)) + N**2 - N*(N-1)"
@@ -191,7 +192,7 @@ def _custom_prod(unit_cost, count):
 
 @pytest.mark.parametrize("unit_cost", [(1, 1), (7, 0.9)])
 @pytest.mark.parametrize("count", [1, 4, 9])
-def test_custom_sequence_is_correct(unit_cost, count, backend):
+def test_custom_sequence_is_correct(unit_cost, count):
     unit_T, unit_prob = unit_cost
     term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
     routine = _routine_with_repetition(
@@ -209,3 +210,18 @@ def test_custom_sequence_is_correct(unit_cost, count, backend):
     numeric_prod = _custom_prod(unit_prob, count)
     assert evaluated_routine.resources["T"].value == numeric_sum
     pytest.approx(numeric_prod, evaluated_routine.resources["success_rate"].value)
+
+
+def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
+
+    term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
+    routine = _routine_with_repetition(
+        {
+            "count": 10,
+            "sequence": {"type": "custom", "term_expression": term_expression, "iterator_symbol": "i"},
+        }
+    )
+    routine.program.children[0].resources[0].value = "i"
+
+    with pytest.raises(BartiqCompilationError):
+        _ = compile_routine(routine).routine

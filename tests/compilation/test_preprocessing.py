@@ -4,7 +4,7 @@ from qref.schema_v1 import RoutineV1
 from bartiq._routine import Routine, routine_to_qref
 from bartiq.compilation.preprocessing import (
     PreprocessingStage,
-    add_default_additive_and_multiplicative_resources,
+    propagate_child_resources,
     propagate_linked_params,
 )
 
@@ -41,7 +41,7 @@ def test_adding_additive_resources(backend):
         resources=[{"name": "N_meas", "type": "additive", "value": "a.N_meas"}],
     )
 
-    routine_with_resources = _apply_stage(routine, add_default_additive_and_multiplicative_resources, backend)
+    routine_with_resources = _apply_stage(routine, propagate_child_resources, backend)
 
     expected_resources = [
         {"name": "N_meas", "type": "additive", "value": "a.N_meas"},
