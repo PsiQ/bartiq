@@ -40,15 +40,6 @@ class ConstraintValidationError(ValueError):
         super().__init__(original_constraint, compiled_constraint)
 
 
-def _evaluate_and_define_functions(
-    expr: TExpr[T], inputs: dict[str, TExpr[T]], custom_funcs: FunctionsMap[T], backend: SymbolicBackend[T]
-) -> TExpr[T]:
-    expr = backend.substitute_all(expr, inputs)
-    for func_name, func in custom_funcs.items():
-        expr = backend.define_function(expr, func_name, func)
-    return value if (value := backend.value_of(expr)) is not None else expr
-
-
 def evaluate_ports(
     ports: dict[str, Port[T]],
     inputs: dict[str, TExpr[T]],
@@ -57,9 +48,7 @@ def evaluate_ports(
 ) -> dict[str, Port[T]]:
     custom_funcs = {} if custom_funcs is None else custom_funcs
     return {
-        name: replace(
-            port, size=_evaluate_and_define_functions(port.size, inputs, custom_funcs, backend)  # type: ignore
-        )
+        name: replace(port, size=backend.substitute(port.size, inputs, custom_funcs))  # type: ignore
         for name, port in ports.items()
     }
 
@@ -74,7 +63,7 @@ def evaluate_resources(
     return {
         name: replace(
             resource,
-            value=_evaluate_and_define_functions(resource.value, inputs, custom_funcs, backend),  # type: ignore
+            value=backend.substitute(resource.value, inputs, custom_funcs),  # type: ignore
         )
         for name, resource in resources.items()
     }
@@ -83,8 +72,8 @@ def evaluate_resources(
 def _evaluate_constraint(
     constraint: Constraint[T], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], custom_funcs: FunctionsMap[T]
 ) -> Constraint[T]:
-    lhs = _evaluate_and_define_functions(constraint.lhs, inputs, custom_funcs, backend)
-    rhs = _evaluate_and_define_functions(constraint.rhs, inputs, custom_funcs, backend)
+    lhs = backend.substitute(constraint.lhs, inputs, custom_funcs)
+    rhs = backend.substitute(constraint.rhs, inputs, custom_funcs)
 
     if (comparison_result := backend.compare(lhs, rhs)) == ComparisonResult.equal:
         status = ConstraintStatus.satisfied

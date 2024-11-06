@@ -158,7 +158,7 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
                 raise BartiqPrecompilationError(
                     f"Size of the port {port.name} depends on symbols {sorted(missing_symbols)} which are undefined."
                 )
-            new_size = backend.substitute_all(port.size, additional_local_variables)
+            new_size = backend.substitute(port.size, additional_local_variables)
             new_ports[port.name] = replace(port, size=new_size)
             additional_constraints.append(Constraint(new_variable, new_size))
         new_ports[port.name] = replace(port, size=new_variable)

@@ -45,14 +45,14 @@ class SymbolicBackend(Protocol[T]):
     def value_of(self, expr: TExpr[T], /) -> Number | None:
         """Return value of given expression."""
 
-    def substitute(self, expr: TExpr[T], /, symbol: str, replacement: TExpr[T] | Number) -> TExpr[T]:
-        """Substitute all occurrences of symbol in expr with given replacement."""
-
-    def substitute_all(self, expr: TExpr[T], /, replacements: Mapping[str, TExpr[T] | Number]) -> TExpr[T]:
-        """Substitute all occurrences of all symbols in expr with given replacements."""
-
-    def define_function(self, expr: TExpr[T], /, func_name: str, function: Callable[[TExpr[T]], TExpr[T]]) -> TExpr[T]:
-        """Define an undefined function."""
+    def substitute(
+        self,
+        expr: TExpr[T],
+        /,
+        replacements: Mapping[str, TExpr[T] | Number],
+        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
+    ) -> TExpr[T]:
+        """Substitute all occurrences of symbols and functions in expr with given replacements and functions_map."""
 
     def is_constant_int(self, expr: TExpr[T], /) -> bool:
         """Return True if a given expression represents a constant int and False otherwise."""

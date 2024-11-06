@@ -38,17 +38,6 @@ T = TypeVar("T")
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
 
-# TODO: copied from _common.py
-# TODO: perhaps move to backend and rename to sth reasonable?
-def _evaluate_and_define_functions(
-    expr: TExpr[T], inputs: dict[str, TExpr[T]], custom_funcs: FunctionsMap[T], backend: SymbolicBackend[T]
-) -> TExpr[T]:
-    expr = backend.substitute_all(expr, inputs)
-    for func_name, func in custom_funcs.items():
-        expr = backend.define_function(expr, func_name, func)
-    return value if (value := backend.value_of(expr)) is not None else expr
-
-
 @dataclass(frozen=True)
 class ConstantSequence(Generic[T]):
     """Constant sequence.
@@ -68,7 +57,7 @@ class ConstantSequence(Generic[T]):
     ) -> ConstantSequence[T]:
         if functions_map is None:
             functions_map = {}
-        new_multiplier = _evaluate_and_define_functions(self.multiplier, inputs, functions_map, backend)
+        new_multiplier = backend.substitute(self.multiplier, inputs, functions_map)
         return replace(self, multiplier=new_multiplier)
 
 
@@ -98,8 +87,8 @@ class ArithmeticSequence(Generic[T]):
     ) -> ArithmeticSequence[T]:
         if functions_map is None:
             functions_map = {}
-        new_initial_term = _evaluate_and_define_functions(self.initial_term, inputs, functions_map, backend)
-        new_difference = _evaluate_and_define_functions(self.difference, inputs, functions_map, backend)
+        new_initial_term = backend.substitute(self.initial_term, inputs, functions_map)
+        new_difference = backend.substitute(self.difference, inputs, functions_map)
         return replace(self, initial_term=new_initial_term, difference=new_difference)
 
 
@@ -121,7 +110,7 @@ class GeometricSequence(Generic[T]):
     def substitute_symbols(self, inputs, backend: SymbolicBackend[T], functions_map=None) -> GeometricSequence[T]:
         if functions_map is None:
             functions_map = {}
-        new_ratio = _evaluate_and_define_functions(self.ratio, inputs, functions_map, backend)
+        new_ratio = backend.substitute(self.ratio, inputs, functions_map)
         return replace(self, ratio=new_ratio)
 
 
@@ -139,14 +128,14 @@ class ClosedFormSequence(Generic[T]):
     def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         if self.sum is not None:
             inputs = {backend.serialize(self.num_terms_symbol): count}
-            return expr * _evaluate_and_define_functions(self.sum, inputs, {}, backend)
+            return expr * backend.substitute(self.sum, inputs, {})
         else:
             raise BartiqCompilationError("Cannot evaluate sum for ClosedFormSequence, as sum is not defined.")
 
     def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         if self.prod is not None:
             inputs = {backend.serialize(self.num_terms_symbol): count}
-            return expr * _evaluate_and_define_functions(self.prod, inputs, {}, backend)
+            return expr * backend.substitute(self.prod, inputs, {})
         else:
             raise BartiqCompilationError("Cannot evaluate product for ClosedFormSequence, as sum is not defined.")
 
@@ -156,10 +145,10 @@ class ClosedFormSequence(Generic[T]):
         if functions_map is None:
             functions_map = {}
         if self.sum is not None:
-            new_sum = _evaluate_and_define_functions(self.sum, inputs, functions_map, backend)
+            new_sum = backend.substitute(self.sum, inputs, functions_map)
         if self.prod is not None:
-            new_prod = _evaluate_and_define_functions(self.prod, inputs, functions_map, backend)
-        new_num_terms = _evaluate_and_define_functions(self.num_terms_symbol, inputs, functions_map, backend)
+            new_prod = backend.substitute(self.prod, inputs, functions_map)
+        new_num_terms = backend.substitute(self.num_terms_symbol, inputs, functions_map)
 
         return replace(self, sum=new_sum, prod=new_prod, num_terms_symbol=new_num_terms)
 
@@ -192,7 +181,7 @@ class CustomSequence(Generic[T]):
                 f"Tried to replace symbol that's used as iterator symbol in a sequence: {self.iterator_symbol}."
             )
 
-        new_term_expression = _evaluate_and_define_functions(self.term_expression, inputs, functions_map, backend)
+        new_term_expression = backend.substitute(self.term_expression, inputs, functions_map)
         return replace(self, term_expression=new_term_expression)
 
 
@@ -214,7 +203,7 @@ class Repetition(Generic[T]):
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
     ) -> Repetition[T]:
-        new_count = backend.substitute_all(self.count, inputs)
+        new_count = backend.substitute(self.count, inputs)
         new_sequence = self.sequence.substitute_symbols(inputs, backend, functions_map)
         return replace(self, count=new_count, sequence=new_sequence)
 

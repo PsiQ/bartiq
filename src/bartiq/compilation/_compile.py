@@ -133,7 +133,7 @@ def _compile_local_variables(
     compiled_variables: dict[str, TExpr[T]] = {}
     extended_inputs = inputs.copy()
     for variable in TopologicalSorter(predecessors).static_order():
-        compiled_value = backend.substitute_all(local_variables[variable], extended_inputs)
+        compiled_value = backend.substitute(local_variables[variable], extended_inputs)
         extended_inputs[variable] = compiled_variables[variable] = compiled_value
     return compiled_variables
 
@@ -144,7 +144,7 @@ def _compile_linked_params(
     parameter_map: ParameterTree[TExpr[T]] = defaultdict(dict)
 
     for source, targets in linked_params.items():
-        evaluated_source = backend.substitute_all(backend.as_expression(source), inputs)
+        evaluated_source = backend.substitute(backend.as_expression(source), inputs)
         for child, param in targets:
             parameter_map[child][param] = evaluated_source
 
