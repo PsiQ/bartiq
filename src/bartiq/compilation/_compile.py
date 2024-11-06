@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Generic, TypeVar
@@ -107,10 +107,10 @@ def compile_routine(
     """
     if not skip_verification and not isinstance(routine, Routine):
         problems = []
-        if not (verification_result := verify_topology(routine)):
-            problems += [problem + "\n" for problem in verification_result.problems]
-        if not (verification_result := verify_uncompiled_repetitions(routine)):
-            problems += [problem + "\n" for problem in verification_result.problems]
+        if not (topology_verification_result := verify_topology(routine)):
+            problems += [problem + "\n" for problem in topology_verification_result.problems]
+        if not (repetitions_verification_result := verify_uncompiled_repetitions(routine)):
+            problems += [problem + "\n" for problem in repetitions_verification_result.problems]
         if len(problems) > 0:
             raise BartiqCompilationError(
                 f"Found the following issues with the provided routine before the compilation started: \n {problems}",
@@ -175,7 +175,7 @@ def _param_tree_from_compiled_ports(
 def _process_repeated_resources(
     repetition: Repetition,
     resources: dict[str, Resource],
-    children: Iterable[Routine[T]],
+    children: Sequence[CompiledRoutine[T]],
     backend: SymbolicBackend[T],
 ) -> dict[str, Resource]:
     assert len(children) == 1, "Routine with repetition can only have one child."

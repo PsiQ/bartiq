@@ -141,7 +141,7 @@ class ClosedFormSequence(Generic[T]):
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
-    ) -> ArithmeticSequence[T]:
+    ) -> ClosedFormSequence[T]:
         if functions_map is None:
             functions_map = {}
         if self.sum is not None:
@@ -162,7 +162,7 @@ class CustomSequence(Generic[T]):
 
     type: Literal["custom"]
     term_expression: TExpr[T]
-    iterator_symbol: str = "i"
+    iterator_symbol: T
 
     def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
         return backend.sum(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
@@ -172,7 +172,7 @@ class CustomSequence(Generic[T]):
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
-    ) -> ArithmeticSequence[T]:
+    ) -> CustomSequence[T]:
         if functions_map is None:
             functions_map = {}
 
@@ -237,10 +237,14 @@ def _(sequence: GeometricSequenceV1, backend: SymbolicBackend[T]) -> GeometricSe
 
 @_sequence_from_qref.register
 def _(sequence: ClosedFormSequenceV1, backend: SymbolicBackend[T]) -> ClosedFormSequence:
+
+    sum_expr = backend.as_expression(sequence.sum) if sequence.sum is not None else None
+    prod_expr = backend.as_expression(sequence.prod) if sequence.prod is not None else None
+
     return ClosedFormSequence(
         type=sequence.type,
-        sum=backend.as_expression(sequence.sum),
-        prod=backend.as_expression(sequence.prod),
+        sum=sum_expr,
+        prod=prod_expr,
         num_terms_symbol=backend.as_expression(sequence.num_terms_symbol),
     )
 
@@ -254,11 +258,13 @@ def _(sequence: CustomSequenceV1, backend: SymbolicBackend[T]) -> CustomSequence
     )
 
 
-def _repetition_from_qref(repetition: RepetitionV1 | None, backend: SymbolicBackend[T]) -> Repetition[T]:
+def _repetition_from_qref(repetition: RepetitionV1 | None, backend: SymbolicBackend[T]) -> Repetition[T] | None:
     if repetition is not None:
         return Repetition(
             count=backend.as_expression(repetition.count), sequence=_sequence_from_qref(repetition.sequence, backend)
         )
+    else:
+        return None
 
 
 @singledispatch
@@ -278,25 +284,32 @@ def _(sequence: ArithmeticSequence, backend: SymbolicBackend) -> ArithmeticSeque
 
 @_sequence_to_qref.register
 def _(sequence: GeometricSequence, backend: SymbolicBackend) -> GeometricSequenceV1:
-    return GeometricSequenceV1(type=sequence.type, ratio=sequence.ratio)
+    return GeometricSequenceV1(type=sequence.type, ratio=backend.as_native(sequence.ratio))
 
 
 @_sequence_to_qref.register
 def _(sequence: ClosedFormSequence, backend: SymbolicBackend) -> ClosedFormSequenceV1:
     return ClosedFormSequenceV1(
-        type=sequence.type, sum=sequence.sum, prod=sequence.prod, num_terms_symbol=sequence.num_terms_symbol
+        type=sequence.type,
+        sum=backend.serialize(sequence.sum),
+        prod=backend.serialize(sequence.prod),
+        num_terms_symbol=backend.serialize(sequence.num_terms_symbol),
     )
 
 
 @_sequence_to_qref.register
-def _(sequence: ClosedFormSequence, backend: SymbolicBackend) -> CustomSequenceV1:
-    return ClosedFormSequenceV1(
-        type=sequence.type, term_expression=sequence.term_expression, iterator_symbol=sequence.iterator_symbol
+def _(sequence: CustomSequence, backend: SymbolicBackend) -> CustomSequenceV1:
+    return CustomSequenceV1(
+        type=sequence.type,
+        term_expression=backend.serialize(sequence.term_expression),
+        iterator_symbol=backend.serialize(sequence.iterator_symbol),
     )
 
 
-def _repetition_to_qref(repetition: Repetition[T], backend: SymbolicBackend[T]) -> RepetitionV1:
+def _repetition_to_qref(repetition: Repetition[T] | None, backend: SymbolicBackend[T]) -> RepetitionV1 | None:
     if repetition is not None:
         return RepetitionV1(
             count=backend.as_native(repetition.count), sequence=_sequence_to_qref(repetition.sequence, backend)
         )
+    else:
+        return None

@@ -49,7 +49,7 @@ class SymbolicBackend(Protocol[T]):
         self,
         expr: TExpr[T],
         /,
-        replacements: Mapping[str, TExpr[T] | Number],
+        replacements: Mapping[str, TExpr[T]],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
     ) -> TExpr[T]:
         """Substitute all occurrences of symbols and functions in expr with given replacements and functions_map."""
@@ -82,8 +82,8 @@ class SymbolicBackend(Protocol[T]):
     def func(self, func_name: str) -> Callable[..., TExpr[T]]:
         """Obtain an implementation of a function with given name."""
 
-    def sum(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
+    def sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a sum of terms expressed using `iterator_symbol`."""
 
-    def prod(self, term: TExpr[T], iterator_symbol: T, start: T, end: T) -> TExpr[T]:
+    def prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""

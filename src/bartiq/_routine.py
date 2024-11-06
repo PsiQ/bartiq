@@ -86,6 +86,7 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     input_params: Iterable[str]
     ports: dict[str, Port[T]]
     resources: dict[str, Resource[T]]
+    repetition: Repetition[T] | None
     connections: dict[Endpoint, Endpoint]
 
 
