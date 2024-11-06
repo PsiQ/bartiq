@@ -169,8 +169,8 @@ class SympyBackend:
         self,
         expr: Expr,
         /,
-        replacements: Mapping[str, TExpr[T]],
-        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
+        replacements: Mapping[str, TExpr[Expr]],
+        functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
     ) -> TExpr[Expr]:
 
         symbols_in_expr = self.free_symbols_in(expr)
