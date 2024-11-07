@@ -86,6 +86,26 @@ def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
     return parse(expression, interpreter=SympyInterpreter(debug=debug))
 
 
+@identity_for_numbers
+def _define_function(expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
+    """Define an undefined function."""
+    # Catch attempt to define special function names
+    if func_name in BUILT_IN_FUNCTIONS:
+        raise BartiqCompilationError(
+            f"Attempted to redefine the special function {func_name}; cannot define special functions."
+        )
+
+    # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
+    # This, however, is expected for certain functions (e.g. with conditions)
+    try:
+        return expr.replace(
+            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
+            lambda match: function(*match.args),
+        )
+    except TypeError:
+        return expr
+
+
 class SympyBackend:
 
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
@@ -145,33 +165,22 @@ class SympyBackend:
         return value
 
     @identity_for_numbers
-    def substitute(self, expr: Expr, symbol: str, replacement: TExpr[Expr] | Number) -> TExpr[Expr]:
-        return expr.subs(symbols(symbol), replacement) if symbol in self.free_symbols_in(expr) else expr
+    def substitute(
+        self,
+        expr: Expr,
+        /,
+        replacements: Mapping[str, TExpr[Expr]],
+        functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
+    ) -> TExpr[Expr]:
 
-    @identity_for_numbers
-    def substitute_all(self, expr: Expr, replacements: Mapping[str, TExpr[Expr]]) -> TExpr[Expr]:
         symbols_in_expr = self.free_symbols_in(expr)
         restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
-        return expr.subs(restricted_replacements)
-
-    @identity_for_numbers
-    def define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
-        """Define an undefined function."""
-        # Catch attempt to define special function names
-        if func_name in BUILT_IN_FUNCTIONS:
-            raise BartiqCompilationError(
-                f"Attempted to redefine the special function {func_name}; cannot define special functions."
-            )
-
-        # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
-        # This, however, is expected for certain functions (e.g. with conditions)
-        try:
-            return expr.replace(
-                lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
-                lambda match: function(*match.args),
-            )
-        except TypeError:
-            return expr
+        expr = expr.subs(restricted_replacements)
+        if functions_map is None:
+            functions_map = {}
+        for func_name, func in functions_map.items():
+            expr = _define_function(expr, func_name, func)
+        return value if (value := self.value_of(expr)) is not None else expr
 
     def is_constant_int(self, expr: TExpr[Expr]):
         """Return True if a given expression represents a constant int and False otherwise."""
@@ -210,6 +219,14 @@ class SympyBackend:
             return SPECIAL_FUNCS[func_name]
         except KeyError:
             return sympy.Function(func_name)
+
+    def sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+        """Express a sum of terms expressed using `iterator_symbol`."""
+        return sympy.Sum(term, (iterator_symbol, start, end))
+
+    def prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+        """Express a product of terms expressed using `iterator_symbol`."""
+        return sympy.Product(term, (iterator_symbol, start, end))
 
 
 # Define sympy_backend for backwards compatibility

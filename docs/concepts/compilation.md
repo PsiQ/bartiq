@@ -111,6 +111,11 @@ populated before other children are compiled.
 Once this step is completed, we can be sure that all resources and ports of each child are expressed in terms
 of global variables, which is a requirement for the next step.
 
+#### Step 2.4: Compilation of repetition
+
+In case a routine is repeated (i.e. has a non-empty `repetition` field), its resources get updated according 
+to the repetition rules and the repetition specification itself gets updated using  the parameter map.
+
 #### Step 2.5: Resource compilation
 
 Resources of the routine are compiled, which is possible only at this stage, as they can be expressed in terms

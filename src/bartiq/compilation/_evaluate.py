@@ -28,6 +28,7 @@ from ._common import (
     Context,
     evaluate_constraints,
     evaluate_ports,
+    evaluate_repetition,
     evaluate_resources,
 )
 
@@ -109,6 +110,7 @@ def _evaluate_internal(
         ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
         resources=evaluate_resources(compiled_routine.resources, inputs, backend, functions_map),
         constraints=new_constraints,
+        repetition=evaluate_repetition(compiled_routine.repetition, inputs, backend, functions_map),
         children={
             name: _evaluate_internal(
                 child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)

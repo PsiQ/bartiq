@@ -14,8 +14,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Iterable
-from dataclasses import dataclass
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
 from typing import Generic, TypeVar
 
@@ -24,10 +24,19 @@ from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 
-from .._routine import CompiledRoutine, Endpoint, Port, Routine, routine_to_qref
+from .._routine import (
+    CompiledRoutine,
+    Endpoint,
+    Port,
+    Repetition,
+    Resource,
+    Routine,
+    routine_to_qref,
+)
 from ..errors import BartiqCompilationError
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, TExpr
+from ..verification import verify_uncompiled_repetitions
 from ._common import (
     ConstraintValidationError,
     Context,
@@ -97,10 +106,14 @@ def compile_routine(
 
     """
     if not skip_verification and not isinstance(routine, Routine):
-        if not (verification_result := verify_topology(routine)):
-            problems = [problem + "\n" for problem in verification_result.problems]
+        problems = []
+        if not (topology_verification_result := verify_topology(routine)):
+            problems += [problem + "\n" for problem in topology_verification_result.problems]
+        if not (repetitions_verification_result := verify_uncompiled_repetitions(routine)):
+            problems += [problem + "\n" for problem in repetitions_verification_result.problems]
+        if len(problems) > 0:
             raise BartiqCompilationError(
-                f"Found the following issues with the provided routine before the compilation started: {problems}",
+                f"Found the following issues with the provided routine before the compilation started: \n {problems}",
             )
     root = routine if isinstance(routine, Routine) else Routine[T].from_qref(ensure_routine(routine), backend)
 
@@ -120,7 +133,7 @@ def _compile_local_variables(
     compiled_variables: dict[str, TExpr[T]] = {}
     extended_inputs = inputs.copy()
     for variable in TopologicalSorter(predecessors).static_order():
-        compiled_value = backend.substitute_all(local_variables[variable], extended_inputs)
+        compiled_value = backend.substitute(local_variables[variable], extended_inputs)
         extended_inputs[variable] = compiled_variables[variable] = compiled_value
     return compiled_variables
 
@@ -131,7 +144,7 @@ def _compile_linked_params(
     parameter_map: ParameterTree[TExpr[T]] = defaultdict(dict)
 
     for source, targets in linked_params.items():
-        evaluated_source = backend.substitute_all(backend.as_expression(source), inputs)
+        evaluated_source = backend.substitute(backend.as_expression(source), inputs)
         for child, param in targets:
             parameter_map[child][param] = evaluated_source
 
@@ -157,6 +170,35 @@ def _param_tree_from_compiled_ports(
     for source_port, target in connections_map.items():
         param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
     return param_map
+
+
+def _process_repeated_resources(
+    repetition: Repetition,
+    resources: dict[str, Resource],
+    children: Sequence[CompiledRoutine[T]],
+    backend: SymbolicBackend[T],
+) -> dict[str, Resource]:
+    assert len(children) == 1, "Routine with repetition can only have one child."
+    new_resources = {}
+    child_resources = children[0].resources
+
+    # Ensure that routine with repetition only contains resources that we will later overwrite
+    for resource_name, resource in resources.items():
+        assert resource_name in child_resources
+        assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
+    for resource in child_resources.values():
+        if resource.type == "additive":
+            new_value = repetition.sequence_sum(resource.value, backend)
+        elif resource.type == "multiplicative":
+            new_value = repetition.sequence_prod(resource.value, backend)
+        else:
+            raise BartiqCompilationError(
+                f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
+            )
+
+        new_resource = replace(resource, value=new_value)
+        new_resources[resource.name] = new_resource
+    return new_resources
 
 
 def _compile(
@@ -215,7 +257,16 @@ def _compile(
 
     parameter_map[None] = {**parameter_map[None], **children_variables}
 
-    new_resources = evaluate_resources(routine.resources, parameter_map[None], backend)
+    resources = routine.resources
+    repetition = routine.repetition
+
+    if routine.repetition is not None:
+        resources = _process_repeated_resources(
+            routine.repetition, resources, list(compiled_children.values()), backend
+        )
+        repetition = routine.repetition.substitute_symbols(parameter_map[None], backend=backend)
+
+    new_resources = evaluate_resources(resources, parameter_map[None], backend)
 
     compiled_ports = {
         **compiled_ports,
@@ -239,4 +290,5 @@ def _compile(
         resources=new_resources,
         constraints=new_constraints,
         connections=routine.connections,
+        repetition=repetition,
     )

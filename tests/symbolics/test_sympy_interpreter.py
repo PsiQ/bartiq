@@ -48,6 +48,7 @@ from sympy import (
     exp,
     floor,
     frac,
+    gamma,
     im,
     log,
     prod,
@@ -78,7 +79,7 @@ def define_alphabet():
     greek_alphabet_upper = [
         "Alpha",
         "Beta",
-        "Gamma",
+        # "Gamma", # Removing gamma as there exists a special function with name "gamma"
         "Delta",
         "Epsilon",
         "Zeta",
@@ -101,7 +102,7 @@ def define_alphabet():
         "Psi",
         "Omega",
     ]
-    greek_alphabet_lower = list(map(lambda s: s.lower(), greek_alphabet_upper))
+    greek_alphabet_lower = list(map(str.lower, greek_alphabet_upper))
     greek_alphabet_full = greek_alphabet_upper + greek_alphabet_lower
 
     # Define Hebrew alphabet
@@ -329,6 +330,7 @@ PARSE_TEST_CASES = [
     ("log_10(x)", log10(x)),
     ("LambertW(x)", LambertW(x)),
     ("LambertW(x, y)", LambertW(x, y)),
+    ("gamma(x)", gamma(x)),
     ("Heaviside(x)", Heaviside(x)),
     # Parameters
     ("x", x),

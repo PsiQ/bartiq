@@ -75,7 +75,7 @@ def test_attempt_to_define_builtin_function_fails():
         return x + 2
 
     with pytest.raises(BartiqCompilationError):
-        sympy_backend.define_function(expr, "cos", _f)
+        sympy_backend.substitute(expr, {}, {"cos": _f})
 
 
 @pytest.mark.parametrize(

@@ -24,6 +24,7 @@ from qref.functools import AnyQrefType, ensure_routine
 from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
 from typing_extensions import Self, TypedDict
 
+from .repetitions import Repetition, repetition_from_qref, repetition_to_qref
 from .symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
@@ -85,6 +86,7 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     input_params: Iterable[str]
     ports: dict[str, Port[T]]
     resources: dict[str, Resource[T]]
+    repetition: Repetition[T] | None
     connections: dict[Endpoint, Endpoint]
 
 
@@ -99,6 +101,7 @@ class Routine(Generic[T]):
     ports: dict[str, Port[T]]
     resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
+    repetition: Repetition | None = None
     constraints: Iterable[Constraint[T]] = ()
 
     @property
@@ -144,6 +147,7 @@ class CompiledRoutine(Generic[T]):
     ports: dict[str, Port[T]]
     resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
+    repetition: Repetition | None = None
     constraints: Iterable[Constraint[T]] = ()
 
     @classmethod
@@ -164,6 +168,7 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
         "input_params": tuple(program.input_params),
         "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
+        "repetition": repetition_from_qref(program.repetition, backend),
         "connections": {
             _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
         },
@@ -225,5 +230,6 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
             {"source": _endpoint_to_qref(source), "target": _endpoint_to_qref(target)}
             for source, target in routine.connections.items()
         ],
+        repetition=repetition_to_qref(routine.repetition, backend),
         **kwargs,
     )

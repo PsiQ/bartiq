@@ -51,6 +51,7 @@ from sympy import (
     exp,
     floor,
     frac,
+    gamma,
     im,
     log,
 )
@@ -218,6 +219,7 @@ SPECIAL_FUNCS = {
     "log10": log10,
     "log_10": log10,
     "lambertw": LambertW,
+    "gamma": gamma,
     "heaviside": Heaviside,
     "multiplicity": multiplicity,
     "nlz": nlz,

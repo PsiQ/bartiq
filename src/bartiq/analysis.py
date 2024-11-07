@@ -260,7 +260,7 @@ def minimize(
         if not isinstance(x, (int, float)):
             x = x[0]
 
-        substituted_expr = backend.substitute(expression, param, x)
+        substituted_expr = backend.substitute(expression, {param: x})
         result = backend.value_of(substituted_expr)
         return float(result)
 
