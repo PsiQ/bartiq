@@ -75,12 +75,19 @@ class ArithmeticSequence(Generic[T]):
         return 0.5 * count * (2 * self.initial_term + (count - 1) * self.difference) * expr
 
     def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+        gamma = backend.func("gamma")
         return (
             self.difference**count
-            * backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference + count)})")
-            / backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference)})")
+            * gamma(self.initial_term / self.difference + count)
+            / gamma(self.initial_term / self.difference)
             * expr**count
         )
+        # return (
+        #     self.difference**count
+        #     * backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference + count)})")
+        #     / backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference)})")
+        #     * expr**count
+        # )
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
@@ -156,6 +163,7 @@ class ClosedFormSequence(Generic[T]):
 @dataclass(frozen=True)
 class CustomSequence(Generic[T]):
     """Custom sequence.
+
     For sequences which do not fall into categories defined in other classes, one can use a custom representation.
     It is an explicit representation of a sequence where `term_expression` defines the expression for each term
     in the sequence and `iterator_symbol` is used to represent number of the iteration."""
@@ -258,7 +266,7 @@ def _(sequence: CustomSequenceV1, backend: SymbolicBackend[T]) -> CustomSequence
     )
 
 
-def _repetition_from_qref(repetition: RepetitionV1 | None, backend: SymbolicBackend[T]) -> Repetition[T] | None:
+def repetition_from_qref(repetition: RepetitionV1 | None, backend: SymbolicBackend[T]) -> Repetition[T] | None:
     if repetition is not None:
         return Repetition(
             count=backend.as_expression(repetition.count), sequence=_sequence_from_qref(repetition.sequence, backend)
@@ -306,7 +314,7 @@ def _(sequence: CustomSequence, backend: SymbolicBackend) -> CustomSequenceV1:
     )
 
 
-def _repetition_to_qref(repetition: Repetition[T] | None, backend: SymbolicBackend[T]) -> RepetitionV1 | None:
+def repetition_to_qref(repetition: Repetition[T] | None, backend: SymbolicBackend[T]) -> RepetitionV1 | None:
     if repetition is not None:
         return RepetitionV1(
             count=backend.as_native(repetition.count), sequence=_sequence_to_qref(repetition.sequence, backend)
