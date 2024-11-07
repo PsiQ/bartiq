@@ -1,0 +1,1077 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Symbolic compilation for QRE">
+      
+      
+        <meta name="author" content="PsiQuantum Corp.">
+      
+      
+      
+        <link rel="prev" href="../../tutorials/03_advanced_examples/">
+      
+      
+        <link rel="next" href="../../troubleshooting/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
+    
+    
+      
+        <title>Compilation - Bartiq</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/timeago.css">
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../psidocs.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#compilation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bartiq" class="md-header__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  <img src="../../assets/logo_white.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bartiq
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Compilation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bartiq" class="md-nav__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  <img src="../../assets/logo_white.png" alt="logo">
+
+    </a>
+    Bartiq
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome to Bartiq
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorials
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_basic_example/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basic example
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_alias_sampling_basic/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Alias Sampling
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_advanced_examples/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Using Bartiq for Resource Analysis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Concepts
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Compilation
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Compilation
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#birds-eye-perspective-on-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bird's eye perspective on compilation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compilation-in-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compilation in details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compilation in details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-preprocessing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: preprocessing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-recursive-compilation-of-routines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Recursive compilation of routines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Recursive compilation of routines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-21-compilation-of-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.1: Compilation of constraints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-22-compilation-of-local-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.2: Compilation of local variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-23-compilation-of-non-output-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.3: Compilation of non-output ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-24-recursive-compilation-of-children" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.4: Recursive compilation of children
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-24-compilation-of-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.4: Compilation of repetition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-25-resource-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.5: Resource compilation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-26-output-port-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.6: Output port compilation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Known limitations
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    API reference
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#birds-eye-perspective-on-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Bird's eye perspective on compilation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compilation-in-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compilation in details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compilation in details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-preprocessing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: preprocessing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-recursive-compilation-of-routines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Recursive compilation of routines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2: Recursive compilation of routines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-21-compilation-of-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.1: Compilation of constraints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-22-compilation-of-local-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.2: Compilation of local variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-23-compilation-of-non-output-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.3: Compilation of non-output ports
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-24-recursive-compilation-of-children" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.4: Recursive compilation of children
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-24-compilation-of-repetition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.4: Compilation of repetition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-25-resource-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.5: Resource compilation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-26-output-port-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2.6: Output port compilation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+    <a href="https://github.com/PsiQ/bartiq/edit/main/docs/concepts/compilation.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="compilation">Compilation</h1>
+<p>Here we will describe how the compilation process in Bartiq works.
+Please keep in mind, that while we try to keep this page up-to-date, in the end the code is the only source-of-truth. If you notice any discrepancies, between what's described here and how Bartiq behaves, please <a href="https://github.com/PsiQ/bartiq/issues">create an issue&nbsp;⧉</a>!</p>
+<h2 id="birds-eye-perspective-on-compilation">Bird's eye perspective on compilation</h2>
+<p>Compilation is a very overloaded word, so let us start by explaining what we mean by <em>compiling a routine</em> in Bartiq.</p>
+<p>Quantum programs are often deeply nested structures. A program can call multiple routines, which themselves call other routines, and so on. One typically defines resources of each routine at the local level using available local symbols and variables. However, in the end, we are typically interested in resources used by each routine expressed in terms of input parameters of the whole program.</p>
+<p>Here's an example to illustrate what we're talking about. Below we show a routine with
+two children, each of them having some example resource defined in terms of their local parameters.</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">program</span><span class="p">:</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">root</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">input_params</span><span class="p">:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">N</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;in_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;N&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;out_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="nv">null</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;output&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;value&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;a.x</span><span class="nv"> </span><span class="s">+</span><span class="nv"> </span><span class="s">b.x&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;type&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;additive&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">children</span><span class="p">:</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;a&quot;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;in_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;out_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;2</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">L&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;output&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;value&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;L**2&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;type&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;additive&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;b&quot;</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="nt">ports</span><span class="p">:</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;in_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;L&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;input&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;out_0&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;size&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;2</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">L&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;direction&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;output&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="s">&quot;name&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;x&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;value&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;L</span><span class="nv"> </span><span class="s">**</span><span class="nv"> </span><span class="s">2&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;type&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;additive&quot;</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nt">connections</span><span class="p">:</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">in_0 -&gt; a.in_0</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">a.out_0 -&gt; b.in_0</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b.out_0 -&gt; out_0</span><span class="w">  </span>
+</span></code></pre></div>
+<p><img alt="example routine" src="../../images/compilation_example.png" /></p>
+<p>As we can see, both <code>a</code> and <code>b</code> have a resource <code>x</code> defined relatively to their input port size <code>L</code>. However, when
+looked globally, those resources would have a different value. Indeed, let's see how the port sizes propagate.</p>
+<ol>
+<li>The input port of the top-level <code>root</code> routine of size <code>N</code> is connected to the input port of routine <code>a</code>. Hence,
+   when viewed through global scope, the input port of <code>a</code> has size <code>N</code>.</li>
+<li>The output port of routine <code>a</code> has, by definition, size twice as large as its input port. It is connected to input port
+   of routine <code>b</code>, and therefore <code>b.in_0</code> has size <code>2N</code>.</li>
+</ol>
+<p>Looking at the resources of <code>a</code> and <code>b</code> we see that <code>x</code> is defined as square of their respective input port sizes. Thus,
+<code>a.x</code> has value of <code>N ** 2</code>, and <code>b.x</code> has value <code>(2 * N) ** 2 = 4 * N ** 2</code>.</p>
+<p>This is what the compilation process is all about. Given a routine with all its components defined in terms of local symbols
+and parameters, Bartiq produces a <em>compiled routine</em> in which all port sizes and resources are defined in terms
+of the global input symbols of top-level routine.</p>
+<h2 id="compilation-in-details">Compilation in details</h2>
+<p>Compilation can be viewed as recursive process. At every recursive call, several things need to happen in correct order.
+Below we outline how the compilation proceeds.</p>
+<h3 id="step-1-preprocessing">Step 1: preprocessing</h3>
+<p>The Bartiq's compilation engine makes several assumptions about the routine being compiled, which simplify its code
+at the expense of flexibility. For instance, Bartiq assumes all port sizes are single parameters of size <code>#port_name</code>.
+Another, very important assumption, is that there are no parameter links reaching deeper than one level of nesting.</p>
+<p>Writing a routine conforming to those requirements by hand is possible, but tedious. Instead, Bartiq allows for
+violation of some of its assumptions, and preprocesses the routine so that all the requirements are met.</p>
+<p>As an example, suppose some port <code>in_0</code> has size <code>1</code>. Bartiq replaces this size with <code>#in_0</code>, and then adds a
+constraint saying that <code>#in_0 = 1</code>.</p>
+<p>Currently, there are following preprocessing stages:</p>
+<ol>
+<li>Introduction of default additive resources. This stage allows users to define the additive resources for leafs,
+   and then adds the same resource to each of the higher-level routines, by defining it as a sum of the resource over all children that define it.
+   In the example we discussed previously, this preprocessing step would allow uas to skip the definition of
+   <code>x</code> resoruce in <code>root</code> and instead have it automatically defined by Bartiq.</li>
+<li>Propagation of linked params. In this stage all linked parameters reaching further than to the direct
+   descendant are converted into a series of direct parameter links. This is useful, because you can e.g.
+   link parameter from the top-level routine to a parameter arbitrarily deep in the program structure,
+   and it will still work, despite Bartiq's compilation engine requirement on having only direct links.</li>
+<li>Promotion of ulinked inputs. Compilation cannot handle parameters that are not linked or pased through
+   connections. To avoid unnecessary compilation errors, Bartiq will promote such parameter to a parameter
+   linked to newly introduced parent's input.</li>
+<li>Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
+   equal to a single-parameter expression of known name, while also introducing constraints to make sure
+   that no information is lost in the process.</li>
+</ol>
+<p>It is hopefully clear by now that preprocessing allows user for writing more concise and readable routines, while at the same time
+ensuring that strict requirements of compilation engine are met.</p>
+<h3 id="step-2-recursive-compilation-of-routines">Step 2: Recursive compilation of routines</h3>
+<p>As already mentioned, the compilation process is recursive. While Bartiq processes any given routine, it
+maintains a parameter map for all the routine's children. This map gets populated whenever new piece of
+information is obtained, and then passed to the recursive call when each child is being compiled.</p>
+<h4 id="step-21-compilation-of-constraints">Step 2.1: Compilation of constraints</h4>
+<p>At the very beginning of the compilation, Bartiq evaluates the constraints introduced in preprocessing. If any
+of the constraints is violated, a <code>BartiqCompiilationError</code> is raised. Constraints that are trivially satisfied
+are dropped from the system, and other constraints are retained.</p>
+<h4 id="step-22-compilation-of-local-variables">Step 2.2: Compilation of local variables</h4>
+<p>As the next step, local variables of the routine are expressed in terms of variables passed from its parent (this
+step does nothing for the root routine). As the result, all local variables are expressed in terms of global
+parameters.</p>
+<h4 id="step-23-compilation-of-non-output-ports">Step 2.3: Compilation of non-output ports</h4>
+<p>Input and through port sizes of any routine can only depend on its inputs and local variables. Thus, those objects
+are perfect to be compiled next.</p>
+<p>After each port is compiled, Bartiq checks if this port is connected to other port in the routine. If so, a
+corresponding entry in parameter tree is added. For instance, suppose that port <code>in_0</code> got compiled and has now
+size <code>N</code>. If this port is connected to port <code>in_1</code> of child <code>a</code>, a parameter map for <code>a</code> will contain entry
+mapping <code>#in_1</code> to <code>N</code>.</p>
+<h4 id="step-24-recursive-compilation-of-children">Step 2.4: Recursive compilation of children</h4>
+<p>The children are traversed in topological order, which ensures all required entries in the parameter maps are
+populated before other children are compiled.</p>
+<p>Once this step is completed, we can be sure that all resources and ports of each child are expressed in terms
+of global variables, which is a requirement for the next step.</p>
+<h4 id="step-24-compilation-of-repetition">Step 2.4: Compilation of repetition</h4>
+<p>In case a routine is repeated (i.e. has a non-empty <code>repetition</code> field), its resources get updated according 
+to the repetition rules and the repetition specification itself gets updated using  the parameter map.</p>
+<h4 id="step-25-resource-compilation">Step 2.5: Resource compilation</h4>
+<p>Resources of the routine are compiled, which is possible only at this stage, as they can be expressed in terms
+of resources of its children.</p>
+<h4 id="step-26-output-port-compilation">Step 2.6: Output port compilation</h4>
+<p>Finally, the output ports are compiled, and the new object representing compiled routine is created.</p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-07T13:39:07+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-07</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago"><span class="timeago" datetime="2024-11-07T13:39:07+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date">2024-11-07</span>
+  </span>
+
+    
+    
+    
+      
+  <span class="md-source-file__fact">
+    
+      
+  <span class="md-icon" title="Contributors">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"/></svg>
+  </span>
+  <span>GitHub</span>
+
+    
+    <nav>
+      
+        <a href="https://github.com/mstechly" class="md-author" title="@mstechly">
+          
+          <img src="https://avatars.githubusercontent.com/u/7314136?v=4&size=72" alt="mstechly">
+        </a>
+      
+        <a href="https://github.com/web-flow" class="md-author" title="@web-flow">
+          
+          <img src="https://avatars.githubusercontent.com/u/19864447?v=4&size=72" alt="web-flow">
+        </a>
+      
+        <a href="https://github.com/dexter2206" class="md-author" title="@dexter2206">
+          
+          <img src="https://avatars.githubusercontent.com/u/5444492?v=4&size=72" alt="dexter2206">
+        </a>
+      
+      
+      
+    </nav>
+  </span>
+
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2023-2024 PsiQuantum Corp.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+        <script src="../../js/timeago.min.js"></script>
+      
+        <script src="../../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../../javascript/config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../../js/open_in_new_tab.js"></script>
+      
+    
+  </body>
+</html>
