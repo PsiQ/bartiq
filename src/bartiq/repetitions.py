@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, replace
 from functools import singledispatch
-from typing import Callable, Generic, Literal, TypeVar
+from typing import Callable, Generic, Literal, TypeVar, cast
 
 from qref.schema_v1 import (
     ArithmeticSequenceV1,
@@ -311,8 +312,13 @@ def _(sequence: CustomSequence, backend: SymbolicBackend) -> CustomSequenceV1:
 
 def repetition_to_qref(repetition: Repetition[T] | None, backend: SymbolicBackend[T]) -> RepetitionV1 | None:
     if repetition is not None:
-        return RepetitionV1(
-            count=backend.as_native(repetition.count), sequence=_sequence_to_qref(repetition.sequence, backend)
-        )
+        count = backend.as_native(repetition.count)
+        if isinstance(count, float):
+            warnings.warn(
+                f"Repetition count evaluated to float {count}. This is either a result of imprecise arithmetic, "
+                f"a problem with symbolics expressions used in your routine, or a bug in {type(SymbolicBackend)}."
+            )
+            count = str(count)  # Otherwise QREf's validation will blow up.
+        return RepetitionV1(count=cast(str | int, count), sequence=_sequence_to_qref(repetition.sequence, backend))
     else:
         return None
