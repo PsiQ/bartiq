@@ -17,7 +17,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from typing import Callable, TypeVar
 
-from .._routine import Constraint, ConstraintStatus, Port, Resource
+from .._routine import Constraint, ConstraintStatus, Port, Repetition, Resource
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, TExpr
 
 T = TypeVar("T", covariant=True)
@@ -67,6 +67,18 @@ def evaluate_resources(
         )
         for name, resource in resources.items()
     }
+
+
+def evaluate_repetition(
+    repetition: Repetition[T] | None,
+    inputs: dict[str, TExpr[T]],
+    backend: SymbolicBackend[T],
+    custom_funcs: FunctionsMap[T] | None = None,
+) -> Repetition[T] | None:
+    if repetition is not None:
+        return repetition.substitute_symbols(inputs, backend, functions_map=custom_funcs)
+    else:
+        return None
 
 
 def _evaluate_constraint(

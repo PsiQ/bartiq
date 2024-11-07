@@ -82,12 +82,6 @@ class ArithmeticSequence(Generic[T]):
             / gamma(self.initial_term / self.difference)
             * expr**count
         )
-        # return (
-        #     self.difference**count
-        #     * backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference + count)})")
-        #     / backend.as_expression(f"gamma({backend.serialize(self.initial_term / self.difference)})")
-        #     * expr**count
-        # )
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
@@ -154,7 +148,7 @@ class ClosedFormSequence(Generic[T]):
             self,
             sum=None if self.sum is None else backend.substitute(self.sum, inputs, functions_map),
             prod=None if self.prod is None else backend.substitute(self.prod, inputs, functions_map),
-            num_terms_symbol=backend.substitute(self.num_terms_symbol, inputs, functions_map)
+            num_terms_symbol=backend.substitute(self.num_terms_symbol, inputs, functions_map),
         )
 
 
@@ -182,7 +176,10 @@ class CustomSequence(Generic[T]):
         if functions_map is None:
             functions_map = {}
 
-        if self.iterator_symbol in inputs.values():
+        symbols_to_substitute = [backend.free_symbols_in(expr) for expr in inputs.values()]
+        symbols_to_substitute = [symbol for sublist in symbols_to_substitute for symbol in sublist]
+        symbols_to_be_substituted = inputs.keys()
+        if backend.serialize(self.iterator_symbol) in [*symbols_to_substitute, *symbols_to_be_substituted]:
             raise BartiqCompilationError(
                 f"Tried to replace symbol that's used as iterator symbol in a sequence: {self.iterator_symbol}."
             )

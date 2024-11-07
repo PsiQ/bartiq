@@ -212,6 +212,46 @@ def test_custom_sequence_is_correct(unit_cost, count):
     pytest.approx(numeric_prod, evaluated_routine.resources["success_rate"].value)
 
 
+@pytest.mark.parametrize("sum_none,prod_none", ((True, True), (False, True), (True, False), (False, False)))
+def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod_none):
+    repetition_dict = {
+        "count": 10,
+        "sequence": {
+            "type": "closed_form",
+            "sum": None if sum_none else "ceil(log2(N)) + N**2 - N*(N-1)",
+            "prod": None if prod_none else "ceil(log2(N)) + N**2 - N*(N-1)",
+            "num_terms_symbol": "N",
+        },
+    }
+
+    routine = _routine_with_repetition(repetition_dict)
+
+    valid_resources = []
+    invalid_resources = []
+    if not sum_none:
+        valid_resources.append({"name": "T", "type": "additive", "value": "unit_T"})
+    else:
+        invalid_resources.append({"name": "T", "type": "additive", "value": "unit_T"})
+    if not prod_none:
+        valid_resources.append({"name": "success_rate", "type": "multiplicative", "value": "unit_prob"})
+    else:
+        invalid_resources.append({"name": "success_rate", "type": "multiplicative", "value": "unit_prob"})
+
+    # Valid case (i.e. additive/multiplicative resources undefined when sum/prod undefined):
+    routine.program.children[0].resources = valid_resources
+
+    compiled_routine = compile_routine(routine).routine
+    assignments = {"unit_T": 5, "unit_prob": 0.99}
+    _ = evaluate(compiled_routine, assignments).routine
+
+    # Invalid case (i.e. additive/multiplicative resources defined when sum/prod undefined):
+    routine.program.children[0].resources = invalid_resources
+    # Exception won't trigger if there are no resources.
+    if len(invalid_resources) != 0:
+        with pytest.raises(BartiqCompilationError):
+            compiled_routine = compile_routine(routine).routine
+
+
 def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
     routine = _routine_with_repetition(
@@ -223,7 +263,20 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     routine.program.children[0].resources[0].value = "i"
 
     with pytest.raises(BartiqCompilationError):
-        _ = compile_routine(routine).routine
+        _ = compile_routine(routine)
+
+    term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
+    routine = _routine_with_repetition(
+        {
+            "count": 10,
+            "sequence": {"type": "custom", "term_expression": term_expression, "iterator_symbol": "i"},
+        }
+    )
+
+    assignments = {"i": "j"}
+    compiled_routine = compile_routine(routine).routine
+    with pytest.raises(BartiqCompilationError):
+        _ = evaluate(compiled_routine, assignments).routine
 
 
 @pytest.mark.parametrize(
