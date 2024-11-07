@@ -149,15 +149,13 @@ class ClosedFormSequence(Generic[T]):
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
     ) -> ClosedFormSequence[T]:
-        if functions_map is None:
-            functions_map = {}
-        if self.sum is not None:
-            new_sum = backend.substitute(self.sum, inputs, functions_map)
-        if self.prod is not None:
-            new_prod = backend.substitute(self.prod, inputs, functions_map)
-        new_num_terms = backend.substitute(self.num_terms_symbol, inputs, functions_map)
-
-        return replace(self, sum=new_sum, prod=new_prod, num_terms_symbol=new_num_terms)
+        functions_map = {} if functions_map is None else functions_map
+        return replace(
+            self,
+            sum=None if self.sum is None else backend.substitute(self.sum, inputs, functions_map),
+            prod=None if self.prod is None else backend.substitute(self.prod, inputs, functions_map),
+            num_terms_symbol=backend.substitute(self.num_terms_symbol, inputs, functions_map)
+        )
 
 
 @dataclass(frozen=True)
