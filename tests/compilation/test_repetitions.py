@@ -316,12 +316,8 @@ def set_repetition_env():
     old_env = os.getenv("BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES")
     os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"] = "True"
     yield
-    new_env = os.getenv("BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES")
-    if new_env is not None:
-        if old_env is None:
-            del os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"]
-        else:
-            os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"] = old_env
+    if old_env is not None:
+        os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"] = old_env
 
 
 @pytest.mark.usefixtures("set_repetition_env")
@@ -330,14 +326,17 @@ def test_handles_invalid_resource_types(allow_arbitrary_resources):
     routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
     other_resource = ResourceV1(name="other_resource", type="other", value=5)
     routine.program.children[0].resources.append(other_resource)
-    os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"] = str(allow_arbitrary_resources)
 
-    if allow_arbitrary_resources:
-        with pytest.warns():
-            compiled_routine = compile_routine(routine).routine
-            assert compiled_routine.resources["other_resource"].value == 5
-            assert compiled_routine.resources["other_resource"].type == "other"
-    else:
-        with pytest.raises(BartiqCompilationError):
-            _ = compile_routine(routine)
-    del os.environ["BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"]
+    with pytest.warns():
+        compiled_routine = compile_routine(routine).routine
+        assert compiled_routine.resources["other_resource"].value == 5
+        assert compiled_routine.resources["other_resource"].type == "other"
+
+
+def test_handles_invalid_resource_types():
+    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
+    other_resource = ResourceV1(name="other_resource", type="other", value=5)
+    routine.program.children[0].resources.append(other_resource)
+
+    with pytest.raises(BartiqCompilationError):
+        _ = compile_routine(routine)
