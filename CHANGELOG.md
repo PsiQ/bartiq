@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/PsiQ/bartiq/compare/v0.8.0...v0.8.1) (2024-11-21)
+
+
+### Bug Fixes
+
+* add option to allow arbitrary resources for repetitions. ([#140](https://github.com/PsiQ/bartiq/issues/140)) ([3237db1](https://github.com/PsiQ/bartiq/commit/3237db1266a75efd2faac360aae9e623b63f6f72))
+
 ## [0.8.0](https://github.com/PsiQ/bartiq/compare/v0.7.0...v0.8.0) (2024-11-07)
 
 
