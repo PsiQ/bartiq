@@ -195,7 +195,7 @@ def _process_repeated_resources(
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
         else:
-            if ast.literal_eval(os.environ.get("BARTIQ_IGNORE_REPETITION_ERROR")):
+            if ast.literal_eval(os.environ.get("BARTIQ_IGNORE_REPETITION_ERROR", "False")):
                 new_value = resource.value
                 warnings.warn(
                     f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'

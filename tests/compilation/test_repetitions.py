@@ -17,7 +17,7 @@ import os
 
 import pytest
 from qref import SchemaV1
-from qref.schema_v1 import RoutineV1, ResourceV1
+from qref.schema_v1 import ResourceV1, RoutineV1
 
 from bartiq import compile_routine, evaluate
 from bartiq.errors import BartiqCompilationError
