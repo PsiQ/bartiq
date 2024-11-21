@@ -13,6 +13,9 @@
 # limitations under the License.
 from __future__ import annotations
 
+import ast
+import os
+import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
@@ -45,6 +48,8 @@ from ._common import (
     evaluate_resources,
 )
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
+
+REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
 
 T = TypeVar("T")
 
@@ -191,6 +196,13 @@ def _process_repeated_resources(
             new_value = repetition.sequence_sum(resource.value, backend)
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
+        elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
+            new_value = resource.value
+            warnings.warn(
+                f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
+                "Passing its value as is without modifications. "
+                f"To change the behaviour, set {REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV} env to False."
+            )
         else:
             raise BartiqCompilationError(
                 f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
