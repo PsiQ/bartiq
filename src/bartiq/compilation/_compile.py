@@ -49,6 +49,8 @@ from ._common import (
 )
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
+REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
+
 T = TypeVar("T")
 
 # ParameterTree is a structure we use to build up our knowledge about
@@ -194,18 +196,17 @@ def _process_repeated_resources(
             new_value = repetition.sequence_sum(resource.value, backend)
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
+        elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
+            new_value = resource.value
+            warnings.warn(
+                f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
+                "Passing its value as is without modifications. "
+                f"To change the behaviour, set {REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV} env to False."
+            )
         else:
-            if ast.literal_eval(os.environ.get("BARTIQ_IGNORE_REPETITION_ERROR", "False")):
-                new_value = resource.value
-                warnings.warn(
-                    f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
-                    "Passing its value as is without modifications. "
-                    "To change the behaviour, set BARTIQ_IGNORE_REPETITION_ERROR env to False."
-                )
-            else:
-                raise BartiqCompilationError(
-                    f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
-                )
+            raise BartiqCompilationError(
+                f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
+            )
 
         new_resource = replace(resource, value=new_value)
         new_resources[resource.name] = new_resource
