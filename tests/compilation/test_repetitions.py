@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import math
+import os
 
 import pytest
 from qref import SchemaV1
-from qref.schema_v1 import RoutineV1
+from qref.schema_v1 import RoutineV1, ResourceV1
 
 from bartiq import compile_routine, evaluate
 from bartiq.errors import BartiqCompilationError
@@ -308,3 +309,22 @@ def test_repetition_serializes_to_qref(repetition_dict):
     routine = _routine_with_repetition(repetition_dict)
     compilation_result = compile_routine(routine)
     compilation_result.to_qref()
+
+
+@pytest.mark.parametrize("ignore_repetition_error", (False, True))
+def test_handles_invalid_resource_types(ignore_repetition_error):
+    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
+    other_resource = ResourceV1(name="other_resource", type="other", value=5)
+    routine.program.children[0].resources.append(other_resource)
+    os.environ["BARTIQ_IGNORE_REPETITION_ERROR"] = str(ignore_repetition_error)
+
+    if ignore_repetition_error:
+        with pytest.warns():
+            compiled_routine = compile_routine(routine).routine
+            assert compiled_routine.resources["other_resource"].value == 5
+            assert compiled_routine.resources["other_resource"].type == "other"
+    else:
+        with pytest.raises(BartiqCompilationError):
+            _ = compile_routine(routine)
+
+    del os.environ["BARTIQ_IGNORE_REPETITION_ERROR"]
