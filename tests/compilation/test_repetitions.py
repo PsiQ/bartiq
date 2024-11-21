@@ -311,6 +311,15 @@ def test_repetition_serializes_to_qref(repetition_dict):
     compilation_result.to_qref()
 
 
+def test_raises_exception_when_invalid_resource_types():
+    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
+    other_resource = ResourceV1(name="other_resource", type="other", value=5)
+    routine.program.children[0].resources.append(other_resource)
+
+    with pytest.raises(BartiqCompilationError):
+        _ = compile_routine(routine)
+
+
 @pytest.fixture
 def set_repetition_env():
     old_env = os.getenv("BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES")
@@ -321,8 +330,7 @@ def set_repetition_env():
 
 
 @pytest.mark.usefixtures("set_repetition_env")
-@pytest.mark.parametrize("allow_arbitrary_resources", (False, True))
-def test_handles_invalid_resource_types(allow_arbitrary_resources):
+def test_raises_warning_when_invalid_resource_types_and_env_set():
     routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
     other_resource = ResourceV1(name="other_resource", type="other", value=5)
     routine.program.children[0].resources.append(other_resource)
@@ -331,12 +339,3 @@ def test_handles_invalid_resource_types(allow_arbitrary_resources):
         compiled_routine = compile_routine(routine).routine
         assert compiled_routine.resources["other_resource"].value == 5
         assert compiled_routine.resources["other_resource"].type == "other"
-
-
-def test_handles_invalid_resource_types():
-    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
-    other_resource = ResourceV1(name="other_resource", type="other", value=5)
-    routine.program.children[0].resources.append(other_resource)
-
-    with pytest.raises(BartiqCompilationError):
-        _ = compile_routine(routine)
