@@ -127,3 +127,21 @@ def test_functions_obtained_from_backend_can_be_called_to_obtain_new_expressions
     result = func(arg)
 
     assert backend.as_native(result) == expected_native_result
+
+
+@pytest.mark.parametrize(
+    "expression_str, variables, functions, expected_native_result",
+    [
+        ("8", {}, {"f": lambda x: x + 10}, 8),
+        ("f(x)", {"x": 5}, {"f": lambda x: 10, "g": lambda x: x}, 5),
+        ("f(x)+10", {}, {"f": lambda x: 2, "g": lambda x: int(x) ** 2}, 12),
+    ],
+)
+def test_function_definition_succeeds_even_if_expression_becomes_constant(
+    expression_str, variables, functions, expected_native_result, backend
+):
+    expr = backend.as_expression(expression_str)
+
+    new_expr = backend.substitute(expr, variables, functions)
+
+    assert backend.as_native(new_expr) == expected_native_result
