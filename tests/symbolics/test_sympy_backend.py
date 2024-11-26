@@ -133,7 +133,7 @@ def test_functions_obtained_from_backend_can_be_called_to_obtain_new_expressions
     "expression_str, variables, functions, expected_native_result",
     [
         ("8", {}, {"f": lambda x: x + 10}, 8),
-        ("f(x)", {"x": 5}, {"f": lambda x: 10, "g": lambda x: x}, 5),
+        ("f(x)", {"x": 5}, {"f": lambda x: int(x) + 5, "g": lambda x: x}, 10),
         ("f(x)+10", {}, {"f": lambda x: 2, "g": lambda x: int(x) ** 2}, 12),
     ],
 )
