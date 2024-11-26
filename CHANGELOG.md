@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/PsiQ/bartiq/compare/v0.8.1...v0.8.2) (2024-11-26)
+
+
+### Bug Fixes
+
+* Fix defining function in case some of them evaluate to constant ([#144](https://github.com/PsiQ/bartiq/issues/144)) ([dcc5e05](https://github.com/PsiQ/bartiq/commit/dcc5e0523fdbb7d837c23459f0b550313d3ea321))
+
 ## [0.8.1](https://github.com/PsiQ/bartiq/compare/v0.8.0...v0.8.1) (2024-11-21)
 
 
