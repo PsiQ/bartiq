@@ -67,6 +67,15 @@ def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer
 
 
 def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransformer[P, T | Number]:
+    """Return a new method that preserves originally passed one on expressions and acts as identity on numbers.
+
+    Note:
+        This function can ONLY be used on methods of SympyBackend class.
+        If you want to use it on a function, add dummy `_backend` parameter as a first arg - but do know
+        that this is discouraged. Incorrect usage of this decorator on an ordinary function resulted
+        in an obscure bug: https://github.com/PsiQ/bartiq/issues/143
+    """
+
     def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> T | Number:
         return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
