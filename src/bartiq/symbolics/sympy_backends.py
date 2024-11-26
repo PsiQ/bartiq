@@ -86,26 +86,6 @@ def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
     return parse(expression, interpreter=SympyInterpreter(debug=debug))
 
 
-@identity_for_numbers
-def _define_function(expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
-    """Define an undefined function."""
-    # Catch attempt to define special function names
-    if func_name in BUILT_IN_FUNCTIONS:
-        raise BartiqCompilationError(
-            f"Attempted to redefine the special function {func_name}; cannot define special functions."
-        )
-
-    # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
-    # This, however, is expected for certain functions (e.g. with conditions)
-    try:
-        return expr.replace(
-            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
-            lambda match: function(*match.args),
-        )
-    except TypeError:
-        return expr
-
-
 class SympyBackend:
 
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
@@ -179,8 +159,27 @@ class SympyBackend:
         if functions_map is None:
             functions_map = {}
         for func_name, func in functions_map.items():
-            expr = _define_function(expr, func_name, func)
+            expr = self._define_function(expr, func_name, func)
         return value if (value := self.value_of(expr)) is not None else expr
+
+    @identity_for_numbers
+    def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
+        """Define an undefined function."""
+        # Catch attempt to define special function names
+        if func_name in BUILT_IN_FUNCTIONS:
+            raise BartiqCompilationError(
+                f"Attempted to redefine the special function {func_name}; cannot define special functions."
+            )
+
+        # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
+        # This, however, is expected for certain functions (e.g. with conditions)
+        try:
+            return expr.replace(
+                lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
+                lambda match: function(*match.args),
+            )
+        except TypeError:
+            return expr
 
     def is_constant_int(self, expr: TExpr[Expr]):
         """Return True if a given expression represents a constant int and False otherwise."""
