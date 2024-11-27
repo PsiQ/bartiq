@@ -14,6 +14,7 @@
 
 
 import math
+import warnings
 
 import pytest
 import sympy
@@ -25,11 +26,6 @@ from bartiq.analysis import BigO, minimize
 @pytest.mark.parametrize(
     "expr,variable,expected",
     [
-        (
-            x**y + y**x + x * y + x**2 * y + 3 + x * y**2 + x + y + 1,
-            None,
-            BigO(x**y) + BigO(y**x) + BigO(x * y**2) + BigO(x**2 * y),
-        ),
         (
             x * y + x**2 * y + 3 + x * y**3 + x + y + 1,
             x,
@@ -45,14 +41,31 @@ from bartiq.analysis import BigO, minimize
             y,
             BigO(y),
         ),
+    ],
+)
+def test_BigO(expr, variable, expected):
+    assert BigO(expr, variable) == expected
+
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", "Results for using BigO")
+    MULTIVARIATE_TEST_CASES = [
         (
             sympy.sympify("log(x) + y**2 + y"),
             None,
             BigO(sympy.sympify("log(x)")) + BigO(y**2),
         ),
-    ],
-)
-def test_BigO(expr, variable, expected):
+        (
+            x**y + y**x + x * y + x**2 * y + 3 + x * y**2 + x + y + 1,
+            None,
+            BigO(x**y) + BigO(y**x) + BigO(x * y**2) + BigO(x**2 * y),
+        ),
+    ]
+
+
+@pytest.mark.filterwarnings(r"ignore:Results for using BigO")
+@pytest.mark.parametrize("expr,variable,expected", MULTIVARIATE_TEST_CASES)
+def test_multivariate_BigO(expr, variable, expected):
     assert BigO(expr, variable) == expected
 
 
@@ -64,6 +77,7 @@ def test_BigO_throws_warning_for_multiple_variables():
         BigO(x**y + y**x + x * y + x**2 * y + 3 + x * y**2 + x + y + 1)
 
 
+@pytest.mark.filterwarnings(r"ignore:Results for using BigO")
 def test_adding_BigO_expressions():
     assert BigO(x) + BigO(x) == BigO(x)
     assert BigO(x) * BigO(x) == BigO(x**2)
@@ -158,7 +172,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "L-BFGS-B",
                 "tol": 1e-6,
-                "options": {"disympy": False},
+                "options": {"disp": False},
             },
             math.pi,
             -1.0,
@@ -175,7 +189,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "Nelder-Mead",
                 "tol": 1e-6,
-                "options": {"disympy": False},
+                "options": {"disp": False},
             },
             0.0,
             0.0,
