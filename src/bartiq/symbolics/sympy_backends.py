@@ -95,6 +95,24 @@ def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
     return parse(expression, interpreter=SympyInterpreter(debug=debug))
 
 
+def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
+    if not issubclass(type(func), sympy.Function):
+
+        def _eval_wrapper(cls, *args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            # The except claus here is intentionally broad, you never know what
+            # func can raise.
+            except Exception:
+                return None
+
+        sympy_func = type(func_name, (sympy.Function,), {"eval": classmethod(_eval_wrapper)})
+    else:
+        sympy_func = func
+
+    return sympy_func
+
+
 class SympyBackend:
 
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
@@ -180,15 +198,11 @@ class SympyBackend:
                 f"Attempted to redefine the special function {func_name}; cannot define special functions."
             )
 
-        # Trying to evaluate a function which cannot be evaluated symbolically raises TypeError.
-        # This, however, is expected for certain functions (e.g. with conditions)
-        try:
-            return expr.replace(
-                lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
-                lambda match: function(*match.args),
-            )
-        except TypeError:
-            return expr
+        sympy_func = _sympify_function(func_name, function)
+        return expr.replace(
+            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
+            lambda match: sympy_func(*match.args),
+        )
 
     def is_constant_int(self, expr: TExpr[Expr]):
         """Return True if a given expression represents a constant int and False otherwise."""
