@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.3](https://github.com/PsiQ/bartiq/compare/v0.8.2...v0.8.3) (2024-11-28)
+
+
+### Bug Fixes
+
+* Substitution of functions is no longer sensitive to order of functions dictionary ([#147](https://github.com/PsiQ/bartiq/issues/147)) ([f5c27e8](https://github.com/PsiQ/bartiq/commit/f5c27e81502ecfd59bf722ff0cfe85949fd45b3b))
+
 ## [0.8.2](https://github.com/PsiQ/bartiq/compare/v0.8.1...v0.8.2) (2024-11-26)
 
 
