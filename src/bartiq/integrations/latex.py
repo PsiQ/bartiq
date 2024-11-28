@@ -18,7 +18,7 @@ from operator import attrgetter
 from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1, SchemaV1
 from sympy import latex, symbols
 
-from ..symbolics.sympy_interpreter import parse_to_sympy
+from ..symbolics.sympy_backends import parse_to_sympy
 
 
 def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True) -> str:

@@ -147,3 +147,19 @@ def test_function_definition_succeeds_even_if_expression_becomes_constant(
     new_expr = backend.substitute(expr, variables, functions)
 
     assert backend.as_native(new_expr) == expected_native_result
+
+
+def test_defining_functions_is_invariant_under_input_order(backend):
+    def f(x):
+        return int(x) + 1
+
+    def g(x):
+        return x**2
+
+    expr = backend.as_expression("f(g(x))")
+
+    result_1 = backend.substitute(expr, {"x": 3}, {"f": f, "g": g})
+    result_2 = backend.substitute(expr, {"x": 3}, {"g": g, "f": f})
+
+    assert result_1 == 10
+    assert result_2 == 10
