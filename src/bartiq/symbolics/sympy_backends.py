@@ -101,7 +101,7 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
         def _eval_wrapper(cls, *args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            # The except claus here is intentionally broad, you never know what
+            # The except clause here is intentionally broad, you never know what
             # func can raise.
             except Exception:
                 return None
