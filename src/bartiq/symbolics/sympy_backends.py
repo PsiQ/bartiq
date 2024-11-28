@@ -96,7 +96,7 @@ def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
 
 
 def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
-    if not issubclass(type(func), sympy.Function):
+    if not isinstance(func, sympy.Function):
 
         def _eval_wrapper(cls, *args, **kwargs):
             try:
