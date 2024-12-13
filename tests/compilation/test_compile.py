@@ -22,7 +22,7 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
-from bartiq.errors import BartiqCompilationError, BartiqPrecompilationError
+from bartiq.errors import BartiqCompilationError, BartiqPreprocessingError
 
 
 def load_compile_test_data():
@@ -217,6 +217,6 @@ def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variab
     }
 
     with pytest.raises(
-        BartiqPrecompilationError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
+        BartiqPreprocessingError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
     ):
         compile_routine(routine, backend=backend)

@@ -1,11 +1,24 @@
+# Copyright 2024 PsiQuantum, Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import math
 from collections import defaultdict
 from dataclasses import replace
 from typing import Callable, TypeVar
 
-from bartiq.errors import BartiqPrecompilationError
-
 from .._routine import Constraint, Port, PortDirection, Resource, ResourceType, Routine
+from ..errors import BartiqPreprocessingError
 from ..symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
@@ -154,7 +167,7 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
                 )
             ]
             if missing_symbols:
-                raise BartiqPrecompilationError(
+                raise BartiqPreprocessingError(
                     f"Size of the port {port.name} depends on symbols {sorted(missing_symbols)} which are undefined."
                 )
             new_size = backend.substitute(port.size, additional_local_variables)
