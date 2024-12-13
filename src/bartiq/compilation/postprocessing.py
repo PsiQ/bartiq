@@ -22,7 +22,7 @@ T = TypeVar("T")
 
 PostprocessingStage = Callable[[CompiledRoutine[T], SymbolicBackend[T]], CompiledRoutine[T]]
 
-DEFAULT_POSTPROCESSING_STAGES = []
+DEFAULT_POSTPROCESSING_STAGES: list[PostprocessingStage] = []
 
 
 def aggregate_resources(

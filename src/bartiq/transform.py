@@ -26,14 +26,15 @@ BACKEND = sympy_backend
 
 
 T = TypeVar("T")
+AnyRoutine = TypeVar("AnyRoutine", Routine, CompiledRoutine)
 
 
 def add_aggregated_resources(
-    routine: Routine[T] | CompiledRoutine[T],
+    routine: AnyRoutine,
     aggregation_dict: dict[str, dict[str, Any]],
     remove_decomposed: bool = True,
     backend: SymbolicBackend[T] = sympy_backend,
-) -> Routine[T] | CompiledRoutine[T]:
+) -> AnyRoutine:
     """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
@@ -60,11 +61,11 @@ def add_aggregated_resources(
 
 
 def _add_aggregated_resources_to_subroutine(
-    subroutine: Routine[T] | CompiledRoutine[T],
+    subroutine: AnyRoutine,
     expanded_aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
     remove_decomposed: bool,
     backend: SymbolicBackend[T] = BACKEND,
-) -> Routine[T] | CompiledRoutine[T]:
+) -> AnyRoutine:
     new_children = {
         name: _add_aggregated_resources_to_subroutine(child, expanded_aggregation_dict, remove_decomposed, backend)
         for name, child in subroutine.children.items()

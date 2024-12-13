@@ -109,7 +109,6 @@ def compile_routine(
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
         postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
-
         skip_verification: a flag indicating whether verification of the routine should be skipped.
 
 
@@ -126,11 +125,11 @@ def compile_routine(
             )
     root = routine if isinstance(routine, Routine) else Routine[T].from_qref(ensure_routine(routine), backend)
 
-    for stage in preprocessing_stages:
-        root = stage(root, backend)
+    for pre_stage in preprocessing_stages:
+        root = pre_stage(root, backend)
     compiled_routine = _compile(root, backend, {}, Context(root.name))
-    for stage in postprocessing_stages:
-        compiled_routine = stage(compiled_routine, backend)
+    for post_stage in postprocessing_stages:
+        compiled_routine = post_stage(compiled_routine, backend)
 
     return CompilationResult(routine=compiled_routine, _backend=backend)
 
