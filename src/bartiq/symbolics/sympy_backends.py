@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from functools import singledispatchmethod
+from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
@@ -113,6 +113,25 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
     return sympy_func
 
 
+@lru_cache
+def _value_of(expr: Expr) -> Number | None:
+    """Compute a numerical value of an expression, return None if it's not possible."""
+    try:
+        value = N(expr).round(n=NUM_DIGITS_PRECISION)
+    except TypeError as e:
+        if str(e) == "Cannot round symbolic expression":
+            return None
+        else:
+            raise e
+
+    # Map to integer if possible
+    if int(value) == value or value.is_Float and value % 1 == 0:
+        value = int(value)
+    else:
+        value = float(value)
+    return value
+
+
 class SympyBackend:
 
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
@@ -156,20 +175,7 @@ class SympyBackend:
     @identity_for_numbers
     def value_of(self, expr: Expr) -> Number | None:
         """Compute a numerical value of an expression, return None if it's not possible."""
-        try:
-            value = N(expr).round(n=NUM_DIGITS_PRECISION)
-        except TypeError as e:
-            if str(e) == "Cannot round symbolic expression":
-                return None
-            else:
-                raise e
-
-        # Map to integer if possible
-        if int(value) == value or value.is_Float and value % 1 == 0:
-            value = int(value)
-        else:
-            value = float(value)
-        return value
+        return _value_of(expr)
 
     @identity_for_numbers
     def substitute(
