@@ -47,6 +47,7 @@ from ._common import (
     evaluate_ports,
     evaluate_resources,
 )
+from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
@@ -94,6 +95,7 @@ def compile_routine(
     *,
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
+    postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -106,6 +108,8 @@ def compile_routine(
         backend: a backend used for manipulating symbolic expressions.
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
+        postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
+
         skip_verification: a flag indicating whether verification of the routine should be skipped.
 
 
@@ -124,7 +128,11 @@ def compile_routine(
 
     for stage in preprocessing_stages:
         root = stage(root, backend)
-    return CompilationResult(routine=_compile(root, backend, {}, Context(root.name)), _backend=backend)
+    compiled_routine = _compile(root, backend, {}, Context(root.name))
+    for stage in postprocessing_stages:
+        compiled_routine = stage(compiled_routine, backend)
+
+    return CompilationResult(routine=compiled_routine, _backend=backend)
 
 
 def _compile_local_variables(

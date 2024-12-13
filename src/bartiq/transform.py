@@ -18,7 +18,7 @@ from dataclasses import replace
 from graphlib import TopologicalSorter
 from typing import Any, TypeVar
 
-from bartiq import Resource, ResourceType, Routine
+from bartiq import CompiledRoutine, Resource, ResourceType, Routine
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, TExpr
 
@@ -29,11 +29,11 @@ T = TypeVar("T")
 
 
 def add_aggregated_resources(
-    routine: Routine[T],
+    routine: Routine[T] | CompiledRoutine[T],
     aggregation_dict: dict[str, dict[str, Any]],
     remove_decomposed: bool = True,
     backend: SymbolicBackend[T] = sympy_backend,
-) -> Routine[T]:
+) -> Routine[T] | CompiledRoutine[T]:
     """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
@@ -60,11 +60,11 @@ def add_aggregated_resources(
 
 
 def _add_aggregated_resources_to_subroutine(
-    subroutine: Routine[T],
+    subroutine: Routine[T] | CompiledRoutine[T],
     expanded_aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
     remove_decomposed: bool,
     backend: SymbolicBackend[T] = BACKEND,
-) -> Routine[T]:
+) -> Routine[T] | CompiledRoutine[T]:
     new_children = {
         name: _add_aggregated_resources_to_subroutine(child, expanded_aggregation_dict, remove_decomposed, backend)
         for name, child in subroutine.children.items()

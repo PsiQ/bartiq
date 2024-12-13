@@ -13,8 +13,8 @@
 # limitations under the License.
 
 
-class BartiqPrecompilationError(Exception):
-    """Raised for errors during Bartiq function pre-compilation."""
+class BartiqPreprocessingError(Exception):
+    """Raised for errors during Bartiq function pre-processing."""
 
 
 class BartiqCompilationError(Exception):
