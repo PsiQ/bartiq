@@ -25,7 +25,22 @@ PostprocessingStage = Callable[[CompiledRoutine[T], SymbolicBackend[T]], Compile
 DEFAULT_POSTPROCESSING_STAGES = []
 
 
-def aggregate_resources(aggregation_dict: dict[str, dict[str, Any]], remove_decomposed: bool) -> PostprocessingStage[T]:
+def aggregate_resources(
+    aggregation_dict: dict[str, dict[str, Any]], remove_decomposed: bool = True
+) -> PostprocessingStage[T]:
+    """Returns a postprocessing stage which aggregates resources using `add_aggregated_resources` method.
+
+    This function is just a wrapper around `add_aggregated_resources` method from `bartiq.transform.
+    For more details how it works, please see its documentation.
+
+    Args
+        aggregation_dict: A dictionary that decomposes resources into more fundamental components along with their
+        respective multipliers.
+        remove_decomposed : Whether to remove the decomposed resources from the routine.
+            Defaults to True.
+
+    """
+
     def _inner(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
         return add_aggregated_resources(routine, aggregation_dict, remove_decomposed, backend)  # TODO: Konrad mypy
 

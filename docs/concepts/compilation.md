@@ -41,7 +41,7 @@ of the global input symbols of top-level routine.
 Compilation can be viewed as recursive process. At every recursive call, several things need to happen in correct order.
 Below we outline how the compilation proceeds.
 
-### Step 1: preprocessing
+### Step 1: Preprocessing
 
 The Bartiq's compilation engine makes several assumptions about the routine being compiled, which simplify its code
 at the expense of flexibility. For instance, Bartiq assumes all port sizes are single parameters of size `#port_name`.
@@ -124,3 +124,8 @@ of resources of its children.
 #### Step 2.6: Output port compilation
 
 Finally, the output ports are compiled, and the new object representing compiled routine is created.
+
+### Step 3: Postprocessing
+
+After compilation is done, there might be certain operations that the user might want to perform on a compiled routine, e.g.: calculating some derived resources.
+Currently, there are no postprocessing steps present by default.
