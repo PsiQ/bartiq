@@ -82,8 +82,14 @@ class SymbolicBackend(Protocol[T]):
     def func(self, func_name: str) -> Callable[..., TExpr[T]]:
         """Obtain an implementation of a function with given name."""
 
-    def sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def min(self, *args):
+        """Returns a smallest value from given args."""
+
+    def max(self, *args):
+        """Returns a biggest value from given args."""
+
+    def sequence_sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a sum of terms expressed using `iterator_symbol`."""
 
-    def prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def sequence_prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""

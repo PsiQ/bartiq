@@ -17,5 +17,9 @@ class BartiqPreprocessingError(Exception):
     """Raised for errors during Bartiq function pre-processing."""
 
 
+class BartiqPostprocessingError(Exception):
+    """Raised for errors during Bartiq function post-processing."""
+
+
 class BartiqCompilationError(Exception):
     """Raised for errors during Bartiq function compilation."""

@@ -248,11 +248,19 @@ class SympyBackend:
         except KeyError:
             return sympy.Function(func_name)
 
-    def sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def min(self, *args):
+        """Returns a smallest value from given args."""
+        return sympy.Min(*args)
+
+    def max(self, *args):
+        """Returns a biggest value from given args."""
+        return sympy.Max(*args)
+
+    def sequence_sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
-    def prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def sequence_prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 
