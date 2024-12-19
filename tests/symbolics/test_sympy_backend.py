@@ -11,7 +11,10 @@ Tests for the SympyExpression implementation.
 """
 
 import pytest
-from sympy import E, cos, exp, pi, sin, sqrt, sympify
+from sympy import E
+from sympy import Max as sympy_max
+from sympy import Min as sympy_min
+from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
@@ -163,3 +166,15 @@ def test_defining_functions_is_invariant_under_input_order(backend):
 
     assert result_1 == 10
     assert result_2 == 10
+
+
+def test_min_max_works_for_numerical_values(backend):
+    values = [-5, 0, 1, 23.4]
+    assert backend.min(*values) == min(*values)
+    assert backend.max(*values) == max(*values)
+
+
+def test_min_max_works_for_symbols(backend):
+    values = symbols("a, b, c")
+    assert backend.min(*values) == sympy_min(*values)
+    assert backend.max(*values) == sympy_max(*values)

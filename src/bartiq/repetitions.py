@@ -166,10 +166,10 @@ class CustomSequence(Generic[T]):
     iterator_symbol: T
 
     def get_sum(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
-        return backend.sum(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
+        return backend.sequence_sum(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
 
     def get_prod(self, expr: TExpr[T], count: TExpr[T], backend: SymbolicBackend[T]) -> TExpr[T]:
-        return backend.prod(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
+        return backend.sequence_prod(self.term_expression * expr, self.iterator_symbol, 0, count - 1)
 
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None

@@ -26,6 +26,7 @@ BACKEND = sympy_backend
 
 
 T = TypeVar("T")
+# NOTE: Actually, it should be `Routine[T]` and `CompiledRoutine[T]`, but such syntax is not currently supported.
 AnyRoutine = TypeVar("AnyRoutine", Routine, CompiledRoutine)
 
 
