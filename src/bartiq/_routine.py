@@ -28,6 +28,7 @@ from .repetitions import Repetition, repetition_from_qref, repetition_to_qref
 from .symbolics.backend import SymbolicBackend, TExpr
 
 T = TypeVar("T")
+AnyRoutine = TypeVar("AnyRoutine", "Routine", "CompiledRoutine")
 
 
 class ResourceType(str, Enum):
@@ -90,6 +91,22 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     connections: dict[Endpoint, Endpoint]
 
 
+def _sorted_children(routine: AnyRoutine) -> Iterable[AnyRoutine]:
+    predecessor_map: dict[str, set[str]] = {name: set() for name in routine.children}
+    for source, target in routine._inner_connections.items():
+        assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
+        predecessor_map[target.routine_name].add(source.routine_name)
+
+    return [routine.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
+
+def _inner_connections(routine: AnyRoutine) -> dict[Endpoint, Endpoint]:
+    return {
+        source: target
+        for source, target in routine.connections.items()
+        if source.routine_name is not None and target.routine_name is not None
+    }
+
+
 @dataclass(frozen=True)
 class Routine(Generic[T]):
     name: str
@@ -106,21 +123,14 @@ class Routine(Generic[T]):
 
     @property
     def _inner_connections(self) -> dict[Endpoint, Endpoint]:
-        return {
-            source: target
-            for source, target in self.connections.items()
-            if source.routine_name is not None and target.routine_name is not None
-        }
+        return _inner_connections(self)
 
     def sorted_children(self) -> Iterable[Self]:
-        predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
-        for source, target in self._inner_connections.items():
-            assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
-            predecessor_map[target.routine_name].add(source.routine_name)
-
-        return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
+        """TODO"""
+        return _sorted_children(self)
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
+        """TODO"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
@@ -149,6 +159,18 @@ class CompiledRoutine(Generic[T]):
     connections: dict[Endpoint, Endpoint]
     repetition: Repetition | None = None
     constraints: Iterable[Constraint[T]] = ()
+    
+    @property
+    def _inner_connections(self) -> dict[Endpoint, Endpoint]:
+        return _inner_connections(self)
+
+    def sorted_children(self) -> Iterable[Self]:
+        """TODO"""
+        return _sorted_children(self)
+
+    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
+        """TODO"""
+        return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:

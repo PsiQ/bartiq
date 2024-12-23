@@ -130,7 +130,6 @@ def compile_routine(
     compiled_routine = _compile(root, backend, {}, Context(root.name))
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
-
     return CompilationResult(routine=compiled_routine, _backend=backend)
 
 
@@ -192,7 +191,11 @@ def _process_repeated_resources(
 ) -> dict[str, Resource]:
     assert len(children) == 1, "Routine with repetition can only have one child."
     new_resources = {}
-    child_resources = children[0].resources
+    import copy
+    child_resources = copy.copy(children[0].resources)
+    # TODO: local anciallae should not be propagated
+    if "local_ancillae" in child_resources:
+        del child_resources["local_ancillae"]
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     for resource_name, resource in resources.items():
@@ -203,6 +206,9 @@ def _process_repeated_resources(
             new_value = repetition.sequence_sum(resource.value, backend)
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
+        elif resource.type == "qubits" and repetition.sequence.type == "constant":
+            # TODO: is this really reasonable choice?
+            new_value = resource.value
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
             warnings.warn(
