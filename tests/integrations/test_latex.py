@@ -93,10 +93,7 @@ LATEX_TEST_CASES = [
         RoutineV1(
             name="root",
             input_params=["a", "b"],
-            local_variables={
-                "x_foo": "y + a",
-                "y_bar": "b * c",
-            },
+            local_variables={"x_foo": "y + a", "y_bar": "b * c", "z_foo_bar": "a + b"},
         ),
         {},
         r"""
@@ -105,7 +102,8 @@ LATEX_TEST_CASES = [
 &a, b\newline
 &\underline{\text{Local variables:}}\\
 &x_{\text{foo}} = a + y\\
-&y_{\text{bar}} = b \cdot c
+&y_{\text{bar}} = b \cdot c\\
+&z_{\text{foo\_bar}} = a + b
 """,
     ),
     # Only output ports

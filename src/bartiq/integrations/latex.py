@@ -166,6 +166,7 @@ def _format_param_math(param: str) -> str:
 def _format_param_math_with_subscript(param: str) -> str:
     """Formats a subscripted param as math."""
     symbol, subscript = param.split("_", 1)
+    subscript = subscript.replace("_", r"\_")
     subscript_latex = latex(symbols(subscript))
     symbol_latex = latex(symbols(symbol))
 
