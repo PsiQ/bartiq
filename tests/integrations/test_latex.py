@@ -93,7 +93,11 @@ LATEX_TEST_CASES = [
         RoutineV1(
             name="root",
             input_params=["a", "b"],
-            local_variables={"x_foo": "y + a", "y_bar": "b * c", "z_foo_bar": "a + b"},
+            local_variables={
+                "x_foo": "y + a",
+                "y_bar": "b * c",
+                "z_foo_bar": "a + b",
+            },
         ),
         {},
         r"""
