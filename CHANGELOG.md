@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.9.0](https://github.com/PsiQ/bartiq/compare/v0.8.2...v0.9.0) (2025-01-07)
+
+
+### Features
+
+* add min and max to backend ([2b2b724](https://github.com/PsiQ/bartiq/commit/2b2b7247aadf0ed25444702aceadc974a854f673))
+* add postprocessing stages ([#153](https://github.com/PsiQ/bartiq/issues/153)) ([0228662](https://github.com/PsiQ/bartiq/commit/02286629f6ce7385e8218485bd7bc5cff76e2df9))
+
+
+### Bug Fixes
+
+* add escape for _ in local_variables in latex ([b8af791](https://github.com/PsiQ/bartiq/commit/b8af7919e51aecd0d26d39492285e1b16b5f0997))
+* Substitution of functions is no longer sensitive to order of functions dictionary ([#147](https://github.com/PsiQ/bartiq/issues/147)) ([f5c27e8](https://github.com/PsiQ/bartiq/commit/f5c27e81502ecfd59bf722ff0cfe85949fd45b3b))
+
+
+### Performance Improvements
+
+* add caching for value_of ([#151](https://github.com/PsiQ/bartiq/issues/151)) ([cf5ce14](https://github.com/PsiQ/bartiq/commit/cf5ce14cd146d46a3596696d071365e87841ce3e))
+
 ## [0.8.2](https://github.com/PsiQ/bartiq/compare/v0.8.1...v0.8.2) (2024-11-26)
 
 
