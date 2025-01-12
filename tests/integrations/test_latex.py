@@ -281,6 +281,30 @@ LATEX_TEST_CASES = [
 &N_{\text{x}} = \operatorname{sum}{\left(\text{~}.\!N_{\text{x}} \right)}
 """,
     ),
+    # Handle repetition
+    (
+        RoutineV1(
+            name="root",
+            children=[
+                {
+                    "name": "a",
+                    "resources": [
+                        {"name": "y", "value": "2", "type": "additive"},
+                    ],
+                },
+            ],
+            repetition={"count": "log(y+2)", "sequence": {"type": "constant"}},
+        ),
+        {},
+        r"""
+&\text{RoutineV1 \textrm{(root)}}\newline
+&\underline{\text{Repetition:}}\\
+&\text{Count} = \log{\left(y + 2 \right)}\\
+&\text{Sequence type}:  constant\newline
+&\underline{\text{Resources:}}\\
+&\text{a}.\!y = 2
+""",
+    ),
 ]
 
 

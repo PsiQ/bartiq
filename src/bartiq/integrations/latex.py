@@ -15,7 +15,14 @@
 from collections.abc import Iterable
 from operator import attrgetter
 
-from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1, SchemaV1
+from qref.schema_v1 import (
+    ParamLinkV1,
+    PortV1,
+    RepetitionV1,
+    ResourceV1,
+    RoutineV1,
+    SchemaV1,
+)
 from sympy import latex, symbols
 
 from ..symbolics.sympy_backends import parse_to_sympy
@@ -107,12 +114,26 @@ def _format_local_variables(local_variables: dict[str, str]):
     return _format_section_multi_line("Local variables", lines)
 
 
+def _format_repetition(repetition: RepetitionV1):
+    """Formats routine's repetition to LaTeX."""
+    if repetition is None:
+        return ""
+    count = str(repetition.count)
+    sequence_type = repetition.sequence.type
+    lines = [
+        f"&{_format_name_text('Count')} = {_latex_expression(count)}",
+        f"&{_format_name_text('Sequence type')}:  {sequence_type}",
+    ]
+    return _format_section_multi_line("Repetition", lines)
+
+
 SECTIONS = [
     (attrgetter("input_params"), _format_input_params),
     (attrgetter("linked_params"), _format_linked_params),
     (_input_ports, _format_input_port_sizes),
     (_output_ports, _format_output_port_sizes),
     (attrgetter("local_variables"), _format_local_variables),
+    (attrgetter("repetition"), _format_repetition),
 ]
 
 

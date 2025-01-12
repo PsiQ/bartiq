@@ -27,7 +27,6 @@ class _RoutineTree(Tree):
     """Tree object representing Routine."""
 
     selected_routine_resources = Unicode(default_value="Please select a routine")
-    # NOTE: the choice of 1000 here is arbitrary,
 
     def __init__(self, routine: RoutineV1 | SchemaV1, debug_mode: bool = False):
         super().__init__(multiple_selection=False)
@@ -70,13 +69,21 @@ class _RoutineTree(Tree):
             self.selected_routine_resources = rf"{html_string}"
 
 
-def explore_routine(routine: SchemaV1 | RoutineV1) -> widgets.HBox:
+def explore_routine(
+    routine: SchemaV1 | RoutineV1, tree_min_width="initial", resource_max_width="initial"
+) -> widgets.HBox:
     """Widget faciliting exploration of routine's costs.
 
     Args:
         routine: Routine object to analyze.
+        tree_min_width: string defining the minimal width of the left part of the widget (tree).
+            For pixel values, should be specified as "100px". Defaults to "initial".
+        resource_max_width: string defining the minimal width of the right part of the widget (resources).
+            For pixel values, should be specified as "100px". Defaults to "initial".
     """
     tree = _RoutineTree(routine)
     resource_display = widgets.HTMLMath()
     widgets.dlink((tree, "selected_routine_resources"), (resource_display, "value"))
-    return widgets.HBox([tree, resource_display])
+    left_box = widgets.VBox([tree], layout=widgets.Layout(min_width=tree_min_width))
+    right_box = widgets.VBox([resource_display], layout=widgets.Layout(max_width=resource_max_width))
+    return widgets.HBox([left_box, right_box])
