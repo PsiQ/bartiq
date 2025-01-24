@@ -174,7 +174,7 @@ def _fill_in_layers(routine, layers, resource_name):
         elif layer_2 - layer_1 == 1:
             pass
         else:
-            raise BartiqPostprocessingError("TODO Can't have connection within layer")
+            raise BartiqPostprocessingError("Connections between layers are not allowed.")
 
     return modified_children, layers
 
@@ -199,11 +199,12 @@ def _get_highwater_for_non_leaf(
             if cost != 0:
                 costs.append(cost)
         cost_per_graph.append(backend.max(*costs))
-    passthrough_cost = 0
 
+    passthrough_cost = 0
     for endpoint_1, endpoint_2 in routine.connections.items():
         if endpoint_1.routine_name is None and endpoint_2.routine_name is None:
             passthrough_cost += routine.ports[endpoint_1.port_name].size
+
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
     return sum(cost_per_graph) + local_ancillae + passthrough_cost
 

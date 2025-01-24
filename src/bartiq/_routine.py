@@ -127,11 +127,11 @@ class Routine(Generic[T]):
         return _inner_connections(self)
 
     def sorted_children(self) -> Iterable[Self]:
-        """TODO"""
+        """Returns list of children, sorted topologically."""
         return _sorted_children(self)
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
-        """TODO"""
+        """Returns all the ports with given directions"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
@@ -166,11 +166,11 @@ class CompiledRoutine(Generic[T]):
         return _inner_connections(self)
 
     def sorted_children(self) -> Iterable[Self]:
-        """TODO"""
+        """Returns list of children, sorted topologically."""
         return _sorted_children(self)
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
-        """TODO"""
+        """Returns all the ports with given directions"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod

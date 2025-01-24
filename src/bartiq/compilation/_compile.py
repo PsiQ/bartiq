@@ -194,9 +194,6 @@ def _process_repeated_resources(
     import copy
 
     child_resources = copy.copy(children[0].resources)
-    # TODO: local anciallae should not be propagated
-    if "local_ancillae" in child_resources:
-        del child_resources["local_ancillae"]
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     for resource_name, resource in resources.items():
@@ -208,8 +205,10 @@ def _process_repeated_resources(
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
         elif resource.type == "qubits" and repetition.sequence.type == "constant":
-            # TODO: is this really reasonable choice?
-            new_value = resource.value
+            # NOTE: Actually this could also be `new_value = resource.value`.
+            # The reason it's not, is that in such case local_ancillae are counted twice
+            # in add_qubit_highwater postprocessing.
+            continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
             warnings.warn(
