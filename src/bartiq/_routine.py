@@ -99,6 +99,7 @@ def _sorted_children(routine: AnyRoutine) -> Iterable[AnyRoutine]:
 
     return [routine.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
 
+
 def _inner_connections(routine: AnyRoutine) -> dict[Endpoint, Endpoint]:
     return {
         source: target
@@ -159,7 +160,7 @@ class CompiledRoutine(Generic[T]):
     connections: dict[Endpoint, Endpoint]
     repetition: Repetition | None = None
     constraints: Iterable[Constraint[T]] = ()
-    
+
     @property
     def _inner_connections(self) -> dict[Endpoint, Endpoint]:
         return _inner_connections(self)

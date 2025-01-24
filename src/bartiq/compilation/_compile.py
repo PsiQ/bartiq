@@ -192,6 +192,7 @@ def _process_repeated_resources(
     assert len(children) == 1, "Routine with repetition can only have one child."
     new_resources = {}
     import copy
+
     child_resources = copy.copy(children[0].resources)
     # TODO: local anciallae should not be propagated
     if "local_ancillae" in child_resources:

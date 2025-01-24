@@ -21,7 +21,7 @@
         name: out_0
         size: N
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N
       type: null
@@ -56,7 +56,7 @@
       - name: local_ancillae
         type: qubits
         value: 7
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N + 7
       type: null
@@ -111,7 +111,7 @@
         - name: local_ancillae
           type: qubits
           value: 9
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 9
         type: null
@@ -133,7 +133,7 @@
       - name: local_ancillae
         type: qubits
         value: 7
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N + 16
       type: null
@@ -236,7 +236,7 @@
         - name: local_ancillae
           type: qubits
           value: 0
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N
         type: null
@@ -247,7 +247,7 @@
           name: port_0
           size: N - 3
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N - 3
         type: null
@@ -263,7 +263,7 @@
           name: out_1
           size: 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 3
         type: null
@@ -280,7 +280,7 @@
           name: out_0
           size: N - 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N - 2
         type: null
@@ -290,7 +290,7 @@
           name: port_0
           size: 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 2
         type: null
@@ -317,7 +317,7 @@
         size: 2
         resources:
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N
       type: null
@@ -461,7 +461,7 @@
           - name: local_ancillae
             type: qubits
             value: 3
-          - name: qubit_highwater_2
+          - name: qubit_highwater
             type: qubits
             value: N + 3
           type: null
@@ -475,7 +475,7 @@
           - name: local_ancillae
             type: qubits
             value: 1
-          - name: qubit_highwater_2
+          - name: qubit_highwater
             type: qubits
             value: N - 2
           type: null
@@ -488,7 +488,7 @@
           - name: local_ancillae
             type: qubits
             value: 1
-          - name: qubit_highwater_2
+          - name: qubit_highwater
             type: qubits
             value: 4
           type: null
@@ -510,7 +510,7 @@
           name: out_1
           size: 3
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 3
         type: null
@@ -521,7 +521,7 @@
           name: port_0
           size: N - 3
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N - 3
         type: null
@@ -537,7 +537,7 @@
           name: out_1
           size: 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 3
         type: null
@@ -554,7 +554,7 @@
           name: out_0
           size: N - 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N - 2
         type: null
@@ -564,7 +564,7 @@
           name: port_0
           size: 2
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 2
         type: null
@@ -591,7 +591,7 @@
         size: 2
         resources:
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N + 3
       type: null
@@ -666,7 +666,7 @@
         - name: local_ancillae
           type: qubits
           value: 3
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 3
         type: null
@@ -677,7 +677,7 @@
           name: port_0
           size: N
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N
         type: null
@@ -688,7 +688,7 @@
           name: port_0
           size: M
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: M
         type: null
@@ -702,7 +702,7 @@
         - name: local_ancillae
           type: qubits
           value: 7
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: M + 7
         type: null
@@ -729,7 +729,7 @@
         name: out_1
         size: M
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: M + N + 10
       type: null
@@ -855,7 +855,7 @@
             name: out_0
             size: 1
           resources:
-          - name: qubit_highwater_2
+          - name: qubit_highwater
             type: qubits
             value: 1
           type: qubits_alloc
@@ -889,7 +889,7 @@
         - name: local_ancillae
           type: qubits
           value: Max(0, d - Min(2, d))
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 2*d + Max(0, d - Min(2, d)) + 1
         type: qubrick
@@ -900,7 +900,7 @@
             name: in_0
             size: 1
           resources:
-          - name: qubit_highwater_2
+          - name: qubit_highwater
             type: qubits
             value: 1
           type: qubits_free
@@ -934,7 +934,7 @@
         - name: local_ancillae
           type: qubits
           value: Max(0, d - Min(2, d))
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: 2*d + Max(0, d - Min(2, d)) + 1
         type: qubrick
@@ -946,7 +946,7 @@
           name: out_0
           size: d
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: d
         type: qubits_alloc
@@ -958,7 +958,7 @@
           name: out_0
           size: d
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: d
         type: qubits_alloc
@@ -989,7 +989,7 @@
         size: d
       type: null
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: 2*d + Max(0, d - Min(2, d)) + 1
 
@@ -1040,7 +1040,7 @@
         - name: local_ancillae
           type: qubits
           value: 2
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 2
         type: null
@@ -1064,7 +1064,7 @@
           type: constant
           multiplier: 1
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
         value: N + 2
       type: null
@@ -1080,6 +1080,9 @@
         - direction: output
           name: out_1
           size: M
+        - direction: output
+          name: out_2
+          size: M + 1
         type: null
       - name: B
         ports:
@@ -1109,12 +1112,16 @@
         - direction: input
           name: in_1
           size: M
+        - direction: input
+          name: in_2
+          size: M + 1
         type: null
       connections:
       - "A.out_0 -> B.port_0"
       - "B.port_0 -> C.port_0"
       - "C.port_0 -> D.in_0"
       - "A.out_1 -> D.in_1"
+      - "A.out_2 -> D.in_2"
       name: root
       type: null
     version: v1
@@ -1129,10 +1136,13 @@
         - direction: output
           name: out_1
           size: M
+        - direction: output
+          name: out_2
+          size: M + 1
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
-          value: M + N
+          value: 2*M + N + 1
         type: null
       - name: B
         input_params: [N]
@@ -1144,7 +1154,7 @@
         - name: local_ancillae
           type: qubits
           value: 2
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 2
         type: null
@@ -1158,7 +1168,7 @@
         - name: local_ancillae
           type: qubits
           value: 3
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
           value: N + 3
         type: null
@@ -1171,21 +1181,25 @@
         - direction: input
           name: in_1
           size: M
+        - direction: input
+          name: in_2
+          size: M + 1
         resources:
-        - name: qubit_highwater_2
+        - name: qubit_highwater
           type: qubits
-          value: M + N
+          value: 2*M + N + 1
         type: null
       connections:
       - "A.out_0 -> B.port_0"
       - "B.port_0 -> C.port_0"
       - "C.port_0 -> D.in_0"
       - "A.out_1 -> D.in_1"
+      - "A.out_2 -> D.in_2"
       name: root
       resources:
-      - name: qubit_highwater_2
+      - name: qubit_highwater
         type: qubits
-        value: M + N + 3
+        value: 2*M + N + 4
       type: null
     version: v1
 
@@ -1283,7 +1297,7 @@
 #         - name: local_ancillae
 #           type: qubits
 #           value: 3
-#         - name: qubit_highwater_2
+#         - name: qubit_highwater
 #           type: qubits
 #           value: N + 3
 #         type: null
@@ -1294,7 +1308,7 @@
 #           name: port_0
 #           size: N
 #         resources:
-#         - name: qubit_highwater_2
+#         - name: qubit_highwater
 #           type: qubits
 #           value: N
 #         type: null
@@ -1305,7 +1319,7 @@
 #           name: port_0
 #           size: M
 #         resources:
-#         - name: qubit_highwater_2
+#         - name: qubit_highwater
 #           type: qubits
 #           value: M
 #         type: null
@@ -1319,7 +1333,7 @@
 #         - name: local_ancillae
 #           type: qubits
 #           value: 7
-#         - name: qubit_highwater_2
+#         - name: qubit_highwater
 #           type: qubits
 #           value: M + 7
 #         type: null
@@ -1347,7 +1361,7 @@
 #         name: out_1
 #         size: M
 #       resources:
-#       - name: qubit_highwater_2
+#       - name: qubit_highwater
 #         type: qubits
 #         value: M + N + 10
 #       type: null
