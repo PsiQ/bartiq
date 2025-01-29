@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
+from dataclasses import replace
 from graphlib import TopologicalSorter
 from typing import Any, Callable, TypeVar
 
@@ -209,12 +210,6 @@ def _get_highwater_for_non_leaf(
     return sum(cost_per_graph) + local_ancillae + passthrough_cost
 
 
-def _update_children_highwater(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-    for child in routine.children.values():
-        child = add_qubit_highwater(child, backend)
-    return routine
-
-
 def add_qubit_highwater(
     routine: CompiledRoutine[T],
     backend: SymbolicBackend[T],
@@ -237,7 +232,13 @@ def add_qubit_highwater(
     if len(routine.children) == 0:
         highwater = _get_highwater_for_leaf(routine, backend, ancillae_name)
     else:
-        routine = _update_children_highwater(routine, backend)
+        routine = replace(
+            routine,
+            children={
+                name: add_qubit_highwater(child, backend, resource_name, ancillae_name)
+                for name, child in routine.children.items()
+            },
+        )
         highwater = _get_highwater_for_non_leaf(routine, backend, resource_name, ancillae_name)
 
     if resource_name in routine.resources:
@@ -245,7 +246,11 @@ def add_qubit_highwater(
             f"Attempted to assign resource {resource_name} to {routine.name}, "
             "which already has a resource with the same name."
         )
-    else:
-        routine.resources[resource_name] = Resource(name=resource_name, value=highwater, type=ResourceType("qubits"))
-        # routine.resources["highwater"] = Resource(name="highwater", value=highwater, type=ResourceType("qubits"))
-    return routine
+
+    return replace(
+        routine,
+        resources={
+            **routine.resources,
+            resource_name: Resource(name=resource_name, value=highwater, type=ResourceType.qubits),
+        },
+    )
