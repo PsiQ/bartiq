@@ -16,7 +16,7 @@ import ipywidgets as widgets
 from ipytree import Node, Tree
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
-from traitlets import List, observe, Instance, Unicode
+from traitlets import List, observe, Instance, Unicode, Tuple
 
 from ..latex import SECTIONS, routine_to_latex
 
@@ -29,15 +29,7 @@ MAX_RESOURCE_SECTIONS = 9
 class _RoutineTree(Tree):
     """Tree object representing Routine."""
 
-    slot_0 = Unicode(default_value="Please select a routine")
-    slot_1 = Unicode()
-    slot_2 = Unicode()
-    slot_3 = Unicode()
-    slot_4 = Unicode()
-    slot_5 = Unicode()
-    slot_6 = Unicode()
-    slot_7 = Unicode()
-    slot_8 = Unicode()
+    routine_data = Tuple()
 
     def __init__(self, routine: RoutineV1 | SchemaV1, debug_mode: bool = False):
         super().__init__(multiple_selection=False)
@@ -78,11 +70,10 @@ class _RoutineTree(Tree):
             routine = self._node_routine_lookup[node]
             html_strings = routine_to_latex(routine, show_non_root_resources=self._debug_mode, paged=True)
 
-            for i, html_string in enumerate(html_strings):
-                setattr(self, f"slot_{i}", rf"{html_string}")
-
-            for i in range(len(html_strings), MAX_RESOURCE_SECTIONS):
-                setattr(self, f"slot_{i}", "")
+            self.routine_data = tuple(
+                widgets.HTMLMath(rf"{html_string}")
+                for html_string in html_strings
+            )
 
 
 def explore_routine(
@@ -98,18 +89,10 @@ def explore_routine(
             For pixel values, should be specified as "100px". Defaults to "initial".
     """
     tree = _RoutineTree(routine)
-    resource_column = [widgets.HTMLMath() for _ in range(MAX_RESOURCE_SECTIONS)]
 
-    # @tree.observe("selected_routine_resources")
-    # def _sync_children(change):
-    #     resource_display.children = change["new"]
+    routine_display = widgets.VBox()
+    widgets.dlink((tree, "routine_data"), (routine_display, "children"))
 
-    # # tree.observe(_sync_children, "selected_routine_resources")
-
-    for i, resource in enumerate(resource_column):
-        widgets.dlink((tree, f"slot_{i}"), (resource, "value"))
-
-    resource_displays = widgets.VBox(resource_column)
     left_box = widgets.VBox([tree], layout=widgets.Layout(min_width=tree_min_width))
-    right_box = widgets.VBox([resource_displays], layout=widgets.Layout(max_width=resource_max_width))
+    right_box = widgets.VBox([routine_display], layout=widgets.Layout(max_width=resource_max_width))
     return widgets.HBox([left_box, right_box])

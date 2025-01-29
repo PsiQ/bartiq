@@ -50,10 +50,10 @@ def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: boo
         lines.append(resource_section)
 
     if paged:
-        return {
+        return [
             "$\\begin{align}\n" + line + "\n\\end{align}$"
             for line in lines
-        }
+        ]
     else:
         return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 
