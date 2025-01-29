@@ -71,7 +71,7 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
             if resource.type == ResourceType.multiplicative:
                 child_multiplicative_resources_map[resource.name].add(child.name)
 
-    additive_resources: dict[str, Resource[T]] = {  # TODO: try removing & adding [T] to the Resource below?
+    additive_resources: dict[str, Resource[T]] = {
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
