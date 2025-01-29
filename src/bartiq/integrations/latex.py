@@ -28,7 +28,7 @@ from sympy import latex, symbols
 from ..symbolics.sympy_backends import parse_to_sympy
 
 
-def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True) -> str:
+def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True, paged=False) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
@@ -49,7 +49,13 @@ def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: boo
     if resource_section := _format_resources(routine, show_non_root_resources):
         lines.append(resource_section)
 
-    return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
+    if paged:
+        return {
+            "$\\begin{align}\n" + line + "\n\\end{align}$"
+            for line in lines
+        }
+    else:
+        return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 
 
 def _walk(routine: RoutineV1) -> Iterable[RoutineV1]:
