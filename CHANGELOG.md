@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.10.0](https://github.com/PsiQ/bartiq/compare/v0.9.0...v0.10.0) (2025-01-29)
+
+
+### Features
+
+* add repetitions to latex + fixes in jupyter widges ([#156](https://github.com/PsiQ/bartiq/issues/156)) ([de5ab7e](https://github.com/PsiQ/bartiq/commit/de5ab7eba7c7202c509695f6323e77e951812745))
+* **integrations:** fixed issue with section permutations ([de1d9cb](https://github.com/PsiQ/bartiq/commit/de1d9cb2499deb081ac118aeabac889024dfe71c))
+* **integrations:** WIP on fixing routine explorer for very long expressions ([5d2a3df](https://github.com/PsiQ/bartiq/commit/5d2a3df30bc081c7e9265511bb249dedae1d48ec))
+
 ## [0.9.0](https://github.com/PsiQ/bartiq/compare/v0.8.2...v0.9.0) (2025-01-07)
 
 
