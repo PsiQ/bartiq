@@ -99,6 +99,7 @@ class BaseRoutine(Generic[T]):
     resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
     repetition: Repetition[T] | None = None
+    constraints: Iterable[Constraint[T]] = ()
 
     @property
     def inner_connections(self) -> dict[Endpoint[str], Endpoint[str]]:
@@ -124,7 +125,6 @@ class Routine(BaseRoutine[T]):
     input_params: Iterable[str]
     linked_params: dict[str, tuple[tuple[str, str], ...]]
     local_variables: dict[str, TExpr[T]]
-    constraints: Iterable[Constraint[T]] = ()
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
@@ -148,7 +148,6 @@ class Routine(BaseRoutine[T]):
 @dataclass(frozen=True, kw_only=True)
 class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
-    constraints: Iterable[Constraint[T]] = ()
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
