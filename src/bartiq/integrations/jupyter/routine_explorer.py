@@ -16,9 +16,9 @@ import ipywidgets as widgets
 from ipytree import Node, Tree
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
-from traitlets import List, observe, Instance, Unicode, Tuple
+from traitlets import Tuple
 
-from ..latex import SECTIONS, routine_to_latex
+from ..latex import routine_to_latex
 
 DEFAULT_ROOT_NAME = ""
 
@@ -70,10 +70,7 @@ class _RoutineTree(Tree):
             routine = self._node_routine_lookup[node]
             html_strings = routine_to_latex(routine, show_non_root_resources=self._debug_mode, paged=True)
 
-            self.routine_data = tuple(
-                widgets.HTMLMath(rf"{html_string}")
-                for html_string in html_strings
-            )
+            self.routine_data = tuple(widgets.HTMLMath(rf"{html_string}") for html_string in html_strings)
 
 
 def explore_routine(
