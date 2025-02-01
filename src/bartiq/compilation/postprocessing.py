@@ -237,11 +237,11 @@ def add_qubit_highwater(
     Args:
         routine: The routine to which the resources will be added.
         backend : Backend instance to use for handling expressions. Defaults to `sympy_backend`.
-        resource_name: name for the added resource. Defaults to `qubit_highwater`.
-        ancillae_name: name for the ancillae used in the routines. Defaults to `local_ancillae`.
+        resource_name: name for the added resource. Defaults to "qubit_highwater".
+        ancillae_name: name for the ancillae used in the routines. Defaults to "local_ancillae".
 
     Returns:
-        The routine with added `qubit_highwater` field.
+        The routine with added added the highwater resource.
     """
     if len(routine.children) == 0:
         highwater = _get_highwater_for_leaf(routine, backend, ancillae_name)
