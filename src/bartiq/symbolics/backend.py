@@ -14,7 +14,9 @@
 from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from enum import Enum, auto
-from typing import Callable, Protocol, Self, TypeAlias, TypeVar
+from typing import Callable, Protocol, TypeAlias, TypeVar
+
+from typing_extensions import Self
 
 Number = int | float
 
