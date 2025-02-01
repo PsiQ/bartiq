@@ -126,7 +126,7 @@ def _get_highwater_for_non_leaf(
     for child in TopologicalSorter(graph).static_order():
         ancestors = [node for node in tree if any(predecessor in node for predecessor in graph[child])]
 
-        # Starting nodes are connected to source node represented by None
+        # Starting nodes are connected to source node represented by (None,)
         if not ancestors:
             tree[(child,)] = (None,)
         # Children with one incoming connections are simply connected to their ancestor
@@ -135,15 +135,28 @@ def _get_highwater_for_non_leaf(
         # Everything else is connected to several nodes and hence has to trigger
         # a summation.
         else:
+            # Least common ancestor is the lowest level node that is a (not necessarily direct)
+            # ancestor of all ancestors at once - this is the cut of point after which we need
+            # to sum.
             lca: _TreeNode = _least_common_ancestor(ancestors, tree)
+            # Keys to fix are additional keys that we will have to re-connect once we sum over
+            # parallel chains going from lca to current child.
             keys_to_fix = set[_TreeNode]()
             chains = []
             for node in ancestors:
                 chain = []
+                # We collect all nodes between current child and the lca. Note that this chain
+                # can be empty (e.g. child is "D" and connections are A -> B, A -> D, B -> D.
+                # in such a case the lca is (A,) and the chains are [(B,)] and [])
                 while node != lca:
                     chain.append(node)
                     node = tree[node]
 
+                # In case when the chain is nonempty, the flow between lca and current child
+                # is encoded in the components of the chain. However, in the case of an
+                # empty chain we have to compute this flow manually by summing size of
+                # the edges connecting child to lca. We have to compensate for it somehow,
+                # and to this end we introduce an artifical passthrough.
                 if not chain:
                     new_passthrough = f"Passthrough_{passthrough_index}"
                     passthrough_index += 1
@@ -159,33 +172,54 @@ def _get_highwater_for_non_leaf(
                     tree[(new_passthrough,)] = lca
                     chain = [(new_passthrough,)]
 
+                # All children in a chain have to be removed, because we are combining them
+                # into a new node.
                 for x in chain:
                     del tree[x]
 
                 chains.append(chain)
+
+                # All offsprings of nodes in chain that don't participate in the merge
+                # have to be re-connected to the new, combined node that we'll create.
                 keys_to_fix |= set(key for key in tree if key in tree[key] in chain)
 
+            # New node is labelled by combining all the participating tuples.
+            # Here we see introducing passthrough (as opposed to only compensating by adding a flow)
+            # is crucial, as otherwise the new_node could have a label that duplicates one of the
+            # existing labels.
             new_node = sum((node for chain in chains for node in chain), start=())
+            # The new node has highwater equal to sum of highwaters of all chains.
             highwater_map[new_node] = sum(
                 backend.max(*[highwater_map[node] for node in chain]) for chain in chains if chain
             )
 
+            # Finally, re-connect the keys that need it.
             for key in keys_to_fix:
                 tree[key] = new_node
 
+            # New node is a direct descendad of the lca.
             tree[new_node] = lca
+            # And the new child is a direct descendant of the new node.
             tree[(child,)] = new_node
 
+    # We added an artificial node to trigger a final summation, after which the tree is
+    # actually linear. However, this node should not be taken account when computing
+    # the final highwater (it's not even in highwater_map) and so we remove it.
     del tree[(None,)]
 
+    # There are some qubits that are not captured by the above procedure, because they don't
+    # pass through any of children. We adjust for this now. Note that it doesn't matter
+    # which endpoint we take size from, as all those connections are necessary passthrough.
     passthrough_cost: TExpr[T] = sum(
         routine.ports[endpoint_1.port_name].size
         for endpoint_1, endpoint_2 in routine.connections.items()
         if endpoint_1.routine_name is None and endpoint_2.routine_name is None
     )
 
+    # Include local ancillae as well.
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
 
+    # And finally combine the results.
     children_highwater = backend.max(*[highwater_map[key] for key in tree])
     return children_highwater + local_ancillae + passthrough_cost
 
