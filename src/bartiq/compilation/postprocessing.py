@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import replace
 from graphlib import TopologicalSorter
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable
 
 from .._routine import CompiledRoutine, Resource, ResourceType
 from ..errors import BartiqPostprocessingError
-from ..symbolics.backend import SymbolicBackend
+from ..symbolics.backend import SymbolicBackend, T, TExpr
 from ..transform import add_aggregated_resources
-
-T = TypeVar("T")
 
 PostprocessingStage = Callable[[CompiledRoutine[T], SymbolicBackend[T]], CompiledRoutine[T]]
 
@@ -46,168 +44,150 @@ def aggregate_resources(
     """
 
     def _inner(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-        return add_aggregated_resources(routine, aggregation_dict, remove_decomposed, backend)  # TODO: Konrad mypy
+        return add_aggregated_resources(routine, aggregation_dict, remove_decomposed, backend)
 
     return _inner
 
 
-def _get_highwater_for_leaf(routine: CompiledRoutine[T], backend: SymbolicBackend[T], ancillae_name: str) -> T:
-    input_ports = routine.filter_ports("input")
-    output_ports = routine.filter_ports("output")
-    through_ports = routine.filter_ports("through")
-    input_sum = sum([port.size for port in input_ports.values()])
-    output_sum = sum([port.size for port in output_ports.values()])
-    through_sum = sum([port.size for port in through_ports.values()])
+def _sum_port_sizes(routine: CompiledRoutine[T], direction: str) -> TExpr[T]:
+    return sum([port.size for port in routine.filter_ports([direction]).values()])
+
+
+def _get_highwater_for_leaf(routine: CompiledRoutine[T], backend: SymbolicBackend[T], ancillae_name: str) -> TExpr[T]:
+    input_sum = _sum_port_sizes(routine, "input")
+    output_sum = _sum_port_sizes(routine, "output")
+    through_sum = _sum_port_sizes(routine, "through")
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
-    values_for_max = []
-    if input_sum != 0:
-        values_for_max.append(input_sum)
-    if output_sum != 0:
-        values_for_max.append(output_sum)
-    if len(values_for_max) == 0:
-        values_for_max = [0]
-    return backend.max(*values_for_max) + through_sum + local_ancillae
+    result: TExpr[T] = through_sum + local_ancillae
+
+    match input_sum, output_sum:
+        case 0, output_sum:
+            result += output_sum
+        case input_sum, 0:
+            result += input_sum
+        case input_sum, output_sum:
+            result += backend.max(input_sum, output_sum)
+
+    return result
 
 
-def _get_graph_of_children(routine) -> dict[str, set[str]]:
-    predecessor_map: dict[str, set[str]] = {name: set() for name in routine.children}
-    for source, target in routine._inner_connections.items():
-        assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
+def _get_graph_of_children(routine: CompiledRoutine[T]) -> dict[str | None, set[str]]:
+    predecessor_map: dict[str | None, set[str]] = {name: set() for name in routine.children}
+    terminal_nodes = set(routine.children)
+    for source, target in routine.inner_connections.items():
         predecessor_map[target.routine_name].add(source.routine_name)
-    return predecessor_map
+        if source.routine_name in terminal_nodes:
+            terminal_nodes.remove(source.routine_name)
+
+    # The additional node is so that at the end of processing we always trigger sync
+    return {None: set(terminal_nodes), **predecessor_map}
 
 
-class UnionFind:
-    def __init__(self):
-        self.subsets = {}
+_TreeNode = tuple[str | None, ...]
+_Tree = dict[_TreeNode, _TreeNode]
 
-    def load_graph(self, graph):
-        for node, connections in graph.items():
-            self.add_item(node, connections)
 
-    def find(self, node):
-        for i, subset in self.subsets.items():
-            if node in subset:
-                return i
+def _least_common_ancestor(nodes: Iterable[_TreeNode], tree: _Tree) -> _TreeNode:
+    paths: list[tuple[_TreeNode, ...]] = [_path_to_root(node, tree) for node in nodes]
+
+    result = (None,)
+    for components in zip(*paths):
+        if len(set(components)) == 1:
+            result = components[0]
         else:
-            return None
-
-    def add_item(self, node, connections):
-        if len(connections) == 0:
-            self.subsets[len(self.subsets)] = [node]
-            return
-        ids_list = []
-        for other_node in connections:
-            id = self.find(other_node)
-            if id is not None:
-                ids_list.append(id)
-            if len(ids_list) == 2:
-                self.union(ids_list[0], ids_list[1])
-                ids_list.remove(ids_list[1])
-
-        if len(ids_list) == 0:
-            self.subsets[len(self.subsets)] = [node]
-        elif len(ids_list) == 1:
-            self.subsets[ids_list[0]].append(node)
-        else:
-            raise Exception("Shouldn't happen.")
-
-    def union(self, id_1, id_2):
-        new_subset = self.subsets[id_1] + self.subsets[id_2]
-        del self.subsets[id_2]
-        self.subsets[id_1] = new_subset
+            break
+    return result
 
 
-class PassThrough:
-    def __init__(self, name, value, resource_name):
-        self.name = name
-        self.resources = {resource_name: Resource(resource_name, value=value, type=ResourceType("qubits"))}
+def _is_root(node: _TreeNode):
+    return node == (None,)
 
 
-def _divide_into_disconnected_graphs(graph):
-    uf = UnionFind()
-    uf.load_graph(graph)
-    graphs = [{k: graph[k] for k in subset} for subset in uf.subsets.values()]
-    return graphs
-
-
-def _divide_into_layers(graph):
-    layers_mapping = {}
-    reverse_layers_mapping = defaultdict(list)
-
-    for node in TopologicalSorter(graph).static_order():
-        layer_id = max([layers_mapping[k] for k in graph.get(node, [])], default=-1) + 1
-        layers_mapping[node] = layer_id
-        reverse_layers_mapping[layer_id].append(node)
-    return reverse_layers_mapping
-
-
-def _fill_in_layers(routine, layers, resource_name):
-    import copy
-
-    modified_children = copy.copy(routine.children)
-
-    def find_layer(layers, name):
-        if name is None:
-            return None
-        for layer_id, values in layers.items():
-            if name in values:
-                return layer_id
-        else:
-            return None
-
-    passthrough_counter = 0
-    for endpoint_1, endpoint_2 in routine.connections.items():
-        layer_1 = find_layer(layers, endpoint_1.routine_name)
-        layer_2 = find_layer(layers, endpoint_2.routine_name)
-        if layer_1 is None or layer_2 is None:
-            pass
-        elif layer_2 - layer_1 > 1:
-            for layer_id in range(layer_1 + 1, layer_2):
-                name = f"{endpoint_1.routine_name}_to_{endpoint_2.routine_name}_passthrough_{passthrough_counter}"
-                modified_children[name] = PassThrough(
-                    name,
-                    routine.children[endpoint_1.routine_name].ports[endpoint_1.port_name].size,
-                    resource_name=resource_name,
-                )
-                layers[layer_id].append(name)
-                passthrough_counter += 1
-        elif layer_2 - layer_1 == 1:
-            pass
-        else:
-            raise BartiqPostprocessingError("Connections between layers are not allowed.")
-
-    return modified_children, layers
+def _path_to_root(node: _TreeNode, tree: dict[_TreeNode, _TreeNode]) -> tuple[_TreeNode, ...]:
+    if _is_root(node):
+        return (node,)
+    else:
+        return _path_to_root(tree[node], tree) + (node,)
 
 
 def _get_highwater_for_non_leaf(
     routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str, ancillae_name: str
 ) -> T:
+    highwater_map: dict[_TreeNode, TExpr[T]] = {
+        (name,): child.resources[resource_name].value for name, child in routine.children.items()
+    }
 
-    full_graph = _get_graph_of_children(routine)
-    graphs = _divide_into_disconnected_graphs(full_graph)
-    costs = []
-    cost_per_graph = []
+    tree: _Tree = {}
 
-    for graph in graphs:
-        costs = []
-        layers = _divide_into_layers(graph)
-        modified_children, modified_layers = _fill_in_layers(routine, layers, resource_name)
-        for layer in modified_layers.values():
-            cost = 0
-            for child in layer:
-                cost += modified_children[child].resources["qubit_highwater"].value
-            if cost != 0:
-                costs.append(cost)
-        cost_per_graph.append(backend.max(*costs))
+    graph = _get_graph_of_children(routine)
 
-    passthrough_cost = 0
-    for endpoint_1, endpoint_2 in routine.connections.items():
-        if endpoint_1.routine_name is None and endpoint_2.routine_name is None:
-            passthrough_cost += routine.ports[endpoint_1.port_name].size
+    passthrough_index = 0
+
+    for child in TopologicalSorter(graph).static_order():
+        ancestors = [node for node in tree if any(predecessor in node for predecessor in graph[child])]
+
+        # Starting nodes are connected to source node represented by None
+        if not ancestors:
+            tree[(child,)] = (None,)
+        # Children with one incoming connections are simply connected to their ancestor
+        elif len(ancestors) == 1:
+            tree[(child,)] = ancestors[0]
+        # Everything else is connected to several nodes and hence has to trigger
+        # a summation.
+        else:
+            lca: _TreeNode = _least_common_ancestor(ancestors, tree)
+            keys_to_fix = set[_TreeNode]()
+            chains = []
+            for node in ancestors:
+                chain = []
+                while node != lca:
+                    chain.append(node)
+                    node = tree[node]
+
+                if not chain:
+                    new_passthrough = f"Passthrough_{passthrough_index}"
+                    passthrough_index += 1
+
+                    highwater_map[(new_passthrough,)] = sum(
+                        (
+                            routine.children[start.routine_name].ports[start.port_name].size
+                            for start, end in routine.inner_connections.items()
+                            if start.routine_name in lca and end.routine_name == child
+                        ),
+                        start=0,
+                    )
+                    tree[(new_passthrough,)] = lca
+                    chain = [(new_passthrough,)]
+
+                for x in chain:
+                    del tree[x]
+
+                chains.append(chain)
+                keys_to_fix |= set(key for key in tree if key in tree[key] in chain)
+
+            new_node = sum((node for chain in chains for node in chain), start=())
+            highwater_map[new_node] = sum(
+                backend.max(*[highwater_map[node] for node in chain]) for chain in chains if chain
+            )
+
+            for key in keys_to_fix:
+                tree[key] = new_node
+
+            tree[new_node] = lca
+            tree[(child,)] = new_node
+
+    del tree[(None,)]
+
+    passthrough_cost: TExpr[T] = sum(
+        routine.ports[endpoint_1.port_name].size
+        for endpoint_1, endpoint_2 in routine.connections.items()
+        if endpoint_1.routine_name is None and endpoint_2.routine_name is None
+    )
 
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
-    return sum(cost_per_graph) + local_ancillae + passthrough_cost
+
+    children_highwater = backend.max(*[highwater_map[key] for key in tree])
+    return children_highwater + local_ancillae + passthrough_cost
 
 
 def add_qubit_highwater(
