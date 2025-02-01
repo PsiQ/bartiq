@@ -22,7 +22,7 @@ from bartiq.errors import BartiqCompilationError
 
 from .._routine import CompiledRoutine, routine_to_qref
 from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, TExpr
+from ..symbolics.backend import SymbolicBackend, T, TExpr
 from ._common import (
     ConstraintValidationError,
     Context,
@@ -32,7 +32,6 @@ from ._common import (
     evaluate_resources,
 )
 
-T = TypeVar("T")
 S = TypeVar("S")
 
 

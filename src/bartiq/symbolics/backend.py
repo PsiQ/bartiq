@@ -11,13 +11,58 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from enum import Enum, auto
-from typing import Callable, Protocol, TypeAlias, TypeVar
+from typing import Callable, Protocol, Self, TypeAlias, TypeVar
 
 Number = int | float
-T = TypeVar("T")
 
+
+class ArithmeticType(Protocol):
+
+    @abstractmethod
+    def __add__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __radd__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __sub__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __rsub__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __truediv__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __rtruediv__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __mul__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __rmul__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __pow__(self, other: Number | Self) -> Number | Self:
+        pass
+
+    @abstractmethod
+    def __rpow__(self, other: Number | Self) -> Number | Self:
+        pass
+
+
+T = TypeVar("T", bound=ArithmeticType)
 TExpr: TypeAlias = Number | T
 
 

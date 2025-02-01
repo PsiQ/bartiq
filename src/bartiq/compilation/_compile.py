@@ -20,7 +20,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic, TypeVar
+from typing import Generic
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
@@ -31,14 +31,14 @@ from .._routine import (
     CompiledRoutine,
     Endpoint,
     Port,
-    Repetition,
     Resource,
     Routine,
     routine_to_qref,
 )
 from ..errors import BartiqCompilationError
+from ..repetitions import Repetition
 from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, TExpr
+from ..symbolics.backend import SymbolicBackend, T, TExpr
 from ..verification import verify_uncompiled_repetitions
 from ._common import (
     ConstraintValidationError,
@@ -51,8 +51,6 @@ from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
-
-T = TypeVar("T")
 
 # ParameterTree is a structure we use to build up our knowledge about
 # parameters during successive compilation stages.

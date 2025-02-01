@@ -15,12 +15,11 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
-from typing import Callable, TypeVar
+from typing import Callable
 
-from .._routine import Constraint, ConstraintStatus, Port, Repetition, Resource
-from ..symbolics.backend import ComparisonResult, SymbolicBackend, TExpr
-
-T = TypeVar("T", covariant=True)
+from .._routine import Constraint, ConstraintStatus, Port, Resource
+from ..repetitions import Repetition
+from ..symbolics.backend import ComparisonResult, SymbolicBackend, T, TExpr
 
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 
@@ -48,8 +47,7 @@ def evaluate_ports(
 ) -> dict[str, Port[T]]:
     custom_funcs = {} if custom_funcs is None else custom_funcs
     return {
-        name: replace(port, size=backend.substitute(port.size, inputs, custom_funcs))  # type: ignore
-        for name, port in ports.items()
+        name: replace(port, size=backend.substitute(port.size, inputs, custom_funcs)) for name, port in ports.items()
     }
 
 
@@ -61,10 +59,7 @@ def evaluate_resources(
 ) -> dict[str, Resource[T]]:
     custom_funcs = {} if custom_funcs is None else custom_funcs
     return {
-        name: replace(
-            resource,
-            value=backend.substitute(resource.value, inputs, custom_funcs),  # type: ignore
-        )
+        name: replace(resource, value=backend.substitute(resource.value, inputs, custom_funcs))
         for name, resource in resources.items()
     }
 
