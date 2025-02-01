@@ -166,7 +166,7 @@ class SympyBackend:
     @empty_for_numbers
     def free_symbols_in(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
-        return tuple(map(str, expr.free_symbols))  # type: ignore
+        return tuple(map(str, expr.free_symbols))
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over all built-in functions."""
@@ -256,11 +256,15 @@ class SympyBackend:
         """Returns a biggest value from given args."""
         return sympy.Max(*args)
 
-    def sequence_sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def sequence_sum(
+        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+    ) -> TExpr[Expr]:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
-    def sequence_prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
+    def sequence_prod(
+        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+    ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 

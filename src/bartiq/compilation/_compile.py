@@ -20,7 +20,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic, TypeVar
+from typing import Generic
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
@@ -31,14 +31,14 @@ from .._routine import (
     CompiledRoutine,
     Endpoint,
     Port,
-    Repetition,
     Resource,
     Routine,
     routine_to_qref,
 )
 from ..errors import BartiqCompilationError
+from ..repetitions import Repetition
 from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, TExpr
+from ..symbolics.backend import SymbolicBackend, T, TExpr
 from ..verification import verify_uncompiled_repetitions
 from ._common import (
     ConstraintValidationError,
@@ -51,8 +51,6 @@ from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
-
-T = TypeVar("T")
 
 # ParameterTree is a structure we use to build up our knowledge about
 # parameters during successive compilation stages.
@@ -130,7 +128,6 @@ def compile_routine(
     compiled_routine = _compile(root, backend, {}, Context(root.name))
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
-
     return CompilationResult(routine=compiled_routine, _backend=backend)
 
 
@@ -192,7 +189,9 @@ def _process_repeated_resources(
 ) -> dict[str, Resource]:
     assert len(children) == 1, "Routine with repetition can only have one child."
     new_resources = {}
-    child_resources = children[0].resources
+    import copy
+
+    child_resources = copy.copy(children[0].resources)
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     for resource_name, resource in resources.items():
@@ -203,6 +202,11 @@ def _process_repeated_resources(
             new_value = repetition.sequence_sum(resource.value, backend)
         elif resource.type == "multiplicative":
             new_value = repetition.sequence_prod(resource.value, backend)
+        elif resource.type == "qubits" and repetition.sequence.type == "constant":
+            # NOTE: Actually this could also be `new_value = resource.value`.
+            # The reason it's not, is that in such case local_ancillae are counted twice
+            # in add_qubit_highwater postprocessing.
+            continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
             warnings.warn(

@@ -17,7 +17,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, replace
 from functools import singledispatch
-from typing import Callable, Generic, Literal, TypeVar, cast
+from typing import Callable, Generic, Literal, cast
 
 from qref.schema_v1 import (
     ArithmeticSequenceV1,
@@ -29,12 +29,7 @@ from qref.schema_v1 import (
 )
 
 from .errors import BartiqCompilationError
-from .symbolics.backend import SymbolicBackend, TExpr
-
-# We need it because type `T` doesn't define any arithmetic operations.
-# mypy: disable-error-code="operator"
-T = TypeVar("T")
-
+from .symbolics.backend import SymbolicBackend, T, TExpr
 
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 

@@ -17,17 +17,17 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from graphlib import TopologicalSorter
-from typing import Generic, Literal, TypeVar, cast
+from typing import Generic, Literal, cast
 
 from qref import SchemaV1
 from qref.functools import AnyQrefType, ensure_routine
 from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
-from typing_extensions import Self, TypedDict
+from typing_extensions import Self, TypedDict, TypeVar
 
 from .repetitions import Repetition, repetition_from_qref, repetition_to_qref
-from .symbolics.backend import SymbolicBackend, TExpr
+from .symbolics.backend import SymbolicBackend, T, TExpr
 
-T = TypeVar("T")
+S = TypeVar("S", default=str | None)
 
 
 class ResourceType(str, Enum):
@@ -75,8 +75,8 @@ class Resource(Generic[T]):
 
 
 @dataclass(frozen=True)
-class Endpoint:
-    routine_name: str | None
+class Endpoint(Generic[S]):
+    routine_name: S
     port_name: str
 
 
@@ -90,37 +90,44 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     connections: dict[Endpoint, Endpoint]
 
 
-@dataclass(frozen=True)
-class Routine(Generic[T]):
+@dataclass(frozen=True, kw_only=True)
+class BaseRoutine(Generic[T]):
     name: str
     type: str | None
-    input_params: Iterable[str]
-    linked_params: dict[str, tuple[tuple[str, str], ...]]
-    local_variables: dict[str, TExpr[T]]
     children: dict[str, Self]
     ports: dict[str, Port[T]]
     resources: dict[str, Resource[T]]
     connections: dict[Endpoint, Endpoint]
-    repetition: Repetition | None = None
+    repetition: Repetition[T] | None = None
     constraints: Iterable[Constraint[T]] = ()
 
     @property
-    def _inner_connections(self) -> dict[Endpoint, Endpoint]:
-        return {
-            source: target
-            for source, target in self.connections.items()
-            if source.routine_name is not None and target.routine_name is not None
-        }
+    def inner_connections(self) -> dict[Endpoint[str], Endpoint[str]]:
+        return cast(
+            dict[Endpoint[str], Endpoint[str]],
+            {
+                source: target
+                for source, target in self.connections.items()
+                if source.routine_name is not None and target.routine_name is not None
+            },
+        )
 
     def sorted_children(self) -> Iterable[Self]:
         predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
-        for source, target in self._inner_connections.items():
-            assert target.routine_name is not None and source.routine_name is not None  # Assert to satisfy typechecker
+        for source, target in self.inner_connections.items():
             predecessor_map[target.routine_name].add(source.routine_name)
 
         return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
 
+
+@dataclass(frozen=True, kw_only=True)
+class Routine(BaseRoutine[T]):
+    input_params: Iterable[str]
+    linked_params: dict[str, tuple[tuple[str, str], ...]]
+    local_variables: dict[str, TExpr[T]]
+
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
+        """Returns all the ports with given directions"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
@@ -138,17 +145,13 @@ class Routine(Generic[T]):
         )
 
 
-@dataclass(frozen=True)
-class CompiledRoutine(Generic[T]):
-    name: str
-    type: str | None
+@dataclass(frozen=True, kw_only=True)
+class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
-    children: dict[str, Self]
-    ports: dict[str, Port[T]]
-    resources: dict[str, Resource[T]]
-    connections: dict[Endpoint, Endpoint]
-    repetition: Repetition | None = None
-    constraints: Iterable[Constraint[T]] = ()
+
+    def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
+        """Returns all the ports with given directions"""
+        return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:

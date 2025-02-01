@@ -28,7 +28,9 @@ from sympy import latex, symbols
 from ..symbolics.sympy_backends import parse_to_sympy
 
 
-def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True, paged=False) -> str:
+def routine_to_latex(
+    routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True, paged=False
+) -> str | list[str]:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
@@ -50,10 +52,7 @@ def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: boo
         lines.append(resource_section)
 
     if paged:
-        return [
-            "$\\begin{align}\n" + line + "\n\\end{align}$"
-            for line in lines
-        ]
+        return ["$\\begin{align}\n" + line + "\n\\end{align}$" for line in lines]
     else:
         return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 

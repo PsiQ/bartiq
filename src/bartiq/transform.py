@@ -11,31 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import annotations
 
 import copy
 from dataclasses import replace
 from graphlib import TopologicalSorter
-from typing import Any, TypeVar
+from typing import Any
 
-from bartiq import CompiledRoutine, Resource, ResourceType, Routine
+from bartiq import CompiledRoutine, Resource, ResourceType
 from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.backend import SymbolicBackend, TExpr
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 BACKEND = sympy_backend
 
-
-T = TypeVar("T")
-# NOTE: Actually, it should be `Routine[T]` and `CompiledRoutine[T]`, but such syntax is not currently supported.
-AnyRoutine = TypeVar("AnyRoutine", Routine, CompiledRoutine)
+AggregationDict = dict[str, dict[str, TExpr[T]]]
 
 
 def add_aggregated_resources(
-    routine: AnyRoutine,
-    aggregation_dict: dict[str, dict[str, Any]],
+    routine: CompiledRoutine[T],
+    aggregation_dict: AggregationDict[T],
     remove_decomposed: bool = True,
-    backend: SymbolicBackend[T] = sympy_backend,
-) -> AnyRoutine:
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
     """Add aggregated resources to bartiq routine based on the aggregation dictionary.
 
     Args:
@@ -57,16 +54,16 @@ def add_aggregated_resources(
         Routine: The program with aggregated resources.
 
     """
-    expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict)
+    expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict, backend)
     return _add_aggregated_resources_to_subroutine(routine, expanded_aggregation_dict, remove_decomposed, backend)
 
 
 def _add_aggregated_resources_to_subroutine(
-    subroutine: AnyRoutine,
-    expanded_aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
+    subroutine: CompiledRoutine[T],
+    expanded_aggregation_dict: AggregationDict[T],
     remove_decomposed: bool,
     backend: SymbolicBackend[T] = BACKEND,
-) -> AnyRoutine:
+) -> CompiledRoutine[T]:
     new_children = {
         name: _add_aggregated_resources_to_subroutine(child, expanded_aggregation_dict, remove_decomposed, backend)
         for name, child in subroutine.children.items()
@@ -85,13 +82,13 @@ def _add_aggregated_resources_to_subroutine(
                     current_value_expr = backend.as_expression(aggregated_resources[sub_res].value)
                     aggregated_resources[sub_res] = replace(
                         aggregated_resources[sub_res],
-                        value=current_value_expr + multiplier_expr * resource_expr,  # type: ignore
+                        value=current_value_expr + multiplier_expr * resource_expr,
                     )
                 else:
                     new_resource = Resource[T](
                         name=sub_res,
                         type=subroutine.resources[resource_name].type,
-                        value=multiplier_expr * resource_expr,  # type: ignore
+                        value=multiplier_expr * resource_expr,
                     )
                     aggregated_resources[sub_res] = new_resource
             if remove_decomposed:
@@ -105,8 +102,8 @@ def _add_aggregated_resources_to_subroutine(
 
 
 def _expand_aggregation_dict(
-    aggregation_dict: dict[str, dict[str, str | TExpr[T]]], backend: SymbolicBackend[T] = BACKEND
-) -> dict[str, dict[str, TExpr[T]]]:
+    aggregation_dict: AggregationDict[T], backend: SymbolicBackend[T] = BACKEND
+) -> AggregationDict[T]:
     """Expand the aggregation dictionary to handle nested resources.
     Args:
         aggregation_dict: The input aggregation dictionary.
@@ -122,7 +119,7 @@ def _expand_aggregation_dict(
 
 def _expand_resource(
     resource: str,
-    aggregation_dict: dict[str, dict[str, str | TExpr[T]]],
+    aggregation_dict: AggregationDict[T],
     expanded_dict: dict[str, dict[str, TExpr[T]]],
     backend: SymbolicBackend[T] = BACKEND,
 ) -> dict[str, TExpr[T]]:
@@ -140,9 +137,9 @@ def _expand_resource(
         # Recursively expand the nested resources
         for sub_res, sub_multiplier in expanded_dict.get(current, {}).items():
             sub_multiplier_expr = backend.as_expression(sub_multiplier)
-            expanded_expr = backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr  # type: ignore
+            expanded_expr = backend.as_expression(expanded_mapping[current]) * sub_multiplier_expr
             if sub_res in expanded_mapping:
-                expanded_mapping[sub_res] = expanded_mapping[sub_res] + expanded_expr  # type: ignore
+                expanded_mapping[sub_res] = expanded_mapping[sub_res] + expanded_expr
             else:
                 expanded_mapping[sub_res] = expanded_expr
 
