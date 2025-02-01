@@ -233,6 +233,7 @@ def add_qubit_highwater(
     """Add information about qubit highwater to the routine.
 
     Qubit highwater is the number of qubits needed for a particular subroutine, at the place where it's "widest".
+    The resource added by this routine is an upper bound on the actual highwater.
 
     Args:
         routine: The routine to which the resources will be added.
