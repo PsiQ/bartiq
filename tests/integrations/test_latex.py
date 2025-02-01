@@ -96,6 +96,7 @@ LATEX_TEST_CASES = [
             local_variables={
                 "x_foo": "y + a",
                 "y_bar": "b * c",
+                "z_foo_bar": "a + b",
             },
         ),
         {},
@@ -105,7 +106,8 @@ LATEX_TEST_CASES = [
 &a, b\newline
 &\underline{\text{Local variables:}}\\
 &x_{\text{foo}} = a + y\\
-&y_{\text{bar}} = b \cdot c
+&y_{\text{bar}} = b \cdot c\\
+&z_{\text{foo\_bar}} = a + b
 """,
     ),
     # Only output ports
@@ -277,6 +279,30 @@ LATEX_TEST_CASES = [
 &\text{RoutineV1 \textrm{(root)}}\newline
 &\underline{\text{Resources:}}\\
 &N_{\text{x}} = \operatorname{sum}{\left(\text{~}.\!N_{\text{x}} \right)}
+""",
+    ),
+    # Handle repetition
+    (
+        RoutineV1(
+            name="root",
+            children=[
+                {
+                    "name": "a",
+                    "resources": [
+                        {"name": "y", "value": "2", "type": "additive"},
+                    ],
+                },
+            ],
+            repetition={"count": "log(y+2)", "sequence": {"type": "constant"}},
+        ),
+        {},
+        r"""
+&\text{RoutineV1 \textrm{(root)}}\newline
+&\underline{\text{Repetition:}}\\
+&\text{Count} = \log{\left(y + 2 \right)}\\
+&\text{Sequence type}:  constant\newline
+&\underline{\text{Resources:}}\\
+&\text{a}.\!y = 2
 """,
     ),
 ]

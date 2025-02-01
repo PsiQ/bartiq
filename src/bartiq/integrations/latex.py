@@ -15,13 +15,20 @@
 from collections.abc import Iterable
 from operator import attrgetter
 
-from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1, SchemaV1
+from qref.schema_v1 import (
+    ParamLinkV1,
+    PortV1,
+    RepetitionV1,
+    ResourceV1,
+    RoutineV1,
+    SchemaV1,
+)
 from sympy import latex, symbols
 
 from ..symbolics.sympy_backends import parse_to_sympy
 
 
-def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True) -> str:
+def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: bool = True, paged=False) -> str:
     """Returns a snippet of LaTeX used to render the routine using clear LaTeX.
 
     Args:
@@ -42,7 +49,13 @@ def routine_to_latex(routine: SchemaV1 | RoutineV1, show_non_root_resources: boo
     if resource_section := _format_resources(routine, show_non_root_resources):
         lines.append(resource_section)
 
-    return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
+    if paged:
+        return [
+            "$\\begin{align}\n" + line + "\n\\end{align}$"
+            for line in lines
+        ]
+    else:
+        return "$\\begin{align}\n" + "\\newline\n".join(lines) + "\n\\end{align}$"
 
 
 def _walk(routine: RoutineV1) -> Iterable[RoutineV1]:
@@ -107,12 +120,26 @@ def _format_local_variables(local_variables: dict[str, str]):
     return _format_section_multi_line("Local variables", lines)
 
 
+def _format_repetition(repetition: RepetitionV1):
+    """Formats routine's repetition to LaTeX."""
+    if repetition is None:
+        return ""
+    count = str(repetition.count)
+    sequence_type = repetition.sequence.type
+    lines = [
+        f"&{_format_name_text('Count')} = {_latex_expression(count)}",
+        f"&{_format_name_text('Sequence type')}:  {sequence_type}",
+    ]
+    return _format_section_multi_line("Repetition", lines)
+
+
 SECTIONS = [
     (attrgetter("input_params"), _format_input_params),
     (attrgetter("linked_params"), _format_linked_params),
     (_input_ports, _format_input_port_sizes),
     (_output_ports, _format_output_port_sizes),
     (attrgetter("local_variables"), _format_local_variables),
+    (attrgetter("repetition"), _format_repetition),
 ]
 
 
@@ -166,6 +193,7 @@ def _format_param_math(param: str) -> str:
 def _format_param_math_with_subscript(param: str) -> str:
     """Formats a subscripted param as math."""
     symbol, subscript = param.split("_", 1)
+    subscript = subscript.replace("_", r"\_")
     subscript_latex = latex(symbols(subscript))
     symbol_latex = latex(symbols(symbol))
 
