@@ -181,7 +181,7 @@ def _get_highwater_for_non_leaf(
 
                 # All offsprings of nodes in chain that don't participate in the merge
                 # have to be re-connected to the new, combined node that we'll create.
-                keys_to_fix |= set(key for key in tree if key in tree[key] in chain)
+                keys_to_fix |= set(key for key in tree if tree[key] in chain)
 
             # New node is labelled by combining all the participating tuples.
             # Here we see introducing passthrough (as opposed to only compensating by adding a flow)
