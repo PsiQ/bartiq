@@ -66,7 +66,6 @@ from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backends import parse_to_sympy
 from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, multiplicity
-from bartiq.symbolics.sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -133,7 +132,9 @@ def define_alphabet():
     ]
 
     alphabet_full = english_alphabet_full + greek_alphabet_full + hebrew_alphabet
-    alphabet_supported = list(filter(lambda letter: letter not in SPECIAL_PARAMS, alphabet_full))
+    alphabet_supported = list(
+        filter(lambda letter: letter not in SPECIAL_PARAMS, alphabet_full)
+    )
 
     return alphabet_supported
 
@@ -149,7 +150,9 @@ def make_alphabet_test_cases(use):
     # NOTE: functions can't be port-pathed, but symbols can be
     if use == "symbol":
         alphabet_with_paths += list(map(add_port_path, alphabet))
-    test_cases_with_paths = [make_alphabet_test_case(letter, use) for letter in alphabet_with_paths]
+    test_cases_with_paths = [
+        make_alphabet_test_case(letter, use) for letter in alphabet_with_paths
+    ]
 
     return [
         *test_cases_no_paths,
@@ -385,30 +388,26 @@ PARSE_TEST_CASES = [
 
 
 @pytest.mark.parametrize("expression, expected_sympy_expression", PARSE_TEST_CASES)
-@pytest.mark.parametrize("parse", [parse_to_sympy, legacy_parse_to_sympy])
-@pytest.mark.filterwarnings("ignore:Legacy, pyparsing based sympy parser")
-@pytest.mark.filterwarnings(r"ignore:Using \^ operator to denote exponentiation is deprecated\.")
-@pytest.mark.filterwarnings(r"ignore:Results for using BigO with multiple #variables might be unreliable\.")
-def test_parse_to_sympy(expression, expected_sympy_expression, parse):
+@pytest.mark.filterwarnings(
+    r"ignore:Using \^ operator to denote exponentiation is deprecated\."
+)
+@pytest.mark.filterwarnings(
+    r"ignore:Results for using BigO with multiple #variables might be unreliable\."
+)
+def test_parse_to_sympy(expression, expected_sympy_expression):
     """Tests for the sympy expression parser."""
-    sympy_expression = parse(expression, debug=True)
+    sympy_expression = parse_to_sympy(expression, debug=True)
     assert sympy_expression == expected_sympy_expression
 
     # Test round-trip via cast to string
     new_expression = serialize_expression(sympy_expression)
-    sympy_expression = parse(new_expression)
+    sympy_expression = parse_to_sympy(new_expression)
     assert sympy_expression == expected_sympy_expression
 
 
 def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
     expr = "x ^ 2"
-    with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
+    with pytest.warns(
+        match=r"Using \^ operator to denote exponentiation is deprecated\."
+    ):
         _ = parse_to_sympy(expr)
-
-
-def test_legacy_parser_raises_deprecation_warning():
-    expr = "x + y"
-    with pytest.warns(match="Legacy, pyparsing based sympy parser"):
-        # Don't remove __wrapped__ here, we have to unwrap from lru_cache
-        # because otherwise we might miss the warning.
-        legacy_parse_to_sympy.__wrapped__(expr)
