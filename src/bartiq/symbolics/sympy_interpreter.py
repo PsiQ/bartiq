@@ -77,15 +77,12 @@ SPECIAL_PARAMS = {
     "Infinity": sympy_constants.Infinity,
     "NegativeInfinity": sympy_constants.NegativeInfinity,
     "ComplexInfinity": sympy_constants.ComplexInfinity,
-    "oo": sympy_constants.Infinity,
-    "noo": sympy_constants.NegativeInfinity,
-    "zoo": sympy_constants.ComplexInfinity,
 }
 
 EPSILON = 1e-12
 
 
-def better_prod(*args):
+def better_prod(*args) -> Number:
     """Defines a version of product which has sane zero- and one-argument defaults."""
     if len(args) == 0:
         return 1
@@ -184,7 +181,6 @@ SPECIAL_FUNCS = {
     "prod": better_prod,
     "exp": exp,
     "log": log,
-    "ceil": ceiling,
     "ceiling": ceiling,
     "floor": floor,
     "re": re,
@@ -192,9 +188,7 @@ SPECIAL_FUNCS = {
     "frac": frac,
     "exp2": exp2,
     "log2": log2,
-    "log_2": log2,
     "log10": log10,
-    "log_10": log10,
     "lambertw": LambertW,
     "gamma": gamma,
     "heaviside": Heaviside,
@@ -244,3 +238,7 @@ class SympyInterpreter(Interpreter):
 def _contains_wildcard_arg(args):
     """Returns ``True`` if any argument contains the wildcard character."""
     return any(WILDCARD_CHARACTER in str(arg) for arg in args)
+
+
+if __name__ == "__main__":
+    print(nlz(1))
