@@ -31,7 +31,6 @@ from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
 from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
-from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -59,14 +58,20 @@ ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
 TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 
 
-def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer[P, Iterable[T]]:
-    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:
+def empty_for_numbers(
+    func: ExprTransformer[P, Iterable[T]]
+) -> TExprTransformer[P, Iterable[T]]:
+    def _inner(
+        backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs
+    ) -> Iterable[T]:
         return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
 
 
-def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransformer[P, T | Number]:
+def identity_for_numbers(
+    func: ExprTransformer[P, T | Number]
+) -> TExprTransformer[P, T | Number]:
     """Return a new method that preserves originally passed one on expressions and acts as identity on numbers.
 
     Note:
@@ -76,7 +81,9 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
         in an obscure bug: https://github.com/PsiQ/bartiq/issues/143
     """
 
-    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> T | Number:
+    def _inner(
+        backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs
+    ) -> T | Number:
         return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
@@ -106,7 +113,9 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
             except Exception:
                 return None
 
-        sympy_func = type(func_name, (sympy.Function,), {"eval": classmethod(_eval_wrapper)})
+        sympy_func = type(
+            func_name, (sympy.Function,), {"eval": classmethod(_eval_wrapper)}
+        )
     else:
         sympy_func = func
 
@@ -161,7 +170,9 @@ class SympyBackend:
 
     @identity_for_numbers
     def as_native(self, expr: Expr) -> str | int | float:
-        return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
+        return (
+            value if (value := self.value_of(expr)) is not None else self.serialize(expr)
+        )
 
     @empty_for_numbers
     def free_symbols_in(self, expr: Expr) -> Iterable[str]:
@@ -187,7 +198,11 @@ class SympyBackend:
     ) -> TExpr[Expr]:
 
         symbols_in_expr = self.free_symbols_in(expr)
-        restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
+        restricted_replacements = [
+            (symbols(old), new)
+            for old, new in replacements.items()
+            if old in symbols_in_expr
+        ]
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
             functions_map = {}
@@ -196,7 +211,9 @@ class SympyBackend:
         return value if (value := self.value_of(expr)) is not None else expr
 
     @identity_for_numbers
-    def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
+    def _define_function(
+        self, expr: Expr, func_name: str, function: Callable
+    ) -> TExpr[Expr]:
         """Define an undefined function."""
         # Catch attempt to define special function names
         if func_name in BUILT_IN_FUNCTIONS:
@@ -206,7 +223,8 @@ class SympyBackend:
 
         sympy_func = _sympify_function(func_name, function)
         return expr.replace(
-            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES) and str(type(pattern)) == func_name,
+            lambda pattern: isinstance(pattern, SYMPY_USER_FUNCTION_TYPES)
+            and str(type(pattern)) == func_name,
             lambda match: sympy_func(*match.args),
         )
 
@@ -257,13 +275,21 @@ class SympyBackend:
         return sympy.Max(*args)
 
     def sequence_sum(
-        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+        self,
+        term: TExpr[Expr],
+        iterator_symbol: TExpr[Expr],
+        start: TExpr[Expr],
+        end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
     def sequence_prod(
-        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+        self,
+        term: TExpr[Expr],
+        iterator_symbol: TExpr[Expr],
+        start: TExpr[Expr],
+        end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
@@ -271,6 +297,3 @@ class SympyBackend:
 
 # Define sympy_backend for backwards compatibility
 sympy_backend = SympyBackend(parse_to_sympy)
-
-# And a shortcut for backend using a legacy parser
-legacy_sympy_backend = SympyBackend(legacy_parse_to_sympy)
