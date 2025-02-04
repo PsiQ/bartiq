@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import operator
-from functools import lru_cache
-from warnings import warn
 
 from sympy import (
     Function,
@@ -60,28 +58,7 @@ from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from .grammar import WILDCARD_CHARACTER, Interpreter, debuggable, make_parser
-
-
-@lru_cache
-def parse_to_sympy(string, debug=False):
-    """Parses a string to a sympy expression.
-
-    Args:
-        string (str): The string to parse.
-        debug (bool, optional): If ``True``, debug information is printed on failure. Default is ``False``.
-
-    Returns:
-        sympy.Basic: Some sympy expression.
-    """
-    warn(
-        "Legacy, pyparsing based sympy parser is deprecated, use default sympy_backend when calling compile_routine "
-        "and evaluate",
-        DeprecationWarning,
-    )
-    interpreter = SympyInterpreter(debug=debug)
-    parser = make_parser(interpreter)
-    return parser.parse_string(string)[0]
+from .grammar import WILDCARD_CHARACTER, Interpreter, debuggable
 
 
 BINARY_OPS = {
@@ -134,7 +111,9 @@ class Round(Function):
         """Define the delayed evaluation in the case where the input is not yet defined."""
         x, *other_args = self.args
 
-        assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
+        assert (
+            len(other_args) <= 1
+        ), f"Expected at most only a single extra argument; found {other_args}."
         ndigits = other_args[0] if other_args else Number(0)
 
         # If deep, propagate the evaluation downwards
@@ -157,7 +136,11 @@ class Round(Function):
 class multiplicity(Function):
     @classmethod
     def eval(cls, p, n):
-        return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
+        return (
+            orig_multiplicity(p, n)
+            if isinstance(p, Integer) and isinstance(n, Integer)
+            else None
+        )
 
 
 class nlz(Function):
