@@ -132,9 +132,7 @@ def define_alphabet():
     ]
 
     alphabet_full = english_alphabet_full + greek_alphabet_full + hebrew_alphabet
-    alphabet_supported = list(
-        filter(lambda letter: letter not in SPECIAL_PARAMS, alphabet_full)
-    )
+    alphabet_supported = list(filter(lambda letter: letter not in SPECIAL_PARAMS, alphabet_full))
 
     return alphabet_supported
 
@@ -150,9 +148,7 @@ def make_alphabet_test_cases(use):
     # NOTE: functions can't be port-pathed, but symbols can be
     if use == "symbol":
         alphabet_with_paths += list(map(add_port_path, alphabet))
-    test_cases_with_paths = [
-        make_alphabet_test_case(letter, use) for letter in alphabet_with_paths
-    ]
+    test_cases_with_paths = [make_alphabet_test_case(letter, use) for letter in alphabet_with_paths]
 
     return [
         *test_cases_no_paths,
@@ -388,12 +384,8 @@ PARSE_TEST_CASES = [
 
 
 @pytest.mark.parametrize("expression, expected_sympy_expression", PARSE_TEST_CASES)
-@pytest.mark.filterwarnings(
-    r"ignore:Using \^ operator to denote exponentiation is deprecated\."
-)
-@pytest.mark.filterwarnings(
-    r"ignore:Results for using BigO with multiple #variables might be unreliable\."
-)
+@pytest.mark.filterwarnings(r"ignore:Using \^ operator to denote exponentiation is deprecated\.")
+@pytest.mark.filterwarnings(r"ignore:Results for using BigO with multiple #variables might be unreliable\.")
 def test_parse_to_sympy(expression, expected_sympy_expression):
     """Tests for the sympy expression parser."""
     sympy_expression = parse_to_sympy(expression, debug=True)
@@ -407,7 +399,5 @@ def test_parse_to_sympy(expression, expected_sympy_expression):
 
 def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
     expr = "x ^ 2"
-    with pytest.warns(
-        match=r"Using \^ operator to denote exponentiation is deprecated\."
-    ):
+    with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
         _ = parse_to_sympy(expr)

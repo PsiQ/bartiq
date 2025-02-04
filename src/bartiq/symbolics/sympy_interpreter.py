@@ -111,9 +111,7 @@ class Round(Function):
         """Define the delayed evaluation in the case where the input is not yet defined."""
         x, *other_args = self.args
 
-        assert (
-            len(other_args) <= 1
-        ), f"Expected at most only a single extra argument; found {other_args}."
+        assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
         ndigits = other_args[0] if other_args else Number(0)
 
         # If deep, propagate the evaluation downwards
@@ -136,11 +134,7 @@ class Round(Function):
 class multiplicity(Function):
     @classmethod
     def eval(cls, p, n):
-        return (
-            orig_multiplicity(p, n)
-            if isinstance(p, Integer) and isinstance(n, Integer)
-            else None
-        )
+        return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
 
 
 class nlz(Function):
