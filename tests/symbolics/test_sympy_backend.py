@@ -95,7 +95,7 @@ def test_attempt_to_define_builtin_function_fails():
         ("1", False),
         ("3.141", False),
         ("N+1", False),
-        ("ceil(log_2(N))", False),
+        ("ceiling(log_2(N))", False),
         (None, False),
     ],
 )
@@ -119,7 +119,7 @@ def test_expressions_are_correctly_converted_to_native_types_based_on_their_cate
 
 @pytest.mark.parametrize(
     "func_name, arg_str, expected_native_result",
-    [("ceil", 2, 2), ("sin", "PI", 0), ("sin", "x", "sin(x)"), ("sin", "PI/6", 0.5)],
+    [("ceiling", 2, 2), ("sin", "PI", 0), ("sin", "x", "sin(x)"), ("sin", "PI/6", 0.5)],
 )
 def test_functions_obtained_from_backend_can_be_called_to_obtain_new_expressions(
     func_name, arg_str, expected_native_result, backend
