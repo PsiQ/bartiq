@@ -59,6 +59,7 @@ from sympy.core.numbers import S as sympy_constants
 
 from .grammar import Interpreter, debuggable
 
+WILDCARD_CHARACTER: str = "~"
 
 BINARY_OPS = {
     "+": operator.add,
@@ -220,9 +221,26 @@ class SympyInterpreter(Interpreter):
 
     @debuggable
     def create_function(self, tokens: tuple[str, Any]) -> Function:
-        """Return a sympy function."""
+        """Return a sympy function.
+
+        If the function arguments contain a wildcard
+
+        """
         name, args = tokens
-        # If the function is not known, or potentially has a wildcard character, we cast to a generic function
-        func = SPECIAL_FUNCS[name.lower()] if name.lower() in SPECIAL_FUNCS else Function(name)
+        if _contains_wildcard_arg(args):
+            func = Function(name)
+
+        # Case 2: If a known function, use that
+        elif name.lower() in SPECIAL_FUNCS:
+            func = SPECIAL_FUNCS[name.lower()]
+
+        # Case 3: If nothing else works, just cast to a generic function
+        else:
+            func = Function(name)
 
         return func(*args)
+
+
+def _contains_wildcard_arg(args):
+    """Returns ``True`` if any argument contains the wildcard character."""
+    return any(WILDCARD_CHARACTER in str(arg) for arg in args)
