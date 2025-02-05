@@ -57,7 +57,7 @@ from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from .grammar import Interpreter, debuggable
+from bartiq.symbolics.grammar import Interpreter, debuggable
 
 WILDCARD_CHARACTER: str = "~"
 
@@ -75,8 +75,11 @@ BINARY_OPS = {
 SPECIAL_PARAMS = {
     "PI": sympy_constants.Pi,
     "Infinity": sympy_constants.Infinity,
+    "oo": sympy_constants.Infinity,
     "NegativeInfinity": sympy_constants.NegativeInfinity,
+    "-oo": sympy_constants.NegativeInfinity,
     "ComplexInfinity": sympy_constants.ComplexInfinity,
+    "zoo": sympy_constants.ComplexInfinity,
 }
 
 EPSILON = 1e-12
@@ -238,7 +241,3 @@ class SympyInterpreter(Interpreter):
 def _contains_wildcard_arg(args):
     """Returns ``True`` if any argument contains the wildcard character."""
     return any(WILDCARD_CHARACTER in str(arg) for arg in args)
-
-
-if __name__ == "__main__":
-    print(nlz(1))
