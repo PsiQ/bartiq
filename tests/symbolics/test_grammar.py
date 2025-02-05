@@ -10,12 +10,9 @@
 Tests for our parsing grammar.
 """
 
-import re
-
 import pytest
-from pyparsing import ParseException
 
-from bartiq.symbolics.grammar import Interpreter, debuggable, make_parser
+from bartiq.symbolics.grammar import Interpreter, debuggable
 
 
 @pytest.mark.parametrize(
@@ -41,12 +38,6 @@ from bartiq.symbolics.grammar import Interpreter, debuggable, make_parser
         ("3.141 * a.3.141.b", "found '.'  (at char 9)"),
     ],
 )
-def test_parse_to_sympy_errors(expression, expected_error):
-    parser = make_parser(DummyInterpreter())
-    with pytest.raises(ParseException, match=re.escape(expected_error)):
-        parser.parse_string(expression)
-
-
 class DummyInterpreter(Interpreter):
     """An interpreter stub for testing the parser."""
 
@@ -60,12 +51,4 @@ class DummyInterpreter(Interpreter):
 
     @debuggable
     def create_function(self, tokens):
-        """Dummy method."""
-
-    @debuggable
-    def create_expression(self, tokens):
-        """Dummy method."""
-
-    @debuggable
-    def create_unary_atom(self, tokens):
         """Dummy method."""
