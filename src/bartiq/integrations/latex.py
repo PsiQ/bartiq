@@ -15,14 +15,7 @@
 from collections.abc import Iterable
 from operator import attrgetter
 
-from qref.schema_v1 import (
-    ParamLinkV1,
-    PortV1,
-    RepetitionV1,
-    ResourceV1,
-    RoutineV1,
-    SchemaV1,
-)
+from qref.schema_v1 import ParamLinkV1, PortV1, RepetitionV1, ResourceV1, RoutineV1, SchemaV1
 from sympy import latex, symbols
 
 from ..symbolics.sympy_backends import parse_to_sympy
