@@ -27,26 +27,13 @@ from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 
-from .._routine import (
-    CompiledRoutine,
-    Endpoint,
-    Port,
-    Resource,
-    Routine,
-    routine_to_qref,
-)
+from .._routine import CompiledRoutine, Endpoint, Port, Resource, Routine, routine_to_qref
 from ..errors import BartiqCompilationError
 from ..repetitions import Repetition
 from ..symbolics import sympy_backend
 from ..symbolics.backend import SymbolicBackend, T, TExpr
 from ..verification import verify_uncompiled_repetitions
-from ._common import (
-    ConstraintValidationError,
-    Context,
-    evaluate_constraints,
-    evaluate_ports,
-    evaluate_resources,
-)
+from ._common import ConstraintValidationError, Context, evaluate_constraints, evaluate_ports, evaluate_resources
 from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
 from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
