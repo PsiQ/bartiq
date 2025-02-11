@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any
-import sympy
 import operator
+from typing import Any
+
 from sympy import (
     Basic,
     Function,
@@ -224,18 +224,21 @@ class SympyInterpreter(Interpreter):
     def create_function(self, tokens: tuple[str, Any]) -> Function:
         """Return a sympy function.
 
-        If the function arguments contain a wildcard
+        If the function arguments contain a wildcard, we delay evaluation as sympy may
+        fail to evaluate it correctly, e.g. sum(~X) being evaluated to ~.X.
+
+        If the function is known, apply that function.
+
+        If neither of these cases trigger, cast to a generic function.
 
         """
         name, args = tokens
         if _contains_wildcard_arg(args):
             func = Function(name)
 
-        # Case 2: If a known function, use that
         elif name.lower() in SPECIAL_FUNCS:
             func = SPECIAL_FUNCS[name.lower()]
 
-        # Case 3: If nothing else works, just cast to a generic function
         else:
             func = Function(name)
 
