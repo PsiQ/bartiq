@@ -40,6 +40,9 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 
+ALL_SYMPY_FUNCTIONS = dir(sympy)
+ALL_SYMPY_CONSTANTS = dir(sympy.core.numbers)
+
 S: TypeAlias = Expr | Number
 
 T = TypeVar("T")
@@ -274,6 +277,74 @@ class SympyBackend:
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
+
+    @staticmethod
+    def inspect_expression(expression: sympy.Basic) -> None:
+        """Inspect a sympy expression for potential issues.
+
+        This method is useful for investigating an expression that
+        will unexpectedly not evaluate.
+
+        Args:
+            expression (sympy.Basic): The sympy expression to inspect.
+
+        Raises:
+            ValueError: If a operation in the provided expression is not recognised.
+        """
+        ops = _unpack_expression_into_operations(expression=expression)
+
+        known_functions: list[str] = ALL_SYMPY_CONSTANTS + ALL_SYMPY_FUNCTIONS
+
+        for element in ops - set(known_functions):
+            raise ValueError(f"Unrecognised function call {element}.")
+
+
+def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
+    """Unpack a sympy expression into its constituent operations.
+
+    This function recursively inspects the `args` property of the sympy expression
+    and returns a set of strings, each of which is the name of an operation in
+    the expression.
+
+    Args:
+        expression (sympy.Basic): Expression to unpack.
+
+    Returns:
+        set[str]: The set of named operations in the expression.
+    """
+    def recursively_unpack(expression: sympy.Basic, ops: set[type]):
+        for arg in expression.args:
+            ops = recursively_unpack(arg, ops)
+        ops.add(type(expression).__name__)
+        return ops
+    return recursively_unpack(expression=expression, ops=set())
+
+
+def hamming_distance(str1: str, str2: str) -> int:
+    """
+    Calculate the Hamming distance between two strings of arbitrary length.
+
+    Args:
+        str1 (str): The first string.
+        str2 (str): The second string.
+
+    Returns:
+        int: The Hamming distance between the two strings.
+
+    Raises:
+        ValueError: If the strings are not of the same length.
+    """
+    l1, l2 = len(str1), len(str2)
+    if l1 < l2:
+        str1.ljust(l2 - l1)
+    if l2 < l1:
+        str2.ljust(l1 - l2)
+
+    return sum(c1 != c2 for c1, c2 in zip(str1, str2))
+
+# Example usage:
+# distance = hamming_distance("karolin", "kathrin")
+# print(distance)  # Output: 3
 
 
 # Define sympy_backend for backwards compatibility

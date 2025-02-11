@@ -13,9 +13,8 @@
 # limitations under the License.
 import operator
 from typing import Any
-
+import sympy
 from sympy import (
-    Basic,
     Function,
     Heaviside,
     Integer,
@@ -248,39 +247,3 @@ class SympyInterpreter(Interpreter):
 def _contains_wildcard_arg(args):
     """Returns ``True`` if any argument contains the wildcard character."""
     return any(WILDCARD_CHARACTER in str(arg) for arg in args)
-
-
-def _unpack_expression_into_operations(expression: Basic) -> set[str]:
-    """Unpack a sympy expression into its constituent operations.
-
-    This function recursively inspects the `args` property of the sympy expression,
-    and returns a set of strings, each of which is the name of an operation in
-    the expression.
-
-    Args:
-        expression (Basic): Expression to unpack.
-
-    Returns:
-        set[str]: The set of named operations in the expression.
-    """
-    def recursively_unpack(expression: Basic, ops: set[type]):
-        for arg in expression.args:
-            ops = recursively_unpack(arg, ops)
-        ops.add(type(expression).__name__)
-        return ops
-    return recursively_unpack(expression=expression, ops=set())
-
-
-ALL_SYMPY_FUNCTIONS = dir(sympy)
-ALL_SYMPY_CONSTANTS = dir(sympy_constants)
-
-
-if __name__ == "__main__":
-    from sympy import sympify
-    expr = sympify("12*ceiling(log_2(b)) + 3*max(0,1/x) + 5")
-    ops = _unpack_expression_into_operations(expr)
-    print(ops - set(ALL_SYMPY_CONSTANTS + ALL_SYMPY_FUNCTIONS))
-    # print(expr.free_symbols)
-    # f = sympy.lambdify([Symbol('x'), Symbol('b')], expr, "numpy")
-    # print(f(1, 2))
-    # # print(ops)
