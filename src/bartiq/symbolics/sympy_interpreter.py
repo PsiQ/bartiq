@@ -14,6 +14,7 @@
 from typing import Any
 import operator
 from sympy import (
+    Basic,
     Function,
     Heaviside,
     Integer,
@@ -80,6 +81,8 @@ SPECIAL_PARAMS = {
     "-oo": sympy_constants.NegativeInfinity,
     "ComplexInfinity": sympy_constants.ComplexInfinity,
     "zoo": sympy_constants.ComplexInfinity,
+    "NegativeOne": sympy_constants.NegativeOne,
+    "Zero": sympy_constants.Zero,
 }
 
 EPSILON = 1e-12
@@ -241,3 +244,34 @@ class SympyInterpreter(Interpreter):
 def _contains_wildcard_arg(args):
     """Returns ``True`` if any argument contains the wildcard character."""
     return any(WILDCARD_CHARACTER in str(arg) for arg in args)
+
+
+def _unpack_expression_into_operations(expression: Basic) -> set[str]:
+    """Unpack a sympy expression into its constituent operations.
+
+    This function recursively inspects the `args` property of the sympy expression,
+    and returns a set of strings, each of which is the name of an operation in
+    the expression.
+
+    Args:
+        expression (Basic): Expression to unpack.
+
+    Returns:
+        set[str]: The set of named operations in the expression.
+    """
+    def recursively_unpack(expression: Basic, ops: set[type]):
+        for arg in expression.args:
+            ops = recursively_unpack(arg, ops)
+        ops.add(type(expression).__name__)
+        return ops
+    return recursively_unpack(expression=expression, ops=set())
+
+
+if __name__ == "__main__":
+    from sympy import sympify
+    import sympy
+    expr = sympify("12*ceiling(log_2(12)) + 3*max(0,1/x) + 5")
+    print(expr.subs("x", 1))
+    ops = _unpack_expression_into_operations(expr)
+    print(ops)
+    # print(ops)
