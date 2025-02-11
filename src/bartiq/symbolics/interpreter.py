@@ -15,8 +15,6 @@
 from abc import ABC, abstractmethod
 from functools import wraps
 
-from pyparsing import ParseResults
-
 
 class Interpreter(ABC):
     """Abstract base class for interpreting the Bartiq grammar."""
@@ -50,8 +48,7 @@ def debuggable(method):
         output = method(self, tokens)
         if self.debug:
             print(method.__name__)
-            tokens_str = [token.as_list() if isinstance(token, ParseResults) else token for token in tokens]
-            print(f"tokens={tokens_str}")
+            print(f"tokens={tokens}")
             print(f"parsed as: {output}\n")
 
         return output
