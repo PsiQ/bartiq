@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Any
+import sympy
 import operator
 from sympy import (
     Basic,
@@ -267,11 +268,16 @@ def _unpack_expression_into_operations(expression: Basic) -> set[str]:
     return recursively_unpack(expression=expression, ops=set())
 
 
+ALL_SYMPY_FUNCTIONS = dir(sympy)
+ALL_SYMPY_CONSTANTS = dir(sympy_constants)
+
+
 if __name__ == "__main__":
     from sympy import sympify
-    import sympy
-    expr = sympify("12*ceiling(log_2(12)) + 3*max(0,1/x) + 5")
-    print(expr.subs("x", 1))
+    expr = sympify("12*ceiling(log_2(b)) + 3*max(0,1/x) + 5")
     ops = _unpack_expression_into_operations(expr)
-    print(ops)
-    # print(ops)
+    print(ops - set(ALL_SYMPY_CONSTANTS + ALL_SYMPY_FUNCTIONS))
+    # print(expr.free_symbols)
+    # f = sympy.lambdify([Symbol('x'), Symbol('b')], expr, "numpy")
+    # print(f(1, 2))
+    # # print(ops)
