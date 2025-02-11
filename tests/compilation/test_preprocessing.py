@@ -2,7 +2,11 @@ import pytest
 from qref.schema_v1 import RoutineV1
 
 from bartiq._routine import Routine, routine_to_qref
-from bartiq.compilation.preprocessing import PreprocessingStage, propagate_child_resources, propagate_linked_params
+from bartiq.compilation.preprocessing import (
+    PreprocessingStage,
+    propagate_child_resources,
+    propagate_linked_params,
+)
 
 
 def _apply_stage(qref_obj: RoutineV1, stage: PreprocessingStage, backend) -> RoutineV1:
