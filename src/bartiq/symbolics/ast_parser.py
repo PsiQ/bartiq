@@ -14,8 +14,7 @@
 
 """AST-based expression parser.
 
-Contrary to pyparsing-based grammar from grammar.py, this module
-utilizes ast to parse an arithmetic expression as Python expresson.
+This module utilizes ast to parse an arithmetic expression as Python expresson.
 Since not all expressions that we use are correct Python expressions,
 the parser first preprocesses expressions and replaces unallowed
 syntax with carefully crafted function calls. In particular:
