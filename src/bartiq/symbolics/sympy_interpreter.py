@@ -13,7 +13,6 @@
 # limitations under the License.
 import operator
 from typing import Any
-from typing import Any
 
 from sympy import (
     Function,
