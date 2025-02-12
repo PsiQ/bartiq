@@ -51,7 +51,7 @@ from functools import singledispatch, singledispatchmethod
 from typing import Callable
 from warnings import warn
 
-from .grammar import Interpreter
+from .interpreter import Interpreter
 
 _BINARY_OP_MAP = {
     ast.Mult: operator.mul,
