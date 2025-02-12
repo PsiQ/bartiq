@@ -295,7 +295,7 @@ class SympyBackend:
         """
         ops = _unpack_expression_into_operations(expression=expression)
 
-        known_functions: set[str] = set(_ALL_SYMPY_CONSTANTS + _ALL_SYMPY_OPS + list(SPECIAL_FUNCS.keys()))
+        known_functions: set[str] = set(_ALL_SYMPY_CONSTANTS + _ALL_SYMPY_OPS + BUILT_IN_FUNCTIONS)
         potentially_unknown_functions: list[str] = list(ops - known_functions)
         if potentially_unknown_functions:
             closest_match: list[str] = difflib.get_close_matches(
