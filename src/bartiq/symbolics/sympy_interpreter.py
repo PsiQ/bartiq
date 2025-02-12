@@ -76,19 +76,17 @@ BINARY_OPS = {
 SPECIAL_PARAMS = {
     "PI": sympy_constants.Pi,
     "Infinity": sympy_constants.Infinity,
-    "oo": sympy_constants.Infinity,
     "NegativeInfinity": sympy_constants.NegativeInfinity,
-    "-oo": sympy_constants.NegativeInfinity,
     "ComplexInfinity": sympy_constants.ComplexInfinity,
+    "oo": sympy_constants.Infinity,
+    "noo": sympy_constants.NegativeInfinity,
     "zoo": sympy_constants.ComplexInfinity,
-    "NegativeOne": sympy_constants.NegativeOne,
-    "Zero": sympy_constants.Zero,
 }
 
 EPSILON = 1e-12
 
 
-def better_prod(*args) -> Number:
+def better_prod(*args):
     """Defines a version of product which has sane zero- and one-argument defaults."""
     if len(args) == 0:
         return 1
@@ -187,6 +185,7 @@ SPECIAL_FUNCS = {
     "prod": better_prod,
     "exp": exp,
     "log": log,
+    "ceil": ceiling,
     "ceiling": ceiling,
     "floor": floor,
     "re": re,
@@ -194,7 +193,9 @@ SPECIAL_FUNCS = {
     "frac": frac,
     "exp2": exp2,
     "log2": log2,
+    "log_2": log2,
     "log10": log10,
+    "log_10": log10,
     "lambertw": LambertW,
     "gamma": gamma,
     "heaviside": Heaviside,
