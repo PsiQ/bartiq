@@ -13,6 +13,7 @@
 # limitations under the License.
 import operator
 from typing import Any
+from typing import Any
 
 from sympy import (
     Function,
@@ -59,8 +60,6 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from .interpreter import Interpreter, debuggable
-
-WILDCARD_CHARACTER: str = "~"
 
 WILDCARD_CHARACTER: str = "~"
 
@@ -210,14 +209,10 @@ class SympyInterpreter(Interpreter):
 
     @debuggable
     def create_number(self, tokens) -> Number:
-
-    def create_number(self, tokens) -> Number:
         """Return a sympy number."""
         return Number(tokens[0])
 
     @debuggable
-    def create_parameter(self, tokens) -> Symbol:
-
     def create_parameter(self, tokens) -> Symbol:
         """Return a sympy Symbol."""
         param = tokens[0]
@@ -226,18 +221,6 @@ class SympyInterpreter(Interpreter):
         return Symbol(param)
 
     @debuggable
-    def create_function(self, tokens: tuple[str, Any]) -> Function:
-        """Return a sympy function.
-
-        If the function arguments contain a wildcard, we delay evaluation as sympy may
-        fail to evaluate it correctly, e.g. sum(~X) being evaluated to ~.X.
-
-        If the function is known, apply that function.
-
-        If neither of these cases trigger, cast to a generic function.
-
-        """
-
     def create_function(self, tokens: tuple[str, Any]) -> Function:
         """Return a sympy function.
 
