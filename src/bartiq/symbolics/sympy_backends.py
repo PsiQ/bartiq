@@ -17,6 +17,7 @@
 # for explanation how a module can implement a protocol.
 
 from __future__ import annotations
+import difflib
 
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
@@ -40,8 +41,8 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 
-ALL_SYMPY_FUNCTIONS = dir(sympy)
-ALL_SYMPY_CONSTANTS = dir(sympy.core.numbers)
+_ALL_SYMPY_OPS = sympy.functions.__all__ + sympy.core.__all__
+_ALL_SYMPY_CONSTANTS = dir(sympy.S)
 
 S: TypeAlias = Expr | Number
 
@@ -283,7 +284,8 @@ class SympyBackend:
         """Inspect a sympy expression for potential issues.
 
         This method is useful for investigating an expression that
-        will unexpectedly not evaluate.
+        will unexpectedly not evaluate; if no unknown functions are found in
+        the expression this function will not return anything.
 
         Args:
             expression (sympy.Basic): The sympy expression to inspect.
@@ -293,10 +295,17 @@ class SympyBackend:
         """
         ops = _unpack_expression_into_operations(expression=expression)
 
-        known_functions: list[str] = ALL_SYMPY_CONSTANTS + ALL_SYMPY_FUNCTIONS
+        known_functions: set[str] = set(_ALL_SYMPY_CONSTANTS + _ALL_SYMPY_OPS + list(SPECIAL_FUNCS.keys()))
+        potentially_unknown_functions: list[str] = list(ops - known_functions)
+        if potentially_unknown_functions:
+            closest_match: list[str] = difflib.get_close_matches(
+                word=potentially_unknown_functions[0], possibilities=known_functions)
+            msg = f"Unrecognised function call {potentially_unknown_functions[0]}."
+            if closest_match:
+                msg += f"\nDid you mean {f"one of {closest_match}" if len(
+                    closest_match) > 1 else f"{closest_match[0]}"}?."
 
-        for element in ops - set(known_functions):
-            raise ValueError(f"Unrecognised function call {element}.")
+            raise ValueError(msg)
 
 
 def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
@@ -318,33 +327,6 @@ def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
         ops.add(type(expression).__name__)
         return ops
     return recursively_unpack(expression=expression, ops=set())
-
-
-def hamming_distance(str1: str, str2: str) -> int:
-    """
-    Calculate the Hamming distance between two strings of arbitrary length.
-
-    Args:
-        str1 (str): The first string.
-        str2 (str): The second string.
-
-    Returns:
-        int: The Hamming distance between the two strings.
-
-    Raises:
-        ValueError: If the strings are not of the same length.
-    """
-    l1, l2 = len(str1), len(str2)
-    if l1 < l2:
-        str1.ljust(l2 - l1)
-    if l2 < l1:
-        str2.ljust(l1 - l2)
-
-    return sum(c1 != c2 for c1, c2 in zip(str1, str2))
-
-# Example usage:
-# distance = hamming_distance("karolin", "kathrin")
-# print(distance)  # Output: 3
 
 
 # Define sympy_backend for backwards compatibility
