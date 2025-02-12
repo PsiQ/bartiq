@@ -95,7 +95,7 @@ def test_attempt_to_define_builtin_function_fails():
         ("1", False),
         ("3.141", False),
         ("N+1", False),
-        ("ceiling(log_2(N))", False),
+        ("ceiling(log2(N))", False),
         (None, False),
     ],
 )
