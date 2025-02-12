@@ -66,9 +66,7 @@ def _constant_sequence_prod(unit_cost, count, multiplier):
 @pytest.mark.parametrize("multiplier", [1, 2, 5])
 def test_constant_sequence_is_correct(unit_cost, count, multiplier):
     unit_T, unit_prob = unit_cost
-    routine = _routine_with_repetition(
-        {"count": count, "sequence": {"type": "constant", "multiplier": multiplier}}
-    )
+    routine = _routine_with_repetition({"count": count, "sequence": {"type": "constant", "multiplier": multiplier}})
 
     compiled_routine = compile_routine(routine).routine
     assignments = {"unit_T": unit_T, "unit_prob": unit_prob}
@@ -148,9 +146,7 @@ def _geometric_sequence_prod(unit_cost, count, ratio):
 @pytest.mark.parametrize("ratio", [2, 3])
 def test_geometric_sequence_is_correct(unit_cost, count, ratio):
     unit_T, unit_prob = unit_cost
-    routine = _routine_with_repetition(
-        {"count": count, "sequence": {"type": "geometric", "ratio": ratio}}
-    )
+    routine = _routine_with_repetition({"count": count, "sequence": {"type": "geometric", "ratio": ratio}})
 
     compiled_routine = compile_routine(routine).routine
     assignments = {"unit_T": unit_T, "unit_prob": unit_prob}
@@ -167,9 +163,7 @@ def _closed_form_sum(unit_cost, count):
 
 
 def _closed_form_prod(unit_cost, count):
-    return unit_cost**count * (
-        math.ceil(math.log2(count)) + count**2 - (count) * (count - 1)
-    )
+    return unit_cost**count * (math.ceil(math.log2(count)) + count**2 - (count) * (count - 1))
 
 
 @pytest.mark.parametrize("unit_cost", [(1, 1), (7, 0.9)])
@@ -242,9 +236,7 @@ def test_custom_sequence_is_correct(unit_cost, count):
     pytest.approx(numeric_prod, evaluated_routine.resources["success_rate"].value)
 
 
-@pytest.mark.parametrize(
-    "sum_none,prod_none", ((True, True), (False, True), (True, False), (False, False))
-)
+@pytest.mark.parametrize("sum_none,prod_none", ((True, True), (False, True), (True, False), (False, False)))
 def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod_none):
     repetition_dict = {
         "count": 10,
@@ -265,13 +257,9 @@ def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod
     else:
         invalid_resources.append({"name": "T", "type": "additive", "value": "unit_T"})
     if not prod_none:
-        valid_resources.append(
-            {"name": "success_rate", "type": "multiplicative", "value": "unit_prob"}
-        )
+        valid_resources.append({"name": "success_rate", "type": "multiplicative", "value": "unit_prob"})
     else:
-        invalid_resources.append(
-            {"name": "success_rate", "type": "multiplicative", "value": "unit_prob"}
-        )
+        invalid_resources.append({"name": "success_rate", "type": "multiplicative", "value": "unit_prob"})
 
     # Valid case (i.e. additive/multiplicative resources undefined when sum/prod undefined):
     routine.program.children[0].resources = valid_resources

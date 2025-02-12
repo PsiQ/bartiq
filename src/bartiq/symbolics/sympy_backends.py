@@ -17,8 +17,8 @@
 # for explanation how a module can implement a protocol.
 
 from __future__ import annotations
-import difflib
 
+import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
@@ -299,7 +299,8 @@ class SympyBackend:
         potentially_unknown_functions: list[str] = list(ops - known_functions)
         if potentially_unknown_functions:
             closest_match: list[str] = difflib.get_close_matches(
-                word=potentially_unknown_functions[0], possibilities=known_functions)
+                word=potentially_unknown_functions[0], possibilities=known_functions
+            )
             msg = f"Unrecognised function call {potentially_unknown_functions[0]}."
             if closest_match:
                 msg += f"\nDid you mean {f"one of {closest_match}" if len(
@@ -321,11 +322,13 @@ def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
     Returns:
         set[str]: The set of named operations in the expression.
     """
+
     def recursively_unpack(expression: sympy.Basic, ops: set[type]):
         for arg in expression.args:
             ops = recursively_unpack(arg, ops)
         ops.add(type(expression).__name__)
         return ops
+
     return recursively_unpack(expression=expression, ops=set())
 
 
