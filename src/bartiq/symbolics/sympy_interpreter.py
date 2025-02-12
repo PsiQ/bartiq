@@ -11,10 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import operator
-from functools import lru_cache
-from warnings import warn
+from typing import Any
 
 from sympy import (
     Function,
@@ -60,29 +58,9 @@ from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from .grammar import WILDCARD_CHARACTER, Interpreter, debuggable, make_parser
+from .interpreter import Interpreter, debuggable
 
-
-@lru_cache
-def parse_to_sympy(string, debug=False):
-    """Parses a string to a sympy expression.
-
-    Args:
-        string (str): The string to parse.
-        debug (bool, optional): If ``True``, debug information is printed on failure. Default is ``False``.
-
-    Returns:
-        sympy.Basic: Some sympy expression.
-    """
-    warn(
-        "Legacy, pyparsing based sympy parser is deprecated, use default sympy_backend when calling compile_routine "
-        "and evaluate",
-        DeprecationWarning,
-    )
-    interpreter = SympyInterpreter(debug=debug)
-    parser = make_parser(interpreter)
-    return parser.parse_string(string)[0]
-
+WILDCARD_CHARACTER: str = "~"
 
 BINARY_OPS = {
     "+": operator.add,
@@ -230,12 +208,12 @@ class SympyInterpreter(Interpreter):
     """An interpreter for parsing to Sympy expressions."""
 
     @debuggable
-    def create_number(self, tokens):
+    def create_number(self, tokens) -> Number:
         """Return a sympy number."""
         return Number(tokens[0])
 
     @debuggable
-    def create_parameter(self, tokens):
+    def create_parameter(self, tokens) -> Symbol:
         """Return a sympy Symbol."""
         param = tokens[0]
         if param in SPECIAL_PARAMS:
@@ -243,44 +221,28 @@ class SympyInterpreter(Interpreter):
         return Symbol(param)
 
     @debuggable
-    def create_function(self, tokens):
-        """Return a sympy function."""
-        name, args = tokens
+    def create_function(self, tokens: tuple[str, Any]) -> Function:
+        """Return a sympy function.
 
-        # Case 1: if the function has a wildcard, don't evaluate it yet
-        # We do this because the wildcard is really a single symbol placeholder for zero or more others, and so sympy
-        # will fail to evaluate it correctly, e.g. sum(~.X) being evaluated to ~.X
+        If the function arguments contain a wildcard, we delay evaluation as sympy may
+        fail to evaluate it correctly, e.g. sum(~X) being evaluated to ~.X.
+
+        If the function is known, apply that function.
+
+        If neither of these cases trigger, cast to a generic function.
+
+        """
+        name, args = tokens
         if _contains_wildcard_arg(args):
             func = Function(name)
 
-        # Case 2: If a known function, use that
         elif name.lower() in SPECIAL_FUNCS:
             func = SPECIAL_FUNCS[name.lower()]
 
-        # Case 3: If nothing else works, just cast to a generic function
         else:
             func = Function(name)
 
         return func(*args)
-
-    @debuggable
-    def create_expression(self, tokens):
-        """Return a sympy expression."""
-        lhs = tokens.pop(0)
-        while tokens:
-            op, *rhs = tokens.pop(0)
-            rhs = self.create_expression(rhs)
-            lhs = BINARY_OPS[op](lhs, rhs)
-        return lhs
-
-    @debuggable
-    def create_unary_atom(self, tokens):
-        """Return a non-unary atom."""
-        prefactor = 1
-        while (token := tokens.pop(0)) in ["+", "-"]:
-            prefactor *= int(f"{token}1")
-        assert len(tokens) == 0, f"Expected a single token remaining, found {tokens}."
-        return prefactor * token
 
 
 def _contains_wildcard_arg(args):

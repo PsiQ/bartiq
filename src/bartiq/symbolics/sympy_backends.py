@@ -31,7 +31,6 @@ from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
 from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
-from .sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -257,13 +256,21 @@ class SympyBackend:
         return sympy.Max(*args)
 
     def sequence_sum(
-        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+        self,
+        term: TExpr[Expr],
+        iterator_symbol: TExpr[Expr],
+        start: TExpr[Expr],
+        end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
     def sequence_prod(
-        self, term: TExpr[Expr], iterator_symbol: TExpr[Expr], start: TExpr[Expr], end: TExpr[Expr]
+        self,
+        term: TExpr[Expr],
+        iterator_symbol: TExpr[Expr],
+        start: TExpr[Expr],
+        end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
@@ -271,6 +278,3 @@ class SympyBackend:
 
 # Define sympy_backend for backwards compatibility
 sympy_backend = SympyBackend(parse_to_sympy)
-
-# And a shortcut for backend using a legacy parser
-legacy_sympy_backend = SympyBackend(legacy_parse_to_sympy)

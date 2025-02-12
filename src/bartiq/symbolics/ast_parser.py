@@ -14,8 +14,7 @@
 
 """AST-based expression parser.
 
-Contrary to pyparsing-based grammar from grammar.py, this module
-utilizes ast to parse an arithmetic expression as Python expresson.
+This module utilizes ast to parse an arithmetic expression as Python expresson.
 Since not all expressions that we use are correct Python expressions,
 the parser first preprocesses expressions and replaces unallowed
 syntax with carefully crafted function calls. In particular:
@@ -38,7 +37,7 @@ a valid Python expression. Therefore, we are able to use ast.parse
 to construct abstract syntax tree for the expression. This abstract
 syntax tree is then walked to assemble an expression object.
 
-Also, the parser here needs substantially less functionallity from
+Also, the parser here needs substantially less functionality from
 the "interpreter", i.e. something that constructs actual objects
 from parsed informations. This is because we actually construct at most
 binary expressions, and we assume that operators of the constructed
@@ -52,7 +51,7 @@ from functools import singledispatch, singledispatchmethod
 from typing import Callable
 from warnings import warn
 
-from .grammar import Interpreter
+from .interpreter import Interpreter
 
 _BINARY_OP_MAP = {
     ast.Mult: operator.mul,
@@ -129,11 +128,11 @@ def _replace_wildcards(expression):
 _WILDCARD_REPLACEMENT = _PreprocessingStage(matches=_contains_wildcard, preprocess=_replace_wildcards)
 
 
-def _contains_lambda(expression):
+def _contains_lambda(expression: str) -> bool:
     return "lambda" in expression
 
 
-def _replace_lambda(expression):
+def _replace_lambda(expression: str) -> str:
     return re.sub(_LAMBDA_PATTERN, "__lambda__", expression)
 
 
@@ -141,11 +140,11 @@ def _replace_lambda(expression):
 _LAMBDA_REPLACEMENT = _PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
 
 
-def _contains_xor_op(expression):
+def _contains_xor_op(expression: str) -> bool:
     return "^" in expression
 
 
-def _replace_xor_op(expression):
+def _replace_xor_op(expression: str) -> str:
     warn("Using ^ operator to denote exponentiation is deprecated. Use ** operator instead.", DeprecationWarning)
     return expression.replace("^", "**")
 
@@ -154,11 +153,11 @@ def _replace_xor_op(expression):
 _XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
 
 
-def _contains_in(expression):
+def _contains_in(expression: str) -> bool:
     return re.search(_IN_PATTERN, expression) is not None
 
 
-def _replace_in(expression):
+def _replace_in(expression: str) -> str:
     return re.sub(_IN_PATTERN, r"\1__in__\2", expression)
 
 
@@ -244,7 +243,7 @@ class _NodeConverter:
 
     @convert_node.register
     def _(self, node: ast.Call):
-        """Variant of converet_node for ast.Call.
+        """Variant of convert_node for ast.Call.
 
         Most instances of ast.Call get converted to a regular function call.
         Exception to this are the Port functions, which are converted to port

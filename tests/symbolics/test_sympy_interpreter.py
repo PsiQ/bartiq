@@ -66,7 +66,6 @@ from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backends import parse_to_sympy
 from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, multiplicity
-from bartiq.symbolics.sympy_interpreter import parse_to_sympy as legacy_parse_to_sympy
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -385,18 +384,16 @@ PARSE_TEST_CASES = [
 
 
 @pytest.mark.parametrize("expression, expected_sympy_expression", PARSE_TEST_CASES)
-@pytest.mark.parametrize("parse", [parse_to_sympy, legacy_parse_to_sympy])
-@pytest.mark.filterwarnings("ignore:Legacy, pyparsing based sympy parser")
 @pytest.mark.filterwarnings(r"ignore:Using \^ operator to denote exponentiation is deprecated\.")
 @pytest.mark.filterwarnings(r"ignore:Results for using BigO with multiple #variables might be unreliable\.")
-def test_parse_to_sympy(expression, expected_sympy_expression, parse):
+def test_parse_to_sympy(expression, expected_sympy_expression):
     """Tests for the sympy expression parser."""
-    sympy_expression = parse(expression, debug=True)
+    sympy_expression = parse_to_sympy(expression, debug=True)
     assert sympy_expression == expected_sympy_expression
 
     # Test round-trip via cast to string
     new_expression = serialize_expression(sympy_expression)
-    sympy_expression = parse(new_expression)
+    sympy_expression = parse_to_sympy(new_expression)
     assert sympy_expression == expected_sympy_expression
 
 
@@ -404,11 +401,3 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
     expr = "x ^ 2"
     with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
         _ = parse_to_sympy(expr)
-
-
-def test_legacy_parser_raises_deprecation_warning():
-    expr = "x + y"
-    with pytest.warns(match="Legacy, pyparsing based sympy parser"):
-        # Don't remove __wrapped__ here, we have to unwrap from lru_cache
-        # because otherwise we might miss the warning.
-        legacy_parse_to_sympy.__wrapped__(expr)
