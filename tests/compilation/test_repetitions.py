@@ -33,11 +33,7 @@ def _routine_with_repetition(repetition_dict: dict) -> RoutineV1:
                     "name": "child",
                     "resources": [
                         {"name": "T", "type": "additive", "value": "unit_T"},
-                        {
-                            "name": "success_rate",
-                            "type": "multiplicative",
-                            "value": "unit_prob",
-                        },
+                        {"name": "success_rate", "type": "multiplicative", "value": "unit_prob"},
                     ],
                 }
             ],
@@ -105,11 +101,7 @@ def test_arithmetic_sequence_is_correct(unit_cost, count, initial_term, differen
     routine = _routine_with_repetition(
         {
             "count": count,
-            "sequence": {
-                "type": "arithmetic",
-                "initial_term": initial_term,
-                "difference": difference,
-            },
+            "sequence": {"type": "arithmetic", "initial_term": initial_term, "difference": difference},
         }
     )
 
@@ -174,10 +166,7 @@ def test_closed_form_sequence_is_correct(unit_cost, count):
     prod = "ceiling(log2(N)) + N**2 - N*(N-1)"
     num_terms = "N"
     routine = _routine_with_repetition(
-        {
-            "count": count,
-            "sequence": {"type": "closed_form", "sum": sum, "prod": prod, "num_terms_symbol": num_terms},
-        }
+        {"count": count, "sequence": {"type": "closed_form", "sum": sum, "prod": prod, "num_terms_symbol": num_terms}}
     )
 
     compiled_routine = compile_routine(routine).routine
@@ -298,10 +287,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     "repetition_dict",
     (
         {"count": "N", "sequence": {"type": "constant", "multiplier": 3}},
-        {
-            "count": "N",
-            "sequence": {"type": "arithmetic", "initial_term": 1, "difference": 3},
-        },
+        {"count": "N", "sequence": {"type": "arithmetic", "initial_term": 1, "difference": 3}},
         {"count": "N", "sequence": {"type": "geometric", "ratio": "x"}},
         {
             "count": 10,
