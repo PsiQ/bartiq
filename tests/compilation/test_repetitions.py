@@ -176,12 +176,7 @@ def test_closed_form_sequence_is_correct(unit_cost, count):
     routine = _routine_with_repetition(
         {
             "count": count,
-            "sequence": {
-                "type": "closed_form",
-                "sum": sum,
-                "prod": prod,
-                "num_terms_symbol": num_terms,
-            },
+            "sequence": {"type": "closed_form", "sum": sum, "prod": prod, "num_terms_symbol": num_terms},
         }
     )
 
@@ -218,11 +213,7 @@ def test_custom_sequence_is_correct(unit_cost, count):
     routine = _routine_with_repetition(
         {
             "count": count,
-            "sequence": {
-                "type": "custom",
-                "term_expression": term_expression,
-                "iterator_symbol": "i",
-            },
+            "sequence": {"type": "custom", "term_expression": term_expression, "iterator_symbol": "i"},
         }
     )
 
@@ -281,11 +272,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     routine = _routine_with_repetition(
         {
             "count": 10,
-            "sequence": {
-                "type": "custom",
-                "term_expression": term_expression,
-                "iterator_symbol": "i",
-            },
+            "sequence": {"type": "custom", "term_expression": term_expression, "iterator_symbol": "i"},
         }
     )
     routine.program.children[0].resources[0].value = "i"
@@ -297,11 +284,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     routine = _routine_with_repetition(
         {
             "count": 10,
-            "sequence": {
-                "type": "custom",
-                "term_expression": term_expression,
-                "iterator_symbol": "i",
-            },
+            "sequence": {"type": "custom", "term_expression": term_expression, "iterator_symbol": "i"},
         }
     )
 
