@@ -12,7 +12,7 @@ Tests for our parsing grammar.
 
 import pytest
 
-from bartiq.symbolics.grammar import Interpreter, debuggable
+from bartiq.symbolics.interpreter import Interpreter, debuggable
 
 
 @pytest.mark.parametrize(
