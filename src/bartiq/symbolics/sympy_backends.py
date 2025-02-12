@@ -301,10 +301,10 @@ class SympyBackend:
             closest_match: list[str] = difflib.get_close_matches(
                 word=potentially_unknown_functions[0], possibilities=known_functions
             )
-            msg = f"Unrecognised function call {potentially_unknown_functions[0]}."
+            msg = f"Unrecognised function call '{potentially_unknown_functions[0]}'."
             if closest_match:
                 msg += f"\nDid you mean {f"one of {closest_match}" if len(
-                    closest_match) > 1 else f"{closest_match[0]}"}?."
+                    closest_match) > 1 else f"'{closest_match[0]}'"}?."
 
             raise ValueError(msg)
 
