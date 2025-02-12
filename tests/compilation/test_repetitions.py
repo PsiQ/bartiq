@@ -99,10 +99,7 @@ def _arithmetic_sequence_prod(unit_cost, count, initial_term, difference):
 def test_arithmetic_sequence_is_correct(unit_cost, count, initial_term, difference):
     unit_T, unit_prob = unit_cost
     routine = _routine_with_repetition(
-        {
-            "count": count,
-            "sequence": {"type": "arithmetic", "initial_term": initial_term, "difference": difference},
-        }
+        {"count": count, "sequence": {"type": "arithmetic", "initial_term": initial_term, "difference": difference}}
     )
 
     compiled_routine = compile_routine(routine).routine
