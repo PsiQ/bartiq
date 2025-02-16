@@ -314,4 +314,5 @@ def _compile(
         constraints=new_constraints,
         connections=routine.connections,
         repetition=repetition,
+        children_order=routine.children_order,
     )
