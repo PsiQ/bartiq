@@ -79,7 +79,7 @@ def _outflow(routine: CompiledRoutine[T]) -> TExpr[T]:
 
 def _get_highwater_for_non_leaf(
     routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str, ancillae_name: str
-) -> T:
+) -> TExpr[T]:
     active_flow = _inflow(routine)
     watermarks: list[TExpr[T]] = [active_flow]
 
