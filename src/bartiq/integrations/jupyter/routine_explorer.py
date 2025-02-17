@@ -15,6 +15,7 @@
 import ipywidgets as widgets
 from ipytree import Node, Tree
 from qref import SchemaV1
+from qref.functools import accepts_all_qref_types
 from qref.schema_v1 import RoutineV1
 from traitlets import Tuple
 
@@ -70,9 +71,8 @@ class _RoutineTree(Tree):
             self.routine_data = tuple(widgets.HTMLMath(rf"{html_string}") for html_string in html_strings)
 
 
-def explore_routine(
-    routine: SchemaV1 | RoutineV1, tree_min_width="initial", resource_max_width="initial"
-) -> widgets.HBox:
+@accepts_all_qref_types
+def explore_routine(routine: RoutineV1, tree_min_width="initial", resource_max_width="initial") -> widgets.HBox:
     """Widget faciliting exploration of routine's costs.
 
     Args:
