@@ -47,34 +47,24 @@ def aggregate_resources(
     return _inner
 
 
-def _sum_port_sizes(routine: CompiledRoutine[T], direction: str) -> TExpr[T]:
-    return sum([port.size for port in routine.filter_ports([direction]).values()])
-
-
-def _get_highwater_for_leaf(routine: CompiledRoutine[T], backend: SymbolicBackend[T], ancillae_name: str) -> TExpr[T]:
-    input_sum = _sum_port_sizes(routine, "input")
-    output_sum = _sum_port_sizes(routine, "output")
-    through_sum = _sum_port_sizes(routine, "through")
-    local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
-    result: TExpr[T] = through_sum + local_ancillae
-
-    match input_sum, output_sum:
-        case 0, output_sum:
-            result += output_sum
-        case input_sum, 0:
-            result += input_sum
-        case input_sum, output_sum:
-            result += backend.max(input_sum, output_sum)
-
-    return result
-
-
 def _inflow(routine: CompiledRoutine[T]) -> TExpr[T]:
     return sum(port.size for port in routine.filter_ports(["input", "through"]).values())
 
 
 def _outflow(routine: CompiledRoutine[T]) -> TExpr[T]:
     return sum(port.size for port in routine.filter_ports(["output", "through"]).values())
+
+
+def _get_highwater_for_leaf(routine: CompiledRoutine[T], backend: SymbolicBackend[T], ancillae_name: str) -> TExpr[T]:
+    local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
+
+    match _inflow(routine), _outflow(routine):
+        case 0, outflow:
+            return outflow + local_ancillae
+        case inflow, 0:
+            return inflow + local_ancillae
+        case inflow, outflow:
+            return backend.max(inflow, outflow) + local_ancillae
 
 
 def _get_highwater_for_non_leaf(
