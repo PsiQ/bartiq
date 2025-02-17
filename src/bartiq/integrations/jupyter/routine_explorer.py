@@ -22,9 +22,6 @@ from ..latex import routine_to_latex
 
 DEFAULT_ROOT_NAME = ""
 
-# TODO (SMS): Yes, I know this is bad.
-MAX_RESOURCE_SECTIONS = 9
-
 
 class _RoutineTree(Tree):
     """Tree object representing Routine."""
