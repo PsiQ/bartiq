@@ -18,7 +18,7 @@ from typing import Any, Callable
 from .._routine import CompiledRoutine, Resource, ResourceType
 from ..errors import BartiqPostprocessingError
 from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ..transform import add_aggregated_resources
+from ..transform import add_aggregated_resources, postorder_transform
 
 PostprocessingStage = Callable[[CompiledRoutine[T], SymbolicBackend[T]], CompiledRoutine[T]]
 
@@ -55,22 +55,11 @@ def _outflow(routine: CompiledRoutine[T]) -> TExpr[T]:
     return sum(port.size for port in routine.filter_ports(["output", "through"]).values())
 
 
-def _get_highwater_for_leaf(routine: CompiledRoutine[T], backend: SymbolicBackend[T], ancillae_name: str) -> TExpr[T]:
-    local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
-
-    match _inflow(routine), _outflow(routine):
-        case 0, outflow:
-            return outflow + local_ancillae
-        case inflow, 0:
-            return inflow + local_ancillae
-        case inflow, outflow:
-            return backend.max(inflow, outflow) + local_ancillae
-
-
-def _get_highwater_for_non_leaf(
+def _compute_highwater(
     routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str, ancillae_name: str
 ) -> TExpr[T]:
     active_flow = _inflow(routine)
+    outflow = _outflow(routine)
     watermarks: list[TExpr[T]] = [active_flow]
 
     for child in routine.sorted_children():
@@ -80,12 +69,14 @@ def _get_highwater_for_non_leaf(
         watermarks.append(active_flow - inflow + child.resources[resource_name].value)
         active_flow = active_flow - inflow + outflow
 
+    watermarks.append(_outflow(routine))
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
 
     nonzero_watermarks = [watermark for watermark in watermarks if watermark != 0]
     return backend.max(*nonzero_watermarks) + local_ancillae
 
 
+@postorder_transform
 def add_qubit_highwater(
     routine: CompiledRoutine[T],
     backend: SymbolicBackend[T],
@@ -106,18 +97,7 @@ def add_qubit_highwater(
     Returns:
         The routine with added added the highwater resource.
     """
-    if len(routine.children) == 0:
-        highwater = _get_highwater_for_leaf(routine, backend, ancillae_name)
-    else:
-        routine = replace(
-            routine,
-            children={
-                name: add_qubit_highwater(child, backend, resource_name, ancillae_name)
-                for name, child in routine.children.items()
-            },
-        )
-        highwater = _get_highwater_for_non_leaf(routine, backend, resource_name, ancillae_name)
-
+    highwater = _compute_highwater(routine, backend, resource_name, ancillae_name)
     if resource_name in routine.resources:
         raise BartiqPostprocessingError(
             f"Attempted to assign resource {resource_name} to {routine.name}, "

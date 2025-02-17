@@ -21,28 +21,9 @@ from typing import Callable
 from .._routine import Constraint, Port, PortDirection, Resource, ResourceType, Routine
 from ..errors import BartiqPreprocessingError
 from ..symbolics.backend import SymbolicBackend, T, TExpr
+from ..transform import postorder_transform
 
 PreprocessingStage = Callable[[Routine[T], SymbolicBackend[T]], Routine[T]]
-
-
-def postorder_transform(transform: PreprocessingStage[T]) -> PreprocessingStage[T]:
-    """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
-
-    Args:
-        transform: a function accepting a routine and a symbolic backend and returning a new routine.
-
-    Returns:
-        A function with the same signature as `transform`. The function works by traversing the hierarchical graph
-        in postorder, applying `transform` to each child before applying it to the parent.
-    """
-
-    def _inner(routine: Routine[T], backend: SymbolicBackend[T]) -> Routine[T]:
-        return transform(
-            replace(routine, children={child.name: _inner(child, backend) for child in routine.children.values()}),
-            backend,
-        )
-
-    return _inner
 
 
 @postorder_transform

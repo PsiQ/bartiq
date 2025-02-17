@@ -15,14 +15,57 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
+from functools import wraps
 from graphlib import TopologicalSorter
-from typing import Any
+from typing import Any, Callable, Concatenate, ParamSpec, overload
 
-from bartiq import CompiledRoutine, Resource, ResourceType
+from bartiq import CompiledRoutine, Resource, ResourceType, Routine
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
+P = ParamSpec("P")
 BACKEND = sympy_backend
+
+
+RoutineTransform = Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]]
+CompiledRoutineTransform = Callable[Concatenate[CompiledRoutine[T], SymbolicBackend[T], P], CompiledRoutine[T]]
+
+
+@overload
+def postorder_transform(transform: RoutineTransform[T, P]) -> RoutineTransform[T, P]:
+    pass
+
+
+@overload
+def postorder_transform(transform: CompiledRoutineTransform[T, P]) -> CompiledRoutineTransform[T, P]:
+    pass
+
+
+def postorder_transform(transform):
+    """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
+
+    Args:
+        transform: a function accepting a routine and a symbolic backend and returning a new routine.
+
+    Returns:
+        A function with the same signature as `transform`. The function works by traversing the hierarchical graph
+        in postorder, applying `transform` to each child before applying it to the parent.
+    """
+
+    @wraps(transform)
+    def _inner(routine: Routine[T], backend: SymbolicBackend[T], *args, **kwargs) -> Routine[T]:
+        return transform(
+            replace(
+                routine,
+                children={child.name: _inner(child, backend, *args, **kwargs) for child in routine.children.values()},
+            ),
+            backend,
+            *args,
+            **kwargs,
+        )
+
+    return _inner
+
 
 AggregationDict = dict[str, dict[str, TExpr[T]]]
 
