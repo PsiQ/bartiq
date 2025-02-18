@@ -106,7 +106,13 @@ def _format_output_port_sizes(ports: Iterable[PortV1]) -> str:
 
 
 def _format_port_sizes(ports: Iterable[PortV1], label: str) -> str:
-    lines = [f"&{_format_name_text(port.name)} = {_latex_expression(str(port.size))}" for port in ports]
+    lines = []
+
+    for port in ports:
+        port_size_string = _latex_expression(str(port.size)) if port.size is not None else "None"
+        line = f"&{_format_name_text(port.name)} = {port_size_string}"
+        lines.append(line)
+
     return _format_section_multi_line(f"{label} ports", lines)
 
 
