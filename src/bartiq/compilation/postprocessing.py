@@ -14,6 +14,7 @@
 
 from dataclasses import replace
 from typing import Any, Callable
+from warnings import warn
 
 from .._routine import CompiledRoutine, Resource, ResourceType
 from ..errors import BartiqPostprocessingError
@@ -61,6 +62,12 @@ def _compute_highwater(
     active_flow = _inflow(routine)
     outflow = _outflow(routine)
     watermarks: list[TExpr[T]] = [active_flow]
+
+    if routine.children_order != routine.sorted_children_order:
+        warn(
+            "Order of children in provided routine does not match the topology. Bartiq will use one of topological "
+            "orderings as an estimate of chronology, but the computed highwater value might be incorrect."
+        )
 
     for child in routine.sorted_children():
         inflow = _inflow(child)
