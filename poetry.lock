@@ -4238,4 +4238,4 @@ optimization = ["scipy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "7f95ad5d871377501cdbd9d0a2fd53a28116163c9e28983c1beffd98868b03d6"
+content-hash = "dd5e400af874211bde72c9c32c697e14d52d7e51e31805b3975717aa4564259f"
