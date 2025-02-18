@@ -100,6 +100,14 @@ class BaseRoutine(Generic[T]):
     connections: dict[Endpoint, Endpoint]
     repetition: Repetition[T] | None = None
     constraints: Iterable[Constraint[T]] = ()
+    children_order: tuple[str, ...] = ()
+
+    def __post_init__(self):
+        if len(self.children_order) != len(self.children) or set(self.children_order) != set(self.children):
+            raise ValueError(
+                "Attempted to construct a routine with child order not matching actual children. "
+                + f"The order given is {self.children_order}, but the names of children are {list(self.children)}."
+            )
 
     @property
     def inner_connections(self) -> dict[Endpoint[str], Endpoint[str]]:
@@ -112,12 +120,26 @@ class BaseRoutine(Generic[T]):
             },
         )
 
-    def sorted_children(self) -> Iterable[Self]:
+    @property
+    def sorted_children_order(self) -> Iterable[str]:
         predecessor_map: dict[str, set[str]] = {name: set() for name in self.children}
         for source, target in self.inner_connections.items():
             predecessor_map[target.routine_name].add(source.routine_name)
 
-        return [self.children[name] for name in TopologicalSorter(predecessor_map).static_order()]
+        visited = set[str]()
+
+        is_sorted = True
+
+        for child in self.children_order:
+            if any(pred not in visited for pred in predecessor_map[child]):
+                is_sorted = False
+                break
+            visited.add(child)
+
+        return self.children_order if is_sorted else TopologicalSorter(predecessor_map).static_order()
+
+    def sorted_children(self) -> Iterable[Self]:
+        return [self.children[child_name] for child_name in self.sorted_children_order]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -134,13 +156,15 @@ class Routine(BaseRoutine[T]):
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> Routine[T]:
         """Load Routine from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
+        children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return Routine[T](
-            children={child.name: cls.from_qref(child, backend) for child in program.children},
+            children=children,
             local_variables={var: backend.as_expression(expr) for var, expr in program.local_variables.items()},
             linked_params={
                 str(param.source): tuple(((split := target.rsplit(".", 1))[0], split[1]) for target in param.targets)
                 for param in program.linked_params
             },
+            children_order=tuple(children),
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
 
@@ -157,8 +181,10 @@ class CompiledRoutine(BaseRoutine[T]):
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
         """Load CompiledRoutine from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
+        children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return CompiledRoutine[T](
-            children={child.name: cls.from_qref(child, backend) for child in program.children},
+            children=children,
+            children_order=tuple(children),
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
 

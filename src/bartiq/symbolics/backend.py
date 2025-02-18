@@ -129,10 +129,10 @@ class SymbolicBackend(Protocol[T]):
     def func(self, func_name: str) -> Callable[..., TExpr[T]]:
         """Obtain an implementation of a function with given name."""
 
-    def min(self, *args):
+    def min(self, *args: TExpr[T]) -> TExpr[T]:
         """Returns a smallest value from given args."""
 
-    def max(self, *args):
+    def max(self, *args: TExpr[T]) -> TExpr[T]:
         """Returns a biggest value from given args."""
 
     def sequence_sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:

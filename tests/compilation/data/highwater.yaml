@@ -731,7 +731,7 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: M + N + 10
+        value: M + N + 7
       type: null
     version: v1
 # Program with repetitions
@@ -1101,6 +1101,6 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: N + 10
+        value: N + 7
       type: null
     version: v1

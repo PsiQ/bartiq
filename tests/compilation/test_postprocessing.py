@@ -128,3 +128,44 @@ def test_add_qubit_highwater_with_custom_names(backend):
     ).routine
 
     assert str(compiled_routine.resources["custom_highwater"].value) == "N + 5"
+
+
+def test_computing_highwater_for_non_chronologically_sorted_routine_raises_warning():
+    input_routine = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": None,
+            "ports": [
+                {"name": "in_0", "direction": "input", "size": "N"},
+                {"name": "out_0", "direction": "output", "size": "N"},
+            ],
+            "children": [
+                {
+                    "name": "a",
+                    "type": "a",
+                    "ports": [
+                        {"name": "in_0", "direction": "input", "size": "K"},
+                        {"name": "out_0", "direction": "output", "size": "K"},
+                    ],
+                },
+                {
+                    "name": "b",
+                    "type": "b",
+                    "ports": [
+                        {"name": "in_0", "direction": "input", "size": "K"},
+                        {"name": "out_0", "direction": "output", "size": "K"},
+                    ],
+                },
+            ],
+            "connections": ["in_0 -> b.in_0", "b.out_0 -> a.in_0", "a.out_0 -> out_0"],
+        },
+    }
+
+    with pytest.warns(
+        match=(
+            "Order of children in provided routine does not match the topology. Bartiq will use one of topological "
+            "orderings as an estimate of chronology, but the computed highwater value might be incorrect."
+        )
+    ):
+        _ = compile_routine(input_routine, postprocessing_stages=[add_qubit_highwater])
