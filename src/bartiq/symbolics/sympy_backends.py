@@ -63,7 +63,7 @@ TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 
 
 def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer[P, Iterable[T]]:
-    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:
+    def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:  # type: ignore
         return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner

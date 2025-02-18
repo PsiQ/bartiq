@@ -149,8 +149,8 @@ def _compile_local_variables(
 
 def _compile_linked_params(
     inputs: dict[str, TExpr[T]], linked_params: dict[str, tuple[tuple[str, str], ...]], backend: SymbolicBackend[T]
-) -> ParameterTree[TExpr[T]]:
-    parameter_map: ParameterTree[TExpr[T]] = defaultdict(dict)
+) -> ParameterTree[T]:
+    parameter_map: ParameterTree[T] = defaultdict(dict)
 
     for source, targets in linked_params.items():
         evaluated_source = backend.substitute(backend.as_expression(source), inputs)
@@ -174,7 +174,7 @@ def _expand_connections(connections: dict[Endpoint, Endpoint]) -> dict[str | Non
 
 def _param_tree_from_compiled_ports(
     connections_map: dict[str, Endpoint], compiled_ports: dict[str, Port[T]]
-) -> ParameterTree[TExpr[T]]:
+) -> ParameterTree[T]:
     param_map = defaultdict[str | None, dict[str, TExpr[T]]](dict)
     for source_port, target in connections_map.items():
         param_map[target.routine_name][f"#{target.port_name}"] = compiled_ports[source_port].size
@@ -182,11 +182,11 @@ def _param_tree_from_compiled_ports(
 
 
 def _process_repeated_resources(
-    repetition: Repetition,
-    resources: dict[str, Resource],
+    repetition: Repetition[T],
+    resources: dict[str, Resource[T]],
     children: Sequence[CompiledRoutine[T]],
     backend: SymbolicBackend[T],
-) -> dict[str, Resource]:
+) -> dict[str, Resource[T]]:
     assert len(children) == 1, "Routine with repetition can only have one child."
     new_resources = {}
     import copy
@@ -314,4 +314,5 @@ def _compile(
         constraints=new_constraints,
         connections=routine.connections,
         repetition=repetition,
+        children_order=routine.children_order,
     )
