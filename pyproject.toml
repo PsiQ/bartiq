@@ -11,7 +11,7 @@ readme = "README.md"
 python = "^3.10"
 pydantic = "^2.7"
 sympy = "^1.12"
-qref = "0.9.0"
+qref = "0.10.0"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.
