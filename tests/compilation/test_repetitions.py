@@ -159,8 +159,8 @@ def _closed_form_prod(unit_cost, count):
 @pytest.mark.parametrize("count", [1, 4, 9])
 def test_closed_form_sequence_is_correct(unit_cost, count):
     unit_T, unit_prob = unit_cost
-    sum = "ceil(log2(N)) + N**2 - N*(N-1)"
-    prod = "ceil(log2(N)) + N**2 - N*(N-1)"
+    sum = "ceiling(log2(N)) + N**2 - N*(N-1)"
+    prod = "ceiling(log2(N)) + N**2 - N*(N-1)"
     num_terms = "N"
     routine = _routine_with_repetition(
         {"count": count, "sequence": {"type": "closed_form", "sum": sum, "prod": prod, "num_terms_symbol": num_terms}}
@@ -195,7 +195,7 @@ def _custom_prod(unit_cost, count):
 @pytest.mark.parametrize("count", [1, 4, 9])
 def test_custom_sequence_is_correct(unit_cost, count):
     unit_T, unit_prob = unit_cost
-    term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
+    term_expression = "i**2 - 2*i + 7 + ceiling(log2((i+1)*5))"
     routine = _routine_with_repetition(
         {
             "count": count,
@@ -219,8 +219,8 @@ def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod
         "count": 10,
         "sequence": {
             "type": "closed_form",
-            "sum": None if sum_none else "ceil(log2(N)) + N**2 - N*(N-1)",
-            "prod": None if prod_none else "ceil(log2(N)) + N**2 - N*(N-1)",
+            "sum": None if sum_none else "ceiling(log2(N)) + N**2 - N*(N-1)",
+            "prod": None if prod_none else "ceiling(log2(N)) + N**2 - N*(N-1)",
             "num_terms_symbol": "N",
         },
     }

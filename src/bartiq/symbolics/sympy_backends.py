@@ -18,9 +18,10 @@
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, TypeVar, Optional
 
 import sympy
 from sympy import Expr, N, Order, Symbol, symbols
@@ -39,6 +40,9 @@ SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
+
+_ALL_SYMPY_OPS = sympy.functions.__all__ + sympy.core.__all__
+_ALL_SYMPY_CONSTANTS = dir(sympy.S)
 
 S: TypeAlias = Expr | Number
 
@@ -274,6 +278,65 @@ class SympyBackend:
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
+
+    @staticmethod
+    def validate_expression(expression: sympy.Expr, ignore_functions: Optional[list[str]] = None) -> None:
+        """Check a sympy expression for potential issues.
+
+        This method is useful for investigating an expression that
+        will unexpectedly not evaluate; if no unknown functions are found then
+        the expression will not evaluate due to a bug, or another unknown reason.
+
+        Args:
+            expression (sympy.Expr): The sympy expression to inspect.
+            ignore_functions (list[str], optional): A list of function names for the validation to ignore.
+
+        Raises:
+            ValueError: If a operation in the provided expression is not recognised.
+        """
+        ops = _unpack_expression_into_operations(expression=expression)
+
+        known_functions: set[str] = set(_ALL_SYMPY_CONSTANTS + _ALL_SYMPY_OPS + BUILT_IN_FUNCTIONS)
+        if ignore_functions:
+            known_functions.update(ignore_functions)
+        potentially_unknown_functions: list[str] = list(ops - known_functions)
+        if potentially_unknown_functions:
+            closest_match: list[str] = difflib.get_close_matches(
+                word=potentially_unknown_functions[0], possibilities=known_functions
+            )
+            msg = f"Unrecognised function call '{potentially_unknown_functions[0]}'."
+            if closest_match:
+                msg += f"\nDid you mean {f"one of {closest_match}" if len(
+                    closest_match) > 1 else f"'{closest_match[0]}'"}?."
+
+            raise ValueError(msg)
+
+        print(f"""No issues found in the given expression: {expression}.
+              If you think this is incorrect, please create an issue on the GitHub:
+              https://github.com/PsiQ/bartiq/issues""")
+
+
+def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
+    """Unpack a sympy expression into its constituent operations.
+
+    This function recursively inspects the `args` property of the sympy expression
+    and returns a set of strings, each of which is the name of an operation in
+    the expression tree.
+
+    Args:
+        expression (sympy.Basic): Expression to unpack.
+
+    Returns:
+        set[str]: The set of named operations in the expression.
+    """
+
+    def recursively_unpack(expression: sympy.Basic, ops: set[type]):
+        for arg in expression.args:
+            ops = recursively_unpack(arg, ops)
+        ops.add(type(expression).__name__)
+        return ops
+
+    return recursively_unpack(expression=expression, ops=set())
 
 
 # Define sympy_backend for backwards compatibility
