@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.0](https://github.com/PsiQ/bartiq/compare/v0.9.0...v0.10.0) (2025-02-19)
+
+
+### Features
+
+* add repetitions to latex + fixes in jupyter widges ([#156](https://github.com/PsiQ/bartiq/issues/156)) ([de5ab7e](https://github.com/PsiQ/bartiq/commit/de5ab7eba7c7202c509695f6323e77e951812745))
+* Implement qubit highwater computation ([#165](https://github.com/PsiQ/bartiq/issues/165)) ([6f15345](https://github.com/PsiQ/bartiq/commit/6f153452a73dff37354912c60787f929308324fd))
+* **integrations:** fixed issue with section permutations ([de1d9cb](https://github.com/PsiQ/bartiq/commit/de1d9cb2499deb081ac118aeabac889024dfe71c))
+* **integrations:** WIP on fixing routine explorer for very long expressions ([5d2a3df](https://github.com/PsiQ/bartiq/commit/5d2a3df30bc081c7e9265511bb249dedae1d48ec))
+
+
+### Bug Fixes
+
+* Ensure highwater is 0 for empty routine ([#170](https://github.com/PsiQ/bartiq/issues/170)) ([506b040](https://github.com/PsiQ/bartiq/commit/506b04047b80990e662b7f2cc739e1f9fc409df4))
+* **jupyter:** allow explore_routine to accept all qref types ([4000051](https://github.com/PsiQ/bartiq/commit/4000051f13fa7d5b9b0df5a89f7d1f26a7729cb5))
+* **latex:** deal with null port sizes ([0259d8c](https://github.com/PsiQ/bartiq/commit/0259d8cd06ccf13383e1fd2ac008ee4824474a58))
+
 ## [0.9.0](https://github.com/PsiQ/bartiq/compare/v0.8.2...v0.9.0) (2025-01-07)
 
 
