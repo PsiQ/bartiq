@@ -80,7 +80,8 @@ def _compute_highwater(
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
 
     nonzero_watermarks = [watermark for watermark in watermarks if watermark != 0]
-    return backend.max(*nonzero_watermarks) + local_ancillae
+
+    return backend.max(*nonzero_watermarks) + local_ancillae if nonzero_watermarks else local_ancillae
 
 
 @postorder_transform

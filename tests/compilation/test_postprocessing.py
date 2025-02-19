@@ -169,3 +169,11 @@ def test_computing_highwater_for_non_chronologically_sorted_routine_raises_warni
         )
     ):
         _ = compile_routine(input_routine, postprocessing_stages=[add_qubit_highwater])
+
+
+def test_highwater_of_an_empty_routine_is_zero():
+    input_routine = {"version": "v1", "program": {"name": "root"}}
+
+    compiled_routine = compile_routine(input_routine, postprocessing_stages=[add_qubit_highwater]).routine
+
+    assert compiled_routine.resources["qubit_highwater"].value == 0
