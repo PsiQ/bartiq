@@ -23,14 +23,14 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol, symbols, Add
+from sympy import Expr, N, Order, Symbol, symbols, Pow
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log10, log2, log
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log2, log, log10
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -82,12 +82,28 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
 
 
 def _postprocess(expression: Expr) -> Expr:
+    """Post process an expression to make it tidier, or more readable.
+
+    At present, this function only detects log(x)/log(2)
+    patterns and replaces it with log2(x).
+
+    Args:
+        expression (Expr): The sympy expression.
+
+    Returns:
+        Expr: A modified sympy expression.
+    """
     match expression:
-        case expr if expr.has(log2):
+        case expr if expr.has(1 / log(2)):
             (a, b, c) = map(sympy.Wild, "abc")
             log2_expr = a * log(b) / (c * log(2))
             log2_repl = a * log2(b) / c
-            return expr.replace(log2_expr, log2_repl)
+            return _postprocess(expr.replace(log2_expr, log2_repl))
+        case expr if expr.has(1 / log(10)):
+            (a, b, c) = map(sympy.Wild, "abc")
+            log10_expr = a * log(b) / (c * log(10))
+            log10_repl = a * log10(b) / c
+            return _postprocess(expr.replace(log10_expr, log10_repl))
         case _:
             return expression
 
