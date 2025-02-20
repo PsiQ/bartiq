@@ -305,6 +305,24 @@ LATEX_TEST_CASES = [
 &\text{a}.\!y = 2
 """,
     ),
+    # Handle null-sized ports
+    (
+        RoutineV1(
+            name="root",
+            ports=[
+                {"name": "in_0", "size": None, "direction": "input"},
+                {"name": "out_0", "size": None, "direction": "output"},
+            ],
+        ),
+        {},
+        r"""
+&\text{RoutineV1 \textrm{(root)}}\newline
+&\underline{\text{Input ports:}}\\
+&\text{in\_0} = None\newline
+&\underline{\text{Output ports:}}\\
+&\text{out\_0} = None
+""",
+    ),
 ]
 
 
