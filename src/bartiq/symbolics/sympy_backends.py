@@ -23,14 +23,14 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol, symbols
+from sympy import Expr, N, Order, Symbol, symbols, Add
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log10, log2, log
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -79,6 +79,17 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
         return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
+
+
+def _postprocess(expression: Expr) -> Expr:
+    match expression:
+        case expr if expr.has(log2):
+            (a, b, c) = map(sympy.Wild, "abc")
+            log2_expr = a * log(b) / (c * log(2))
+            log2_repl = a * log2(b) / c
+            return expr.replace(log2_expr, log2_repl)
+        case _:
+            return expression
 
 
 def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
@@ -192,7 +203,7 @@ class SympyBackend:
             functions_map = {}
         for func_name, func in functions_map.items():
             expr = self._define_function(expr, func_name, func)
-        return value if (value := self.value_of(expr)) is not None else expr
+        return value if (value := self.value_of(expr)) is not None else expr  # _postprocess(expr)
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
