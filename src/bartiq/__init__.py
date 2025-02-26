@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._routine import CompiledRoutine, PortDirection, Resource, ResourceType, Routine
+from ._routine import (
+    CompiledRoutine,
+    PortDirection,
+    Resource,
+    ResourceType,
+    Routine,
+    routine_to_qref,
+)
 from .compilation import compile_routine, evaluate
 from .symbolics import sympy_backend
 
@@ -22,6 +29,7 @@ __all__ = [
     "Routine",
     "Resource",
     "CompiledRoutine",
+    "routine_to_qref",
     "compile_routine",
     "evaluate",
     "sympy_backend",
