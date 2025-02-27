@@ -21,7 +21,7 @@ from typing import Generic, Literal, cast
 
 from qref import SchemaV1
 from qref.functools import AnyQrefType, ensure_routine
-from qref.schema_v1 import PortV1, ResourceV1, RoutineV1
+from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1
 from typing_extensions import Self, TypedDict, TypeVar
 
 from .repetitions import Repetition, repetition_from_qref, repetition_to_qref
@@ -168,6 +168,18 @@ class Routine(BaseRoutine[T]):
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
 
+    def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
+        """Exports Routine to QREF.
+
+        Args:
+            backend: backend used to serialize the symbolic expressions.
+
+        Returns:
+            QREF object representing provided routine.
+
+        """
+        return SchemaV1(version="v1", program=_routine_to_qref_program(self, backend))
+
 
 @dataclass(frozen=True, kw_only=True)
 class CompiledRoutine(BaseRoutine[T]):
@@ -187,6 +199,18 @@ class CompiledRoutine(BaseRoutine[T]):
             children_order=tuple(children),
             **_common_routine_dict_from_qref(qref_obj, backend),
         )
+
+    def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
+        """Exports Routine to QREF.
+
+        Args:
+            backend: backend used to serialize the symbolic expressions.
+
+        Returns:
+            QREF object representing provided routine.
+
+        """
+        return SchemaV1(version="v1", program=_routine_to_qref_program(self, backend))
 
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
@@ -234,15 +258,32 @@ def _endpoint_to_qref(endpoint: Endpoint) -> str:
     return endpoint.port_name if endpoint.routine_name is None else f"{endpoint.routine_name}.{endpoint.port_name}"
 
 
+def _linked_params_to_qref(linked_params: dict) -> list[ParamLinkV1]:
+    return [
+        ParamLinkV1(source=source, targets=[f"{target[0]}.{target[1]}" for target in targets])
+        for source, targets in linked_params.items()
+    ]
+
+
 def routine_to_qref(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> SchemaV1:
+    """Exports a Routine or CompiledRoutine object to QREF.
+
+    Args:
+        routine: routine to be exported.
+        backend: backend used to serialize the symbolic expressions.
+
+    Returns:
+        QREF object representing provided routine.
+
+    """
     return SchemaV1(version="v1", program=_routine_to_qref_program(routine, backend))
 
 
 def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: SymbolicBackend[T]) -> RoutineV1:
     kwargs = (
         {
-            "linked_params": {source: targets for source, targets in routine.linked_params.items()},
-            "local_variables": {var: backend.as_expression(expr) for var, expr in routine.local_variables.items()},
+            "linked_params": _linked_params_to_qref(routine.linked_params),
+            "local_variables": {var: backend.serialize(expr) for var, expr in routine.local_variables.items()},
         }
         if isinstance(routine, Routine)
         else {}
