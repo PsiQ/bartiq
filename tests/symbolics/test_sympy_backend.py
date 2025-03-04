@@ -14,7 +14,7 @@ import pytest
 from sympy import E
 from sympy import Max as sympy_max
 from sympy import Min as sympy_min
-from sympy import cos, exp, pi, sin, sqrt, symbols, sympify, log, Wild, Symbol, Number
+from sympy import Number, Symbol, Wild, cos, exp, log, pi, sin, sqrt, symbols, sympify
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
