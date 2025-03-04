@@ -18,7 +18,7 @@ from sympy import Number, Symbol, Wild, cos, exp, log, pi, sin, sqrt, symbols, s
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.sympy_backends import _correct_base2_logs, _postprocess
+from bartiq.symbolics.sympy_backends import _LOG2_EXPR, _correct_base2_logs, _postprocess
 
 
 @pytest.mark.parametrize(
