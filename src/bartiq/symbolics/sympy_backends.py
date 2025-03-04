@@ -30,7 +30,7 @@ from typing_extensions import TypeAlias
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log2, log, log10
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log2, log
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -52,6 +52,14 @@ MATH_CONSTANTS = {
     "oo": sympy.oo,
     "infinity": sympy.oo,
 }
+
+# WILDCARD ZOO
+X, Y = (
+    sympy.Wild("X", properties=[lambda k: not isinstance(k, log), lambda k: k != 2]),
+    sympy.Wild("Y", properties=[lambda k: not isinstance(k, log), lambda k: k != 0]),
+)
+_LOG2_EXPR = Y * log(X) / log(2)
+_LOG2_REPL = Y * log2(X)
 
 
 ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
@@ -81,6 +89,26 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
     return _inner
 
 
+@lru_cache
+def _correct_base2_logs(expression: sympy.Basic) -> sympy.Expr:
+    """Recursively traverse the expression tree to detect:
+    >>> a*log(b) / log(2)
+    and replace these with
+    >>> a*log2(b)
+
+    Args:
+        expression (sympy.Basic): Sympy expression to traverse.
+
+    Returns:
+        sympy.Expr: New sympy expression with modified arguments.
+    """
+    if any(isinstance(expression, x) for x in [sympy.Symbol, sympy.Number]):
+        return expression
+    return expression.__class__(
+        *[_LOG2_REPL.subs(A) if (A := arg.match(_LOG2_EXPR)) else _correct_base2_logs(arg) for arg in expression.args]
+    )
+
+
 def _postprocess(expression: Expr) -> Expr:
     """Post process an expression to make it tidier, or more readable.
 
@@ -93,19 +121,10 @@ def _postprocess(expression: Expr) -> Expr:
     Returns:
         Expr: A modified sympy expression.
     """
-    match expression:
-        case expr if expr.has(1 / log(2)):
-            (a, b, c) = map(sympy.Wild, "abc")
-            log2_expr = a * log(b) / (c * log(2))
-            log2_repl = a * log2(b) / c
-            return _postprocess(expr.replace(log2_expr, log2_repl))
-        case expr if expr.has(1 / log(10)):
-            (a, b, c) = map(sympy.Wild, "abc")
-            log10_expr = a * log(b) / (c * log(10))
-            log10_repl = a * log10(b) / c
-            return _postprocess(expr.replace(log10_expr, log10_repl))
-        case _:
-            return expression
+    POST_PROCESSING_STEPS: list[Callable[[Expr], Expr]] = [_correct_base2_logs]
+    for post_processing in POST_PROCESSING_STEPS:
+        expression = post_processing(sympy.Add(expression, 0, evaluate=False))
+    return expression
 
 
 def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
@@ -115,6 +134,7 @@ def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
         expression: expression to be parsed.
         debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
             for performance reasons.
+
     Returns:
         A Sympy expression object parsed from `expression`.
     """
@@ -219,7 +239,7 @@ class SympyBackend:
             functions_map = {}
         for func_name, func in functions_map.items():
             expr = self._define_function(expr, func_name, func)
-        return value if (value := self.value_of(expr)) is not None else expr  # _postprocess(expr)
+        return value if (value := self.value_of(expr)) is not None else _postprocess(expr)
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
