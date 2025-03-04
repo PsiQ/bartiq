@@ -14,10 +14,11 @@ import pytest
 from sympy import E
 from sympy import Max as sympy_max
 from sympy import Min as sympy_min
-from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
+from sympy import cos, exp, pi, sin, sqrt, symbols, sympify, log, Wild, Symbol, Number
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.sympy_backends import _LOG2_EXPR, _LOG2_REPL, _correct_base2_logs, _postprocess
 
 
 @pytest.mark.parametrize(
@@ -178,3 +179,54 @@ def test_min_max_works_for_symbols(backend):
     values = symbols("a, b, c")
     assert backend.min(*values) == sympy_min(*values)
     assert backend.max(*values) == sympy_max(*values)
+
+
+def test_log2_expression():
+    A, B = Wild("A"), Wild("B")
+    assert {B: "X", A: "Y"} == {key: val.name for key, val in _LOG2_EXPR.match(A * log(B) / log(2)).items()}
+
+
+@pytest.mark.parametrize(
+    "_input, expected_output",
+    [
+        (Symbol("Ksi_L"), Symbol("Ksi_L")),
+        (Symbol("X1"), Symbol("X1")),
+        (Number("5645421.2343545"), Number("5645421.2343545")),
+        (Number("0"), Number("0")),
+    ],
+)
+def test_correct_base2_logs_ignores_symbol_and_number(_input, expected_output):
+    assert _correct_base2_logs(_input) == expected_output
+
+
+ex1 = sympify("P*(a*log(x)/log(2) + L*(log(2)*log(y) + log(L)/log(2))) + log(y)/log(10) + 1/log(2)")
+ex1_morphed = sympify("P*(L*(log(2)*log(y) + log2(L)) + a*log2(x)) + log(y)/log(10) + 1/log(2)")
+
+ex2 = sympify("ceiling(log(x)/log(2))")
+ex2_morphed = sympify("ceiling(log2(x))")
+
+ex3 = sympify("P*(1/log(2))")
+
+
+@pytest.mark.parametrize(
+    "_input, expected_output",
+    [
+        (ex1, ex1_morphed),
+        (ex2, ex2_morphed),
+        (ex3, ex3),
+    ],
+)
+def test_correct_base2_logs_morphs_expressions_as_expected(_input, expected_output):
+    assert sympify(str(_correct_base2_logs(_input))) == expected_output
+
+
+@pytest.mark.parametrize(
+    "_input, expected_output",
+    [
+        (ex1, ex1_morphed),
+        (ex2, ex2_morphed),
+        (ex3, ex3),
+    ],
+)
+def test_postprocess_morphs_expressions_as_expected(_input, expected_output):
+    assert sympify(str(_correct_base2_logs(_input))) == expected_output
