@@ -18,7 +18,7 @@ from sympy import cos, exp, pi, sin, sqrt, symbols, sympify, log, Wild, Symbol, 
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.sympy_backends import _LOG2_EXPR, _LOG2_REPL, _correct_base2_logs, _postprocess
+from bartiq.symbolics.sympy_backends import _correct_base2_logs, _postprocess
 
 
 @pytest.mark.parametrize(
@@ -229,4 +229,4 @@ def test_correct_base2_logs_morphs_expressions_as_expected(_input, expected_outp
     ],
 )
 def test_postprocess_morphs_expressions_as_expected(_input, expected_output):
-    assert sympify(str(_correct_base2_logs(_input))) == expected_output
+    assert sympify(str(_postprocess(_input))) == expected_output
