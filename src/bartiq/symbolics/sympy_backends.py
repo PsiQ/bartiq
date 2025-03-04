@@ -54,12 +54,12 @@ MATH_CONSTANTS = {
 }
 
 # WILDCARD ZOO
-X, Y = (
+_X, _Y = (
     sympy.Wild("X", properties=[lambda k: not isinstance(k, log), lambda k: k != 2]),
     sympy.Wild("Y", properties=[lambda k: not isinstance(k, log), lambda k: k != 0]),
 )
-_LOG2_EXPR = Y * log(X) / log(2)
-_LOG2_REPL = Y * log2(X)
+_LOG2_EXPR: Expr = _Y * log(_X) / log(2)
+_LOG2_REPL: Expr = _Y * log2(_X)
 
 
 ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
@@ -91,9 +91,9 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
 
 @lru_cache
 def _correct_base2_logs(expression: sympy.Basic) -> sympy.Expr:
-    """Recursively traverse the expression tree to detect:
+    """Recursively traverse the expression tree to detect patterns of the form:
     >>> a*log(b) / log(2)
-    and replace these with
+    and replace these with:
     >>> a*log2(b)
 
     Args:
