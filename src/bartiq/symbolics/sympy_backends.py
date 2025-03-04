@@ -23,14 +23,14 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol, symbols, Pow
+from sympy import Basic, Expr, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
 from typing_extensions import TypeAlias
 
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log2, log
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter, log, log2
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -90,7 +90,7 @@ def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransform
 
 
 @lru_cache
-def _correct_base2_logs(expression: sympy.Basic) -> sympy.Expr:
+def _correct_base2_logs(expression: Basic) -> Expr:
     """Recursively traverse the expression tree to detect patterns of the form:
     >>> a*log(b) / log(2)
     and replace these with:
@@ -102,7 +102,7 @@ def _correct_base2_logs(expression: sympy.Basic) -> sympy.Expr:
     Returns:
         sympy.Expr: New sympy expression with modified arguments.
     """
-    if any(isinstance(expression, x) for x in [sympy.Symbol, sympy.Number]):
+    if any(isinstance(expression, x) for x in [Symbol, sympy.Number]):
         return expression
     return expression.__class__(
         *[_LOG2_REPL.subs(A) if (A := arg.match(_LOG2_EXPR)) else _correct_base2_logs(arg) for arg in expression.args]
