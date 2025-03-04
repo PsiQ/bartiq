@@ -121,8 +121,10 @@ def _postprocess(expression: Expr) -> Expr:
     Returns:
         Expr: A modified sympy expression.
     """
-    POST_PROCESSING_STEPS: list[Callable[[Expr], Expr]] = [_correct_base2_logs]
-    for post_processing in POST_PROCESSING_STEPS:
+    post_processing_steps: list[Callable[[Expr], Expr]] = []
+    if expression.has(1 / log(2)):
+        post_processing_steps.append(_correct_base2_logs)
+    for post_processing in post_processing_steps:
         expression = post_processing(sympy.Add(expression, 0, evaluate=False))
     return expression
 
