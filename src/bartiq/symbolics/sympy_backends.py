@@ -26,6 +26,7 @@ from typing import Callable, Concatenate, ParamSpec, TypeVar, Optional
 import sympy
 from sympy import Expr, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
+from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
 
 from ..errors import BartiqCompilationError
@@ -39,10 +40,6 @@ NUM_DIGITS_PRECISION = 15
 SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
-
-
-_ALL_SYMPY_OPS = sympy.functions.__all__ + sympy.core.__all__
-_ALL_SYMPY_CONSTANTS = dir(sympy.S)
 
 S: TypeAlias = Expr | Number
 
@@ -279,64 +276,51 @@ class SympyBackend:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 
-    @staticmethod
-    def validate_expression(expression: sympy.Expr, ignore_functions: Optional[list[str]] = None) -> None:
-        """Check a sympy expression for potential issues.
+    def find_undefined_functions(
+        self, expr: sympy.Expr, user_defined: Optional[list[str]] = None
+    ) -> list[tuple[str, str]]:
+        """Find undefined functions in the given expression.
 
-        This method is useful for investigating an expression that
-        will unexpectedly not evaluate; if no unknown functions are found then
-        the expression will not evaluate due to a bug, or another unknown reason.
+        This function returns a list of tuples in the form (unknown function name, suggested replacement),
+        if a suggested replacement can be found. The user can optionally provide a list of
+        user defined function names for this method to ignore.
 
         Args:
-            expression (sympy.Expr): The sympy expression to inspect.
-            ignore_functions (list[str], optional): A list of function names for the validation to ignore.
+            expr (sympy.Expr): Sympy expression to evaluate for potentially undefined functions.
+            user_defined (list[str], optional): List of user defined functions that should not be flagged as undefined.
+                                                Defaults to None.
 
-        Raises:
-            ValueError: If a operation in the provided expression is not recognised.
+        Returns:
+            list[tuple[str, str]]: A list of tuples where each element is (unknown function name, suggested replacement)
+                                   if a suggested replacement can be found, else it simply returns an empty string in
+                                   the second element of the tuple.
         """
-        ops = _unpack_expression_into_operations(expression=expression)
+        user_defined = user_defined or []
+        unknown_functions = _get_potentially_unknown_functions(expr=expr)
 
-        known_functions: set[str] = set(_ALL_SYMPY_CONSTANTS + _ALL_SYMPY_OPS + BUILT_IN_FUNCTIONS)
-        if ignore_functions:
-            known_functions.update(ignore_functions)
-        potentially_unknown_functions: list[str] = list(ops - known_functions)
-        if potentially_unknown_functions:
-            closest_match: list[str] = difflib.get_close_matches(
-                word=potentially_unknown_functions[0], possibilities=known_functions
-            )
-            msg = f"Unrecognised function call '{potentially_unknown_functions[0]}'."
-            if closest_match:
-                msg += f"\nDid you mean {f"one of {closest_match}" if len(
-                    closest_match) > 1 else f"'{closest_match[0]}'"}?."
+        if not unknown_functions:
+            return []
 
-            raise ValueError(msg)
-
-        print(f"""No issues found in the given expression: {expression}.
-              If you think this is incorrect, please create an issue on the GitHub:
-              https://github.com/PsiQ/bartiq/issues""")
+        return [
+            (_func_name, match[0] if (match := difflib.get_close_matches(_func_name, BUILT_IN_FUNCTIONS)) else "")
+            for _func_name in unknown_functions
+            if _func_name not in user_defined + BUILT_IN_FUNCTIONS
+        ]
 
 
-def _unpack_expression_into_operations(expression: sympy.Basic) -> set[str]:
+def _get_potentially_unknown_functions(expr: sympy.Basic) -> set[str]:
     """Unpack a sympy expression into its constituent operations.
 
-    This function recursively inspects the `args` property of the sympy expression
-    and returns a set of strings, each of which is the name of an operation in
-    the expression tree.
+    This function uses `sympy.core.traversal.iterargs` to return the class name
+    of those functions whose parent module is unknown.
 
     Args:
-        expression (sympy.Basic): Expression to unpack.
+        expr (sympy.Basic): Expression to unpack.
 
     Returns:
-        set[str]: The set of named operations in the expression.
+        set[str]: The names of operations in the expression whose parent module is unknown.
     """
-
-    def recursively_unpack(expression: sympy.Basic, ops: set[type]):
-        for arg in expression.args:
-            ops = recursively_unpack(arg, ops)
-        ops.add(type(expression).__name__)
-        return ops
-
-    return recursively_unpack(expression=expression, ops=set())
+    return set(str(arg.__class__) for arg in iterargs(expr) if not type(arg).__module__)
 
 
 # Define sympy_backend for backwards compatibility
