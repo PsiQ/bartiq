@@ -34,7 +34,7 @@
                     "L"
                 ],
                 "local_variables": {
-                    "R" : "ceiling(log_2(L))"
+                    "R" : "ceiling(log2(L))"
                 }
             },
             {
@@ -100,7 +100,7 @@
                     "mu"
                 ],
                 "local_variables": {
-                    "R" : "ceiling(log_2(L))"
+                    "R" : "ceiling(log2(L))"
                 }
             },
             {
@@ -188,7 +188,7 @@
                     {
                         "name": "T_gates",
                         "type": "additive",
-                        "value": "O(log_2(X))"
+                        "value": "O(log2(X))"
                     }
                 ],
                 "connections": [
@@ -334,7 +334,7 @@
             "L"
         ],
         "local_variables": {
-            "R" : "ceiling(log_2(L))"
+            "R" : "ceiling(log2(L))"
         },
         "linked_params": [
             {

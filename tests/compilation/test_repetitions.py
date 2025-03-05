@@ -254,7 +254,7 @@ def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod
 
 
 def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
-    term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
+    term_expression = "i**2 - 2*i + 7 + ceiling(log2((i+1)*5))"
     routine = _routine_with_repetition(
         {
             "count": 10,
@@ -266,7 +266,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
     with pytest.raises(BartiqCompilationError):
         _ = compile_routine(routine)
 
-    term_expression = "i**2 - 2*i + 7 + ceil(log2((i+1)*5))"
+    term_expression = "i**2 - 2*i + 7 + ceiling(log2((i+1)*5))"
     routine = _routine_with_repetition(
         {
             "count": 10,
@@ -290,8 +290,8 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
             "count": 10,
             "sequence": {
                 "type": "closed_form",
-                "sum": "ceil(log2(N)) + N**2 - N*(N-1)",
-                "prod": "ceil(log2(N)) + N**2 - N*(N-1)",
+                "sum": "ceiling(log2(N)) + N**2 - N*(N-1)",
+                "prod": "ceiling(log2(N)) + N**2 - N*(N-1)",
                 "num_terms_symbol": "N",
             },
         },
@@ -299,7 +299,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol(backend):
             "count": "N",
             "sequence": {
                 "type": "custom",
-                "term_expression": "i**2 - 2*i + 7 + ceil(log2((i+1)*5))",
+                "term_expression": "i**2 - 2*i + 7 + ceiling(log2((i+1)*5))",
                 "iterator_symbol": "i",
             },
         },
