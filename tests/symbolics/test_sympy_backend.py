@@ -178,3 +178,23 @@ def test_min_max_works_for_symbols(backend):
     values = symbols("a, b, c")
     assert backend.min(*values) == sympy_min(*values)
     assert backend.max(*values) == sympy_max(*values)
+
+
+@pytest.mark.parametrize(
+    "expression, expected_output, user_defined",
+    [
+        (
+            "ceil(a*log_2(x))/log_10(y) + mlz(x*y/z)*log_10(x*y)",
+            [("log_2", "log2"), ("log_10", "log10"), ("ceil", "ceiling"), ("mlz", "nlz")],
+            [],
+        ),
+        (
+            "ceiling(a*log_2(x))/log_10(y) + mlz(x*y/z)*log_10(x*y)",
+            [("log_2", "log2"), ("log_10", "log10")],
+            ["mlz"],
+        ),
+    ],
+)
+def test_find_unknown_functions(backend, expression, expected_output, user_defined):
+    input_expr = backend.as_expression(expression)
+    assert set(backend.find_undefined_functions(input_expr, user_defined)) == set(expected_output)
