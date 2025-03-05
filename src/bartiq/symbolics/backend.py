@@ -14,7 +14,7 @@
 from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from enum import Enum, auto
-from typing import Callable, Protocol, TypeAlias, TypeVar, Optional
+from typing import Callable, Optional, Protocol, TypeAlias, TypeVar
 
 from typing_extensions import Self
 
