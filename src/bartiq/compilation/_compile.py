@@ -13,6 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import inspect
 import ast
 import os
 import warnings
@@ -20,7 +21,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic
+from typing import Callable, Generic
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
@@ -32,6 +33,7 @@ from .._routine import (
     Endpoint,
     Port,
     Resource,
+    ResourceType,
     Routine,
     routine_to_qref,
 )
@@ -94,6 +96,9 @@ def compile_routine(
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
+    # TODO: maybe "derived_resources_specs" is a better name? 
+    # TODO: maybe it would be better to just create some datastructure for this, otherwise typing is ambiguous to say the least?
+    derived_resources: Iterable[dict] | None = None,
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -107,6 +112,7 @@ def compile_routine(
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
         postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
+        derived_resources: TODO
         skip_verification: a flag indicating whether verification of the routine should be skipped.
 
 
@@ -125,7 +131,7 @@ def compile_routine(
 
     for pre_stage in preprocessing_stages:
         root = pre_stage(root, backend)
-    compiled_routine = _compile(root, backend, {}, Context(root.name))
+    compiled_routine = _compile(root, backend, {}, Context(root.name), derived_resources)
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
     return CompilationResult(routine=compiled_routine, _backend=backend)
@@ -205,7 +211,8 @@ def _process_repeated_resources(
         elif resource.type == "qubits" and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
-            # in add_qubit_highwater postprocessing.
+            # in calculate_highwater.
+            # TODO: I think that's no longer true now that calculate_highwater is in derived_resources
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
@@ -229,6 +236,7 @@ def _compile(
     backend: SymbolicBackend[T],
     inputs: dict[str, TExpr[T]],
     context: Context,
+    derived_resources, # TODO
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -265,9 +273,8 @@ def _compile(
     )
 
     for child in routine.sorted_children():
-        compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
+        compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name), derived_resources)
         compiled_children[child.name] = compiled_child
-
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
@@ -283,6 +290,7 @@ def _compile(
     resources = routine.resources
     repetition = routine.repetition
 
+    # TODO: write some tests which check if derived additive resources are handled properly in cases with repetition
     if routine.repetition is not None:
         resources = _process_repeated_resources(
             routine.repetition, resources, list(compiled_children.values()), backend
@@ -304,7 +312,7 @@ def _compile(
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
 
-    return CompiledRoutine[T](
+    compiled_routine = CompiledRoutine[T](
         name=routine.name,
         type=routine.type,
         input_params=new_input_params,
@@ -316,3 +324,38 @@ def _compile(
         repetition=repetition,
         children_order=routine.children_order,
     )
+    return _add_derived_resources(compiled_routine, derived_resources, backend)
+
+
+def _add_derived_resources(routine: CompiledRoutine[T],
+                          derived_resources: Iterable[dict] | None,
+                          backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
+    if derived_resources is None:
+        return routine
+
+    for specs in derived_resources:
+        resource_name = specs["name"]
+        resource_type = specs["type"]
+        resource_generator = specs["generator"]
+        override_existing_resources = specs.get("override_existing_resources", False)
+
+        if "resource_name" in inspect.signature(resource_generator).parameters:
+            value = resource_generator(routine, backend, resource_name=resource_name)
+        else:
+            value = resource_generator(routine, backend)
+
+        if resource_name in routine.resources and not override_existing_resources:
+            raise ValueError(
+                f"Attempted to assign resource {resource_name} to {routine.name}, "
+                "which already has a resource with the same name."
+            )
+        if value is not None:
+            resource = Resource(resource_name, type=ResourceType(resource_type), value=value)
+            routine = replace(
+                routine,
+                resources={
+                    **routine.resources,
+                    resource_name: resource,
+                },
+            )
+    return routine
