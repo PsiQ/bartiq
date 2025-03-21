@@ -31,7 +31,7 @@ def calculate_highwater(
     backend: SymbolicBackend[T],
     resource_name: str = "qubit_highwater",
     ancillae_name: str = "local_ancillae",
-) -> TExpr[T]:
+) -> TExpr[T] | None:
     """Calculates qubit highwater for a given routine.
 
     Qubit highwater is the number of qubits needed for a particular subroutine, at the place where it's "widest".

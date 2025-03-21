@@ -21,12 +21,13 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Callable, Generic, TypedDict
+from typing import Generic, Protocol, TypedDict
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
+from typing_extensions import TypeIs
 
 from .._routine import (
     CompiledRoutine,
@@ -71,12 +72,24 @@ REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RE
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 
-class DerivedResources(TypedDict):
+class Calculate(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T] | None:
+        pass
+
+
+class CalculateWithName(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str) -> TExpr[T] | None:
+        pass
+
+
+class DerivedResources(TypedDict, Generic[T]):
     """Contains information needed to calculate derived resources."""
 
     name: str
     type: str
-    calculate: Callable[[Routine[T], SymbolicBackend[T], str], TExpr[T]]
+    calculate: Calculate[T] | CalculateWithName[T]
 
 
 @dataclass
@@ -333,8 +346,12 @@ def _compile(
     return _add_derived_resources(compiled_routine, derived_resources, backend)
 
 
+def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
+    return "resource_name" in inspect.signature(func).parameters
+
+
 def _add_derived_resources(
-    routine: CompiledRoutine[T], derived_resources: Iterable[DerivedResources] | None, backend: SymbolicBackend[T]
+    routine: CompiledRoutine[T], derived_resources: Iterable[DerivedResources[T]] | None, backend: SymbolicBackend[T]
 ) -> CompiledRoutine[T]:
     if derived_resources is None:
         return routine
@@ -344,16 +361,11 @@ def _add_derived_resources(
         type = specs["type"]
         calculate = specs["calculate"]
 
-        # NOTE: This logic should not really be here, as it's overly specific for this function.
-        # It's also coupled with the logic in _process_repeated_resources, which is not good.
-        # We should handle it while refactoring how repetitions are handled in compilation.
-        if routine.repetition is not None and routine.repetition.sequence.type == "constant" and type != "qubits":
-            continue
-
-        if "resource_name" in inspect.signature(calculate).parameters:
-            value = calculate(routine, backend, resource_name=name)
-        else:
-            value = calculate(routine, backend)
+        value = (
+            calculate(routine, backend, resource_name=name)
+            if _accepts_resource_name(calculate)
+            else calculate(routine, backend)
+        )
 
         if value is not None:
             resource = Resource(name, type=ResourceType(type), value=value)
