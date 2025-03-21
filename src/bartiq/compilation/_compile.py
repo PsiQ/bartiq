@@ -13,8 +13,8 @@
 # limitations under the License.
 from __future__ import annotations
 
-import inspect
 import ast
+import inspect
 import os
 import warnings
 from collections import defaultdict
@@ -37,7 +37,6 @@ from .._routine import (
     Routine,
     routine_to_qref,
 )
-
 from ..errors import BartiqCompilationError
 from ..repetitions import Repetition
 from ..symbolics import sympy_backend
@@ -74,9 +73,11 @@ ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 class DerivedResources(TypedDict):
     """Contains information needed to calculate derived resources."""
+
     name: str
     type: str
     calculate: Callable[[Routine[T], SymbolicBackend[T], str], TExpr[T]]
+
 
 @dataclass
 class CompilationResult(Generic[T]):
@@ -277,7 +278,9 @@ def _compile(
     )
 
     for child in routine.sorted_children():
-        compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name), derived_resources)
+        compiled_child = _compile(
+            child, backend, parameter_map[child.name], context.descend(child.name), derived_resources
+        )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
@@ -330,9 +333,9 @@ def _compile(
     return _add_derived_resources(compiled_routine, derived_resources, backend)
 
 
-def _add_derived_resources(routine: CompiledRoutine[T],
-                          derived_resources: Iterable[DerivedResources] | None,
-                          backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
+def _add_derived_resources(
+    routine: CompiledRoutine[T], derived_resources: Iterable[DerivedResources] | None, backend: SymbolicBackend[T]
+) -> CompiledRoutine[T]:
     if derived_resources is None:
         return routine
 

@@ -33,6 +33,7 @@ def load_highwater_test_data():
 
 HIGHWATER_TEST_DATA = load_highwater_test_data()
 
+
 @pytest.mark.parametrize("routine, expected_routine", HIGHWATER_TEST_DATA)
 def test_compute_highwater(routine, expected_routine, backend):
     derived_resources = [{"name": "qubit_highwater", "type": "qubits", "calculate": calculate_highwater}]
@@ -64,9 +65,7 @@ def test_compute_highwater_with_custom_names(backend):
         return calculate_highwater(routine, backend, resource_name=resource_name, ancillae_name="custom_ancillae")
 
     derived_resources = [{"name": "custom_highwater", "type": "qubits", "calculate": custom_compute_highwater}]
-    compiled_routine = compile_routine(
-        input_routine, derived_resources=derived_resources, backend=backend
-    ).routine
+    compiled_routine = compile_routine(input_routine, derived_resources=derived_resources, backend=backend).routine
 
     assert str(compiled_routine.resources["custom_highwater"].value) == "N + 5"
 

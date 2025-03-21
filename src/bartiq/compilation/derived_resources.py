@@ -69,4 +69,3 @@ def calculate_highwater(
     nonzero_watermarks = [watermark for watermark in watermarks if watermark != 0]
 
     return backend.max(*nonzero_watermarks) + local_ancillae if nonzero_watermarks else local_ancillae
-
