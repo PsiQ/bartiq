@@ -21,7 +21,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Callable, Generic
+from typing import Callable, Generic, TypedDict
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
@@ -37,6 +37,7 @@ from .._routine import (
     Routine,
     routine_to_qref,
 )
+
 from ..errors import BartiqCompilationError
 from ..repetitions import Repetition
 from ..symbolics import sympy_backend
@@ -71,6 +72,12 @@ REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RE
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 
+class DerivedResources(TypedDict):
+    """Contains information needed to calculate derived resources."""
+    name: str
+    type: str
+    calculate: Callable[[Routine[T], SymbolicBackend[T], str], TExpr[T]]
+
 @dataclass
 class CompilationResult(Generic[T]):
     """
@@ -96,9 +103,7 @@ def compile_routine(
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
-    # TODO: maybe "derived_resources_specs" is a better name? 
-    # TODO: maybe it would be better to just create some datastructure for this, otherwise typing is ambiguous to say the least?
-    derived_resources: Iterable[dict] | None = None,
+    derived_resources: Iterable[DerivedResources] | None = None,
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -112,8 +117,8 @@ def compile_routine(
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
         postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
-        derived_resources: TODO
-        skip_verification: a flag indicating whether verification of the routine should be skipped.
+        derived_resources: collection containing information needed to calculate derived resources.
+        skip_verification: flag indicating whether verification of the routine should be skipped.
 
 
     """
@@ -212,7 +217,6 @@ def _process_repeated_resources(
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
             # in calculate_highwater.
-            # TODO: I think that's no longer true now that calculate_highwater is in derived_resources
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
@@ -236,7 +240,7 @@ def _compile(
     backend: SymbolicBackend[T],
     inputs: dict[str, TExpr[T]],
     context: Context,
-    derived_resources, # TODO
+    derived_resources: Iterable[DerivedResources] | None,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -290,7 +294,6 @@ def _compile(
     resources = routine.resources
     repetition = routine.repetition
 
-    # TODO: write some tests which check if derived additive resources are handled properly in cases with repetition
     if routine.repetition is not None:
         resources = _process_repeated_resources(
             routine.repetition, resources, list(compiled_children.values()), backend
@@ -328,34 +331,34 @@ def _compile(
 
 
 def _add_derived_resources(routine: CompiledRoutine[T],
-                          derived_resources: Iterable[dict] | None,
+                          derived_resources: Iterable[DerivedResources] | None,
                           backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
     if derived_resources is None:
         return routine
 
     for specs in derived_resources:
-        resource_name = specs["name"]
-        resource_type = specs["type"]
-        resource_generator = specs["generator"]
-        override_existing_resources = specs.get("override_existing_resources", False)
+        name = specs["name"]
+        type = specs["type"]
+        calculate = specs["calculate"]
 
-        if "resource_name" in inspect.signature(resource_generator).parameters:
-            value = resource_generator(routine, backend, resource_name=resource_name)
+        # NOTE: This logic should not really be here, as it's overly specific for this function.
+        # It's also coupled with the logic in _process_repeated_resources, which is not good.
+        # We should handle it while refactoring how repetitions are handled in compilation.
+        if routine.repetition is not None and routine.repetition.sequence.type == "constant" and type != "qubits":
+            continue
+
+        if "resource_name" in inspect.signature(calculate).parameters:
+            value = calculate(routine, backend, resource_name=name)
         else:
-            value = resource_generator(routine, backend)
+            value = calculate(routine, backend)
 
-        if resource_name in routine.resources and not override_existing_resources:
-            raise ValueError(
-                f"Attempted to assign resource {resource_name} to {routine.name}, "
-                "which already has a resource with the same name."
-            )
         if value is not None:
-            resource = Resource(resource_name, type=ResourceType(resource_type), value=value)
+            resource = Resource(name, type=ResourceType(type), value=value)
             routine = replace(
                 routine,
                 resources={
                     **routine.resources,
-                    resource_name: resource,
+                    name: resource,
                 },
             )
     return routine

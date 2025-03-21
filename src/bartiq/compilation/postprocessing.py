@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import replace
 from typing import Any, Callable
-from warnings import warn
 
-from .._routine import CompiledRoutine, Resource, ResourceType
-from ..errors import BartiqPostprocessingError
-from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ..transform import add_aggregated_resources, postorder_transform
+from .._routine import CompiledRoutine
+from ..symbolics.backend import SymbolicBackend, T
+from ..transform import add_aggregated_resources
 
 PostprocessingStage = Callable[[CompiledRoutine[T], SymbolicBackend[T]], CompiledRoutine[T]]
 

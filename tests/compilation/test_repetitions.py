@@ -339,3 +339,26 @@ def test_raises_warning_when_invalid_resource_types_and_env_set():
         compiled_routine = compile_routine(routine).routine
         assert compiled_routine.resources["other_resource"].value == 5
         assert compiled_routine.resources["other_resource"].type == "other"
+
+
+def test_derived_resources_behave_correctly_when_repeated(backend):
+    count = 5
+    value = 17
+    routine = _routine_with_repetition({"count": count, "sequence": {"type": "constant"}})
+    
+    def add_new_resource(routine, backend):
+        return value
+
+    derived_resources = [{"name": "new_additive_resource", "type": "additive", "calculate": add_new_resource},
+                         {"name": "new_multiplicative_resource", "type": "multiplicative", "calculate": add_new_resource},
+                         {"name": "extra_qubits", "type": "qubits", "calculate": add_new_resource}]
+    compiled_routine = compile_routine(routine, derived_resources=derived_resources).routine
+    
+    root_resources = compiled_routine.resources
+    child_resources = compiled_routine.children["child"].resources
+    assert root_resources["new_additive_resource"].value == count * value
+    assert root_resources["new_multiplicative_resource"].value == value ** count
+    assert root_resources["extra_qubits"].value == value
+    assert child_resources["new_additive_resource"].value == value
+    assert child_resources["new_multiplicative_resource"].value == value
+    assert child_resources["extra_qubits"].value == value
