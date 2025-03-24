@@ -117,7 +117,7 @@ def compile_routine(
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
-    derived_resources: Iterable[DerivedResources] | None = None,
+    derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -131,7 +131,9 @@ def compile_routine(
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
         postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
-        derived_resources: collection containing information needed to calculate derived resources.
+        derived_resources: iterable with dictionaries describing how to calculate derived resources.
+            Each dictionary should contain the derived resource's name, type
+            and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
 
 
@@ -254,7 +256,7 @@ def _compile(
     backend: SymbolicBackend[T],
     inputs: dict[str, TExpr[T]],
     context: Context,
-    derived_resources: Iterable[DerivedResources] | None,
+    derived_resources: Iterable[DerivedResources] = (),
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -343,7 +345,7 @@ def _compile(
         repetition=repetition,
         children_order=routine.children_order,
     )
-    return _add_derived_resources(compiled_routine, derived_resources, backend)
+    return _add_derived_resources(compiled_routine, backend, derived_resources)
 
 
 def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
@@ -351,11 +353,10 @@ def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[
 
 
 def _add_derived_resources(
-    routine: CompiledRoutine[T], derived_resources: Iterable[DerivedResources[T]] | None, backend: SymbolicBackend[T]
+    routine: CompiledRoutine[T],
+    backend: SymbolicBackend[T],
+    derived_resources: Iterable[DerivedResources[T]] = (),
 ) -> CompiledRoutine[T]:
-    if derived_resources is None:
-        return routine
-
     for specs in derived_resources:
         name = specs["name"]
         type = specs["type"]
