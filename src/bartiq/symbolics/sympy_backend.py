@@ -21,7 +21,7 @@ from __future__ import annotations
 import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
-from typing import Callable, Concatenate, Optional, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
 from sympy import Expr, N, Order, Symbol, symbols

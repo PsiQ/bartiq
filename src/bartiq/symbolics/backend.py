@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from abc import abstractmethod
-from collections.abc import Iterable, Mapping, Callable
+from collections.abc import Callable, Iterable, Mapping
 from enum import Enum, auto
 from typing import Protocol, TypeAlias, TypeVar
+
 from typing_extensions import Self
 
 Number = int | float
