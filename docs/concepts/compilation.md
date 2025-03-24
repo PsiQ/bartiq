@@ -123,9 +123,13 @@ of resources of its children.
 
 #### Step 2.6: Output port compilation
 
-Finally, the output ports are compiled, and the new object representing compiled routine is created.
+The output ports are compiled, and the new object representing compiled routine is created.
+
+#### Step 2.7 Adding derived resources
+
+Finally, derived resources (provided through `derived_resources` field) are being calculated and added to the routine. These resources are not provided in the initial routine (or at least not for all of the subroutines) and need to be calculated based on the existing information.
 
 ### Step 3: Postprocessing
 
-After compilation is done, there might be certain operations that the user might want to perform on a compiled routine, e.g.: calculating some derived resources.
+After compilation is done, there might be certain operations that the user might want to perform on a compiled routine, e.g.: aggregating resources.
 Currently, there are no postprocessing steps present by default.
