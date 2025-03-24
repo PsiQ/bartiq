@@ -185,6 +185,7 @@ SPECIAL_FUNCS = {
     "prod": better_prod,
     "exp": exp,
     "log": log,
+    "ceil": ceiling,
     "ceiling": ceiling,
     "floor": floor,
     "re": re,
