@@ -21,13 +21,13 @@ from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic, Protocol, TypedDict
+from typing import Generic, Protocol
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
-from typing_extensions import TypeIs
+from typing_extensions import TypedDict, TypeIs
 
 from .._routine import (
     CompiledRoutine,
