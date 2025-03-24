@@ -276,7 +276,7 @@ class SympyBackend:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 
-    def find_undefined_functions(self, expr: TExpr[Expr], user_defined: Iterable[str] = ()) -> list[tuple[str, str]]:
+    def find_undefined_functions(self, expr: TExpr[Expr], user_defined: list[str] = []) -> list[tuple[str, str]]:
         """Find undefined functions in the given expression.
 
         This function returns a list of tuples in the form (unknown function name, suggested replacement),
