@@ -141,7 +141,7 @@ class SymbolicBackend(Protocol[T]):
     def sequence_prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""
 
-    def find_undefined_functions(self, term: TExpr[T], user_defined: Iterable[str] = ()) -> Iterable[tuple[str, str]]:
+    def find_undefined_functions(self, term: TExpr[T], user_defined: Iterable[str] | None) -> Iterable[tuple[str, str]]:
         """Find undefined functions in a symbolic expression.
         Optionally ignore any user-defined functions.
         """
