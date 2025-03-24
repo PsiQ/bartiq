@@ -14,24 +14,27 @@
 from __future__ import annotations
 
 import ast
+import inspect
 import os
 import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from graphlib import TopologicalSorter
-from typing import Generic
+from typing import Generic, Protocol
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
+from typing_extensions import TypedDict, TypeIs
 
 from .._routine import (
     CompiledRoutine,
     Endpoint,
     Port,
     Resource,
+    ResourceType,
     Routine,
     routine_to_qref,
 )
@@ -69,6 +72,26 @@ REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RE
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
 
 
+class Calculate(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T] | None:
+        pass
+
+
+class CalculateWithName(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str) -> TExpr[T] | None:
+        pass
+
+
+class DerivedResources(TypedDict, Generic[T]):
+    """Contains information needed to calculate derived resources."""
+
+    name: str
+    type: str
+    calculate: Calculate[T] | CalculateWithName[T]
+
+
 @dataclass
 class CompilationResult(Generic[T]):
     """
@@ -94,6 +117,7 @@ def compile_routine(
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
+    derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -107,7 +131,10 @@ def compile_routine(
         preprocessing_stages: functions used for preprocessing of a given routine to make sure it can be correctly
             compiled by Bartiq.
         postprocessing_stages: functions used for postprocessing of a given routine after compilation is done.
-        skip_verification: a flag indicating whether verification of the routine should be skipped.
+        derived_resources: iterable with dictionaries describing how to calculate derived resources.
+            Each dictionary should contain the derived resource's name, type
+            and the function mapping a routine to the value of resource.
+        skip_verification: flag indicating whether verification of the routine should be skipped.
 
 
     """
@@ -125,7 +152,7 @@ def compile_routine(
 
     for pre_stage in preprocessing_stages:
         root = pre_stage(root, backend)
-    compiled_routine = _compile(root, backend, {}, Context(root.name))
+    compiled_routine = _compile(root, backend, {}, Context(root.name), derived_resources)
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
     return CompilationResult(routine=compiled_routine, _backend=backend)
@@ -205,7 +232,7 @@ def _process_repeated_resources(
         elif resource.type == "qubits" and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
-            # in add_qubit_highwater postprocessing.
+            # in calculate_highwater.
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = resource.value
@@ -229,6 +256,7 @@ def _compile(
     backend: SymbolicBackend[T],
     inputs: dict[str, TExpr[T]],
     context: Context,
+    derived_resources: Iterable[DerivedResources] = (),
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -265,9 +293,10 @@ def _compile(
     )
 
     for child in routine.sorted_children():
-        compiled_child = _compile(child, backend, parameter_map[child.name], context.descend(child.name))
+        compiled_child = _compile(
+            child, backend, parameter_map[child.name], context.descend(child.name), derived_resources
+        )
         compiled_children[child.name] = compiled_child
-
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
@@ -304,7 +333,7 @@ def _compile(
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
 
-    return CompiledRoutine[T](
+    compiled_routine = CompiledRoutine[T](
         name=routine.name,
         type=routine.type,
         input_params=new_input_params,
@@ -316,3 +345,36 @@ def _compile(
         repetition=repetition,
         children_order=routine.children_order,
     )
+    return _add_derived_resources(compiled_routine, backend, derived_resources)
+
+
+def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
+    return "resource_name" in inspect.signature(func).parameters
+
+
+def _add_derived_resources(
+    routine: CompiledRoutine[T],
+    backend: SymbolicBackend[T],
+    derived_resources: Iterable[DerivedResources[T]] = (),
+) -> CompiledRoutine[T]:
+    for specs in derived_resources:
+        name = specs["name"]
+        type = specs["type"]
+        calculate = specs["calculate"]
+
+        value = (
+            calculate(routine, backend, resource_name=name)
+            if _accepts_resource_name(calculate)
+            else calculate(routine, backend)
+        )
+
+        if value is not None:
+            resource = Resource(name, type=ResourceType(type), value=value)
+            routine = replace(
+                routine,
+                resources={
+                    **routine.resources,
+                    name: resource,
+                },
+            )
+    return routine
