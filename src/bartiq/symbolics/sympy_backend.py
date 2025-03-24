@@ -276,9 +276,7 @@ class SympyBackend:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
 
-    def find_undefined_functions(
-        self, expr: sympy.Expr, user_defined: Optional[list[str]] = None
-    ) -> list[tuple[str, str]]:
+    def find_undefined_functions(self, expr: TExpr[Expr], user_defined: Iterable[str] = ()) -> list[tuple[str, str]]:
         """Find undefined functions in the given expression.
 
         This function returns a list of tuples in the form (unknown function name, suggested replacement),
@@ -286,16 +284,15 @@ class SympyBackend:
         user defined function names for this method to ignore.
 
         Args:
-            expr (sympy.Expr): Sympy expression to evaluate for potentially undefined functions.
-            user_defined (list[str], optional): List of user defined functions that should not be flagged as undefined.
-                                                Defaults to None.
+            expr: Sympy expression to evaluate for potentially undefined functions.
+            user_defined: List of user defined functions that should not be flagged as undefined.
+                          Defaults to ().
 
         Returns:
             list[tuple[str, str]]: A list of tuples where each element is (unknown function name, suggested replacement)
                                    if a suggested replacement can be found, else it simply returns an empty string in
                                    the second element of the tuple.
         """
-        user_defined = user_defined or []
         unknown_functions = _get_potentially_unknown_functions(expr=expr)
 
         if not unknown_functions:
