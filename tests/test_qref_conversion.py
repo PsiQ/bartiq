@@ -19,7 +19,7 @@ import yaml
 from qref import SchemaV1
 
 from bartiq import CompiledRoutine, Routine, routine_to_qref
-from bartiq.symbolics.sympy_backends import SympyBackend
+from bartiq.symbolics.sympy_backend import SympyBackend
 
 
 def load_compile_test_data():
