@@ -1,6 +1,6 @@
 # Installation
 
-## Basic
+## Via `pip`
 
 To install `bartiq` run:
 
