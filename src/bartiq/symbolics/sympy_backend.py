@@ -277,7 +277,7 @@ class SympyBackend:
         return sympy.Product(term, (iterator_symbol, start, end))
 
     def find_undefined_functions(
-        self, expr: TExpr[Expr], user_defined: Iterable[str] | None = None
+        self, expr: TExpr[Expr], user_defined: Iterable[str] = ()
     ) -> Iterable[tuple[str, str]]:
         """Find undefined functions in the given expression.
 
@@ -288,14 +288,13 @@ class SympyBackend:
         Args:
             expr: Sympy expression to evaluate for potentially undefined functions.
             user_defined: List of user defined functions that should not be flagged as undefined.
-                          Defaults to None.
+                          Defaults to ().
 
         Returns:
             list[tuple[str, str]]: A list of tuples where each element is (unknown function name, suggested replacement)
                                    if a suggested replacement can be found, else it simply returns an empty string in
                                    the second element of the tuple.
         """
-        user_defined = user_defined or []
         unknown_functions = _get_potentially_unknown_functions(expr=expr)
         if not unknown_functions:
             return []
