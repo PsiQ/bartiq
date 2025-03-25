@@ -944,7 +944,7 @@
  #    resources:
  #    - name: T_gates
  #      type: additive
- #      value: 8*ceiling(log_2(N))
+ #      value: 8*ceiling(log2(N))
  #    type: null
  #  version: v1
  #- [L = 10]

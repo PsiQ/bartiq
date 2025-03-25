@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from abc import abstractmethod
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from enum import Enum, auto
-from typing import Callable, Protocol, TypeAlias, TypeVar
+from typing import Protocol, TypeAlias, TypeVar
 
 from typing_extensions import Self
 
@@ -140,3 +140,8 @@ class SymbolicBackend(Protocol[T]):
 
     def sequence_prod(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a product of terms expressed using `iterator_symbol`."""
+
+    def find_undefined_functions(self, term: TExpr[T], user_defined: Iterable[str] = ()) -> Iterable[tuple[str, str]]:
+        """Find undefined functions in a symbolic expression.
+        Optionally ignore any user-defined functions.
+        """

@@ -61,7 +61,7 @@
                     {
                         "name": "T_gates",
                         "type": "additive",
-                        "value": "N_b*ceil(log_2(N_b))"
+                        "value": "N_b*ceiling(log2(N_b))"
                     }
                 ],
                 "input_params": [
