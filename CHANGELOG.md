@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.11.0](https://github.com/PsiQ/bartiq/compare/v0.10.0...v0.11.0) (2025-03-25)
+
+
+### Features
+
+* Added method to find undefined functions in sympy backend ([2cdbff9](https://github.com/PsiQ/bartiq/commit/2cdbff91aabb5b639ab0a22d7fe161aa9d2afc2b))
+* adds derived resources and moves highwater from postprocessing ([#176](https://github.com/PsiQ/bartiq/issues/176)) ([c9fbb68](https://github.com/PsiQ/bartiq/commit/c9fbb68810374808cd327823533f08681ceb67dd))
+* adds derived resources and moves highwater from postprocessing ([#176](https://github.com/PsiQ/bartiq/issues/176)) ([17d0cd1](https://github.com/PsiQ/bartiq/commit/17d0cd12e936a1aa8f3ef0e28791e9ac95fc9348))
+* update public API to include to_qref conversion ([#171](https://github.com/PsiQ/bartiq/issues/171)) ([6e00ef5](https://github.com/PsiQ/bartiq/commit/6e00ef5298a3d0d9d78da856edd1f5cabdf7484c))
+* update public API to include to_qref conversion ([#171](https://github.com/PsiQ/bartiq/issues/171)) ([cb3d9d7](https://github.com/PsiQ/bartiq/commit/cb3d9d7cc59b46a8d8d2b3862fdbe46b7546280a))
+
+
+### Bug Fixes
+
+* Ensure highwater is 0 for empty routine ([#170](https://github.com/PsiQ/bartiq/issues/170)) ([4af7b3c](https://github.com/PsiQ/bartiq/commit/4af7b3cc7a7ee83950e7cdb8198daa36c82fea6d))
+* **jupyter:** allow explore_routine to accept all qref types ([7bb6609](https://github.com/PsiQ/bartiq/commit/7bb660910a289f86f69263c2f0c039237bc1d275))
+* **latex:** deal with null port sizes ([a1a9bd9](https://github.com/PsiQ/bartiq/commit/a1a9bd9a721b5de8503ecf3cf3c33e335af8df83))
+* Ran isort ([bec57bd](https://github.com/PsiQ/bartiq/commit/bec57bdc8b6188a0af10dafca226edb8039f05dc))
+* removing scratch notebook ([3056af3](https://github.com/PsiQ/bartiq/commit/3056af3c00d54f820a2157b0642d372a33b30768))
+* Undoing  unintended changes ([fea227d](https://github.com/PsiQ/bartiq/commit/fea227db162caf994f894b836fc3f67562001b43))
+
 ## [0.10.0](https://github.com/PsiQ/bartiq/compare/v0.9.0...v0.10.0) (2025-02-19)
 
 
