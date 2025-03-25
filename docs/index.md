@@ -1,18 +1,13 @@
 # Welcome to Bartiq
 
-## Intro
+## Introduction
 
-Bartiq is a library that allows one to analyze quantum algorithms and calculate symbolic expressions for quantum resource estimates (QRE).
+Bartiq allows for the compilation and analysis of fault tolerant quantum algorithms, in order to better understand what resources they require to run on a quantum computer. Quantum resource estimation (QRE) focuses on key logical-level resources like $T$-gates, Toffolis, circuit active volume, and qubit count. In `bartiq`, quantum algorithms are expressed as a collection of subroutines, each of which can have its local resource cost expressed symbolically. The compilation engine in `bartiq` creates global resource costs from these local definitions. 
 
-## Installation
-
-To install `bartiq` run: `pip install bartiq`. For more details follow instructions on the [installation page](installation.md).
+`bartiq` can be installed via `pip` with: `pip install bartiq`. More detailed instructions can be found on the [installation page](installation.md).
 
 ## Quick start
-
-In Bartiq we take a quantum algorithm expressed as a collection of subroutines, each with its costs expressed as symbolic expressions, and compile it to get cost expression for the whole algorithm.
-
-As an example we use Alias Sampling – an algorithm proposed by [Babbush et al.](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). Here's how it's depicted in the paper:
+As an example we consider the Alias Sampling algorithm, originally proposed by [Babbush et al.](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). Here is how it is depicted in the paper:
 
 ![Alias Sampling](images/alias_sampling_paper.png)
 
