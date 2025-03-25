@@ -43,10 +43,11 @@ poetry install
     If you wish to use the package's jupyter integrations, run `poetry install -E jupyter` instead.
 
 This will create a virtual environment for you and install all developer and
-docs dependencies within it.
-
-To enter this environment run:
-
+docs dependencies within it. For Poetry 2.0 and above, you can enter this environment by running:
+```bash
+$(poetry env activate)
+```
+or, for Poetry 1.x:
 ```bash
 poetry shell
 ```
