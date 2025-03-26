@@ -54,6 +54,6 @@ print(evaluated_routine.resources["T_gates"].value)
 ## Next steps
 
 - For more comprehensive examples, please see the [tutorials](tutorials/index.md).
-- If you are interested in learning more about how `bartiq` works under the hood, please see the concepts tab in the menu.
+- If you are interested in learning more about how the `bartiq` compilation engine works, please see the [compilation](concepts/compilation.md) page.
 - For common issues, please check [troubleshooting](troubleshooting.md) section.
 - You can find reference documentation for the public API of `bartiq`'s python package, please go to [reference](reference.md).
