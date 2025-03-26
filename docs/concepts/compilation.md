@@ -44,7 +44,7 @@ Below we outline how the compilation proceeds.
 ### Step 1: Preprocessing
 
 The `bartiq`'s compilation engine makes several assumptions about the routine being compiled, which simplify its code
-at the expense of flexibility. For instance, `bartiq` assumes all port sizes are single parameters of size `#port_size`.
+at the expense of flexibility. For instance, `bartiq` assumes all port sizes are single parameters of size `#port_name`.
 Another (very important) assumption is that there are no parameter links reaching deeper than one level of nesting.
 
 Writing a routine conforming to those requirements by hand is possible, but tedious. Instead, `bartiq` allows for
