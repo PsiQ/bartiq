@@ -4,7 +4,11 @@
 
 Bartiq allows for the compilation and analysis of fault tolerant quantum algorithms, in order to better understand what resources they require to run on a quantum computer. Quantum resource estimation (QRE) focuses on key logical-level resources like $T$-gates, Toffolis, circuit active volume, and qubit count. In `bartiq`, quantum algorithms are expressed as a collection of subroutines, each of which can have its local resource cost expressed symbolically. The compilation engine in `bartiq` creates global resource costs from these local definitions. 
 
-`bartiq` can be installed via `pip` with: `pip install bartiq`. More detailed instructions can be found on the [installation page](installation.md).
+To install `bartiq` via `pip`, run
+```python
+pip install bartiq
+```
+ More detailed instructions can be found on the [installation page](installation.md).
 
 ## Quick start
 As an example we consider the following circuit, from [Encoding Electronic Spectra in Quantum Circuits with Linear T Complexity](https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015). This circuit prepares an arbitrary state with $L$ unique amplitudes, and is equivalent to classical alias sampling. From Fig. 11 in the paper:
