@@ -3,7 +3,7 @@
 Debugging `bartiq` is not always straightforward, so please see below for a number of best practices and common issues:
 
 
-- Bartiq routines can get pretty complicated very quickly, especially if nested subroutines are involved. Therefore when you get an error, try isolating the issue and work on a smaller example:
+- Routines can get pretty complicated very quickly, especially if nested subroutines are involved. Therefore when you get an error, try isolating the issue and work on a smaller example:
 	- First make sure that each child subroutine compiles correctly on its own. If not, this might suggest where the issue is.
 	- Try removing all the unnecessary fields, children, connections, etc. and prepare a minimal failing example.
 

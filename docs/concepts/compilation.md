@@ -1,11 +1,11 @@
 # Compilation
 
-Here we will describe how the compilation process in Bartiq works.
-Please keep in mind, that while we try to keep this page up-to-date, in the end the code is the only source-of-truth. If you notice any discrepancies between what is described here and how Bartiq behaves, please [create an issue](https://github.com/PsiQ/bartiq/issues)!
+Here we will describe how the compilation process in `bartiq` works.
+Please keep in mind, that while we try to keep this page up-to-date, in the end the code is the only source-of-truth. If you notice any discrepancies between what is described here and how `bartiq` behaves, please [create an issue](https://github.com/PsiQ/bartiq/issues)!
 
 ## Bird's eye perspective on compilation
 
-Compilation is a very overloaded word, so let us start by explaining what we mean by *compiling a routine* in Bartiq.
+Compilation is a very overloaded word, so let us start by explaining what we mean by *compiling a routine* in `bartiq`.
 
 Quantum programs are often deeply nested structures. A program can call multiple routines, which themselves call other routines, and so on. One typically defines resources of each routine at the local level using locally defined symbols and variables. However, in the end, we are typically interested in resources used by each routine expressed in terms of input parameters of the whole program.
 
@@ -32,7 +32,7 @@ Looking at the resources of `a` and `b` we see that `x` is defined as square of 
 `a.x` has value of `N ** 2`, and `b.x` has value `(2 * N) ** 2 = 4 * N ** 2`.
 
 This is what the compilation process is all about. Given a routine with all its components defined in terms of local symbols
-and parameters, Bartiq produces a *compiled routine* in which all port sizes and resources are defined in terms
+and parameters, `bartiq` produces a *compiled routine* in which all port sizes and resources are defined in terms
 of the global input symbols of top-level routine.
 
 
@@ -43,14 +43,14 @@ Below we outline how the compilation proceeds.
 
 ### Step 1: Preprocessing
 
-The Bartiq's compilation engine makes several assumptions about the routine being compiled, which simplify its code
-at the expense of flexibility. For instance, Bartiq assumes all port sizes are single parameters of size `#port_size`.
+The `bartiq`'s compilation engine makes several assumptions about the routine being compiled, which simplify its code
+at the expense of flexibility. For instance, `bartiq` assumes all port sizes are single parameters of size `#port_size`.
 Another (very important) assumption is that there are no parameter links reaching deeper than one level of nesting.
 
-Writing a routine conforming to those requirements by hand is possible, but tedious. Instead, Bartiq allows for
+Writing a routine conforming to those requirements by hand is possible, but tedious. Instead, `bartiq` allows for
 violation of some of its assumptions, and preprocesses the routine so that all the requirements are met.
 
-As an example, suppose some port `in_0` has size `1`. Bartiq replaces this size with `#in_0`, and then adds a
+As an example, suppose some port `in_0` has size `1`. `bartiq` replaces this size with `#in_0`, and then adds a
 constraint saying that `#in_0 = 1`.
 
 
@@ -59,12 +59,12 @@ Currently, the  following preprocessing stages take place prior to compilation:
 1. Introduction of default additive resources. This stage allows users to define the additive resources for leafs,
    and then adds the same resource to each of the higher-level routines, by defining it as a sum of the resource over all children that define it.
    In the example we discussed previously, this preprocessing step would allow uas to skip the definition of
-   `x` resource in `root` and instead have it automatically defined by Bartiq.
+   `x` resource in `root` and instead have it automatically defined by `bartiq`.
 2. Propagation of linked params. In this stage all linked parameters reaching further than a direct
    descendant are converted into a series of direct parameter links. This is useful because you can, for example,
-   link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite Bartiq's compilation engine requirement on having only direct links.
+   link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
 3. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or pased through
-   connections. To avoid unnecessary compilation errors, Bartiq will promote such parameters by linking it to newly introduced input in the parent routine.
+   connections. To avoid unnecessary compilation errors, `bartiq` will promote such parameters by linking it to newly introduced input in the parent routine.
 4. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
    equal to a single-parameter expression of known name, while also introducing constraints to make sure
    that no information is lost in the process.
@@ -74,7 +74,7 @@ ensuring that strict requirements of the compilation engine are met.
 
 ### Step 2: Recursive compilation of routines
 
-As already mentioned, the compilation process is recursive. During compilation Bartiq
+As already mentioned, the compilation process is recursive. During compilation `bartiq`
 maintains a parameter map for all of the routine's children. This map gets populated whenever a new piece of
 information is obtained, and then passed to the recursive call when each child is being compiled.
 
@@ -82,7 +82,7 @@ What follows is a high-level, ordered overview of the main compilation process, 
 
 #### Step 2.1: Constraint validation
 
-First, Bartiq evaluates the constraints introduced in preprocessing. If any
+First, `bartiq` evaluates the constraints introduced in preprocessing. If any
 of the constraints is violated, a `BartiqCompilationError` is raised. Constraints that are trivially satisfied
 are dropped from the system, and other constraints are retained.
 
@@ -94,7 +94,7 @@ parameters.
 
 #### Step 2.3: Input- and through-port sizes are compiled
 
-For any given routine, input and through ports must have sizes that only depend on local inputs and variables.After each port is compiled, Bartiq checks if this port is connected to others in the program. If so, a
+For any given routine, input and through ports must have sizes that only depend on local inputs and variables.After each port is compiled, `bartiq` checks if this port is connected to others in the program. If so, a
 corresponding entry in parameter map is added. For instance, suppose that port `in_0` got compiled and has now
 size `N`. If this port is connected to port `in_1` of child `a`, a parameter map for `a` will contain entry
 mapping `#in_1` to `N`.

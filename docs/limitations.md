@@ -14,4 +14,4 @@ However, all these methods introduce additional complexities which may or may no
 
 ## Keeping track of where given register is being used
 
-Bartiq operates purely on ports and connections between routines and hence does not have a concept of persistent qubits registers which exist beyond a single connection. This gives more flexibility in connecting routines and not having to deal with qubit allocation and deallocation. However, it also means that it is not natively possible to query whether the qubits referenced by a given connection correspond to any persistent quantum register or variable.
+`bartiq` operates purely on ports and connections between routines and hence does not have a concept of persistent qubits registers which exist beyond a single connection. This gives more flexibility in connecting routines and not having to deal with qubit allocation and deallocation. However, it also means that it is not natively possible to query whether the qubits referenced by a given connection correspond to any persistent quantum register or variable.
