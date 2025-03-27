@@ -94,8 +94,8 @@ parameters.
 
 #### Step 2.3: Input- and through-port sizes are compiled
 
-For any given routine, input and through ports must have sizes that only depend on local inputs and variables.After each port is compiled, `bartiq` checks if this port is connected to others in the program. If so, a
-corresponding entry in parameter map is added. For instance, suppose that port `in_0` got compiled and has now
+For any given routine, input and through ports must have sizes that only depend on local inputs and variables. After each port is compiled, `bartiq` checks if this port is connected to others in the program. If so, a
+corresponding entry in parameter map is added. For instance suppose that port `in_0` got compiled and has now
 size `N`. If this port is connected to port `in_1` of child `a`, a parameter map for `a` will contain entry
 mapping `#in_1` to `N`.
 
