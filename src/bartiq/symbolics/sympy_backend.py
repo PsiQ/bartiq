@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
@@ -25,6 +26,7 @@ from typing import Callable, Concatenate, ParamSpec, TypeVar
 import sympy
 from sympy import Expr, N, Order, Symbol, symbols
 from sympy.core.function import AppliedUndef
+from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
 
 from ..errors import BartiqCompilationError
@@ -38,7 +40,6 @@ NUM_DIGITS_PRECISION = 15
 SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
 
 BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
-
 
 S: TypeAlias = Expr | Number
 
@@ -274,6 +275,50 @@ class SympyBackend:
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
         return sympy.Product(term, (iterator_symbol, start, end))
+
+    def find_undefined_functions(
+        self, expr: TExpr[Expr], user_defined: Iterable[str] = ()
+    ) -> Iterable[tuple[str, str]]:
+        """Find undefined functions in the given expression.
+
+        This function returns a list of tuples in the form (unknown function name, suggested replacement),
+        if a suggested replacement can be found. The user can optionally provide a list of
+        user defined function names for this method to ignore.
+
+        Args:
+            expr: Sympy expression to evaluate for potentially undefined functions.
+            user_defined: List of user defined functions that should not be flagged as undefined.
+                          Defaults to ().
+
+        Returns:
+            list[tuple[str, str]]: A list of tuples where each element is (unknown function name, suggested replacement)
+                                   if a suggested replacement can be found, else it simply returns an empty string in
+                                   the second element of the tuple.
+        """
+        unknown_functions = _get_potentially_unknown_functions(expr=expr)
+        if not unknown_functions:
+            return []
+
+        return [
+            (_func_name, match[0] if (match := difflib.get_close_matches(_func_name, BUILT_IN_FUNCTIONS)) else "")
+            for _func_name in unknown_functions
+            if _func_name not in list(user_defined) + BUILT_IN_FUNCTIONS
+        ]
+
+
+def _get_potentially_unknown_functions(expr: sympy.Basic) -> set[str]:
+    """Unpack a sympy expression into its constituent operations.
+
+    This function uses `sympy.core.traversal.iterargs` to return the class name
+    of those functions whose parent module is unknown.
+
+    Args:
+        expr (sympy.Basic): Expression to unpack.
+
+    Returns:
+        set[str]: The names of operations in the expression whose parent module is unknown.
+    """
+    return set(str(arg.__class__) for arg in iterargs(expr) if not type(arg).__module__)
 
 
 # Define sympy_backend for backwards compatibility

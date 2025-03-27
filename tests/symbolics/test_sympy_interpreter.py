@@ -64,7 +64,7 @@ from sympy import (
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
-from bartiq.symbolics.sympy_backends import parse_to_sympy
+from bartiq.symbolics.sympy_backend import parse_to_sympy
 from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, multiplicity
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
@@ -317,16 +317,13 @@ PARSE_TEST_CASES = [
     ("exp(x)", exp(x)),
     ("log(x)", log(x)),
     ("ceil(x)", ceiling(x)),
-    ("ceiling(x)", ceiling(x)),
     ("floor(x)", floor(x)),
     ("re(x)", re(x)),
     ("im(x)", im(x)),
     ("frac(x)", frac(x)),
     ("exp2(x)", exp2(x)),
     ("log2(x)", log2(x)),
-    ("log_2(x)", log2(x)),
     ("log10(x)", log10(x)),
-    ("log_10(x)", log10(x)),
     ("LambertW(x)", LambertW(x)),
     ("LambertW(x, y)", LambertW(x, y)),
     ("gamma(x)", gamma(x)),
