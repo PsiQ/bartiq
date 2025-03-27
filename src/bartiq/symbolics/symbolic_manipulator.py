@@ -327,7 +327,7 @@ class GSE:
         Returns:
             set[Expr]
         """
-        return self.expression.atoms(sympy.Function, sympy.Max)
+        return self.expression.atoms(Function, sympy.Max)
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...]]:
         """Return a list of all arguments of a named function.
@@ -339,7 +339,7 @@ class GSE:
             list[tuple[Expr, ...]]
         """
         return [
-            tuple(_arg for _arg in _func.args if _arg)
+            tuple(_arg for _arg in _func.args if _arg) if len(_func.args) > 1 else _func.args[0]
             for _func in self.all_functions_and_arguments()
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
