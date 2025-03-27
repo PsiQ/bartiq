@@ -359,6 +359,9 @@ def _replace_subexpression(expression: Expr, expr: Expr, repl: Expr) -> Expr:
     Returns:
         Expr
     """
+    if A := expression.match(expr):
+        return repl.subs(A)
+
     if any(isinstance(expression, x) for x in [Symbol, sympy.Number]):
         return expression
     return expression.__class__(
@@ -459,3 +462,10 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if relationship not in _RELATIONSHIPS:
         raise ValueError(f"Relationship {relationship} not in permitted delimiters: {_RELATIONSHIPS}.")
     return var, relationship, value
+
+
+if __name__ == "__main__":
+    expr = parse_to_sympy("max(z, 1- max(x, y))")
+    gse = GSE(expr)
+    a = gse.wildcard_pattern_replacement("max(x, y)", "x")
+    print(a)
