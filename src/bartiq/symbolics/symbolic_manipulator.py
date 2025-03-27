@@ -7,10 +7,9 @@ from enum import StrEnum
 from functools import lru_cache
 from collections.abc import Callable
 from typing import Optional, Any
-
+import warnings
 import sympy
-from sympy import Add, Expr, Symbol, Wild
-
+from sympy import Add, Expr, Symbol, Wild, Function
 from bartiq.symbolics.sympy_backends import parse_to_sympy
 
 
@@ -26,13 +25,21 @@ _RELATIONSHIPS = list(_Relationships._value2member_map_.keys())
 
 _SPLIT_BY: str = "(" + ")|(".join(_RELATIONSHIPS) + ")"
 
+# WildCard properties
+NONZERO = lambda k: k != 0  # noqa
+
 
 def update_expression(function: Callable[[Any], Expr]):
-    def wrapper(self, *args, **kwargs):
+    """Decorator for updating the stored expression in GSE."""
+
+    def wrapper(self: GSE, *args, **kwargs):
         flag = kwargs.get("keep", True)
         out = function(self, *args, **kwargs)
         if flag:
-            args[0].a = out
+            self.expression = out
+            success = self._check_expression_update()
+            if not success:
+                warnings.warn("Expression did not change.")
         return out
 
     return wrapper
@@ -61,6 +68,9 @@ class GSE:
         A dictionary of the symbolic subsitutions that have been applied to the expression.
     """
 
+    def _check_expression_update(self) -> bool:
+        return self._history[-1] != self._history[0]
+
     def __init__(self, gnarly_symbolic_expression: Expr, assumptions: Optional[list[str]] = None):
         self.gnarly = gnarly_symbolic_expression
         self.gnarly_terms = GSE._individual_terms(self.gnarly)
@@ -79,8 +89,12 @@ class GSE:
     def _individual_terms(expression: Expr) -> tuple[Expr, ...]:
         return sympy.Add.make_args(expression)
 
-    def undo(self):
+    def undo(self) -> None:
+        """Undo the most recent update to the stored expression.
 
+        Raises:
+            IndexError: If there are no steps to undo.
+        """
         if len(self._history) == 0:
             raise IndexError("Nothing to undo!")
         self.expression = self._history.pop()
@@ -138,79 +152,67 @@ class GSE:
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
-    def wildcard_pattern_replacement(self, pattern: str, replacement: str, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def wildcard_pattern_replacement(
+        self, pattern: str, replacement: str, allow_zeroes: bool = False, *, keep: bool = True
+    ) -> Expr:
         """Replace a pattern in the expression with another.
         Free variables in the `pattern` kwarg are assumed to be wildcards.
 
         Args:
             pattern (str): Pattern to replace.
             replacement (str): Replacement pattern.
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            allow_zeroes: Allow wildcards to be zero-valued, defaults to False.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr
         """
         wildcard_dict = {
-            sym: Wild(str(sym), properties=[lambda k: k != 0]) for sym in parse_to_sympy(pattern).free_symbols
+            sym: Wild(str(sym), properties=[NONZERO] if not allow_zeroes else [])
+            for sym in parse_to_sympy(pattern).free_symbols
         }
         pattern = parse_to_sympy(pattern).subs(wildcard_dict)
         replacement = parse_to_sympy(replacement).subs(wildcard_dict)
         expr = _replace_subexpression(self.expression, pattern, replacement)
-        if keep_modification:
-            self.expression = expr
+        if keep:
             self.substitutions[replacement] = pattern
         return expr
 
-    def evaluate_variables(self, variable_values: dict[str, float], keep_modification: bool = True) -> Expr:
+    @update_expression
+    def evaluate_variables(self, variable_values: dict[str, float], *, keep: bool = True) -> Expr:
         """Assign explicit values to certain variables.
 
         Args:
             variable_values : A dictionary of (variable name: value) key, val pairs.
-            keep_modification: Whether or not to keep this modification. Defaults to True.
+            keep: Whether or not to keep this modification. Defaults to True.
 
         Returns:
             Expr
         """
         expr = self.expression.subs({self._get_symbol(var): val for var, val in variable_values.items()})
-        if keep_modification:
-            self.expression = expr
         return expr
 
-    def expand(self, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def expand(self, keep: bool = True) -> Expr:
         """Aggressively expand parenthesis in the expression.
 
         Args:
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr: An expanded expression.
         """
-        expr = self.expression.expand()
-        if keep_modification:
-            self.expression = expr
-        return expr
+        return self.expression.expand()
 
-    def simplify_logs(self, keep_modification: bool = True) -> Expr:
-        """Simplify the log terms in the expression, i.e. replace log(x)/log(2) with log2(x).
-
-        Args:
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
-
-        Returns:
-            Expr
-        """
-        expr = self.wildcard_pattern_replacement("a*log(x)/log(2)", "a*log2(x)")
-        if keep_modification:
-            self.expression = expr
-        return expr
-
-    def substitute(self, string_literal: str, replacement: str, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def substitute(self, string_literal: str, replacement: str, *, keep: bool = True) -> Expr:
         """Replace a specific string in the expression with another.
 
         Args:
             string_literal (str): The string to replace.
             replacement (str): Replacment string.
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr: _description_
@@ -219,8 +221,7 @@ class GSE:
         literal = literal.subs({fs: self._get_symbol(fs.name) for fs in literal.free_symbols})
 
         expr = self.expression.subs(literal, replacement)
-        if keep_modification:
-            self.expression = expr
+        if keep:
             self.substitutions[replacement] = literal
         return expr
 
@@ -228,7 +229,7 @@ class GSE:
         """Highlight specific variables in the expression by obfuscating any term that does not include that variable.
 
         Args:
-            variables (str | list[str]): A string or list of strings, indiciating the names of the variables to
+            variables: A string or list of strings, indiciating the names of the variables to
             highlight.
 
         Returns:
@@ -242,21 +243,20 @@ class GSE:
         )
         return Add(*[x for x in self.expression.args if x.free_symbols & variables]).collect(variables)
 
-    def symplify(self, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def symplify(self, *, keep: bool = True) -> Expr:
         """Run the built in sympy.simplify function, first on each individual term and then on the whole expression.
 
         Args:
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr: A simplified sympy expression.
         """
-        expr = Add(*[expr.simplify() for expr in self.individual_terms]).simplify()
-        if keep_modification:
-            self.expression = expr
-        return expr
+        return Add(*[expr.simplify() for expr in self.individual_terms]).simplify()
 
-    def add_assumption(self, assume: str, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def add_assumption(self, assume: str, *, keep: bool = True) -> Expr:
         """Add an assumption to the expression, which may potentially simplify it.
 
         An assumption should take the form of
@@ -269,42 +269,80 @@ class GSE:
 
         Args:
             assume (str): A string representative of the assumption, of the form A?B.
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr: The expression with the assumption applied. If sympy is unable to use the assumption,
                 the expression will look the same.
         """
-        expr = _apply_assumption(expression=self.expression, assumption=assume)
-        if keep_modification:
-            self.expression = expr
-            if assume not in self.assumptions:
-                self.assumptions.append(assume)
-        return expr
+        if keep and assume not in self.assumptions:
+            self.assumptions.append(assume)
+        return _apply_assumption(expression=self.expression, assumption=assume)
 
-    def remove_substitution(self, variable_to_remove: str, keep_modification: bool = True) -> Expr:
+    @update_expression
+    def remove_substitution(self, variable_to_remove: str, *, keep: bool = True) -> Expr:
         """Undo a substitution previously applied to the expression.
 
         Args:
             variable_to_remove (str): Variable name to remove.
-            keep_modification (bool, optional): Whether or not to keep the modification. Defaults to True.
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
 
         Returns:
             Expr: Updated expression.
         """
         ref_symbol = self._get_symbol(variable_to_remove)
-        expr = self.expression.subs({ref_symbol: self.substitutions[ref_symbol]})
-        if keep_modification:
+        return self.expression.subs({ref_symbol: self.substitutions[ref_symbol]})
+
+    def remove_all_substitutions(self, *, keep: bool = True) -> Expr:
+        """Remove all (non-wildcard) substitutions.
+
+        Args:
+            keep (bool, optional): Whether or not to keep the modification. Defaults to True.
+
+        Returns:
+            Expr
+        """
+        expr = self.expression
+        substitutions: list[Symbol | Expr] = [key for key in self.substitutions if not key.is_Wild]
+        # TODO: This function does not interact correctly with the decorator
+        for sub in substitutions:
+            expr = expr.subs({sub: self.substitutions[sub]})
+        if keep:
             self.expression = expr
+            for key in substitutions:
+                self.substitutions.pop(key)
         return expr
 
-    def remove_all_substitutions(self, keep_modification: bool = True) -> Expr:
-        expr = self.expression
-        for sub in [key for key in self.substitutions if not key.is_Wild]:
-            expr = expr.subs({sub: self.substitutions.pop(sub)})
-        if keep_modification:
-            self.expression = expr
-        return expr
+    def all_functions_and_arguments(self) -> set[Expr]:
+        """Get a set of all functions and their arguments in the expression.
+
+        The returned set will include all functions at every level of the expression, i.e.
+        GSE("max(a, 1 - max(b, 1 - max(c, lamda)))).all_functions_and_arguments()
+        >>> {
+        >>> Max(c, lamda),
+        >>> Max(b, 1 - Max(c, lamda)),
+        >>> Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+        >>> }
+
+        Returns:
+            set[Expr]
+        """
+        return self.expression.atoms(sympy.Function, sympy.Max)
+
+    def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...]]:
+        """Return a list of all arguments of a named function.
+
+        Args:
+            function_name: function name
+
+        Returns:
+            list[tuple[Expr, ...]]
+        """
+        return [
+            tuple(_arg for _arg in _func.args if _arg)
+            for _func in self.all_functions_and_arguments()
+            if _func.__class__.__name__.lower() == function_name.lower()
+        ]
 
 
 #####################################################################
@@ -341,7 +379,7 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
     Returns:
         Expr
     """
-    var, relation, value, properties = _parse_assumption(assumption=assumption)
+    var, relation, value, _ = _parse_assumption(assumption=assumption)
     try:
         reference_symbol: Symbol = next(symbol for symbol in expression.free_symbols if symbol.name == var)
     except StopIteration:
@@ -421,48 +459,3 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if relationship not in _RELATIONSHIPS:
         raise ValueError(f"Relationship {relationship} not in permitted delimiters: {_RELATIONSHIPS}.")
     return var, relationship, value
-
-
-def wrapper(function):
-    def inner(self, *args, **kwargs):
-        out = function(self, *args, **kwargs)
-        print(kwargs)
-        if kwargs.get("flag"):
-            setattr(self, "a", out)
-        return out
-
-    return inner
-
-
-def update_expression(function):
-    def wrapper(*args, **kwargs):
-        # args[0] is the instance of the class (self)
-        flag = kwargs.get("flag", args[1] if len(args) > 1 else False)  # Retrieve flag from args or kwargs
-        out = function(*args, **kwargs)  # Call the original function once
-
-        if flag:  # Only update 'a' if the flag from the method is True
-            args[0].a = out  # Update the attribute 'a' of the object (args[0] is the object)
-
-        return out  # Return the result of the original function
-
-    return wrapper
-
-
-class A:
-    def __init__(self):
-        self.a: int = 1
-
-    @update_expression  # No flag in decorator now, it will use method's flag argument
-    def method(self, b: int, flag=True):
-        return b  # Return the value of b
-
-
-if __name__ == "__main__":
-    c = A()
-    print(c.a)  # Initial value of 'a' is 1
-
-    c.method(0)  # Method call with b=0, flag=False; 'a' should NOT be updated
-    print(c.a)  # 'a' should still be 1 because flag=False
-
-    c.method(5)  # Method call with b=5, flag=True; 'a' should be updated
-    print(c.a)  # 'a' should be updated to 5 because flag=True
