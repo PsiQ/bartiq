@@ -37,9 +37,9 @@ def update_expression(function: Callable[[Any], Expr]):
         out = function(self, *args, **kwargs)
         if flag:
             self.expression = out
-            success = self._check_expression_update()
-            if not success:
-                warnings.warn("Expression did not change.")
+            # success = self._check_expression_update()
+            # if not success:
+            #     warnings.warn("Expression did not change.")
         return out
 
     return wrapper
