@@ -12,6 +12,11 @@ pip install bartiq
 
     If you wish to use the package's jupyter integrations, run `pip install "bartiq[jupyter]"` instead.
 
+!!! note
+
+    To use the [QREF](https://github.com/PsiQ/qref/) rendering tool in Jupyter Notebook, ensure the Graphviz software is installed on your OS and that its executables are included in your system variables. For installation instructions, please refer to the [Graphviz download page](https://graphviz.org/download/).
+
+
 ## From Source
 
 For a source install run:
