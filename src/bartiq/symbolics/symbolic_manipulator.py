@@ -1,14 +1,17 @@
 """A prototype for manipulation symbolic expressions in sympy."""
 
 from __future__ import annotations
-import sympy
-import re
-from typing import Optional
-from sympy import Add, Symbol, Expr, Wild
-from bartiq.symbolics.sympy_backends import parse_to_sympy
 
+import re
 from enum import StrEnum
 from functools import lru_cache
+from collections.abc import Callable
+from typing import Optional, Any
+
+import sympy
+from sympy import Add, Expr, Symbol, Wild
+
+from bartiq.symbolics.sympy_backends import parse_to_sympy
 
 
 class _Relationships(StrEnum):
@@ -22,6 +25,17 @@ class _Relationships(StrEnum):
 _RELATIONSHIPS = list(_Relationships._value2member_map_.keys())
 
 _SPLIT_BY: str = "(" + ")|(".join(_RELATIONSHIPS) + ")"
+
+
+def update_expression(function: Callable[[Any], Expr]):
+    def wrapper(self, *args, **kwargs):
+        flag = kwargs.get("keep", True)
+        out = function(self, *args, **kwargs)
+        if flag:
+            args[0].a = out
+        return out
+
+    return wrapper
 
 
 class GSE:
@@ -66,6 +80,7 @@ class GSE:
         return sympy.Add.make_args(expression)
 
     def undo(self):
+
         if len(self._history) == 0:
             raise IndexError("Nothing to undo!")
         self.expression = self._history.pop()
@@ -406,3 +421,48 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if relationship not in _RELATIONSHIPS:
         raise ValueError(f"Relationship {relationship} not in permitted delimiters: {_RELATIONSHIPS}.")
     return var, relationship, value
+
+
+def wrapper(function):
+    def inner(self, *args, **kwargs):
+        out = function(self, *args, **kwargs)
+        print(kwargs)
+        if kwargs.get("flag"):
+            setattr(self, "a", out)
+        return out
+
+    return inner
+
+
+def update_expression(function):
+    def wrapper(*args, **kwargs):
+        # args[0] is the instance of the class (self)
+        flag = kwargs.get("flag", args[1] if len(args) > 1 else False)  # Retrieve flag from args or kwargs
+        out = function(*args, **kwargs)  # Call the original function once
+
+        if flag:  # Only update 'a' if the flag from the method is True
+            args[0].a = out  # Update the attribute 'a' of the object (args[0] is the object)
+
+        return out  # Return the result of the original function
+
+    return wrapper
+
+
+class A:
+    def __init__(self):
+        self.a: int = 1
+
+    @update_expression  # No flag in decorator now, it will use method's flag argument
+    def method(self, b: int, flag=True):
+        return b  # Return the value of b
+
+
+if __name__ == "__main__":
+    c = A()
+    print(c.a)  # Initial value of 'a' is 1
+
+    c.method(0)  # Method call with b=0, flag=False; 'a' should NOT be updated
+    print(c.a)  # 'a' should still be 1 because flag=False
+
+    c.method(5)  # Method call with b=5, flag=True; 'a' should be updated
+    print(c.a)  # 'a' should be updated to 5 because flag=True
