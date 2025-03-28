@@ -388,32 +388,32 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
     Returns:
         Expr
     """
-    var, relation, value, properties = _parse_assumption(assumption=assumption)
+    var, _, value, properties = _parse_assumption(assumption=assumption)
     try:
         reference_symbol: Symbol = next(symbol for symbol in expression.free_symbols if symbol.name == var)
+        if value == 0:
+            expression = expression.subs(
+                {
+                    reference_symbol: Symbol(
+                        var,
+                        positive=properties.get("positive"),
+                        negative=properties.get("negative"),
+                        nonzero=properties.get("nonzero"),
+                    )
+                }
+            )
+            return expression
     except StopIteration:
         reference_symbol: Expr = parse_to_sympy(var)
 
-    updated_symbol: Symbol = Symbol(
-        var,
+    replacement_symbol = Symbol(
+        name="O",
         positive=properties.get("positive"),
         negative=properties.get("negative"),
         nonzero=properties.get("nonzero"),
     )
-
-    if value == 0:
-        expression = expression.subs({reference_symbol: updated_symbol})
-        return expression
-
-    replacement_symbol = Symbol(
-        name="O",
-        positive=((relation in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO]) and (value >= 0))
-        or None,
-    )
-    expression = (
-        expression.subs({reference_symbol: replacement_symbol + value})
-        .subs({replacement_symbol: reference_symbol - value})
-        .subs({reference_symbol: updated_symbol})
+    expression = expression.subs({reference_symbol: replacement_symbol + value}).subs(
+        {replacement_symbol: reference_symbol - value}
     )
     return expression
 
@@ -494,3 +494,14 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if relationship not in _RELATIONSHIPS:
         raise ValueError(f"Relationship {relationship} not in permitted delimiters: {_RELATIONSHIPS}.")
     return var, relationship, value
+
+
+if __name__ == "__main__":
+    expr = parse_to_sympy(
+        "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + 2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1) + 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + 2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + (ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) - 4253.5"
+    )
+    gse = GSE(expr)
+    print(gse.expression)
+    gse.add_assumption("ceiling(M/lambda) - A > 0")
+    print(gse.expression)
+    print(gse.list_arguments_of_function("max"))
