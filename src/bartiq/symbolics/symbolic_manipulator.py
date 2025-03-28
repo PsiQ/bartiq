@@ -69,6 +69,8 @@ class GSE:
     """
 
     def _check_expression_update(self) -> bool:
+        if len(self._history) == 1:
+            return True
         return self._history[-1] != self._history[0]
 
     def __init__(
