@@ -391,18 +391,17 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
     var, _, value, properties = _parse_assumption(assumption=assumption)
     try:
         reference_symbol: Symbol = next(symbol for symbol in expression.free_symbols if symbol.name == var)
+        replacement = Symbol(
+            var,
+            positive=properties.get("positive"),
+            negative=properties.get("negative"),
+            nonzero=properties.get("nonzero"),
+        )
         if value == 0:
-            expression = expression.subs(
-                {
-                    reference_symbol: Symbol(
-                        var,
-                        positive=properties.get("positive"),
-                        negative=properties.get("negative"),
-                        nonzero=properties.get("nonzero"),
-                    )
-                }
-            )
+            expression = expression.subs({reference_symbol: replacement})
             return expression
+        else:
+            reference_symbol = replacement
     except StopIteration:
         reference_symbol: Expr = parse_to_sympy(var)
 
