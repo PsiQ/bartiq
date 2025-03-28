@@ -452,7 +452,13 @@ def _parse_assumption(assumption: str) -> tuple[str, str, int | float, dict[str,
         dict(
             positive=((gt or gte) and value_positive) or None,
             negative=((lt or lte) and value_negative) or None,
-            nonzero=((gt and value_positive and value_non_zero) or (lt and value_negative and value_non_zero)) or None,
+            nonzero=(
+                (gt and value_positive)
+                or (lt and value_negative)
+                or (gte and value_positive and value_non_zero)
+                or (lte and value_negative and value_non_zero)
+            )
+            or None,
         )
     )
 
