@@ -72,7 +72,7 @@ class GSE:
         return self._history[-1] != self._history[0]
 
     def __init__(
-        self, gnarly_symbolic_expression: Expr, assumptions: Optional[list[str]] = None, suppress_warnings: bool = False
+        self, gnarly_symbolic_expression: Expr, assumptions: Optional[list[str]] = None, suppress_warnings: bool = True
     ):
         self.gnarly = gnarly_symbolic_expression
         self.gnarly_terms = GSE._individual_terms(self.gnarly)
