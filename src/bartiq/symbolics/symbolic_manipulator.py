@@ -37,9 +37,9 @@ def update_expression(function: Callable[[Any], Expr]):
         out = function(self, *args, **kwargs)
         if flag:
             self.expression = out
-            # success = self._check_expression_update()
-            # if not success:
-            #     warnings.warn("Expression did not change.")
+            success = self._check_expression_update()
+            if not success and not self.suppress_warnings:
+                warnings.warn("Expression did not change.")
         return out
 
     return wrapper
@@ -71,9 +71,13 @@ class GSE:
     def _check_expression_update(self) -> bool:
         return self._history[-1] != self._history[0]
 
-    def __init__(self, gnarly_symbolic_expression: Expr, assumptions: Optional[list[str]] = None):
+    def __init__(
+        self, gnarly_symbolic_expression: Expr, assumptions: Optional[list[str]] = None, suppress_warnings: bool = False
+    ):
         self.gnarly = gnarly_symbolic_expression
         self.gnarly_terms = GSE._individual_terms(self.gnarly)
+
+        self.suppress_warnings = suppress_warnings
 
         self._expression: Expr = gnarly_symbolic_expression
         self._variables: list[Symbol] = self.gnarly.free_symbols
