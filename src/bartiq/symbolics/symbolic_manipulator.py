@@ -388,17 +388,15 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
     except StopIteration:
         reference_symbol: Expr = parse_to_sympy(var)
 
+    updated_symbol: Symbol = Symbol(
+        var,
+        positive=properties.get("positive"),
+        negative=properties.get("negative"),
+        nonzero=properties.get("nonzero"),
+    )
+
     if value == 0:
-        expression = expression.subs(
-            {
-                reference_symbol: Symbol(
-                    var,
-                    positive=properties.get("positive"),
-                    negative=properties.get("negative"),
-                    nonzero=properties.get("nonzero"),
-                )
-            }
-        )
+        expression = expression.subs({reference_symbol: updated_symbol})
         return expression
 
     replacement_symbol = Symbol(
@@ -406,8 +404,10 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
         positive=((relation in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO]) and (value >= 0))
         or None,
     )
-    expression = expression.subs({reference_symbol: replacement_symbol + value}).subs(
-        {replacement_symbol: reference_symbol - value}
+    expression = (
+        expression.subs({reference_symbol: replacement_symbol + value})
+        .subs({replacement_symbol: reference_symbol - value})
+        .subs({reference_symbol: updated_symbol})
     )
     return expression
 
@@ -482,9 +482,3 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if relationship not in _RELATIONSHIPS:
         raise ValueError(f"Relationship {relationship} not in permitted delimiters: {_RELATIONSHIPS}.")
     return var, relationship, value
-
-
-if __name__ == "__main__":
-    expr = parse_to_sympy("max(A + B, 0)")
-    gse = GSE(expr, assumptions=["B>0", "A>=0"])
-    print(gse.expression)
