@@ -431,24 +431,24 @@ def _parse_assumption(assumption: str) -> tuple[str, str, int | float, dict[str,
     var, relationship, value = _unpack_assumption(assumption=assumption)
     properties: dict[str, bool] = {}
     try:
+        gt: bool = relationship == _Relationships.GREATER_THAN
+        gte: bool = relationship == _Relationships.GREATER_THAN_OR_EQUAL_TO
+
+        lt: bool = relationship == _Relationships.LESS_THAN
+        lte: bool = relationship == _Relationships.LESS_THAN_OR_EQUAL_TO
+
+        value_positive: bool = value >= 0
+        value_negative: bool = value <= 0
+        value_non_zero: bool = value != 0
+
         reference_value = eval(value)
         properties.update(
             dict(
-                positive=(
-                    (relationship in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO])
-                    and reference_value >= 0
-                )
+                positive=((gt or gte) and value_positive) or None,
+                negative=((lt or lte) and value_negative) or None,
+                nonzero=((gt and value_positive and value_non_zero) or (lt and value_negative and value_non_zero))
                 or None,
-                negative=(
-                    ((relationship in [_Relationships.LESS_THAN, _Relationships.LESS_THAN_OR_EQUAL_TO]))
-                    and reference_value <= 0
-                )
-                or None,
-                nonzero=(
-                    (relationship in [_Relationships.LESS_THAN, _Relationships.GREATER_THAN]) and reference_value == 0
-                )
-                or None,
-            ),
+            )
         )
 
         return (var, relationship, reference_value, properties)
