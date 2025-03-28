@@ -397,11 +397,8 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
             negative=properties.get("negative"),
             nonzero=properties.get("nonzero"),
         )
-        if value == 0:
-            expression = expression.subs({reference_symbol: replacement})
-            return expression
-        else:
-            reference_symbol = replacement
+        expression = expression.subs({reference_symbol: replacement})
+        reference_symbol = replacement
     except StopIteration:
         reference_symbol: Expr = parse_to_sympy(var)
 
@@ -496,11 +493,12 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
 
 
 if __name__ == "__main__":
-    expr = parse_to_sympy(
-        "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + 2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1) + 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + 2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + (ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) - 4253.5"
-    )
+    expr = parse_to_sympy("max(10, A+B)")
     gse = GSE(expr)
     print(gse.expression)
-    gse.add_assumption("ceiling(M/lambda) - A > 0")
+    gse.add_assumption("A>10")
     print(gse.expression)
-    print(gse.list_arguments_of_function("max"))
+    gse.add_assumption("B>10")
+    for x in gse.variables:
+        print(x, x.is_nonzero, x.is_positive)
+    print(gse.expression)
