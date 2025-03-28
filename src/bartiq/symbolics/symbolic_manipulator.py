@@ -14,10 +14,10 @@ from bartiq.symbolics.sympy_backends import parse_to_sympy
 
 
 class _Relationships(StrEnum):
-    GREATER_THAN = ">"
-    LESS_THAN = "<"
     GREATER_THAN_OR_EQUAL_TO = ">="
     LESS_THAN_OR_EQUAL_TO = "<="
+    GREATER_THAN = ">"
+    LESS_THAN = "<"
     NOT_EQUAL = "!="
 
 
@@ -87,7 +87,7 @@ class GSE:
 
     @staticmethod
     def _individual_terms(expression: Expr) -> tuple[Expr, ...]:
-        return sympy.Add.make_args(expression)
+        return Add.make_args(expression)
 
     def undo(self) -> None:
         """Undo the most recent update to the stored expression.
@@ -169,7 +169,7 @@ class GSE:
             Expr
         """
         wildcard_dict = {
-            sym: Wild(str(sym), properties=[NONZERO] if not allow_zeroes else [])
+            sym: Wild(str(sym), properties=[lambda k: k != 0], nonzero=True)
             for sym in parse_to_sympy(pattern).free_symbols
         }
         pattern = parse_to_sympy(pattern).subs(wildcard_dict)
@@ -382,15 +382,29 @@ def _apply_assumption(expression: Expr, assumption: str) -> Expr:
     Returns:
         Expr
     """
-    var, relation, value, _ = _parse_assumption(assumption=assumption)
+    var, relation, value, properties = _parse_assumption(assumption=assumption)
     try:
         reference_symbol: Symbol = next(symbol for symbol in expression.free_symbols if symbol.name == var)
     except StopIteration:
         reference_symbol: Expr = parse_to_sympy(var)
 
+    if value == 0:
+        expression = expression.subs(
+            {
+                reference_symbol: Symbol(
+                    var,
+                    positive=properties.get("positive"),
+                    negative=properties.get("negative"),
+                    nonzero=properties.get("nonzero"),
+                )
+            }
+        )
+        return expression
+
     replacement_symbol = Symbol(
         name="O",
-        positive=(relation in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO]) and (value >= 0),
+        positive=((relation in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO]) and (value >= 0))
+        or None,
     )
     expression = expression.subs({reference_symbol: replacement_symbol + value}).subs(
         {replacement_symbol: reference_symbol - value}
@@ -423,11 +437,17 @@ def _parse_assumption(assumption: str) -> tuple[str, str, int | float, dict[str,
                 positive=(
                     (relationship in [_Relationships.GREATER_THAN, _Relationships.GREATER_THAN_OR_EQUAL_TO])
                     and reference_value >= 0
-                ),
+                )
+                or None,
                 negative=(
                     ((relationship in [_Relationships.LESS_THAN, _Relationships.LESS_THAN_OR_EQUAL_TO]))
                     and reference_value <= 0
-                ),
+                )
+                or None,
+                nonzero=(
+                    (relationship in [_Relationships.LESS_THAN, _Relationships.GREATER_THAN]) and reference_value == 0
+                )
+                or None,
             ),
         )
 
@@ -465,7 +485,6 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
 
 
 if __name__ == "__main__":
-    expr = parse_to_sympy("max(z, 1- max(x, y))")
-    gse = GSE(expr)
-    a = gse.wildcard_pattern_replacement("max(x, y)", "x")
-    print(a)
+    expr = parse_to_sympy("max(A + B, 0)")
+    gse = GSE(expr, assumptions=["B>0", "A>=0"])
+    print(gse.expression)
