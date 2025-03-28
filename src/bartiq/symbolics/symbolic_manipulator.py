@@ -175,7 +175,7 @@ class GSE:
             Expr
         """
         wildcard_dict = {
-            sym: Wild(str(sym), properties=[lambda k: k != 0], nonzero=True)
+            sym: Wild(str(sym), properties=[NONZERO] if not allow_zeroes else [], nonzero=True)
             for sym in parse_to_sympy(pattern).free_symbols
         }
         pattern = parse_to_sympy(pattern).subs(wildcard_dict)
