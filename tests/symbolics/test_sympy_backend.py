@@ -95,7 +95,8 @@ def test_attempt_to_define_builtin_function_fails():
         ("1", False),
         ("3.141", False),
         ("N+1", False),
-        ("ceil(log_2(N))", False),
+        ("ceil(log2(N))", False),
+        ("ceiling(log2(N))", False),
         (None, False),
     ],
 )
@@ -178,3 +179,23 @@ def test_min_max_works_for_symbols(backend):
     values = symbols("a, b, c")
     assert backend.min(*values) == sympy_min(*values)
     assert backend.max(*values) == sympy_max(*values)
+
+
+@pytest.mark.parametrize(
+    "expression, expected_output, user_defined",
+    [
+        (
+            "celing(a*log_2(x))/log_10(y) + mlz(x*y/z)*log_10(x*y)",
+            [("log_2", "log2"), ("log_10", "log10"), ("celing", "ceiling"), ("mlz", "nlz")],
+            [],
+        ),
+        (
+            "ceil(a*log_2(x))/log_10(y) + mlz(x*y/z)*log_10(x*y)",
+            [("log_2", "log2"), ("log_10", "log10")],
+            ["mlz"],
+        ),
+    ],
+)
+def test_find_unknown_functions(backend, expression, expected_output, user_defined):
+    input_expr = backend.as_expression(expression)
+    assert set(backend.find_undefined_functions(input_expr, user_defined)) == set(expected_output)

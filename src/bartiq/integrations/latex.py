@@ -25,7 +25,7 @@ from qref.schema_v1 import (
 )
 from sympy import latex, symbols
 
-from ..symbolics.sympy_backends import parse_to_sympy
+from ..symbolics.sympy_backend import parse_to_sympy
 
 
 def routine_to_latex(
