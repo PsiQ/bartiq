@@ -10,7 +10,7 @@ from typing import Optional, Any
 import warnings
 import sympy
 from sympy import Add, Expr, Symbol, Wild, Function
-from bartiq.symbolics.sympy_backends import parse_to_sympy
+from bartiq.symbolics.sympy_backend import parse_to_sympy
 
 
 class _Relationships(StrEnum):
