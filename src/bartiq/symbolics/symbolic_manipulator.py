@@ -10,7 +10,7 @@ from typing import Optional, Any
 import warnings
 import sympy
 from sympy import Add, Expr, Symbol, Wild, Function
-from bartiq.symbolics.sympy_backend import parse_to_sympy
+from bartiq.symbolics.sympy_backend import parse_to_sympy, sympy_backend
 
 
 class _Relationships(StrEnum):
@@ -122,7 +122,7 @@ class GSE:
         self._variables = new.free_symbols
 
     @property
-    def variables(self) -> list[str]:
+    def variables(self) -> list[Symbol]:
         """Return a list of the current variables in the expression.
 
         Returns:
@@ -153,8 +153,7 @@ class GSE:
             Symbol: The relevant symbol object.
         """
         try:
-            symbol = next(sym for sym in self.expression.free_symbols if sym.name == symbol_name)
-            return symbol
+            return next(sym for sym in self.expression.free_symbols if sym.name == symbol_name)
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
@@ -186,7 +185,13 @@ class GSE:
         return expr
 
     @update_expression
-    def evaluate_variables(self, variable_values: dict[str, float], *, keep: bool = True) -> Expr:
+    def evaluate_variables(
+        self,
+        variable_values: dict[str, float],
+        functions_map: dict[str, Callable[[Any], int | float]] | None = None,
+        *,
+        keep: bool = True,
+    ) -> Expr:
         """Assign explicit values to certain variables.
 
         Args:
@@ -196,7 +201,7 @@ class GSE:
         Returns:
             Expr
         """
-        expr = self.expression.subs({self._get_symbol(var): val for var, val in variable_values.items()})
+        expr = sympy_backend.substitute(self.expression, replacements=variable_values, functions_map=functions_map)
         return expr
 
     @update_expression
@@ -435,7 +440,6 @@ def _parse_assumption(assumption: str) -> tuple[str, str, int | float, dict[str,
             (variable name, relationship, reference value, properties)
     """
     var, relationship, value = _unpack_assumption(assumption=assumption)
-    properties: dict[str, bool] = {}
     try:
         value = eval(value)
     except NameError:
@@ -454,18 +458,16 @@ def _parse_assumption(assumption: str) -> tuple[str, str, int | float, dict[str,
     value_negative: bool = value <= 0
     value_non_zero: bool = value != 0
 
-    properties.update(
-        dict(
-            positive=((gt or gte) and value_positive) or None,
-            negative=((lt or lte) and value_negative) or None,
-            nonzero=(
-                (gt and value_positive)
-                or (lt and value_negative)
-                or (gte and value_positive and value_non_zero)
-                or (lte and value_negative and value_non_zero)
-            )
-            or None,
+    properties: dict[str, bool] = dict(
+        positive=((gt or gte) and value_positive) or None,
+        negative=((lt or lte) and value_negative) or None,
+        nonzero=(
+            (gt and value_positive)
+            or (lt and value_negative)
+            or (gte and value_positive and value_non_zero)
+            or (lte and value_negative and value_non_zero)
         )
+        or None,
     )
 
     return (var, relationship, value, properties)
