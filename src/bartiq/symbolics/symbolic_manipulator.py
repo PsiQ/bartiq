@@ -153,7 +153,7 @@ class GSE:
             Symbol: The relevant symbol object.
         """
         try:
-            return next(sym for sym in self.expression.free_symbols if sym.name == symbol_name)
+            return next(sym for sym in self.variables if sym.name == symbol_name)
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
@@ -205,7 +205,9 @@ class GSE:
             Expr
         """
         expr = sympy_backend.substitute(
-            self.gnarly if gnarly else self.expression, replacements=variable_values, functions_map=functions_map
+            self.gnarly if gnarly else self.expression,
+            replacements={self._get_symbol(var): val for var, val in variable_values.items()},
+            functions_map=functions_map,
         )
         return expr
 
