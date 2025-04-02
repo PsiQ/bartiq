@@ -153,7 +153,7 @@ class GSE:
             Symbol: The relevant symbol object.
         """
         try:
-            return next(sym for sym in self.variables if sym.name == symbol_name)
+            return next(sym for sym in self.expression.free_symbols if sym.name == symbol_name)
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
@@ -206,7 +206,7 @@ class GSE:
         """
         expr = sympy_backend.substitute(
             self.gnarly if gnarly else self.expression,
-            replacements={self._get_symbol(var): val for var, val in variable_values.items()},
+            replacements=variable_values,
             functions_map=functions_map,
         )
         return expr
@@ -509,7 +509,8 @@ if __name__ == "__main__":
     expr = parse_to_sympy(
         "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + 2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1) + 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + 2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + (ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) - 4253.5"
     )
+    expr = parse_to_sympy("A +1")
     gse = GSE(expr)
-    gse.add_assumption("ceiling(M/lambda) - A > 0")
+    # gse.add_assumption("A > 0")
     print(gse.expression)
-    print(gse.list_arguments_of_function("max"))
+    print(gse.evaluate_variables({"A": 1}, keep=False))
