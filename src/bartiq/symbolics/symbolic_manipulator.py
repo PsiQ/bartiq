@@ -188,6 +188,7 @@ class GSE:
     def evaluate_variables(
         self,
         variable_values: dict[str, float],
+        gnarly: bool = False,
         functions_map: dict[str, Callable[[Any], int | float]] | None = None,
         *,
         keep: bool = True,
@@ -196,12 +197,16 @@ class GSE:
 
         Args:
             variable_values : A dictionary of (variable name: value) key, val pairs.
+            gnarly: Whether or not to evaluate the gnarly expression, by default False.
+            functions_map: A map for certain functions.
             keep: Whether or not to keep this modification. Defaults to True.
 
         Returns:
             Expr
         """
-        expr = sympy_backend.substitute(self.expression, replacements=variable_values, functions_map=functions_map)
+        expr = sympy_backend.substitute(
+            self.gnarly if gnarly else self.expression, replacements=variable_values, functions_map=functions_map
+        )
         return expr
 
     @update_expression
