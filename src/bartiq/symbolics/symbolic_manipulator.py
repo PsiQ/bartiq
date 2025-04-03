@@ -202,7 +202,6 @@ class GSE:
         Returns:
             Expr
         """
-        print(self.expression.subs({self._get_symbol(var): val for var, val in variable_values.items()}))
         expr = sympy_backend.substitute(
             self.gnarly if gnarly else self.expression,
             replacements={self._get_symbol(var).name: val for var, val in variable_values.items()},
