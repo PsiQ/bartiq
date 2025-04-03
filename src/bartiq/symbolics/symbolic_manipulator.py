@@ -139,7 +139,6 @@ class GSE:
         """
         return GSE._individual_terms(self.expression)
 
-    @lru_cache
     def _get_symbol(self, symbol_name: str) -> Symbol:
         """Return a Symbol object given its name.
 
@@ -204,9 +203,10 @@ class GSE:
         Returns:
             Expr
         """
+        print(self.expression.subs({self._get_symbol(var): val for var, val in variable_values.items()}))
         expr = sympy_backend.substitute(
             self.gnarly if gnarly else self.expression,
-            replacements=variable_values,
+            replacements={self._get_symbol(var).name: val for var, val in variable_values.items()},
             functions_map=functions_map,
         )
         return expr
@@ -507,10 +507,23 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
 
 if __name__ == "__main__":
     expr = parse_to_sympy(
-        "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + 2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1) + 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + 2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + (ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) - 4253.5"
+        "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + "
+        "2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1)"
+        "+ 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + "
+        "2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + "
+        "(ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) "
+        "- 4253.5"
     )
-    expr = parse_to_sympy("A +1")
+    expr = parse_to_sympy("A + 1")
     gse = GSE(expr)
-    # gse.add_assumption("A > 0")
+    gse.add_assumption("A > 0")
     print(gse.expression)
     print(gse.evaluate_variables({"A": 1}, keep=False))
+    # from sympy import Symbol
+
+    # A = Symbol("A", positive=True)
+    # # A = Symbol("A")
+    # expr = A + 1
+    # expr_evaluated = sympy_backend.substitute(expr, {"A": 1})
+    # print(expr_evaluated)
+    # print(expr.subs(A, 1))
