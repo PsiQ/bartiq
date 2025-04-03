@@ -186,8 +186,11 @@ class SympyBackend:
         functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
     ) -> TExpr[Expr]:
 
-        symbols_in_expr = self.free_symbols_in(expr)
-        restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
+        restricted_replacements = [
+            (old_symbol, replacement)
+            for old_name, replacement in replacements.items()
+            if (old_symbol := _symbol_by_name(expr, old_name))
+        ]
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
             functions_map = {}
@@ -319,6 +322,10 @@ def _get_potentially_unknown_functions(expr: sympy.Basic) -> set[str]:
         set[str]: The names of operations in the expression whose parent module is unknown.
     """
     return set(str(arg.__class__) for arg in iterargs(expr) if not type(arg).__module__)
+
+
+def _symbol_by_name(expr: Expr, symbol_name: str) -> Symbol | None:
+    return next((symbol for symbol in expr.free_symbols if symbol.name == symbol_name), None)
 
 
 # Define sympy_backend for backwards compatibility
