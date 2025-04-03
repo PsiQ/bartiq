@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from enum import StrEnum
-from functools import lru_cache
 from collections.abc import Callable
 from typing import Optional, Any
 import warnings
@@ -514,16 +513,7 @@ if __name__ == "__main__":
         "(ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) "
         "- 4253.5"
     )
-    expr = parse_to_sympy("A + 1")
+    # expr = parse_to_sympy("A + 1")
     gse = GSE(expr)
     gse.add_assumption("A > 0")
-    print(gse.expression)
-    print(gse.evaluate_variables({"A": 1}, keep=False))
-    # from sympy import Symbol
-
-    # A = Symbol("A", positive=True)
-    # # A = Symbol("A")
-    # expr = A + 1
-    # expr_evaluated = sympy_backend.substitute(expr, {"A": 1})
-    # print(expr_evaluated)
-    # print(expr.subs(A, 1))
+    print(expr.subs(None, 1))
