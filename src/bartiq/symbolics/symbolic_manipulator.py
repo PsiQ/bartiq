@@ -259,7 +259,11 @@ class GSE:
             variable_symbols = set()
 
         variable_symbols = variable_symbols.union(
-            set(sym for sym, orig in self.substitutions.items() if any(x.name in variables for x in orig.args))
+            set(
+                sym
+                for sym, orig in self.substitutions.items()
+                if any(getattr(x, "name", None) in variables for x in orig.args)
+            )
         )
         return Add(*[x for x in self.expression.args if x.free_symbols & variable_symbols]).collect(variables)
 
