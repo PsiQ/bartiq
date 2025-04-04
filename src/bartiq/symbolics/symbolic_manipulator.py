@@ -253,11 +253,15 @@ class GSE:
         """
         if isinstance(variables, str):
             variables = [variables]
-        variables = set(map(self._get_symbol, variables))
-        variables = variables.union(
-            set(sym for sym, orig in self.substitutions.items() if any(x in variables for x in orig.args))
+        try:
+            variable_symbols = set(map(self._get_symbol, variables))
+        except ValueError:
+            variable_symbols = set()
+
+        variable_symbols = variable_symbols.union(
+            set(sym for sym, orig in self.substitutions.items() if any(x.name in variables for x in orig.args))
         )
-        return Add(*[x for x in self.expression.args if x.free_symbols & variables]).collect(variables)
+        return Add(*[x for x in self.expression.args if x.free_symbols & variable_symbols]).collect(variables)
 
     @update_expression
     def symplify(self, *, keep: bool = True) -> Expr:
@@ -504,15 +508,9 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
 
 
 if __name__ == "__main__":
-    expr = parse_to_sympy(
-        "55*beth*(-1 + (beth*(lambda - 1)*(n/2 - 1) + beth*(n/2 - 1))/(beth*(n/2 - 1)))*(n/2 - 1) + "
-        "2*beth*(lambda - 1)*(n/2 - 1)*(2*ceiling(1.5*beth*(lambda - 1)*(n/2 - 1)) + 1) + 3*beth*(lambda - 1)*(n/2 - 1)"
-        "+ 2*beth*(n/2 - 1)*(2*ceiling(1.5*beth*(n/2 - 1)) + 1) + 3*beth*(n/2 - 1) + 1400*beth + 102*lambda + "
-        "2*(108*beth + 2816)*(n/2 - 1) + (ceiling(0.75*lambda) + 49)*Max(0, -A + ceiling(M/lambda)) + "
-        "(ceiling(0.75*beth*(lambda - 1)*(n/2 - 1) + 0.75*beth*(n/2 - 1)) + 49)*Max(0, -A + ceiling(M/lambda)) "
-        "- 4253.5"
-    )
-    # expr = parse_to_sympy("A + 1")
+    expr = parse_to_sympy("max(x + z, y) + f(y, z)")
     gse = GSE(expr)
-    gse.add_assumption("A > 0")
-    print(expr.subs(None, 1))
+    print(gse.expression)
+    gse.substitute("x+z", "A")
+    print(gse.expression)
+    print(gse.highlight_variables("x"))
