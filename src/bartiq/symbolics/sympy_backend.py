@@ -260,6 +260,10 @@ class SympyBackend:
         """Return sum of all args."""
         return sympy.Add(*args)
 
+    def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
+        """Return product of all args."""
+        return sympy.Mul(*args)
+
     def sequence_sum(
         self,
         term: TExpr[Expr],
