@@ -174,3 +174,36 @@ def test_precompile_propagates_linked_params(input_dict, expected_linked_params,
             routine = routine.children[part]
 
         assert routine.linked_params == linked_params
+
+
+def test_propagating_additive_resources_works_as_expected_in_presence_of_large_number_of_children(backend):
+    # This test does not check correctness, but rather serves as litmus paper detecting performance
+    # regression. See https://github.com/PsiQ/bartiq/issues/181
+    N_CHILDREN = 6000
+
+    qref_def = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": "root",
+            "children": [
+                {"name": f"child_{i}", "resources": [{"type": "additive", "name": "t_count", "value": 1}]}
+                for i in range(N_CHILDREN)
+            ],
+        },
+    }
+
+    routine = Routine.from_qref(qref_def, backend)
+
+    # Note: we will serialize the obtained value and compare it to string below. Theoretically,
+    # we could instead parse the string below and compare it to the actual value - but in practice this would
+    # mess up the parser because of the recursion limit.
+    sorted_child_names = sorted([f"child_{i}" for i in range(N_CHILDREN)])
+    expected_t_count = " + ".join(f"{child_name}.t_count" for child_name in sorted_child_names)
+
+    preprocessed = propagate_child_resources(routine, backend)
+
+    assert (
+        list(preprocessed.resources) == ["t_count"]
+        and backend.serialize(preprocessed.resources["t_count"].value) == expected_t_count
+    )
