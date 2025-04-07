@@ -256,6 +256,10 @@ class SympyBackend:
         """Returns a biggest value from given args."""
         return sympy.Max(*args)
 
+    def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
+        """Return sum of all args."""
+        return sympy.Add(*args)
+
     def sequence_sum(
         self,
         term: TExpr[Expr],
