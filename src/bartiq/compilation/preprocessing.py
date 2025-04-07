@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import operator
 from collections import defaultdict
 from dataclasses import replace
-from functools import reduce
 from typing import Callable
 
 from .._routine import Constraint, Port, PortDirection, Resource, ResourceType, Routine
@@ -55,7 +53,7 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
         res_name: Resource(
             name=res_name,
             type=ResourceType.additive,
-            value=sum((backend.as_expression(f"{child_name}.{res_name}") for child_name in children)),
+            value=backend.sum(*[backend.as_expression(f"{child_name}.{res_name}") for child_name in children]),
         )
         for res_name, children in child_additive_resources_map.items()
         if res_name not in routine.resources
@@ -65,10 +63,7 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
         res_name: Resource(
             name=res_name,
             type=ResourceType.multiplicative,
-            value=reduce(
-                operator.mul,
-                (backend.as_expression(f"{child_name}.{res_name}") for child_name in children),
-            ),
+            value=backend.prod(*[backend.as_expression(f"{child_name}.{res_name}") for child_name in children]),
         )
         for res_name, children in child_multiplicative_resources_map.items()
         if res_name not in routine.resources
