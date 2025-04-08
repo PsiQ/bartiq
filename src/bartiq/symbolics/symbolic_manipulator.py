@@ -363,7 +363,7 @@ class GSE:
             list[tuple[Expr, ...]]
         """
         return [
-            tuple(_arg for _arg in _func.args if _arg) if len(_func.args) > 1 else _func.args[0]
+            tuple(_arg for _arg in _func.args if (_arg or _arg == 0)) if len(_func.args) > 1 else _func.args[0]
             for _func in self.all_functions_and_arguments()
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
