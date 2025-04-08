@@ -5,7 +5,7 @@
 Bartiq is a Python library for compiling and analyzing fault-tolerant quantum algorithms to understand their computational requirements. It focuses on Quantum Resource Estimation (QRE), tracking key logical-level resources including T-gates, Toffolis, circuit active volume, and qubit count. In `bartiq`, quantum algorithms are expressed as subroutines with locally defined symbolic resource costs, which are used by its compilation engine to generate global resource costs from these local definitions.
 
 To install `bartiq` via `pip`, run
-```python
+```bash
 pip install bartiq
 ```
  More detailed instructions can be found on the [installation page](installation.md).

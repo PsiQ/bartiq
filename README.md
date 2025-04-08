@@ -7,7 +7,7 @@ Bartiq allows for the compilation and analysis of fault tolerant quantum algorit
 ## Installation
 
 To install `bartiq` run:
-```python
+```bash
 pip install bartiq
 ```
  
