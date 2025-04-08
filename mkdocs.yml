@@ -31,8 +31,8 @@ nav:
       - tutorials/01_basic_example.ipynb
       - tutorials/02_alias_sampling_basic.ipynb
       - tutorials/03_advanced_examples.ipynb
-  - Concepts:
-      - concepts/compilation.md
+  # - Concepts: 
+  - concepts/compilation.md
   - troubleshooting.md
   - limitations.md
   - reference.md
