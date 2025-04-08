@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/PsiQ/bartiq/compare/v0.11.0...v0.12.0) (2025-04-08)
+
+
+### Features
+
+* Add backend sum and backend prod ([#182](https://github.com/PsiQ/bartiq/issues/182)) ([42176cf](https://github.com/PsiQ/bartiq/commit/42176cf5ed2a2bc39c70be40daa020ae1dd30c70))
+
 ## [0.11.0](https://github.com/PsiQ/bartiq/compare/v0.10.0...v0.11.0) (2025-03-25)
 
 
