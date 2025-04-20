@@ -60,7 +60,7 @@ _BINARY_OP_MAP = {
     ast.Sub: operator.sub,
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
-    ast.BitXor: operator.pow,
+    ast.BitXor: operator.xor,
     ast.FloorDiv: operator.floordiv,
 }
 
