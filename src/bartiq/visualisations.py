@@ -39,13 +39,15 @@ class TreeMap:
         COLUMNS = ["Routine", "Parent", "Contribution"]
 
         df = pd.DataFrame([], columns=COLUMNS)
-        parent = self.routine.name
         output_from_parent = _get_descendant_contributions(
             self.routine, resource, scale_to=self.routine.resources[resource].value if scale_to == "root" else scale_to
         )
 
-        def _update_dataframe_recursive(output_from_parent, parent, df):
-            for child, contrib in output_from_parent[0].items():
+        def _update_dataframe_recursive(
+            output_from_parent: NestedContributions, parent: str, df: pd.DataFrame
+        ) -> pd.DataFrame:
+            direct_children_contributions, grandchildren_contributions = output_from_parent
+            for child, contrib in direct_children_contributions.items():
                 if df.empty:
                     df = pd.DataFrame([[child, parent, contrib]], columns=COLUMNS)
                 else:
@@ -56,11 +58,11 @@ class TreeMap:
                         ],
                         ignore_index=True,
                     )
-                if child in output_from_parent[1]:
-                    df = _update_dataframe_recursive(output_from_parent[1][child], parent=child, df=df)
+                if child in grandchildren_contributions:
+                    df = _update_dataframe_recursive(grandchildren_contributions[child], parent=child, df=df)
             return df
 
-        return _update_dataframe_recursive(output_from_parent, parent, df)
+        return _update_dataframe_recursive(output_from_parent, self.routine.name, df)
 
     def plot(self, resource: str, scale_to: Literal["parent"] | Number = 1) -> PlotlyFig:
         """Plot the treemap. This function returns a plotly `Figure` object, and calling
@@ -90,6 +92,9 @@ class TreeMap:
         return fig
 
 
+######################################################
+
+
 type Contributions = dict[str, Number]
 
 
@@ -98,7 +103,7 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: 
         child_routine.name: x
         for child_routine in routine.children.values()
         if (
-            x := child_routine.resources.get(resource, Resource(name="dud", type=None, value=0)).value
+            x := child_routine.resources.get(resource, Resource(name=resource, type=None, value=0)).value
             / (routine.resources[resource].value if scale_to == "parent" else scale_to)
         )
     }
@@ -114,6 +119,5 @@ def _get_descendant_contributions(
     grandchildren = {
         child: _get_descendant_contributions(routine=routine.children[child], resource=resource, scale_to=scale_to)
         for child in direct_children_contributions
-        if any("qubits" not in grandchild for grandchild in routine.children[child].children)
     }
     return (direct_children_contributions, grandchildren)
