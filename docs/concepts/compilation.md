@@ -56,16 +56,12 @@ constraint saying that `#in_0 = 1`.
 
 Currently, the  following preprocessing stages take place prior to compilation:
 
-1. Introduction of default additive resources. This stage allows users to define the additive resources for leafs,
-   and then adds the same resource to each of the higher-level routines, by defining it as a sum of the resource over all children that define it.
-   In the example we discussed previously, this preprocessing step would allow uas to skip the definition of
-   `x` resource in `root` and instead have it automatically defined by `bartiq`.
-2. Propagation of linked params. In this stage all linked parameters reaching further than a direct
+1. Propagation of linked params. In this stage all linked parameters reaching further than a direct
    descendant are converted into a series of direct parameter links. This is useful because you can, for example,
    link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
-3. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or pased through
+2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or pased through
    connections. To avoid unnecessary compilation errors, `bartiq` will promote such parameters by linking it to newly introduced input in the parent routine.
-4. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
+3. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
    equal to a single-parameter expression of known name, while also introducing constraints to make sure
    that no information is lost in the process.
 
@@ -108,20 +104,25 @@ populated before other children are compiled.
 Once this step is completed, we can be sure that all resources and ports of each child are expressed in terms
 of global variables, which is a requirement for the next step.
 
-#### Step 2.4: Repetitions
+#### Step 2.5 Propagating children resources
+
+Introduces default additive and multiplicative resources. In case these resources are defined for a child or children, but not a parent, this step will add the same resource to each of the higher-level routines, by defining it as a sum (or product) of the resource over all children that define it.
+In the example we discussed previously, this allows us to skip the definition of `x` resource in `root` and instead have it automatically defined by `bartiq`.
+
+#### Step 2.6: Repetitions
 
 In case a routine is repeated (i.e. has a non-empty `repetition` field), its local resource definitions get updated according 
 to the repetition rules; the repetition specification itself gets updated using the parameter map.
 
-#### Step 2.5: Resource compilation
+#### Step 2.7: Resource compilation
 
 At this stage each child should have input and through ports defined in terms of global variables, and we can now compile the resources. Parents have their resources updated from the compiled resources of their children.
 
-#### Step 2.6: Output port compilation
+#### Step 2.8: Output port compilation
 
 The output ports are compiled, and the new object representing compiled routine is created.
 
-#### Step 2.7 Adding derived resources
+#### Step 2.9 Adding derived resources
 
 Finally, derived resources (provided through `derived_resources` field) are calculated and added to the routine. These resources are not provided in the initial routine (or at least not for all of the subroutines) and need to be calculated based on the existing information.
 

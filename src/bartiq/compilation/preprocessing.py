@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from collections import defaultdict
 from dataclasses import replace
 from typing import Callable
@@ -39,6 +40,10 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
     Returns:
         A routine with all the additive resources defined appropriately at all levels of the hierarchy.
     """
+    warnings.warn(
+        "Usage of propagate_child_resources has been deprecated, as this is now handled" "directly in the compilation.",
+        DeprecationWarning,
+    )
     child_additive_resources_map: defaultdict[str, set[str]] = defaultdict(set)
     child_multiplicative_resources_map: defaultdict[str, set[str]] = defaultdict(set)
 
@@ -213,7 +218,6 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
 
 
 DEFAULT_PREPROCESSING_STAGES = (
-    propagate_child_resources,
     propagate_linked_params,
     promote_unlinked_inputs,
     introduce_port_variables,

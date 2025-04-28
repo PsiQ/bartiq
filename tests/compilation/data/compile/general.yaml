@@ -89,7 +89,165 @@
         value: x + y
       type: null
     version: v1
-# Children and grandchildren, resources dependent on children, no ports, no input params
+# Children and grandchildren, resources dependent on children implicitly (additive and multiplicative), no ports, no input params
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        name: a
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        name: b
+        type: null
+      name: root
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - a.a.x
+          - a.a.y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: a.a.x + a.a.y
+          - name: z_mul
+            type: multiplicative
+            value: a.a.x + a.a.y
+          type: null
+        - input_params:
+          - a.b.x
+          - a.b.y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: a.b.x + a.b.y
+          - name: z_mul
+            type: multiplicative
+            value: a.b.x + a.b.y
+          type: null
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        name: a
+        resources:
+        - name: z
+          type: additive
+          value: a.a.x + a.a.y + a.b.x + a.b.y
+        - name: z_mul
+          type: multiplicative
+          value: (a.a.x + a.a.y)*(a.b.x + a.b.y)
+        type: null
+      - children:
+        - input_params:
+          - b.a.x
+          - b.a.y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: b.a.x + b.a.y
+          - name: z_mul
+            type: multiplicative
+            value: b.a.x + b.a.y
+          type: null
+        - input_params:
+          - b.b.x
+          - b.b.y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: b.b.x + b.b.y
+          - name: z_mul
+            type: multiplicative
+            value: b.b.x + b.b.y
+          type: null
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        name: b
+        resources:
+        - name: z
+          type: additive
+          value: b.a.x + b.a.y + b.b.x + b.b.y
+        - name: z_mul
+          type: multiplicative
+          value: (b.a.x + b.a.y)*(b.b.x + b.b.y)
+        type: null
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      name: root
+      resources:
+      - name: z
+        type: additive
+        value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
+      - name: z_mul
+        type: multiplicative
+        value: (a.a.x + a.a.y)*(a.b.x + a.b.y)*(b.a.x + b.a.y)*(b.b.x + b.b.y)
+      type: null
+    version: v1
 - - program:
       children:
       - children:
@@ -227,6 +385,7 @@
         value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
       type: null
     version: v1
+
 # Children and grandchildren, resources dependent on children, no ports, with input params and params linking
 - - program:
       children:
