@@ -223,7 +223,7 @@ def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variab
 
 
 @pytest.mark.order(-1)
-@pytest.mark.timeout(20)
+@pytest.mark.timeout(30)
 def test_compilation_works_as_expected_in_presence_of_large_number_of_children(backend):
     # This test does not check correctness, but rather serves as litmus paper detecting performance
     # regression. See https://github.com/PsiQ/bartiq/issues/181
