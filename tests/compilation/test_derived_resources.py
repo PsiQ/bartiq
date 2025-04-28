@@ -117,3 +117,41 @@ def test_highwater_of_an_empty_routine_is_zero():
     compiled_routine = compile_routine(input_routine, derived_resources=derived_resources).routine
 
     assert compiled_routine.resources["qubit_highwater"].value == 0
+
+
+def test_additive_derived_resources_are_processed_correctly():
+    input_routine = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": None,
+            "children": [
+                {
+                    "name": "a",
+                    "type": "a",
+                },
+                {
+                    "name": "b",
+                    "type": "b",
+                },
+                {
+                    "name": "c",
+                    "type": "c",
+                    "resources": [
+                        {"name": "test_resource", "type": "additive", "value": 7},
+                    ],
+                },
+            ],
+        },
+    }
+
+    def add_test_resource(routine, backend):
+        if "test_resource" in routine.resources or len(routine.children) != 0:
+            return None
+        else:
+            return 5
+
+    derived_resources = [{"name": "test_resource", "type": "additive", "calculate": add_test_resource}]
+    compiled_routine = compile_routine(input_routine, derived_resources=derived_resources).routine
+
+    assert compiled_routine.resources["test_resource"].value == 17

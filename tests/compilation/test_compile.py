@@ -20,7 +20,7 @@ import yaml
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
-from bartiq import compile_routine
+from bartiq import Routine, compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.errors import BartiqCompilationError, BartiqPreprocessingError
 
@@ -220,3 +220,49 @@ def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variab
         BartiqPreprocessingError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
     ):
         compile_routine(routine, backend=backend)
+
+
+@pytest.mark.order(-1)
+@pytest.mark.timeout(20)
+def test_compilation_works_as_expected_in_presence_of_large_number_of_children(backend):
+    # This test does not check correctness, but rather serves as litmus paper detecting performance
+    # regression. See https://github.com/PsiQ/bartiq/issues/181
+    N_CHILDREN = 1000
+
+    qref_def = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": "root",
+            "input_params": ["n"],
+            "children": [
+                {
+                    "name": f"child_{i}",
+                    "resources": [
+                        {"type": "additive", "name": "t_count", "value": "n"},
+                        {"type": "multiplicative", "name": "foo", "value": "n"},
+                    ],
+                }
+                for i in range(N_CHILDREN)
+            ],
+        },
+    }
+
+    routine = Routine.from_qref(qref_def, backend)
+
+    # Note: we will serialize the obtained value and compare it to the strings below. Theoretically,
+    # we could instead parse the strings and compare them to the actual values - but in practice this would
+    # mess up the parser because of the recursion limit.
+    # Also note: these strings are specific to sympy.
+    expected_t_count = f"{N_CHILDREN}*n"
+    expected_foo = f"n ^ {N_CHILDREN}"
+    # sorted_child_names = sorted([f"child_{i}" for i in range(N_CHILDREN)])
+    # expected_t_count = " + ".join(f"{child_name}.t_count" for child_name in sorted_child_names)
+    # expected_foo = "*".join(f"{child_name}.foo" for child_name in sorted_child_names)
+    compilation_result = compile_routine(routine, backend=backend).routine
+
+    assert (
+        list(compilation_result.resources) == ["t_count", "foo"]
+        and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count
+        and backend.serialize(compilation_result.resources["foo"].value) == expected_foo
+    )
