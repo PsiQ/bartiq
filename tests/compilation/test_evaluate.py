@@ -53,7 +53,7 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     ],
 )
 def test_passthroughs(op, assignments, expected_sizes, backend):
-    result = compile_routine(op)
+    result = compile_routine(op, backend=backend)
     evaluated_routine = evaluate(result.routine, assignments=assignments, backend=backend).routine
     for port_name, size in expected_sizes.items():
         assert str(evaluated_routine.ports[port_name].size) == str(size)
@@ -161,6 +161,7 @@ def test_evaluation_raises_error_when_constraint_is_violated(backend):
         _ = evaluate(compiled_routine, {"K": 1, "M": 2}, backend=backend)
 
 
+@pytest.mark.order(-1)
 @pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine(backend):
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:

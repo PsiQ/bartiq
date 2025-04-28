@@ -135,8 +135,6 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
-
-
     """
     if not skip_verification and not isinstance(routine, Routine):
         problems = []
@@ -309,7 +307,7 @@ def _compile(
 
     parameter_map[None] = {**parameter_map[None], **children_variables}
 
-    resources = routine.resources
+    resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
 
     if routine.repetition is not None:
@@ -378,3 +376,52 @@ def _add_derived_resources(
                 },
             )
     return routine
+
+
+def _generate_arithmetic_resources(
+    resources: dict[str, Resource], compiled_children: dict[str, CompiledRoutine[T]], backend: SymbolicBackend[T]
+) -> dict[str, Resource]:
+    """Returns resources dict with sum/prod of all the additive/multiplicative resources of the children.
+
+    Since additive/multiplicative resources follow simple rules (value of a resource is equal to sum/product of
+    the resources of it's children), we can just have it defined for appropriate leaves and then "bubble them up".
+    This step generates such resources for the parent.
+
+    Args:
+        resources: routine's resources
+        compiled_children: children from which the resources need to be derived.
+        backend: a backend used for manipulating symbolic expressions.
+
+    Returns:
+        A dictionary containing generated resources
+    """
+    child_additive_resources_map: defaultdict[str, set[str]] = defaultdict(set)
+    child_multiplicative_resources_map: defaultdict[str, set[str]] = defaultdict(set)
+
+    for child in compiled_children.values():
+        for resource in child.resources.values():
+            if resource.type == ResourceType.additive:
+                child_additive_resources_map[resource.name].add(child.name)
+            if resource.type == ResourceType.multiplicative:
+                child_multiplicative_resources_map[resource.name].add(child.name)
+
+    additive_resources: dict[str, Resource[T]] = {
+        res_name: Resource(
+            name=res_name,
+            type=ResourceType.additive,
+            value=backend.sum(*[backend.as_expression(f"{child_name}.{res_name}") for child_name in children]),
+        )
+        for res_name, children in child_additive_resources_map.items()
+        if res_name not in resources
+    }
+
+    multiplicative_resources: dict[str, Resource[T]] = {
+        res_name: Resource(
+            name=res_name,
+            type=ResourceType.multiplicative,
+            value=backend.prod(*[backend.as_expression(f"{child_name}.{res_name}") for child_name in children]),
+        )
+        for res_name, children in child_multiplicative_resources_map.items()
+        if res_name not in resources
+    }
+    return {**additive_resources, **multiplicative_resources}

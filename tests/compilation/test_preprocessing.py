@@ -2,59 +2,13 @@ import pytest
 from qref.schema_v1 import RoutineV1
 
 from bartiq._routine import Routine, routine_to_qref
-from bartiq.compilation.preprocessing import (
-    PreprocessingStage,
-    propagate_child_resources,
-    propagate_linked_params,
-)
+from bartiq.compilation.preprocessing import PreprocessingStage, propagate_linked_params
 
 
 def _apply_stage(qref_obj: RoutineV1, stage: PreprocessingStage, backend) -> RoutineV1:
     routine = Routine.from_qref(qref_obj, backend)
     preprocessed_routine = stage(routine, backend)
     return routine_to_qref(preprocessed_routine, backend).program
-
-
-def test_propagating_child_resources(backend):
-    routine = RoutineV1(
-        name="root",
-        type=None,
-        children=[
-            {
-                "name": "a",
-                "type": None,
-                "resources": [
-                    {"name": "N_toffs", "type": "additive", "value": 1},
-                    {"name": "N_meas", "type": "additive", "value": 5},
-                    {"name": "success_prob", "type": "multiplicative", "value": 0.9},
-                ],
-            },
-            {
-                "name": "b",
-                "type": None,
-                "resources": [
-                    {"name": "N_toffs", "type": "additive", "value": 2},
-                    {"name": "N_rots", "type": "additive", "value": 3},
-                    {"name": "N_x", "type": "other", "value": 1},
-                    {"name": "success_prob", "type": "multiplicative", "value": 0.9},
-                ],
-            },
-        ],
-        resources=[{"name": "N_meas", "type": "additive", "value": "a.N_meas"}],
-    )
-
-    routine_with_resources = _apply_stage(routine, propagate_child_resources, backend)
-
-    expected_resources = [
-        {"name": "N_meas", "type": "additive", "value": "a.N_meas"},
-        {"name": "N_rots", "type": "additive", "value": "b.N_rots"},
-        {"name": "N_toffs", "type": "additive", "value": "a.N_toffs + b.N_toffs"},
-        {"name": "success_prob", "type": "multiplicative", "value": "a.success_prob*b.success_prob"},
-    ]
-
-    expected_routine = RoutineV1.model_validate({**routine.model_dump(), "resources": expected_resources})
-
-    assert routine_with_resources == expected_routine
 
 
 LINKED_PARAM_CASES = [
@@ -174,46 +128,3 @@ def test_precompile_propagates_linked_params(input_dict, expected_linked_params,
             routine = routine.children[part]
 
         assert routine.linked_params == linked_params
-
-
-@pytest.mark.timeout(20)
-def test_propagating_resources_works_as_expected_in_presence_of_large_number_of_children(backend):
-    # This test does not check correctness, but rather serves as litmus paper detecting performance
-    # regression. See https://github.com/PsiQ/bartiq/issues/181
-    N_CHILDREN = 6000
-
-    qref_def = {
-        "version": "v1",
-        "program": {
-            "name": "root",
-            "type": "root",
-            "children": [
-                {
-                    "name": f"child_{i}",
-                    "resources": [
-                        {"type": "additive", "name": "t_count", "value": 1},
-                        {"type": "multiplicative", "name": "foo", "value": 2},
-                    ],
-                }
-                for i in range(N_CHILDREN)
-            ],
-        },
-    }
-
-    routine = Routine.from_qref(qref_def, backend)
-
-    # Note: we will serialize the obtained value and compare it to the strings below. Theoretically,
-    # we could instead parse the strings and compare them to the actual values - but in practice this would
-    # mess up the parser because of the recursion limit.
-    # Also note: these strings are specific to sympy.
-    sorted_child_names = sorted([f"child_{i}" for i in range(N_CHILDREN)])
-    expected_t_count = " + ".join(f"{child_name}.t_count" for child_name in sorted_child_names)
-    expected_foo = "*".join(f"{child_name}.foo" for child_name in sorted_child_names)
-
-    preprocessed = propagate_child_resources(routine, backend)
-
-    assert (
-        list(preprocessed.resources) == ["t_count", "foo"]
-        and backend.serialize(preprocessed.resources["t_count"].value) == expected_t_count
-        and backend.serialize(preprocessed.resources["foo"].value) == expected_foo
-    )
