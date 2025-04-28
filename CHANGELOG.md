@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/PsiQ/bartiq/compare/v0.12.0...v0.12.1) (2025-04-28)
+
+
+### Bug Fixes
+
+* move adding arithmetic resources from preprocessing to compilation ([#190](https://github.com/PsiQ/bartiq/issues/190)) ([f6ac145](https://github.com/PsiQ/bartiq/commit/f6ac145a3cbbc4042e43560b7c49e388af55bc44))
+
 ## [0.12.0](https://github.com/PsiQ/bartiq/compare/v0.11.0...v0.12.0) (2025-04-08)
 
 
