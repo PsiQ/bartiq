@@ -388,12 +388,12 @@ def _generate_arithmetic_resources(
     This step generates such resources for the parent.
 
     Args:
-        routine: routine to be preprocessed
+        resources: routine's resources
         compiled_children: children from which the resources need to be derived.
         backend: a backend used for manipulating symbolic expressions.
 
     Returns:
-        A routine with all the additive resources defined appropriately at all levels of the hierarchy.
+        A dictionary containing generated resources
     """
     child_additive_resources_map: defaultdict[str, set[str]] = defaultdict(set)
     child_multiplicative_resources_map: defaultdict[str, set[str]] = defaultdict(set)
