@@ -212,8 +212,11 @@ def _process_repeated_resources(
     children: Sequence[CompiledRoutine[T]],
     backend: SymbolicBackend[T],
 ) -> dict[str, Resource[T]]:
-    assert len(children) == 1, "Routine with repetition can only have one child."
+    if len(children) != 1:
+        raise BartiqCompilationError("Routine with repetition can only have one child.")
+
     new_resources = {}
+
     import copy
 
     child_resources = copy.copy(children[0].resources)
@@ -223,11 +226,11 @@ def _process_repeated_resources(
         assert resource_name in child_resources
         assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
     for resource in child_resources.values():
-        if resource.type == "additive":
+        if resource.type == ResourceType.additive:
             new_value = repetition.sequence_sum(resource.value, backend)
-        elif resource.type == "multiplicative":
+        elif resource.type == ResourceType.multiplicative:
             new_value = repetition.sequence_prod(resource.value, backend)
-        elif resource.type == "qubits" and repetition.sequence.type == "constant":
+        elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
             # in calculate_highwater.
