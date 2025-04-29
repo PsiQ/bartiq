@@ -29,7 +29,7 @@ from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 from typing_extensions import TypedDict, TypeIs
 
-from .._routine import (
+from bartiq._routine import (
     CompiledRoutine,
     Endpoint,
     Port,
@@ -38,20 +38,20 @@ from .._routine import (
     Routine,
     routine_to_qref,
 )
-from ..errors import BartiqCompilationError
-from ..repetitions import Repetition
-from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ..verification import verify_uncompiled_repetitions
-from ._common import (
+from bartiq.errors import BartiqCompilationError
+from bartiq.repetitions import Repetition
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq.verification import verify_uncompiled_repetitions
+from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
     evaluate_constraints,
     evaluate_ports,
     evaluate_resources,
 )
-from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
-from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
+from bartiq.compilation.postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
+from bartiq.compilation.preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
 
@@ -428,3 +428,11 @@ def _generate_arithmetic_resources(
         if res_name not in resources
     }
     return {**additive_resources, **multiplicative_resources}
+
+
+if __name__ == "__main__":
+    import json
+
+    with open("docs/data/basic_example.json", "rb") as f:
+        routine = json.load(f)
+    print(compile_routine(routine).routine)
