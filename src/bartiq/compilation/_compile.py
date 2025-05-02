@@ -308,7 +308,7 @@ def _compile(
         for rname, resource in child.resources.items()
     }
 
-    parameter_map[None] = {**parameter_map[None], **children_variables}
+    # parameter_map[None] = {**parameter_map[None], **children_variables}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
@@ -318,8 +318,6 @@ def _compile(
             routine.repetition, resources, list(compiled_children.values()), backend
         )
         repetition = routine.repetition.substitute_symbols(parameter_map[None], backend=backend)
-
-    new_resources = evaluate_resources(resources, parameter_map[None], backend)
 
     compiled_ports = {
         **compiled_ports,
@@ -333,6 +331,8 @@ def _compile(
             else set(routine.input_params)
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
+
+    new_resources = evaluate_resources(resources, parameter_map[None], backend)
 
     compiled_routine = CompiledRoutine[T](
         name=routine.name,
@@ -431,8 +431,25 @@ def _generate_arithmetic_resources(
 
 
 if __name__ == "__main__":
-    import json
+    import json, yaml
+    import cProfile
+    import pstats
 
-    with open("docs/data/basic_example.json", "rb") as f:
-        routine = json.load(f)
-    print(compile_routine(routine).routine)
+    with open("docs/data/alias_sampling_basic.json", "rb") as f:
+        qref = json.load(f)
+    # with open("tests/compilation/data/df_qref.yaml", "rb") as f:
+    #     qref = yaml.safe_load(f)
+    routine = Routine.from_qref(qref, sympy_backend)
+    compiled = compile_routine(routine=routine, backend=sympy_backend).routine
+    resource = "T_gates"
+    # print("root", compiled.resources[resource])
+    from bartiq.compilation._evaluate import evaluate
+
+    required_children_and_resources = [
+        sym.name.split(".") for r in compiled.resources.values() for sym in r.value.free_symbols if "." in sym.name
+    ]
+    # print(required_children_and_resources)
+
+    evaluate(compiled, {"L": 8, "mu": 2}, backend=sympy_backend)
+    # for x in compiled.children:
+    #     print(x, compiled.children[x].resources.get(resource, Resource(name="", type=None, value=0)).value)
