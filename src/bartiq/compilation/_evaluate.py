@@ -20,10 +20,10 @@ from qref import SchemaV1
 
 from bartiq.errors import BartiqCompilationError
 
-from .._routine import CompiledRoutine, routine_to_qref, Resource
-from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ._common import (
+from bartiq._routine import CompiledRoutine, routine_to_qref, Resource
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
     evaluate_constraints,
@@ -103,43 +103,25 @@ def _evaluate_internal(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
-    # for resource in compiled_routine.resources.values():
-    #     required_children_and_resources = dict(
-    #         [sym.split(".") for sym in backend.free_symbols_in(resource.value) if "." in sym]
-    #     )
-    print([x.value for x in compiled_routine.resources.values()])
-    compiled_routine = replace(
-        compiled_routine,
-        resources={
-            resource.name: Resource(
-                name=resource.name,
-                type=resource.type,
-                value=backend.substitute(
-                    resource.value,
-                    {
-                        ".".join([child, _res]): compiled_routine.children[child].resources[_res].value
-                        for child, _res in dict(
-                            [sym.split(".") for sym in backend.free_symbols_in(resource.value) if "." in sym]
-                        ).items()
-                    },
-                ),
-            )
-            for resource in compiled_routine.resources.values()
-        },
-    )
-    print([x.value for x in compiled_routine.resources.values()])
-    # exit()
+
+    updated_children: dict[str, CompiledRoutine[T]] = {
+        name: _evaluate_internal(
+            child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)
+        )
+        for name, child in compiled_routine.children.items()
+    }
+
+    child_substitutions: dict[str, TExpr] = {
+        f"{cname}.{rname}": resource.value
+        for cname, child in updated_children.items()
+        for rname, resource in child.resources.items()
+    }
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
         ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
-        resources=evaluate_resources(compiled_routine.resources, inputs, backend, functions_map),
+        resources=evaluate_resources(compiled_routine.resources, inputs | child_substitutions, backend, functions_map),
         constraints=new_constraints,
         repetition=evaluate_repetition(compiled_routine.repetition, inputs, backend, functions_map),
-        children={
-            name: _evaluate_internal(
-                child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)
-            )
-            for name, child in compiled_routine.children.items()
-        },
+        children=updated_children,
     )
