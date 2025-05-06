@@ -119,7 +119,9 @@ def test_highwater_of_an_empty_routine_is_zero():
     assert compiled_routine.resources["qubit_highwater"].value == 0
 
 
-def test_additive_derived_resources_are_processed_correctly():
+@pytest.mark.parametrize("transitive_resources", [True, False])
+def test_additive_derived_resources_are_processed_correctly(transitive_resources):
+    test_resource = "test_resource"
     input_routine = {
         "version": "v1",
         "program": {
@@ -138,20 +140,27 @@ def test_additive_derived_resources_are_processed_correctly():
                     "name": "c",
                     "type": "c",
                     "resources": [
-                        {"name": "test_resource", "type": "additive", "value": 7},
+                        {"name": test_resource, "type": "additive", "value": 7},
                     ],
                 },
             ],
         },
     }
 
-    def add_test_resource(routine, backend):
-        if "test_resource" in routine.resources or len(routine.children) != 0:
+    def add_test_resource(routine, _):
+        if test_resource in routine.resources or len(routine.children) != 0:
             return None
         else:
             return 5
 
-    derived_resources = [{"name": "test_resource", "type": "additive", "calculate": add_test_resource}]
-    compiled_routine = compile_routine(input_routine, derived_resources=derived_resources).routine
-
-    assert compiled_routine.resources["test_resource"].value == 17
+    derived_resources = [{"name": test_resource, "type": "additive", "calculate": add_test_resource}]
+    compilation_result = compile_routine(
+        input_routine, derived_resources=derived_resources, transitive_resources=transitive_resources
+    )
+    compiled_routine = compilation_result.routine
+    backend = compilation_result._backend
+    assert (
+        compiled_routine.resources[test_resource].value == 17
+        if not transitive_resources
+        else backend.as_expression("+".join(f"{child}.{test_resource}" for child in compiled_routine.children))
+    )
