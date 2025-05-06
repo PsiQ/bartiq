@@ -119,6 +119,7 @@ def compile_routine(
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
+    transitive_resources: bool = True,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
@@ -135,6 +136,8 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
+        transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
+            the values of the resources will be defined in terms of the child contributions. By default True.
     """
     if not skip_verification and not isinstance(routine, Routine):
         problems = []
@@ -150,7 +153,14 @@ def compile_routine(
 
     for pre_stage in preprocessing_stages:
         root = pre_stage(root, backend)
-    compiled_routine = _compile(root, backend, {}, Context(root.name), derived_resources)
+    compiled_routine = _compile(
+        routine=root,
+        backend=backend,
+        inputs={},
+        context=Context(root.name),
+        derived_resources=derived_resources,
+        transitive_resources=transitive_resources,
+    )
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
     return CompilationResult(routine=compiled_routine, _backend=backend)
@@ -258,6 +268,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
+    transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -295,20 +306,25 @@ def _compile(
 
     for child in routine.sorted_children():
         compiled_child = _compile(
-            child, backend, parameter_map[child.name], context.descend(child.name), derived_resources
+            routine=child,
+            backend=backend,
+            inputs=parameter_map[child.name],
+            context=context.descend(child.name),
+            derived_resources=derived_resources,
+            transitive_resources=transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    children_variables = {
-        f"{cname}.{rname}": resource.value
-        for cname, child in compiled_children.items()
-        for rname, resource in child.resources.items()
-    }
-
-    # parameter_map[None] = {**parameter_map[None], **children_variables}
+    if not transitive_resources:
+        children_variables = {
+            f"{cname}.{rname}": resource.value
+            for cname, child in compiled_children.items()
+            for rname, resource in child.resources.items()
+        }
+        parameter_map[None] = {**parameter_map[None], **children_variables}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
@@ -428,28 +444,3 @@ def _generate_arithmetic_resources(
         if res_name not in resources
     }
     return {**additive_resources, **multiplicative_resources}
-
-
-if __name__ == "__main__":
-    import json, yaml
-    import cProfile
-    import pstats
-
-    with open("docs/data/alias_sampling_basic.json", "rb") as f:
-        qref = json.load(f)
-    # with open("tests/compilation/data/df_qref.yaml", "rb") as f:
-    #     qref = yaml.safe_load(f)
-    routine = Routine.from_qref(qref, sympy_backend)
-    compiled = compile_routine(routine=routine, backend=sympy_backend).routine
-    resource = "T_gates"
-    # print("root", compiled.resources[resource])
-    from bartiq.compilation._evaluate import evaluate
-
-    required_children_and_resources = [
-        sym.name.split(".") for r in compiled.resources.values() for sym in r.value.free_symbols if "." in sym.name
-    ]
-    # print(required_children_and_resources)
-
-    evaluate(compiled, {"L": 8, "mu": 2}, backend=sympy_backend)
-    # for x in compiled.children:
-    #     print(x, compiled.children[x].resources.get(resource, Resource(name="", type=None, value=0)).value)
