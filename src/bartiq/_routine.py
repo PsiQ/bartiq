@@ -185,6 +185,10 @@ class Routine(BaseRoutine[T]):
 class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
 
+    def __post_init__(self):
+        super().__setattr__("input_params", tuple(self.input_params))
+        return super().__post_init__()
+
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
