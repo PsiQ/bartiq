@@ -26,7 +26,6 @@ COMPILE_TEST_DATA = load_compile_test_data()
 COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 
 
-@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile_with_no_transitive_resources(routine, expected_routine, backend):
     compiled_routine = compile_routine(
@@ -35,7 +34,6 @@ def test_compile_with_no_transitive_resources(routine, expected_routine, backend
     assert compiled_routine == expected_routine
 
 
-@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
 def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
     compiled_routine = compile_routine(
@@ -275,10 +273,6 @@ def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
     compilation_result = compile_routine(routine, backend=backend, transitive_resources=transitive_resources).routine
     assert (
         list(compilation_result.resources) == ["t_count", "foo"]
-        and backend.serialize(compilation_result.resources["t_count"].value) == backend.serialize(expected_t_count)
-        and backend.serialize(compilation_result.resources["foo"].value) == backend.serialize(expected_foo)
+        and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count
+        and backend.serialize(compilation_result.resources["foo"].value) == expected_foo
     )
-
-
-if __name__ == "__main__":
-    load_compile_test_data()
