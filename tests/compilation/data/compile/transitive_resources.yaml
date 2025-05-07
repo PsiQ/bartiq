@@ -1,3 +1,13 @@
+# Each entry in the yaml has three components
+# - Uncompiled routine
+# - Compiled routine with transitive resources
+# - Compiled routine with fully expressed resources.
+# These are the same routines as in general.yaml entries 3->7 inclusive.
+# The only addition is the compiled routine with transitive resources.
+########################################################################
+########################################################################
+########################################################################
+# Children and grandchildren, resources dependent on children implicitly (additive and multiplicative), no ports, no input params
 - - program:
       children:
       - children:
@@ -301,6 +311,7 @@
         value: (a.a.x + a.a.y)*(a.b.x + a.b.y)*(b.a.x + b.a.y)*(b.b.x + b.b.y)
       type: null
     version: v1
+# Children and grandchildren, resources dependent on children, no ports, with input params and params linking
 - - program:
       children:
       - children:
@@ -562,6 +573,7 @@
         value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
       type: null
     version: v1
+# Children and grandchildren, resources dependent on children, with ports, with input params and params linking
 - - program:
       children:
       - children:
@@ -1366,6 +1378,7 @@
         value: 4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba + y_bb
       type: null
     version: v1
+# Children and grandchildren, resources dependent on children, no ports, local variables in leaves
 - - program:
       children:
       - children:
