@@ -17,7 +17,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, replace
 from functools import singledispatch
-from typing import Callable, Generic, Literal, cast, Iterable
+from typing import Callable, Generic, Iterable, Literal, cast
 
 from qref.schema_v1 import (
     ArithmeticSequenceV1,

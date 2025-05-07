@@ -21,8 +21,11 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import CompiledRoutine, compile_routine, evaluate
 from bartiq.errors import BartiqCompilationError
-
-from tests.utilities import routine_with_passthrough, routine_with_two_passthroughs, load_transitive_resource_data
+from tests.utilities import (
+    load_transitive_resource_data,
+    routine_with_passthrough,
+    routine_with_two_passthroughs,
+)
 
 
 def load_evaluate_test_data():

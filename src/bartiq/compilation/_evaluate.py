@@ -18,11 +18,7 @@ from typing import Callable, Generic, TypeVar
 
 from qref import SchemaV1
 
-from bartiq.errors import BartiqCompilationError
-
-from bartiq._routine import CompiledRoutine, routine_to_qref, Resource
-from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq._routine import CompiledRoutine, Resource, routine_to_qref
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
@@ -31,6 +27,9 @@ from bartiq.compilation._common import (
     evaluate_repetition,
     evaluate_resources,
 )
+from bartiq.errors import BartiqCompilationError
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 S = TypeVar("S")
 

@@ -38,11 +38,6 @@ from bartiq._routine import (
     Routine,
     routine_to_qref,
 )
-from bartiq.errors import BartiqCompilationError
-from bartiq.repetitions import Repetition
-from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
-from bartiq.verification import verify_uncompiled_repetitions
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
@@ -50,8 +45,19 @@ from bartiq.compilation._common import (
     evaluate_ports,
     evaluate_resources,
 )
-from bartiq.compilation.postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
-from bartiq.compilation.preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
+from bartiq.compilation.postprocessing import (
+    DEFAULT_POSTPROCESSING_STAGES,
+    PostprocessingStage,
+)
+from bartiq.compilation.preprocessing import (
+    DEFAULT_PREPROCESSING_STAGES,
+    PreprocessingStage,
+)
+from bartiq.errors import BartiqCompilationError
+from bartiq.repetitions import Repetition
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq.verification import verify_uncompiled_repetitions
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
 
