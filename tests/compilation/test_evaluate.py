@@ -22,7 +22,7 @@ from qref.schema_v1 import RoutineV1
 from bartiq import CompiledRoutine, compile_routine, evaluate
 from bartiq.errors import BartiqCompilationError
 
-from ..utilities import routine_with_passthrough, routine_with_two_passthroughs
+from tests.utilities import routine_with_passthrough, routine_with_two_passthroughs, load_transitive_resource_data
 
 
 def load_evaluate_test_data():
@@ -34,6 +34,7 @@ def load_evaluate_test_data():
 
 
 EVALUTE_TEST_CASES = load_evaluate_test_data()
+TRANSITIVE_RESOURCE_DATA = load_transitive_resource_data()
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
@@ -42,6 +43,16 @@ def test_evaluate(input_dict, assignments, expected_dict, backend):
     compiled_routine = CompiledRoutine.from_qref(SchemaV1(**input_dict), backend)
     result = evaluate(compiled_routine, assignments, backend=backend)
     assert result.to_qref() == SchemaV1(**expected_dict)
+
+
+@pytest.mark.parametrize("_, transitively_compiled, fully_compiled", TRANSITIVE_RESOURCE_DATA)
+def test_evaluate_on_transitive_resources_yields_fully_compiled_routine(
+    _, transitively_compiled, fully_compiled, backend
+):
+    transitively_compiled = CompiledRoutine.from_qref(transitively_compiled, backend=backend)
+    assert evaluate(transitively_compiled, {}, backend=backend).routine == CompiledRoutine.from_qref(
+        fully_compiled, backend
+    )
 
 
 @pytest.mark.parametrize(
