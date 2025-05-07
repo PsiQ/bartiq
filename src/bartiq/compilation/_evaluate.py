@@ -18,7 +18,7 @@ from typing import Callable, Generic, TypeVar
 
 from qref import SchemaV1
 
-from bartiq._routine import CompiledRoutine, Resource, routine_to_qref
+from bartiq._routine import CompiledRoutine, routine_to_qref
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
