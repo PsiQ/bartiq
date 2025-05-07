@@ -13,27 +13,17 @@
 # limitations under the License.
 
 import re
-from pathlib import Path
 
 import pytest
-import yaml
-from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
 from bartiq import Routine, compile_routine
 from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.errors import BartiqCompilationError, BartiqPreprocessingError
-
-
-def load_compile_test_data():
-    test_files_path = Path(__file__).parent / "data/compile/"
-    for path in sorted(test_files_path.rglob("*.yaml")):
-        with open(path) as f:
-            for original, expected in yaml.safe_load(f):
-                yield (SchemaV1(**original), SchemaV1(**expected))
-
+from tests.utilities import load_compile_test_data, load_transitive_resource_data
 
 COMPILE_TEST_DATA = load_compile_test_data()
+COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 
 
 @pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
@@ -43,6 +33,15 @@ def test_compile_with_no_transitive_resources(routine, expected_routine, backend
         routine, skip_verification=False, backend=backend, transitive_resources=False
     ).to_qref()
     assert compiled_routine == expected_routine
+
+
+@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
+@pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
+def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
+    compiled_routine = compile_routine(
+        routine, skip_verification=False, backend=backend, transitive_resources=True
+    ).to_qref()
+    assert compiled_routine == compiled_transitive
 
 
 def f_1_simple(x):
@@ -279,3 +278,7 @@ def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
         and backend.serialize(compilation_result.resources["t_count"].value) == backend.serialize(expected_t_count)
         and backend.serialize(compilation_result.resources["foo"].value) == backend.serialize(expected_foo)
     )
+
+
+if __name__ == "__main__":
+    load_compile_test_data()
