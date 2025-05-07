@@ -185,10 +185,6 @@ class Routine(BaseRoutine[T]):
 class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
 
-    def __post_init__(self):
-        super().__setattr__("input_params", tuple(self.input_params))
-        return super().__post_init__()
-
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
         return {port_name: port for port_name, port in self.ports.items() if port.direction in directions}
@@ -223,7 +219,7 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "name": program.name,
         "type": program.type,
         "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
-        "input_params": tuple(program.input_params),
+        "input_params": program.input_params,
         "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
         "repetition": repetition_from_qref(program.repetition, backend),
         "connections": {
