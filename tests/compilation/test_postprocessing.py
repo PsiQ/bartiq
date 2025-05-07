@@ -82,7 +82,7 @@ def test_aggregate_resources(backend, transitive_resources):
         if not transitive_resources
         else backend.as_expression(
             "+".join(
-                f"{aggregation_dict[resource]["op"]}*{child}.{resource}"
+                f"{aggregation_dict[resource]['op']}*{child}.{resource}"
                 for child in routine.children
                 for resource in routine.children[child].resources
             )
