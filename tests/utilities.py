@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qref.schema_v1 import RoutineV1
+from pathlib import Path
+
+import yaml
+from qref.schema_v1 import RoutineV1, SchemaV1
 
 
 def routine_with_passthrough(a_out_size="N"):
@@ -115,3 +118,20 @@ def routine_with_two_passthroughs():
             {"source": "c.out_1", "target": "out_1"},
         ],
     )
+
+
+FILE = Path(__file__)
+TEST_DATA_FILEPATH = Path("/".join(FILE.parts[: FILE.parts.index("tests") + 1])) / "compilation/data/compile/"
+
+
+def load_compile_test_data():
+    for path in [x for x in sorted(TEST_DATA_FILEPATH.rglob("*.yaml")) if "transitive" not in x.stem]:
+        with open(path) as f:
+            for original, expected in yaml.safe_load(f):
+                yield (SchemaV1(**original), SchemaV1(**expected))
+
+
+def load_transitive_resource_data():
+    with open(TEST_DATA_FILEPATH / "transitive_resources.yaml") as f:
+        for original, compiled_transitive, full_compiled_routine in yaml.safe_load(f):
+            yield (SchemaV1(**original), SchemaV1(**compiled_transitive), SchemaV1(**full_compiled_routine))

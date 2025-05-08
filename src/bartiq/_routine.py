@@ -219,7 +219,7 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "name": program.name,
         "type": program.type,
         "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
-        "input_params": tuple(program.input_params),
+        "input_params": program.input_params,
         "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
         "repetition": repetition_from_qref(program.repetition, backend),
         "connections": {
