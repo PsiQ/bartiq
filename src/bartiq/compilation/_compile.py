@@ -142,6 +142,8 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
+        allow_transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
+            the values of the resources will be defined in terms of the child contributions. By default True.
     """
     if not skip_verification and not isinstance(routine, Routine):
         problems = []
@@ -329,8 +331,6 @@ def _compile(
             for rname, resource in child.resources.items()
         }
         parameter_map[None] = {**parameter_map[None], **children_variables}
-
-    parameter_map[None] = {**parameter_map[None], **children_variables}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
