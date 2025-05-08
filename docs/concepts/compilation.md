@@ -59,7 +59,7 @@ Currently, the  following preprocessing stages take place prior to compilation:
 1. Propagation of linked params. In this stage all linked parameters reaching further than a direct
    descendant are converted into a series of direct parameter links. This is useful because you can, for example,
    link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
-2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or pased through
+2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or passed through
    connections. To avoid unnecessary compilation errors, `bartiq` will promote such parameters by linking it to newly introduced input in the parent routine.
 3. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
    equal to a single-parameter expression of known name, while also introducing constraints to make sure
@@ -117,6 +117,12 @@ to the repetition rules; the repetition specification itself gets updated using 
 #### Step 2.7: Resource compilation
 
 At this stage each child should have input and through ports defined in terms of global variables, and we can now compile the resources. Parents have their resources updated from the compiled resources of their children.
+
+By default, we compile resources *transitively* with the compilation flag `allow_transitive_resources=True` in the `compile_routine` function call. This means that the resources of a particular routine are defined only in terms of the relevant contributions from their immedite children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
+```
+Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
+```
+By setting `allow_transitive_resources=False` when calling `compile_routine`, these expressions are expanded into full symbolic or numeric expressions.
 
 #### Step 2.8: Output port compilation
 
