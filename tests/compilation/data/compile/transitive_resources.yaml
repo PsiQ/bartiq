@@ -1,0 +1,1658 @@
+# Each entry in the yaml has three components
+# - Uncompiled routine
+# - Compiled routine with transitive resources
+# - Compiled routine with fully expressed resources.
+# These are the same routines as in general.yaml entries 3->7 inclusive.
+# The only addition is the compiled routine with transitive resources.
+########################################################################
+########################################################################
+########################################################################
+# Children and grandchildren, resources dependent on children implicitly (additive and multiplicative), no ports, no input params
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        name: a
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: x + y
+          - name: z_mul
+            type: multiplicative
+            value: x + y
+          type: null
+        name: b
+        type: null
+      name: root
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - a.a.x
+          - a.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: additive
+            value: a.a.x + a.a.y
+          - name: z_mul
+            type: multiplicative
+            value: a.a.x + a.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - a.b.x
+          - a.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: additive
+            value: a.b.x + a.b.y
+          - name: z_mul
+            type: multiplicative
+            value: a.b.x + a.b.y
+          type: null
+        connections: []
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: a
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: additive
+          value: a.z + b.z
+        - name: z_mul
+          type: multiplicative
+          value: a.z_mul*b.z_mul
+        type: null
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - b.a.x
+          - b.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: additive
+            value: b.a.x + b.a.y
+          - name: z_mul
+            type: multiplicative
+            value: b.a.x + b.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - b.b.x
+          - b.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: additive
+            value: b.b.x + b.b.y
+          - name: z_mul
+            type: multiplicative
+            value: b.b.x + b.b.y
+          type: null
+        connections: []
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: b
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: additive
+          value: a.z + b.z
+        - name: z_mul
+          type: multiplicative
+          value: a.z_mul*b.z_mul
+        type: null
+      connections: []
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      linked_params: []
+      local_variables: {}
+      meta: {}
+      name: root
+      ports: []
+      repetition: null
+      resources:
+      - name: z
+        type: additive
+        value: a.z + b.z
+      - name: z_mul
+        type: multiplicative
+        value: a.z_mul*b.z_mul
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - a.a.x
+          - a.a.y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: a.a.x + a.a.y
+          - name: z_mul
+            type: multiplicative
+            value: a.a.x + a.a.y
+          type: null
+        - input_params:
+          - a.b.x
+          - a.b.y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: a.b.x + a.b.y
+          - name: z_mul
+            type: multiplicative
+            value: a.b.x + a.b.y
+          type: null
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        name: a
+        resources:
+        - name: z
+          type: additive
+          value: a.a.x + a.a.y + a.b.x + a.b.y
+        - name: z_mul
+          type: multiplicative
+          value: (a.a.x + a.a.y)*(a.b.x + a.b.y)
+        type: null
+      - children:
+        - input_params:
+          - b.a.x
+          - b.a.y
+          name: a
+          resources:
+          - name: z
+            type: additive
+            value: b.a.x + b.a.y
+          - name: z_mul
+            type: multiplicative
+            value: b.a.x + b.a.y
+          type: null
+        - input_params:
+          - b.b.x
+          - b.b.y
+          name: b
+          resources:
+          - name: z
+            type: additive
+            value: b.b.x + b.b.y
+          - name: z_mul
+            type: multiplicative
+            value: b.b.x + b.b.y
+          type: null
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        name: b
+        resources:
+        - name: z
+          type: additive
+          value: b.a.x + b.a.y + b.b.x + b.b.y
+        - name: z_mul
+          type: multiplicative
+          value: (b.a.x + b.a.y)*(b.b.x + b.b.y)
+        type: null
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      name: root
+      resources:
+      - name: z
+        type: additive
+        value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
+      - name: z_mul
+        type: multiplicative
+        value: (a.a.x + a.a.y)*(a.b.x + a.b.y)*(b.a.x + b.a.y)*(b.b.x + b.b.y)
+      type: null
+    version: v1
+# Children and grandchildren, resources dependent on children, no ports, with input params and params linking
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - a.a.x
+          - a.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: a.a.x + a.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - a.b.x
+          - a.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: a.b.x + a.b.y
+          type: null
+        connections: []
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: a
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - b.a.x
+          - b.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: b.a.x + b.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - b.b.x
+          - b.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: b.b.x + b.b.y
+          type: null
+        connections: []
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: b
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      connections: []
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      linked_params: []
+      local_variables: {}
+      meta: {}
+      name: root
+      ports: []
+      repetition: null
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - a.a.x
+          - a.a.y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: a.a.x + a.a.y
+          type: null
+        - input_params:
+          - a.b.x
+          - a.b.y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: a.b.x + a.b.y
+          type: null
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: a.a.x + a.a.y + a.b.x + a.b.y
+        type: null
+      - children:
+        - input_params:
+          - b.a.x
+          - b.a.y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: b.a.x + b.a.y
+          type: null
+        - input_params:
+          - b.b.x
+          - b.b.y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: b.b.x + b.b.y
+          type: null
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: b.a.x + b.a.y + b.b.x + b.b.y
+        type: null
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
+      type: null
+    version: v1
+# Children and grandchildren, resources dependent on children, with ports, with input params and params linking
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x + y
+          type: null
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      input_params:
+      - x_aa
+      - y_aa
+      - x_ab
+      - y_ab
+      - x_ba
+      - y_ba
+      - x_bb
+      - y_bb
+      linked_params:
+      - source: x_aa
+        targets:
+        - a.a.x
+      - source: x_ab
+        targets:
+        - a.b.x
+      - source: x_ba
+        targets:
+        - b.a.x
+      - source: x_bb
+        targets:
+        - b.b.x
+      - source: y_aa
+        targets:
+        - a.a.y
+      - source: y_ab
+        targets:
+        - a.b.y
+      - source: y_ba
+        targets:
+        - b.a.y
+      - source: y_bb
+        targets:
+        - b.b.y
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - x_aa
+          - y_aa
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: x_aa + y_aa
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - x_ab
+          - y_ab
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: x_ab + y_ab
+          type: null
+        connections: []
+        input_params:
+        - x_aa
+        - x_ab
+        - y_aa
+        - y_ab
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: a
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - x_ba
+          - y_ba
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: x_ba + y_ba
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - x_bb
+          - y_bb
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: x_bb + y_bb
+          type: null
+        connections: []
+        input_params:
+        - x_ba
+        - x_bb
+        - y_ba
+        - y_bb
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: b
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      connections: []
+      input_params:
+      - x_aa
+      - x_ab
+      - x_ba
+      - x_bb
+      - y_aa
+      - y_ab
+      - y_ba
+      - y_bb
+      linked_params: []
+      local_variables: {}
+      meta: {}
+      name: root
+      ports: []
+      repetition: null
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - x_aa
+          - y_aa
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x_aa + y_aa
+          type: null
+        - input_params:
+          - x_ab
+          - y_ab
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x_ab + y_ab
+          type: null
+        input_params:
+        - x_aa
+        - x_ab
+        - y_aa
+        - y_ab
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: x_aa + x_ab + y_aa + y_ab
+        type: null
+      - children:
+        - input_params:
+          - x_ba
+          - y_ba
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: x_ba + y_ba
+          type: null
+        - input_params:
+          - x_bb
+          - y_bb
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: x_bb + y_bb
+          type: null
+        input_params:
+        - x_ba
+        - x_bb
+        - y_ba
+        - y_bb
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: x_ba + x_bb + y_ba + y_bb
+        type: null
+      input_params:
+      - x_aa
+      - x_ab
+      - x_ba
+      - x_bb
+      - y_aa
+      - y_ab
+      - y_ba
+      - y_bb
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba + y_bb
+      type: null
+    version: v1
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: x + y + N
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: x + y + N
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: x + y + N
+          type: null
+        - input_params:
+          - x
+          - y
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: x + y + N
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        name: b
+        ports:
+        - direction: input
+          name: in_0
+          size: null
+        - direction: output
+          name: out_0
+          size: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      connections:
+      - source: a.out_0
+        target: b.in_0
+      - source: b.out_0
+        target: out_bar
+      - source: foo
+        target: a.in_0
+      input_params:
+      - x_aa
+      - y_aa
+      - x_ab
+      - y_ab
+      - x_ba
+      - y_ba
+      - x_bb
+      - y_bb
+      linked_params:
+      - source: x_aa
+        targets:
+        - a.a.x
+      - source: x_ab
+        targets:
+        - a.b.x
+      - source: x_ba
+        targets:
+        - b.a.x
+      - source: x_bb
+        targets:
+        - b.b.x
+      - source: y_aa
+        targets:
+        - a.a.y
+      - source: y_ab
+        targets:
+        - a.b.y
+      - source: y_ba
+        targets:
+        - b.a.y
+      - source: y_bb
+        targets:
+        - b.b.y
+      name: root
+      ports:
+      - direction: input
+        name: foo
+        size: N
+      - direction: output
+        name: out_bar
+        size: null
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - N
+          - x_aa
+          - y_aa
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: N + x_aa + y_aa
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - N
+          - x_ab
+          - y_ab
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: N + x_ab + y_ab
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        input_params:
+        - N
+        - x_aa
+        - x_ab
+        - y_aa
+        - y_ab
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - N
+          - x_ba
+          - y_ba
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: N + x_ba + y_ba
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - N
+          - x_bb
+          - y_bb
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: N + x_bb + y_bb
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        input_params:
+        - N
+        - x_ba
+        - x_bb
+        - y_ba
+        - y_bb
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: b
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      connections:
+      - source: a.out_0
+        target: b.in_0
+      - source: b.out_0
+        target: out_bar
+      - source: foo
+        target: a.in_0
+      input_params:
+      - N
+      - x_aa
+      - x_ab
+      - x_ba
+      - x_bb
+      - y_aa
+      - y_ab
+      - y_ba
+      - y_bb
+      linked_params: []
+      local_variables: {}
+      meta: {}
+      name: root
+      ports:
+      - direction: input
+        name: foo
+        size: N
+      - direction: output
+        name: out_bar
+        size: N
+      repetition: null
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - N
+          - x_aa
+          - y_aa
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: N + x_aa + y_aa
+          type: null
+        - input_params:
+          - N
+          - x_ab
+          - y_ab
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: N + x_ab + y_ab
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        input_params:
+        - N
+        - x_aa
+        - x_ab
+        - y_aa
+        - y_ab
+        name: a
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        resources:
+        - name: z
+          type: other
+          value: 2*N + x_aa + x_ab + y_aa + y_ab
+        type: null
+      - children:
+        - input_params:
+          - N
+          - x_ba
+          - y_ba
+          name: a
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: N + x_ba + y_ba
+          type: null
+        - input_params:
+          - N
+          - x_bb
+          - y_bb
+          name: b
+          ports:
+          - direction: input
+            name: in_0
+            size: N
+          - direction: output
+            name: out_0
+            size: N
+          resources:
+          - name: z
+            type: other
+            value: N + x_bb + y_bb
+          type: null
+        connections:
+        - source: a.out_0
+          target: b.in_0
+        - source: b.out_0
+          target: out_0
+        - source: in_0
+          target: a.in_0
+        input_params:
+        - N
+        - x_ba
+        - x_bb
+        - y_ba
+        - y_bb
+        name: b
+        ports:
+        - direction: input
+          name: in_0
+          size: N
+        - direction: output
+          name: out_0
+          size: N
+        resources:
+        - name: z
+          type: other
+          value: 2*N + x_ba + x_bb + y_ba + y_bb
+        type: null
+      connections:
+      - source: a.out_0
+        target: b.in_0
+      - source: b.out_0
+        target: out_bar
+      - source: foo
+        target: a.in_0
+      input_params:
+      - N
+      - x_aa
+      - x_ab
+      - x_ba
+      - x_bb
+      - y_aa
+      - y_ab
+      - y_ba
+      - y_bb
+      name: root
+      ports:
+      - direction: input
+        name: foo
+        size: N
+      - direction: output
+        name: out_bar
+        size: N
+      resources:
+      - name: z
+        type: other
+        value: 4*N + x_aa + x_ab + x_ba + x_bb + y_aa + y_ab + y_ba + y_bb
+      type: null
+    version: v1
+# Children and grandchildren, resources dependent on children, no ports, local variables in leaves
+- - program:
+      children:
+      - children:
+        - input_params:
+          - x
+          - y
+          local_variables:
+            i: x + y
+            j: x - y
+            k: (i + j) / 2 + (i - j) / 2
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: k
+          type: null
+        - input_params:
+          - x
+          - y
+          local_variables:
+            i: x + y
+            j: x - y
+            k: (i + j) / 2 + (i - j) / 2
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: k
+          type: null
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - input_params:
+          - x
+          - y
+          local_variables:
+            i: x + y
+            j: x - y
+            k: (i + j) / 2 + (i - j) / 2
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: k
+          type: null
+        - input_params:
+          - x
+          - y
+          local_variables:
+            i: x + y
+            j: x - y
+            k: (i + j) / 2 + (i - j) / 2
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: k
+          type: null
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - a.a.x
+          - a.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: a.a.x + a.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - a.b.x
+          - a.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: a.b.x + a.b.y
+          type: null
+        connections: []
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: a
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      - children:
+        - children: []
+          connections: []
+          input_params:
+          - b.a.x
+          - b.a.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: a
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: b.a.x + b.a.y
+          type: null
+        - children: []
+          connections: []
+          input_params:
+          - b.b.x
+          - b.b.y
+          linked_params: []
+          local_variables: {}
+          meta: {}
+          name: b
+          ports: []
+          repetition: null
+          resources:
+          - name: z
+            type: other
+            value: b.b.x + b.b.y
+          type: null
+        connections: []
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        linked_params: []
+        local_variables: {}
+        meta: {}
+        name: b
+        ports: []
+        repetition: null
+        resources:
+        - name: z
+          type: other
+          value: a.z + b.z
+        type: null
+      connections: []
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      linked_params: []
+      local_variables: {}
+      meta: {}
+      name: root
+      ports: []
+      repetition: null
+      resources:
+      - name: z
+        type: other
+        value: a.z + b.z
+      type: null
+    version: v1
+  - program:
+      children:
+      - children:
+        - input_params:
+          - a.a.x
+          - a.a.y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: a.a.x + a.a.y
+          type: null
+        - input_params:
+          - a.b.x
+          - a.b.y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: a.b.x + a.b.y
+          type: null
+        input_params:
+        - a.a.x
+        - a.a.y
+        - a.b.x
+        - a.b.y
+        name: a
+        resources:
+        - name: z
+          type: other
+          value: a.a.x + a.a.y + a.b.x + a.b.y
+        type: null
+      - children:
+        - input_params:
+          - b.a.x
+          - b.a.y
+          name: a
+          resources:
+          - name: z
+            type: other
+            value: b.a.x + b.a.y
+          type: null
+        - input_params:
+          - b.b.x
+          - b.b.y
+          name: b
+          resources:
+          - name: z
+            type: other
+            value: b.b.x + b.b.y
+          type: null
+        input_params:
+        - b.a.x
+        - b.a.y
+        - b.b.x
+        - b.b.y
+        name: b
+        resources:
+        - name: z
+          type: other
+          value: b.a.x + b.a.y + b.b.x + b.b.y
+        type: null
+      input_params:
+      - a.a.x
+      - a.a.y
+      - a.b.x
+      - a.b.y
+      - b.a.x
+      - b.a.y
+      - b.b.x
+      - b.b.y
+      name: root
+      resources:
+      - name: z
+        type: other
+        value: a.a.x + a.a.y + a.b.x + a.b.y + b.a.x + b.a.y + b.b.x + b.b.y
+      type: null
+    version: v1

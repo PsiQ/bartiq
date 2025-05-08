@@ -20,6 +20,7 @@ from graphlib import TopologicalSorter
 from typing import Any, Callable, Concatenate, ParamSpec, overload
 
 from bartiq import CompiledRoutine, Resource, ResourceType, Routine
+from bartiq.compilation._evaluate import evaluate
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
@@ -97,6 +98,7 @@ def add_aggregated_resources(
         Routine: The program with aggregated resources.
 
     """
+    routine = evaluate(routine, {}, backend=backend).routine
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict, backend)
     return _add_aggregated_resources_to_subroutine(routine, expanded_aggregation_dict, remove_decomposed, backend)
 

@@ -29,7 +29,7 @@ from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
 from typing_extensions import TypedDict, TypeIs
 
-from .._routine import (
+from bartiq._routine import (
     CompiledRoutine,
     Endpoint,
     Port,
@@ -38,20 +38,26 @@ from .._routine import (
     Routine,
     routine_to_qref,
 )
-from ..errors import BartiqCompilationError
-from ..repetitions import Repetition
-from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ..verification import verify_uncompiled_repetitions
-from ._common import (
+from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
     evaluate_constraints,
     evaluate_ports,
     evaluate_resources,
 )
-from .postprocessing import DEFAULT_POSTPROCESSING_STAGES, PostprocessingStage
-from .preprocessing import DEFAULT_PREPROCESSING_STAGES, PreprocessingStage
+from bartiq.compilation.postprocessing import (
+    DEFAULT_POSTPROCESSING_STAGES,
+    PostprocessingStage,
+)
+from bartiq.compilation.preprocessing import (
+    DEFAULT_PREPROCESSING_STAGES,
+    PreprocessingStage,
+)
+from bartiq.errors import BartiqCompilationError
+from bartiq.repetitions import Repetition
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq.verification import verify_uncompiled_repetitions
 
 REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RESOURCES"
 
@@ -119,6 +125,7 @@ def compile_routine(
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
+    allow_transitive_resources: bool = True,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
@@ -135,6 +142,8 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
+        allow_transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
+            the values of the resources will be defined in terms of the child contributions. By default True.
     """
     if not skip_verification and not isinstance(routine, Routine):
         problems = []
@@ -150,7 +159,14 @@ def compile_routine(
 
     for pre_stage in preprocessing_stages:
         root = pre_stage(root, backend)
-    compiled_routine = _compile(root, backend, {}, Context(root.name), derived_resources)
+    compiled_routine = _compile(
+        routine=root,
+        backend=backend,
+        inputs={},
+        context=Context(root.name),
+        derived_resources=derived_resources,
+        allow_transitive_resources=allow_transitive_resources,
+    )
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
     return CompilationResult(routine=compiled_routine, _backend=backend)
@@ -212,8 +228,11 @@ def _process_repeated_resources(
     children: Sequence[CompiledRoutine[T]],
     backend: SymbolicBackend[T],
 ) -> dict[str, Resource[T]]:
-    assert len(children) == 1, "Routine with repetition can only have one child."
+    if len(children) != 1:
+        raise BartiqCompilationError("Routine with repetition can only have one child.")
+
     new_resources = {}
+
     import copy
 
     child_resources = copy.copy(children[0].resources)
@@ -223,11 +242,11 @@ def _process_repeated_resources(
         assert resource_name in child_resources
         assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
     for resource in child_resources.values():
-        if resource.type == "additive":
+        if resource.type == ResourceType.additive:
             new_value = repetition.sequence_sum(resource.value, backend)
-        elif resource.type == "multiplicative":
+        elif resource.type == ResourceType.multiplicative:
             new_value = repetition.sequence_prod(resource.value, backend)
-        elif resource.type == "qubits" and repetition.sequence.type == "constant":
+        elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
             # in calculate_highwater.
@@ -255,6 +274,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
+    allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -292,20 +312,25 @@ def _compile(
 
     for child in routine.sorted_children():
         compiled_child = _compile(
-            child, backend, parameter_map[child.name], context.descend(child.name), derived_resources
+            routine=child,
+            backend=backend,
+            inputs=parameter_map[child.name],
+            context=context.descend(child.name),
+            derived_resources=derived_resources,
+            allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    children_variables = {
-        f"{cname}.{rname}": resource.value
-        for cname, child in compiled_children.items()
-        for rname, resource in child.resources.items()
-    }
-
-    parameter_map[None] = {**parameter_map[None], **children_variables}
+    if not allow_transitive_resources:
+        children_variables = {
+            f"{cname}.{rname}": resource.value
+            for cname, child in compiled_children.items()
+            for rname, resource in child.resources.items()
+        }
+        parameter_map[None] = {**parameter_map[None], **children_variables}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
@@ -315,8 +340,6 @@ def _compile(
             routine.repetition, resources, list(compiled_children.values()), backend
         )
         repetition = routine.repetition.substitute_symbols(parameter_map[None], backend=backend)
-
-    new_resources = evaluate_resources(resources, parameter_map[None], backend)
 
     compiled_ports = {
         **compiled_ports,
@@ -330,6 +353,8 @@ def _compile(
             else set(routine.input_params)
         ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
+
+    new_resources = evaluate_resources(resources, parameter_map[None], backend)
 
     compiled_routine = CompiledRoutine[T](
         name=routine.name,
