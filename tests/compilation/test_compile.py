@@ -29,7 +29,7 @@ COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile_with_no_transitive_resources(routine, expected_routine, backend):
     compiled_routine = compile_routine(
-        routine, skip_verification=False, backend=backend, transitive_resources=False
+        routine, skip_verification=False, backend=backend, allow_transitive_resources=False
     ).to_qref()
     assert compiled_routine == expected_routine
 
@@ -37,7 +37,7 @@ def test_compile_with_no_transitive_resources(routine, expected_routine, backend
 @pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
 def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
     compiled_routine = compile_routine(
-        routine, skip_verification=False, backend=backend, transitive_resources=True
+        routine, skip_verification=False, backend=backend, allow_transitive_resources=True
     ).to_qref()
     assert compiled_routine == compiled_transitive
 
@@ -84,7 +84,7 @@ def test_compiling_correctly_propagates_global_functions(transitive_resources, e
         ],
     )
 
-    result = compile_routine(routine, transitive_resources=transitive_resources)
+    result = compile_routine(routine, allow_transitive_resources=transitive_resources)
     # resources[0] is the only resource X
     assert result.to_qref().program.resources[0].value == expected_resource_value
 
@@ -270,7 +270,9 @@ def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
     }
 
     routine = Routine.from_qref(qref_def, backend)
-    compilation_result = compile_routine(routine, backend=backend, transitive_resources=transitive_resources).routine
+    compilation_result = compile_routine(
+        routine, backend=backend, allow_transitive_resources=transitive_resources
+    ).routine
     assert (
         list(compilation_result.resources) == ["t_count", "foo"]
         and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count

@@ -125,7 +125,7 @@ def compile_routine(
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
-    transitive_resources: bool = True,
+    allow_transitive_resources: bool = True,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
@@ -142,7 +142,7 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
-        transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
+        allow_transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
             the values of the resources will be defined in terms of the child contributions. By default True.
     """
     if not skip_verification and not isinstance(routine, Routine):
@@ -165,7 +165,7 @@ def compile_routine(
         inputs={},
         context=Context(root.name),
         derived_resources=derived_resources,
-        transitive_resources=transitive_resources,
+        allow_transitive_resources=allow_transitive_resources,
     )
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
@@ -274,7 +274,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    transitive_resources: bool = True,
+    allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -317,14 +317,14 @@ def _compile(
             inputs=parameter_map[child.name],
             context=context.descend(child.name),
             derived_resources=derived_resources,
-            transitive_resources=transitive_resources,
+            allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    if not transitive_resources:
+    if not allow_transitive_resources:
         children_variables = {
             f"{cname}.{rname}": resource.value
             for cname, child in compiled_children.items()

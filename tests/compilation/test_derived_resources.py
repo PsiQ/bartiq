@@ -155,7 +155,7 @@ def test_additive_derived_resources_are_processed_correctly(transitive_resources
 
     derived_resources = [{"name": resource_name, "type": "additive", "calculate": add_test_resource}]
     compilation_result = compile_routine(
-        input_routine, derived_resources=derived_resources, transitive_resources=transitive_resources
+        input_routine, derived_resources=derived_resources, allow_transitive_resources=transitive_resources
     )
     compiled_routine = compilation_result.routine
     backend = compilation_result._backend

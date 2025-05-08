@@ -74,7 +74,10 @@ def test_aggregate_resources(backend, transitive_resources):
     aggregation_dict = {"a": {"op": 1}, "b": {"op": 2}, "c": {"op": 3}}
     postprocessing_stages = [aggregate_resources(aggregation_dict, remove_decomposed=True)]
     compiled_routine = compile_routine(
-        routine, postprocessing_stages=postprocessing_stages, backend=backend, transitive_resources=transitive_resources
+        routine,
+        postprocessing_stages=postprocessing_stages,
+        backend=backend,
+        allow_transitive_resources=transitive_resources,
     ).routine
     assert len(compiled_routine.resources) == 1
     assert (
