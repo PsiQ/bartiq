@@ -85,9 +85,6 @@ class CompilationFlags(Flag):
     EXPAND_RESOURCES = auto()
     """Expand resource values into full, rather than transitive, expressions."""
 
-    SKIP_VERIFICATION = auto()
-    """Skip the verification step on the routine."""
-
 
 class Calculate(Protocol[T]):
 
@@ -135,6 +132,7 @@ def compile_routine(
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
+    skip_verification: bool = False,
     compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -297,7 +295,8 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    compilation_flags: CompilationFlags = CompilationFlags(0),  # CompilationsFlags(0) corresponds to no flags
+    compilation_flags: CompilationFlags | None = None,
+    # allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -307,6 +306,8 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
+    compilation_flags = compilation_flags or CompilationFlags(0)
+
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
@@ -340,12 +341,14 @@ def _compile(
             context=context.descend(child.name),
             derived_resources=derived_resources,
             compilation_flags=compilation_flags,
+            # allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
+    # if not allow_transitive_resources:
     if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
         children_variables = {
             f"{cname}.{rname}": resource.value
