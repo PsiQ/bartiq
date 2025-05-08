@@ -20,6 +20,7 @@ import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
+from enum import Flag, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Protocol
 
@@ -74,8 +75,15 @@ REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RE
 # For instance, the following parameter tree:
 # {None: {"#out_0": N}}
 # tells us that the output port of the routine currently being
-# procesed should have size set to N.
+# processed should have size set to N.
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
+
+
+class CompilationFlags(Flag):
+    """A collection of compilation flags to modify `compile_routine` functionality."""
+
+    EXPAND_RESOURCES = auto()
+    """Expand resource values into full, rather than transitive, expressions."""
 
 
 class Calculate(Protocol[T]):
@@ -125,7 +133,7 @@ def compile_routine(
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
     skip_verification: bool = False,
-    allow_transitive_resources: bool = True,
+    compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
@@ -165,7 +173,7 @@ def compile_routine(
         inputs={},
         context=Context(root.name),
         derived_resources=derived_resources,
-        allow_transitive_resources=allow_transitive_resources,
+        compilation_flags=compilation_flags,
     )
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
@@ -274,7 +282,8 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    allow_transitive_resources: bool = True,
+    compilation_flags: CompilationFlags | None = None,
+    # allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -284,6 +293,7 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
+    compilation_flags = compilation_flags or CompilationFlags(0)
 
     connections_map = _expand_connections(routine.connections)
 
@@ -317,14 +327,16 @@ def _compile(
             inputs=parameter_map[child.name],
             context=context.descend(child.name),
             derived_resources=derived_resources,
-            allow_transitive_resources=allow_transitive_resources,
+            compilation_flags=compilation_flags,
+            # allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    if not allow_transitive_resources:
+    # if not allow_transitive_resources:
+    if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
         children_variables = {
             f"{cname}.{rname}": resource.value
             for cname, child in compiled_children.items()
