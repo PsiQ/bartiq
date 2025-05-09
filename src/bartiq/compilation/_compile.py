@@ -149,11 +149,9 @@ def compile_routine(
         derived_resources: iterable with dictionaries describing how to calculate derived resources.
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
+        skip_verification: flag indicating whether verification of the routine should be skipped.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
-            through the [`CompilationFlags`][bartiq.compilation.CompilationFlags] object. By default None.
-
-    Raises:
-        BartiqCompilationError: if the routine is not valid, or if the verification step fails.
+            through the `CompilationFlags` object. By default None.
     """
     compilation_flags = compilation_flags or CompilationFlags(0)
     if CompilationFlags.SKIP_VERIFICATION not in compilation_flags and not isinstance(routine, Routine):
@@ -245,20 +243,23 @@ def _process_repeated_resources(
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     child_resources = copy.copy(children[0].resources)
-    if child_resources_not_in_parent := child_resources.keys() - resources.keys():
-        raise BartiqCompilationError(
-            """Routine with repetition does not share the same resources as its child."""
-            f"""\nFollowing resources are in the child, but not the parent: {child_resources_not_in_parent}"""
-        )
-    if incorrectly_named_resources := [
-        x
-        for resource in resources.values()
-        if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
-    ]:
-        raise BartiqCompilationError(
-            """Routine with repetition should have resource names like `child_name.resource_name."""
-            f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
-        )
+    # if child_resources_not_in_parent := child_resources.keys() - resources.keys():
+    #     raise BartiqCompilationError(
+    #         """Routine with repetition does not share the same resources as its child."""
+    #         f"""\nFollowing resources are in the child, but not the parent: {child_resources_not_in_parent}"""
+    #     )
+    # if incorrectly_named_resources := [
+    #     x
+    #     for resource in resources.values()
+    #     if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
+    # ]:
+    #     raise BartiqCompilationError(
+    #         """Routine with repetition should have resource names like `child_name.resource_name."""
+    #         f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
+    #     )
+    for resource_name, resource in resources.items():
+        assert resource_name in child_resources
+        assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
 
     new_resources = {}
     for resource in child_resources.values():
