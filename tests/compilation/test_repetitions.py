@@ -20,6 +20,7 @@ from qref import SchemaV1
 from qref.schema_v1 import ResourceV1, RoutineV1
 
 from bartiq import compile_routine, evaluate
+from bartiq.compilation import CompilationFlags
 from bartiq.errors import BartiqCompilationError
 
 
@@ -253,8 +254,8 @@ def test_closed_form_sequence_works_when_sum_and_prod_unspecified(sum_none, prod
             compiled_routine = compile_routine(routine).routine
 
 
-@pytest.mark.parametrize("transitive_resources", [True, False])
-def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_evaluate_side(backend, transitive_resources):
+@pytest.mark.parametrize("compilation_flags", [None, CompilationFlags.EXPAND_RESOURCES])
+def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_evaluate_side(backend, compilation_flags):
     term_expression = "i**2 - 2*i + 7 + ceiling(log2((i+1)*5))"
     routine = _routine_with_repetition(
         {
@@ -264,14 +265,15 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_evaluate
     )
 
     assignments = {"i": "j"}
-    compiled_routine = compile_routine(routine, allow_transitive_resources=transitive_resources).routine
+    compiled_routine = compile_routine(routine, compilation_flags=compilation_flags).routine
     with pytest.raises(BartiqCompilationError, match=r"Tried to replace symbol that's used as iterator symbol*"):
         evaluate(compiled_routine, assignments).routine
 
 
-# At present, allow_transitive_resources=True does not raise an error when attempting to compile a routine
-# where a resource value has the same symbol as an iterator symbol. This is because the resource hierarchy is not
-# compiled fully, and so the parameter map during the compile sequence does not contain child information.
+# At present, the default method of compilation (with transitive resourceSs does not raise an error
+# when attempting to compile a routine where a resource value has the same symbol as an iterator symbol.
+# This is because the resource hierarchy is not compiled fully,
+# and so the parameter map during the compile sequence does not contain child information.
 
 
 def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_compile_side(backend):
@@ -285,7 +287,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_compile_
 
     routine.program.children[0].resources[0].value = "i"
     with pytest.raises(BartiqCompilationError, match=r"Tried to replace symbol that's used as iterator symbol*"):
-        compile_routine(routine, allow_transitive_resources=False)
+        compile_routine(routine, compilation_flags=CompilationFlags.EXPAND_RESOURCES)
 
 
 @pytest.mark.parametrize(

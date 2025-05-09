@@ -18,6 +18,7 @@ import pytest
 from qref.schema_v1 import RoutineV1
 
 from bartiq import Routine, compile_routine
+from bartiq.compilation import CompilationFlags
 from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.errors import BartiqCompilationError, BartiqPreprocessingError
 from tests.utilities import load_compile_test_data, load_transitive_resource_data
@@ -29,16 +30,14 @@ COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile_with_no_transitive_resources(routine, expected_routine, backend):
     compiled_routine = compile_routine(
-        routine, skip_verification=False, backend=backend, allow_transitive_resources=False
+        routine, skip_verification=False, backend=backend, compilation_flags=CompilationFlags.EXPAND_RESOURCES
     ).to_qref()
     assert compiled_routine == expected_routine
 
 
 @pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
 def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
-    compiled_routine = compile_routine(
-        routine, skip_verification=False, backend=backend, allow_transitive_resources=True
-    ).to_qref()
+    compiled_routine = compile_routine(routine, skip_verification=False, backend=backend).to_qref()
     assert compiled_routine == compiled_transitive
 
 
@@ -57,10 +56,10 @@ def f_3_optional_inputs(a, b=2, c=3):
 
 
 @pytest.mark.parametrize(
-    "transitive_resources, expected_resource_value",
-    [[True, "a.X + b.X + c.X"], [False, "2*O(1) + f(1, 2, 3) + g(7) + 5"]],
+    "compilation_flags, expected_resource_value",
+    [[None, "a.X + b.X + c.X"], [CompilationFlags.EXPAND_RESOURCES, "2*O(1) + f(1, 2, 3) + g(7) + 5"]],
 )
-def test_compiling_correctly_propagates_global_functions(transitive_resources, expected_resource_value):
+def test_compiling_correctly_propagates_global_functions(compilation_flags, expected_resource_value):
     routine = RoutineV1(
         name="root",
         type="dummy",
@@ -84,7 +83,7 @@ def test_compiling_correctly_propagates_global_functions(transitive_resources, e
         ],
     )
 
-    result = compile_routine(routine, allow_transitive_resources=transitive_resources)
+    result = compile_routine(routine, compilation_flags=compilation_flags)
     # resources[0] is the only resource X
     assert result.to_qref().program.resources[0].value == expected_resource_value
 
@@ -234,18 +233,18 @@ N_CHILDREN = 1000
 @pytest.mark.order(-1)
 @pytest.mark.timeout(30)
 @pytest.mark.parametrize(
-    "transitive_resources, expected_t_count, expected_foo",
+    "compilation_flags, expected_t_count, expected_foo",
     [
-        [False, f"{N_CHILDREN}*n", f"n ^ {N_CHILDREN}"],
+        [CompilationFlags.EXPAND_RESOURCES, f"{N_CHILDREN}*n", f"n ^ {N_CHILDREN}"],
         [
-            True,
+            None,
             " + ".join(sorted(f"child_{x}.t_count" for x in range(N_CHILDREN))),
             "*".join(sorted(f"child_{x}.foo" for x in range(N_CHILDREN))),
         ],
     ],
 )
 def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
-    backend, transitive_resources, expected_t_count, expected_foo
+    backend, compilation_flags, expected_t_count, expected_foo
 ):
     # This test does not check correctness, but rather serves as litmus paper detecting performance
     # regression. See https://github.com/PsiQ/bartiq/issues/181
@@ -270,9 +269,7 @@ def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
     }
 
     routine = Routine.from_qref(qref_def, backend)
-    compilation_result = compile_routine(
-        routine, backend=backend, allow_transitive_resources=transitive_resources
-    ).routine
+    compilation_result = compile_routine(routine, backend=backend, compilation_flags=compilation_flags).routine
     assert (
         list(compilation_result.resources) == ["t_count", "foo"]
         and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count

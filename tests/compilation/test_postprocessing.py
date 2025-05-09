@@ -18,6 +18,7 @@ from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
+from bartiq.compilation import CompilationFlags
 from bartiq.compilation.postprocessing import aggregate_resources
 
 
@@ -68,8 +69,8 @@ def test_two_postprocessing_stages(backend):
         assert child.type == "cool_kid"
 
 
-@pytest.mark.parametrize("transitive_resources", [True, False])
-def test_aggregate_resources(backend, transitive_resources):
+@pytest.mark.parametrize("compilation_flags", [None, CompilationFlags.EXPAND_RESOURCES])
+def test_aggregate_resources(backend, compilation_flags):
     routine = _get_simple_routine(backend)
     aggregation_dict = {"a": {"op": 1}, "b": {"op": 2}, "c": {"op": 3}}
     postprocessing_stages = [aggregate_resources(aggregation_dict, remove_decomposed=True)]
@@ -77,12 +78,12 @@ def test_aggregate_resources(backend, transitive_resources):
         routine,
         postprocessing_stages=postprocessing_stages,
         backend=backend,
-        allow_transitive_resources=transitive_resources,
+        compilation_flags=compilation_flags,
     ).routine
     assert len(compiled_routine.resources) == 1
     assert (
         compiled_routine.resources["op"].value == 22
-        if not transitive_resources
+        if CompilationFlags.EXPAND_RESOURCES in compilation_flags
         else backend.as_expression(
             "+".join(
                 f"{aggregation_dict[resource]['op']}*{child}.{resource}"
