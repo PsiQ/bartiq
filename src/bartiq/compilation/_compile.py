@@ -245,10 +245,10 @@ def _process_repeated_resources(
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     child_resources = copy.copy(children[0].resources)
-    if parent_resources_not_in_child := resources.keys() - child_resources.keys():
+    if child_resources_not_in_parent := child_resources.keys() - resources.keys():
         raise BartiqCompilationError(
             """Routine with repetition does not share the same resources as its child."""
-            f"""\nFollowing resources are in the parent, but not the child: {parent_resources_not_in_child}"""
+            f"""\nFollowing resources are in the child, but not the parent: {child_resources_not_in_parent}"""
         )
     if incorrectly_named_resources := [
         x
@@ -296,7 +296,6 @@ def _compile(
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
     compilation_flags: CompilationFlags | None = None,
-    # allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -307,7 +306,6 @@ def _compile(
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
     compilation_flags = compilation_flags or CompilationFlags(0)
-
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
@@ -341,14 +339,12 @@ def _compile(
             context=context.descend(child.name),
             derived_resources=derived_resources,
             compilation_flags=compilation_flags,
-            # allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    # if not allow_transitive_resources:
     if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
         children_variables = {
             f"{cname}.{rname}": resource.value
