@@ -32,8 +32,12 @@ jobs:
       - name: Lint commits
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            RANGE="${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+            FROM_SHA="${{ github.event.pull_request.base.sha }}"
+            TO_SHA="${{ github.event.pull_request.head.sha }}"
           else
-            RANGE="${{ github.event.before }}...${{ github.sha }}"
+            FROM_SHA="${{ github.event.before }}"
+            TO_SHA="${{ github.sha }}"
           fi
-          npx commitlint --from "$RANGE" --to "${{ github.sha }}"
+
+          echo "Linting commits from $FROM_SHA to $TO_SHA"
+          npx commitlint --from "$FROM_SHA" --to "$TO_SHA"
