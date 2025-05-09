@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/PsiQ/bartiq/compare/v0.12.1...v0.13.0) (2025-05-09)
+
+
+### Features
+
+* add server-side enforcement for conventional commits. ([#198](https://github.com/PsiQ/bartiq/issues/198)) ([8bca534](https://github.com/PsiQ/bartiq/commit/8bca534e82f5a81301c389370aee8b27144e228b))
+
 ## [0.12.1](https://github.com/PsiQ/bartiq/compare/v0.12.0...v0.12.1) (2025-04-28)
 
 
