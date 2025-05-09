@@ -270,7 +270,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_evaluate
         evaluate(compiled_routine, assignments).routine
 
 
-# At present, the default method of compilation (with transitive resources) does not raise an error
+# At present, the default method of compilation (with transitive resourceSs does not raise an error
 # when attempting to compile a routine where a resource value has the same symbol as an iterator symbol.
 # This is because the resource hierarchy is not compiled fully,
 # and so the parameter map during the compile sequence does not contain child information.

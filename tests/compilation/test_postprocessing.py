@@ -69,7 +69,7 @@ def test_two_postprocessing_stages(backend):
         assert child.type == "cool_kid"
 
 
-@pytest.mark.parametrize("compilation_flags", [CompilationFlags(0), CompilationFlags.EXPAND_RESOURCES])
+@pytest.mark.parametrize("compilation_flags", [None, CompilationFlags.EXPAND_RESOURCES])
 def test_aggregate_resources(backend, compilation_flags):
     routine = _get_simple_routine(backend)
     aggregation_dict = {"a": {"op": 1}, "b": {"op": 2}, "c": {"op": 3}}

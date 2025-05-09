@@ -30,14 +30,14 @@ COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
 def test_compile_with_no_transitive_resources(routine, expected_routine, backend):
     compiled_routine = compile_routine(
-        routine, backend=backend, compilation_flags=CompilationFlags.EXPAND_RESOURCES
+        routine, skip_verification=False, backend=backend, compilation_flags=CompilationFlags.EXPAND_RESOURCES
     ).to_qref()
     assert compiled_routine == expected_routine
 
 
 @pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
 def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
-    compiled_routine = compile_routine(routine, backend=backend).to_qref()
+    compiled_routine = compile_routine(routine, skip_verification=False, backend=backend).to_qref()
     assert compiled_routine == compiled_transitive
 
 
