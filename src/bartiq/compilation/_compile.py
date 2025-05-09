@@ -238,29 +238,39 @@ def _process_repeated_resources(
 ) -> dict[str, Resource[T]]:
     if len(children) != 1:
         raise BartiqCompilationError("Routine with repetition can only have one child.")
-
-    new_resources = {}
-
     import copy
 
-    child_resources = copy.copy(children[0].resources)
-
     # Ensure that routine with repetition only contains resources that we will later overwrite
-    for resource_name, resource in resources.items():
-        assert resource_name in child_resources
-        assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
+    child_resources = copy.copy(children[0].resources)
+    if child_resources_not_in_parent := child_resources.keys() - resources.keys():
+        raise BartiqCompilationError(
+            """Routine with repetition does not share the same resources as its child."""
+            f"""\nFollowing resources are in the child, but not the parent: {child_resources_not_in_parent}"""
+        )
+    if incorrectly_named_resources := [
+        x
+        for resource in resources.values()
+        if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
+    ]:
+        raise BartiqCompilationError(
+            """Routine with repetition should have resource names like `child_name.resource_name."""
+            f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
+        )
+
+    new_resources = {}
     for resource in child_resources.values():
+        replacement_value = backend.as_expression(f"{children[0].name}.{resource.name}")
         if resource.type == ResourceType.additive:
-            new_value = repetition.sequence_sum(resource.value, backend)
+            new_value = repetition.sequence_sum(replacement_value, backend)
         elif resource.type == ResourceType.multiplicative:
-            new_value = repetition.sequence_prod(resource.value, backend)
+            new_value = repetition.sequence_prod(replacement_value, backend)
         elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
             # in calculate_highwater.
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
-            new_value = resource.value
+            new_value = replacement_value
             warnings.warn(
                 f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
                 "Passing its value as is without modifications. "
@@ -283,7 +293,6 @@ def _compile(
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
     compilation_flags: CompilationFlags | None = None,
-    # allow_transitive_resources: bool = True,
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -294,7 +303,6 @@ def _compile(
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
     compilation_flags = compilation_flags or CompilationFlags(0)
-
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
@@ -328,14 +336,12 @@ def _compile(
             context=context.descend(child.name),
             derived_resources=derived_resources,
             compilation_flags=compilation_flags,
-            # allow_transitive_resources=allow_transitive_resources,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    # if not allow_transitive_resources:
     if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
         children_variables = {
             f"{cname}.{rname}": resource.value
