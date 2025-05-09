@@ -345,7 +345,27 @@ def test_raises_warning_when_invalid_resource_types_and_env_set():
     other_resource = ResourceV1(name="other_resource", type="other", value=5)
     routine.program.children[0].resources.append(other_resource)
 
-    with pytest.warns():
-        compiled_routine = compile_routine(routine).routine
+    with pytest.warns(match=r"Can't process resource*"):
+        compiled_routine = compile_routine(routine, compilation_flags=CompilationFlags.EXPAND_RESOURCES).routine
         assert compiled_routine.resources["other_resource"].value == 5
         assert compiled_routine.resources["other_resource"].type == "other"
+
+
+def test_error_raised_when_mismatch_between_parent_and_child_resources_and_skipping_verification():
+    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
+    routine.program.resources.append(ResourceV1(name="other_resource", type="additive", value=5))
+    with pytest.raises(
+        BartiqCompilationError, match="Routine with repetition does not share the same resources as its child*"
+    ):
+        compile_routine(routine, skip_verification=True)
+
+
+def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_skipping_verification():
+    routine = _routine_with_repetition({"count": 5, "sequence": {"type": "constant"}})
+    ResourceV1(name="other_resource", type="additive", value=5)
+    routine.program.resources.append(ResourceV1(name="T", type="additive", value=5))
+    with pytest.raises(
+        BartiqCompilationError,
+        match="Routine with repetition should have resource names like `child_name.resource_name.*",
+    ):
+        compile_routine(routine, skip_verification=True)
