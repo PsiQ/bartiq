@@ -357,7 +357,7 @@ def test_error_raised_when_mismatch_between_parent_and_child_resources_and_skipp
     with pytest.raises(
         BartiqCompilationError, match="Routine with repetition does not share the same resources as its child*"
     ):
-        compile_routine(routine, compilation_flags=CompilationFlags.SKIP_VERIFICATION)
+        compile_routine(routine, skip_verification=True)
 
 
 def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_skipping_verification():
@@ -368,4 +368,4 @@ def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_
         BartiqCompilationError,
         match="Routine with repetition should have resource names like `child_name.resource_name.*",
     ):
-        compile_routine(routine, compilation_flags=CompilationFlags.SKIP_VERIFICATION)
+        compile_routine(routine, skip_verification=True)
