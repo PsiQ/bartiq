@@ -1,0 +1,39 @@
+name: "Lint PR title"
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  lint_pr_title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install commitlint
+        run: npm install @commitlint/cli @commitlint/config-conventional
+
+      - name: Get current PR title
+        id: get_title
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            return pr.data.title;
+
+      - name: Lint PR title
+        run: |
+          echo "${{ steps.get_title.outputs.result }}" > pr_title.txt
+          npx commitlint --edit pr_title.txt --config commitlint.config.js
