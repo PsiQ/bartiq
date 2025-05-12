@@ -85,6 +85,9 @@ class CompilationFlags(Flag):
     EXPAND_RESOURCES = auto()
     """Expand resource values into full, rather than transitive, expressions."""
 
+    SKIP_VERIFICATION = auto()
+    """Skip the verification step on the routine."""
+
 
 class Calculate(Protocol[T]):
 
@@ -132,7 +135,6 @@ def compile_routine(
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
-    skip_verification: bool = False,
     compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -149,11 +151,11 @@ def compile_routine(
         derived_resources: iterable with dictionaries describing how to calculate derived resources.
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
-        skip_verification: flag indicating whether verification of the routine should be skipped.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
             through the `CompilationFlags` object. By default None.
     """
-    if not skip_verification and not isinstance(routine, Routine):
+    compilation_flags = compilation_flags or CompilationFlags(0)
+    if CompilationFlags.SKIP_VERIFICATION not in compilation_flags and not isinstance(routine, Routine):
         problems = []
         if not (topology_verification_result := verify_topology(routine)):
             problems += [problem + "\n" for problem in topology_verification_result.problems]
@@ -302,7 +304,7 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
-    compilation_flags = compilation_flags or CompilationFlags(0)
+
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
