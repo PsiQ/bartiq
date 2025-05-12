@@ -110,6 +110,10 @@ class BaseRoutine(Generic[T]):
             )
 
     @property
+    def resource_values(self) -> dict[str, TExpr[T]]:
+        return {k: v.value for k, v in self.resources.items()}
+
+    @property
     def inner_connections(self) -> dict[Endpoint[str], Endpoint[str]]:
         return cast(
             dict[Endpoint[str], Endpoint[str]],
