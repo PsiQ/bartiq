@@ -25,5 +25,6 @@ jobs:
         env:
           pr_title: ${{ github.event.pull_request.title }}
         run: |
+          echo "PR title is: $pr_title"
           echo "$pr_title" > pr_title.txt
           npx commitlint --edit pr_title.txt --config commitlint.config.js
