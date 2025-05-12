@@ -21,19 +21,9 @@ jobs:
       - name: Install commitlint
         run: npm install @commitlint/cli @commitlint/config-conventional
 
-      - name: Get current PR title
-        id: get_title
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const pr = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-            });
-            return pr.data.title;
-
       - name: Lint PR title
+        env:
+          pr_title: ${{ github.event.pull_request.title }}
         run: |
-          echo "${{ steps.get_title.outputs.result }}" > pr_title.txt
+          echo "$pr_title" > pr_title.txt
           npx commitlint --edit pr_title.txt --config commitlint.config.js
