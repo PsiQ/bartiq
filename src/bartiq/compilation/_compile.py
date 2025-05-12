@@ -294,7 +294,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    compilation_flags: CompilationFlags | None = None,
+    compilation_flags: CompilationFlags = CompilationFlags(0),
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
