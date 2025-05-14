@@ -10,6 +10,9 @@ from abc import ABC, abstractmethod
 from sympy import Basic, Expr, Add, Symbol, sympify
 from enum import Enum, auto
 
+T = TypeVar("T")
+TExpr = str | T
+
 
 class InstructionTypes(Enum):
     """A collection of different instructions used during symbolic manipulation."""
@@ -41,7 +44,7 @@ class Manipulator(ABC):
         backend: Optional argument indicating the symbolic backend required, by default sympy_backend.
     """
 
-    def __init__(self, routine: CompiledRoutine, resource: str, backend: SymbolicBackend = sympy_backend):
+    def __init__(self, routine: CompiledRoutine, resource: str, backend: SymbolicBackend):
         self.routine = routine
         self._expr = self.routine.resources[resource].value
         self.original_expression = self._expr
@@ -106,6 +109,9 @@ class Manipulator(ABC):
 
 class SympyManipulation(Manipulator):
     """A class for manipulating and simplifying SymPy expressions."""
+
+    def __init__(self, routine, resource):
+        super().__init__(routine=routine, resource=resource, backend=sympy_backend)
 
     @property
     def variables(self) -> set[Symbol]:
