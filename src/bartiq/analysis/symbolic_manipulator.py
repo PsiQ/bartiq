@@ -10,9 +10,6 @@ from abc import ABC, abstractmethod
 from sympy import Basic, Expr, Add, Symbol, sympify
 from enum import Enum, auto
 
-T = TypeVar("T")
-TExpr = str | T
-
 
 class InstructionTypes(Enum):
     """A collection of different instructions used during symbolic manipulation."""
