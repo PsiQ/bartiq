@@ -1,88 +1,12 @@
-from __future__ import annotations
-from typing import TypeAlias, TypeVar, Any
-from collections.abc import Iterable, Callable
+from collections.abc import Iterable
 
-from bartiq import CompiledRoutine, sympy_backend
-from bartiq.symbolics.backend import SymbolicBackend
+from bartiq import sympy_backend
+from bartiq.analysis._symbolic_manipulator import Manipulator, update_expression
 
-from abc import ABC, abstractmethod
-
-from sympy import Basic, Expr, Add, Symbol, sympify
+from sympy import Expr, Add, Symbol
 
 
-class Manipulator(ABC):
-    """A base class for symbolic manipulation, or simplification, tools.
-
-    Args:
-        routine: A compiled routine object.
-        resource: A string indicating the resource we wish to act on.
-        backend: Optional argument indicating the symbolic backend required, by default sympy_backend.
-    """
-
-    def __init__(self, routine: CompiledRoutine, resource: str, backend: SymbolicBackend):
-        self.routine = routine
-        self._expr = self.routine.resources[resource].value
-        self.original_expression = self._expr
-
-        self._backend = backend
-
-    @property
-    def expression(self) -> Expr:
-        """Return the current form of the expression."""
-        return self._expr
-
-    @expression.setter
-    def expression(self, other: Expr):
-        self._expr = other
-
-    @update_expression
-    def evaluate_expression(
-        self,
-        variable_assignments: dict[str, float],
-        original_expression: bool = False,
-        functions_map: dict[str, Callable[[Any], int | float]] | None = None,
-    ) -> Expr:
-        """Assign explicit values to certain variables.
-
-        Args:
-            variable_assignments : A dictionary of (variable name: value) key, val pairs.
-            original_expression: Whether or not to evaluate the original expression, by default False.
-            functions_map: A map for certain functions.
-
-        Returns:
-            Expr
-        """
-        return self._backend.substitute(
-            self.original_expression if original_expression else self.expression,
-            replacements=variable_assignments,
-            functions_map=functions_map,
-        )
-
-    @property
-    @abstractmethod
-    def variables(self) -> Iterable[Expr]:
-        """Return the variable parameters in the expression."""
-
-    @property
-    @abstractmethod
-    def as_individual_terms(self) -> Iterable[Expr]:
-        """Return the expression as an iterable of individual terms."""
-
-    @abstractmethod
-    @update_expression
-    def substitute(self, expression_to_replace: Expr, replace_with: Expr) -> None:
-        """Substitute a pattern in the expression with a user-defined replacement."""
-
-    def apply_history_to_routine(self, all_resources: bool = False) -> CompiledRoutine:
-        raise NotImplementedError("Applying a sequence of instructions to entire routines is not yet implemented.")
-
-    @abstractmethod
-    @update_expression
-    def expand(self) -> Expr:
-        """Expand all brackets in the expression."""
-
-
-class SympyManipulation(Manipulator):
+class SympyManipulator(Manipulator):
     """A class for manipulating and simplifying SymPy expressions."""
 
     def __init__(self, routine, resource):
@@ -127,13 +51,27 @@ class SympyManipulation(Manipulator):
     def substitute(self, pattern_to_replace: Expr, replace_with: Expr):
         raise NotImplementedError("Substitutions not yet implemented.")
 
+    def focus(self, variables: str | Iterable[str]) -> Expr:
+        """Return an expression that only contains terms containing specific variables.
+
+        Args:
+            variables: a symbol name, or iterable of symbol names, to focus on.
+
+        Returns:
+            Expr
+        """
+        variables = set(map(self.get_symbol, [variables] if isinstance(variables, str) else variables))
+        return self.expression.__class__(*[x for x in self.expression.args if x.free_symbols & variables]).collect(
+            variables
+        )
+
 
 if __name__ == "__main__":
     import dill
 
     with open("brno.dill", "rb") as f:
         routine = dill.load(f)
-    c = SympyManipulation(routine=routine, resource="active_volume")
+    c = SympyManipulat(routine=routine, resource="active_volume")
     print(c.variables)
     c.expression = routine.resources["t_gates"].value
     print(c.variables)
