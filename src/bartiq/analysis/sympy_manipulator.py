@@ -64,14 +64,3 @@ class SympyManipulator(Manipulator):
         return self.expression.__class__(*[x for x in self.expression.args if x.free_symbols & variables]).collect(
             variables
         )
-
-
-if __name__ == "__main__":
-    import dill
-
-    with open("brno.dill", "rb") as f:
-        routine = dill.load(f)
-    c = SympyManipulat(routine=routine, resource="active_volume")
-    print(c.variables)
-    c.expression = routine.resources["t_gates"].value
-    print(c.variables)
