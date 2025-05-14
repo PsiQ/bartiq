@@ -6,8 +6,21 @@ from abc import ABC, abstractmethod
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend
 
+from enum import Enum, auto
+
 T = TypeVar("T")
 TExpr = str | T
+
+
+class InstructionTypes(Enum):
+    """A collection of different instructions used during symbolic manipulation."""
+
+    SIMPLIFY = auto()
+    "Call the backend `simplify` functionality."
+    EXPAND = auto()
+    "Expand all brackets in the expression."
+    EVALUATE = auto()
+    "Evaluate the expression, either fully or partially."
 
 
 def update_expression(function: Callable[[Any], TExpr]):

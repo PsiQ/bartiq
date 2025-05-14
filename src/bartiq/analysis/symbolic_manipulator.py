@@ -8,28 +8,6 @@ from bartiq.symbolics.backend import SymbolicBackend
 from abc import ABC, abstractmethod
 
 from sympy import Basic, Expr, Add, Symbol, sympify
-from enum import Enum, auto
-
-
-class InstructionTypes(Enum):
-    """A collection of different instructions used during symbolic manipulation."""
-
-    SIMPLIFY = auto()
-    "Call the backend `simplify` functionality."
-    EXPAND = auto()
-    "Expand all brackets in the expression."
-    EVALUATE = auto()
-    "Evaluate the expression, either fully or partially."
-
-
-def update_expression(function: Callable[[Any], Expr]):
-    """Decorator for updating the stored expression in Manipulator."""
-
-    def wrapper(self: Manipulator, *args, **kwargs):
-        self.expression = function(self, *args, **kwargs)
-        return self.expression
-
-    return wrapper
 
 
 class Manipulator(ABC):
