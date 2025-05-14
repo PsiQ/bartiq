@@ -2,14 +2,20 @@ from __future__ import annotations
 from typing import Any, TypeVar
 from collections.abc import Callable, Iterable
 from abc import ABC, abstractmethod
+from numbers import Number
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend
 
 from enum import Enum, auto
 
+# Generic type for expressions or strings representing expressions
 T = TypeVar("T")
-TExpr = str | T
+TExpr = Number | str | T
+
+# Generic type for symbols or strings representing symbols
+X = TypeVar("X")
+XSymb = str | X
 
 
 class InstructionTypes(Enum):
@@ -21,16 +27,20 @@ class InstructionTypes(Enum):
     "Expand all brackets in the expression."
     EVALUATE = auto()
     "Evaluate the expression, either fully or partially."
+    SUBSTITUTE_EXACT = auto()
+    "Add a 1-to-1 substitution."
+    SUBSTITUTE_PATTERN = auto()
+    "Add a wildcard-based substitution."
 
 
 def update_expression(function: Callable[[Any], TExpr]):
     """Decorator for updating the stored expression in Manipulator."""
 
-    def wrapper(self: Manipulator, *args, **kwargs):
+    def _inner(self: Manipulator, *args, **kwargs):
         self.expression = function(self, *args, **kwargs)
         return self.expression
 
-    return wrapper
+    return _inner
 
 
 class Manipulator(ABC):
@@ -39,7 +49,7 @@ class Manipulator(ABC):
     Args:
         routine: A compiled routine object.
         resource: A string indicating the resource we wish to act on.
-        backend: Optional argument indicating the symbolic backend required, by default sympy_backend.
+        backend: Argument indicating the symbolic backend required.
     """
 
     def __init__(self, routine: CompiledRoutine, resource: str, backend: SymbolicBackend):
@@ -61,14 +71,14 @@ class Manipulator(ABC):
     @update_expression
     def evaluate_expression(
         self,
-        variable_assignments: dict[str, float],
+        variable_assignments: dict[XSymb, float],
         original_expression: bool = False,
         functions_map: dict[str, Callable[[Any], int | float]] | None = None,
     ) -> TExpr:
         """Assign explicit values to certain variables.
 
         Args:
-            variable_assignments : A dictionary of (variable name: value) key, val pairs.
+            variable_assignments : A dictionary of (variable: value) key, val pairs.
             original_expression: Whether or not to evaluate the original expression, by default False.
             functions_map: A map for certain functions.
 
@@ -83,7 +93,7 @@ class Manipulator(ABC):
 
     @property
     @abstractmethod
-    def variables(self) -> Iterable[TExpr]:
+    def variables(self) -> Iterable[XSymb]:
         """Return the variable parameters in the expression."""
 
     @property
@@ -103,3 +113,7 @@ class Manipulator(ABC):
     @update_expression
     def expand(self) -> TExpr:
         """Expand all brackets in the expression."""
+
+    @abstractmethod
+    def focus(self, variables: XSymb | Iterable[XSymb]) -> TExpr:
+        """Return an expression that only contains terms containing specific variables."""
