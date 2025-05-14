@@ -20,6 +20,7 @@ import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
+from enum import Flag, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Protocol
 
@@ -74,8 +75,18 @@ REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV = "BARTIQ_REPETITION_ALLOW_ARBITRARY_RE
 # For instance, the following parameter tree:
 # {None: {"#out_0": N}}
 # tells us that the output port of the routine currently being
-# procesed should have size set to N.
+# processed should have size set to N.
 ParameterTree = dict[str | None, dict[str, TExpr[T]]]
+
+
+class CompilationFlags(Flag):
+    """A collection of compilation flags to modify `compile_routine` functionality."""
+
+    EXPAND_RESOURCES = auto()
+    """Expand resource values into full, rather than transitive, expressions."""
+
+    SKIP_VERIFICATION = auto()
+    """Skip the verification step on the routine."""
 
 
 class Calculate(Protocol[T]):
@@ -124,8 +135,7 @@ def compile_routine(
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
-    skip_verification: bool = False,
-    allow_transitive_resources: bool = True,
+    compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
 
@@ -141,11 +151,11 @@ def compile_routine(
         derived_resources: iterable with dictionaries describing how to calculate derived resources.
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
-        skip_verification: flag indicating whether verification of the routine should be skipped.
-        allow_transitive_resources: flag indicating if resource expressions should be compiled only transitively, i.e.
-            the values of the resources will be defined in terms of the child contributions. By default True.
+        compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
+            through the `CompilationFlags` object. By default None.
     """
-    if not skip_verification and not isinstance(routine, Routine):
+    compilation_flags = compilation_flags or CompilationFlags(0)
+    if CompilationFlags.SKIP_VERIFICATION not in compilation_flags and not isinstance(routine, Routine):
         problems = []
         if not (topology_verification_result := verify_topology(routine)):
             problems += [problem + "\n" for problem in topology_verification_result.problems]
@@ -165,7 +175,7 @@ def compile_routine(
         inputs={},
         context=Context(root.name),
         derived_resources=derived_resources,
-        allow_transitive_resources=allow_transitive_resources,
+        compilation_flags=compilation_flags,
     )
     for post_stage in postprocessing_stages:
         compiled_routine = post_stage(compiled_routine, backend)
@@ -230,29 +240,39 @@ def _process_repeated_resources(
 ) -> dict[str, Resource[T]]:
     if len(children) != 1:
         raise BartiqCompilationError("Routine with repetition can only have one child.")
-
-    new_resources = {}
-
     import copy
 
-    child_resources = copy.copy(children[0].resources)
-
     # Ensure that routine with repetition only contains resources that we will later overwrite
-    for resource_name, resource in resources.items():
-        assert resource_name in child_resources
-        assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
+    child_resources = copy.copy(children[0].resources)
+    if parent_resources_not_in_child := resources.keys() - child_resources.keys():
+        raise BartiqCompilationError(
+            """Routine with repetition does not share the same resources as its child."""
+            f"""\nFollowing resources are in the parent, but not the child: {parent_resources_not_in_child}"""
+        )
+    if incorrectly_named_resources := [
+        x
+        for resource in resources.values()
+        if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
+    ]:
+        raise BartiqCompilationError(
+            """Routine with repetition should have resource names like `child_name.resource_name."""
+            f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
+        )
+
+    new_resources = {}
     for resource in child_resources.values():
+        replacement_value = backend.as_expression(f"{children[0].name}.{resource.name}")
         if resource.type == ResourceType.additive:
-            new_value = repetition.sequence_sum(resource.value, backend)
+            new_value = repetition.sequence_sum(replacement_value, backend)
         elif resource.type == ResourceType.multiplicative:
-            new_value = repetition.sequence_prod(resource.value, backend)
+            new_value = repetition.sequence_prod(replacement_value, backend)
         elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
             # in calculate_highwater.
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
-            new_value = resource.value
+            new_value = replacement_value
             warnings.warn(
                 f'Can\'t process resource "{resource.name}" of type "{resource.type}" in repetitive structure.'
                 "Passing its value as is without modifications. "
@@ -274,7 +294,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    allow_transitive_resources: bool = True,
+    compilation_flags: CompilationFlags = CompilationFlags(0),  # CompilationsFlags(0) corresponds to no flags
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -317,14 +337,14 @@ def _compile(
             inputs=parameter_map[child.name],
             context=context.descend(child.name),
             derived_resources=derived_resources,
-            allow_transitive_resources=allow_transitive_resources,
+            compilation_flags=compilation_flags,
         )
         compiled_children[child.name] = compiled_child
         parameter_map = _merge_param_trees(
             parameter_map, _param_tree_from_compiled_ports(connections_map[child.name], compiled_child.ports)
         )
 
-    if not allow_transitive_resources:
+    if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
         children_variables = {
             f"{cname}.{rname}": resource.value
             for cname, child in compiled_children.items()
