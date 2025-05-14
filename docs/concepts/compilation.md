@@ -59,7 +59,7 @@ Currently, the  following preprocessing stages take place prior to compilation:
 1. Propagation of linked params. In this stage all linked parameters reaching further than a direct
    descendant are converted into a series of direct parameter links. This is useful because you can, for example,
    link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
-2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or pased through
+2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or passed through
    connections. To avoid unnecessary compilation errors, `bartiq` will promote such parameters by linking it to newly introduced input in the parent routine.
 3. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
    equal to a single-parameter expression of known name, while also introducing constraints to make sure
@@ -117,6 +117,23 @@ to the repetition rules; the repetition specification itself gets updated using 
 #### Step 2.7: Resource compilation
 
 At this stage each child should have input and through ports defined in terms of global variables, and we can now compile the resources. Parents have their resources updated from the compiled resources of their children.
+
+By default, we compile resources *transitively* such that the resources of a particular routine are defined only in terms of the relevant contributions from their immedite children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
+```python
+Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
+```
+This provides a performance boost when routines have multiple routines and subroutines, and expressions become unweildy. 
+
+To override this, we can pass in a _compilation flag_ into the `compile_routine` function call:
+```python
+from bartiq.compilation import CompilationFlags
+
+compile_routine(..., compilation_flags=CompilationFlags.EXPAND_RESOURCES)
+```
+Alternatively, we can call `evaluate` on the resultant compiled routine with no variable assignments to expand the resources:
+```python
+expanded_resources_routine = evaluate(routine_compiled_transitively, {})
+```
 
 #### Step 2.8: Output port compilation
 

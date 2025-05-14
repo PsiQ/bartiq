@@ -4,6 +4,8 @@
 
 ::: bartiq.analysis
 
+::: bartiq.compilation
+
 ::: bartiq.symbolics
 
 ::: bartiq.errors
