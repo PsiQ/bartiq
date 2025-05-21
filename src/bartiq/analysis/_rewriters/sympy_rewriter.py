@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters._expression_rewriter import ExpressionRewriter, ResourceRewriter, update_expression
-from sympy import Symbol, Expr, Add, Function, Max
+from sympy import Symbol, Expr, Add, Function, Max, Basic
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -15,7 +15,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         super().__init__(expression=expression, backend=sympy_backend)
 
     @property
-    def variables(self) -> set[Symbol]:
+    def variables(self) -> set[Basic]:
         return self.expression.free_symbols
 
     @property
@@ -81,7 +81,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """
         return self.expression.atoms(Function, Max)
 
-    def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...]]:
+    def list_arguments_of_function(self, function_name: str) -> list[tuple[Basic, ...] | Basic]:
         """Return a list of all arguments of a named function.
 
         Args:
@@ -98,4 +98,4 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
 
 class SympyResourceRewriter(ResourceRewriter):
-    expression_rewriter_cls = SympyExpressionRewriter
+    _expression_rewriter_cls = SympyExpressionRewriter

@@ -1,12 +1,11 @@
 from __future__ import annotations
 from typing import TypeVar, TypeAlias, ParamSpec, Any, Generic
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from bartiq import CompiledRoutine
-from bartiq.symbolics.backend import SymbolicBackend
+from bartiq.symbolics.backend import SymbolicBackend, T
 from abc import abstractmethod, ABC
 
 
-T = TypeVar("T")
 Expression: TypeAlias = T | str
 Symbol: TypeAlias = T | str
 
@@ -28,12 +27,12 @@ class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
     def __init__(self, expression: Expression[T], backend: SymbolicBackend[T]):
-        self._expr = backend.as_expression(expression)
+        self._expr: T = backend.as_expression(expression)
         self.original_expression = self._expr
         self._backend = backend
 
     @property
-    def expression(self) -> Expression[T]:
+    def expression(self) -> T:
         """Return the current form of the expression."""
         return self._expr
 
@@ -46,7 +45,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         self,
         variable_assignments: dict[Symbol[T], float],
         original_expression: bool = False,
-        functions_map: dict[str, Callable[[Any], int | float]] | None = None,
+        functions_map: Mapping[str, Callable[[Any], int | float]] | None = None,
     ) -> Expression[T]:
         """Assign explicit values to certain variables.
 
@@ -80,7 +79,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Expand all brackets in the expression."""
 
     @abstractmethod
-    def focus(self, variables: Symbol[T] | Iterable[Symbol[T]]) -> Expression[T]:
+    def focus(self, variables: str | Iterable[str]) -> Expression[T]:
         """Return an expression containing terms that involve specific variables."""
 
 
