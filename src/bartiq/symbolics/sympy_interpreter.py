@@ -148,6 +148,12 @@ class nlz(Function):
 
 
 class Max(Function):
+    """A custom implementation of Max.
+
+    We use a custom Max because for our use cases, Sympy's simplification efforts are usually
+    fruitless. Not doing any advanced simplifications saves us significant amount of time,
+    especially when computing highwater with lots of nested maximums.
+    """
 
     def __new__(cls, *args, **assumptions):
         args = ordered(set(args))
