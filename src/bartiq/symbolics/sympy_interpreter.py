@@ -15,11 +15,11 @@ import operator
 from typing import Any
 
 from sympy import (
+    Float,
     Function,
     Heaviside,
     Integer,
     LambertW,
-    Max,
     Min,
     Mod,
     Number,
@@ -57,6 +57,7 @@ from sympy import multiplicity as orig_multiplicity
 from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
+from sympy.core.sorting import ordered
 
 from .interpreter import Interpreter, debuggable
 
@@ -144,6 +145,23 @@ class nlz(Function):
         if isinstance(n, Integer):
             n = int(n)
             return (n & -n).bit_length() - 1
+
+
+class Max(Function):
+
+    def __new__(cls, *args, **assumptions):
+        args = ordered(set(args))
+        return Function.__new__(cls, *args, **assumptions)
+
+    @classmethod
+    def eval(cls, *args):
+
+        if not args:
+            return sympy_constants.NegativeInfinity
+        elif len(args) == 1:
+            return args[0]
+        elif all(isinstance(n, (Integer, Float)) for n in args):
+            return max(args)
 
 
 SPECIAL_FUNCS = {
