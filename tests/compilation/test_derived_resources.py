@@ -18,7 +18,7 @@ import pytest
 import yaml
 from qref import SchemaV1
 
-from bartiq import compile_routine
+from bartiq import CompiledRoutine, compile_routine
 from bartiq.compilation import CompilationFlags
 from bartiq.compilation.derived_resources import calculate_highwater
 
@@ -38,8 +38,8 @@ HIGHWATER_TEST_DATA = load_highwater_test_data()
 @pytest.mark.parametrize("routine, expected_routine", HIGHWATER_TEST_DATA)
 def test_compute_highwater(routine, expected_routine, backend):
     derived_resources = [{"name": "qubit_highwater", "type": "qubits", "calculate": calculate_highwater}]
-    compiled_routine = compile_routine(routine, derived_resources=derived_resources, backend=backend)
-    assert compiled_routine.to_qref() == expected_routine
+    compiled_routine = compile_routine(routine, derived_resources=derived_resources, backend=backend).routine
+    assert compiled_routine == CompiledRoutine.from_qref(expected_routine, backend)
 
 
 def test_compute_highwater_with_custom_names(backend):
