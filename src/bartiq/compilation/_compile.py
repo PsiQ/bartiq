@@ -424,8 +424,8 @@ def _add_derived_resources(
 
 
 def _generate_arithmetic_resources(
-    resources: dict[str, Resource], compiled_children: dict[str, CompiledRoutine[T]], backend: SymbolicBackend[T]
-) -> dict[str, Resource]:
+    resources: dict[str, Resource[T]], compiled_children: dict[str, CompiledRoutine[T]], backend: SymbolicBackend[T]
+) -> dict[str, Resource[T]]:
     """Returns resources dict with sum/prod of all the additive/multiplicative resources of the children.
 
     Since additive/multiplicative resources follow simple rules (value of a resource is equal to sum/product of
