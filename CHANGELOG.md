@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.13.0](https://github.com/PsiQ/bartiq/compare/v0.12.1...v0.13.0) (2025-05-23)
+
+
+### Features
+
+* add server-side enforcement for conventional commits. ([#198](https://github.com/PsiQ/bartiq/issues/198)) ([8bca534](https://github.com/PsiQ/bartiq/commit/8bca534e82f5a81301c389370aee8b27144e228b))
+* created `CompilationFlags` enum ([#197](https://github.com/PsiQ/bartiq/issues/197)) ([03ccaec](https://github.com/PsiQ/bartiq/commit/03ccaec64e598bc245d90f7efa241516cc237196))
+* more performant calculation of derived resources ([#204](https://github.com/PsiQ/bartiq/issues/204)) ([f1a419e](https://github.com/PsiQ/bartiq/commit/f1a419ed9adf579fc495967b9b12e98d59323ed2))
+
+
+### Bug Fixes
+
+* **ci:** fix PR title linting ([#203](https://github.com/PsiQ/bartiq/issues/203)) ([1498b31](https://github.com/PsiQ/bartiq/commit/1498b310bcfdda41796652e9bf3cc691bc747992))
+
 ## [0.12.1](https://github.com/PsiQ/bartiq/compare/v0.12.0...v0.12.1) (2025-04-28)
 
 
