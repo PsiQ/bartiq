@@ -12,12 +12,12 @@ Tests for the SympyExpression implementation.
 
 import pytest
 from sympy import E
-from sympy import Max as sympy_max
 from sympy import Min as sympy_min
 from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.sympy_interpreter import Max
 
 
 @pytest.mark.parametrize(
@@ -178,7 +178,7 @@ def test_min_max_works_for_numerical_values(backend):
 def test_min_max_works_for_symbols(backend):
     values = symbols("a, b, c")
     assert backend.min(*values) == sympy_min(*values)
-    assert backend.max(*values) == sympy_max(*values)
+    assert backend.max(*values) == Max(*values)
 
 
 @pytest.mark.parametrize(

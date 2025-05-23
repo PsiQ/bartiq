@@ -18,7 +18,6 @@ from sympy import (
     Function,
     Heaviside,
     LambertW,
-    Max,
     Min,
     Mod,
     Product,
@@ -65,7 +64,7 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backend import parse_to_sympy
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Round, multiplicity
+from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 

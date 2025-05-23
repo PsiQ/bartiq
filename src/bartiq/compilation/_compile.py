@@ -388,11 +388,43 @@ def _compile(
         repetition=repetition,
         children_order=routine.children_order,
     )
-    return _add_derived_resources(compiled_routine, backend, derived_resources)
+
+    tmp_routine = (
+        compiled_routine
+        if CompilationFlags.EXPAND_RESOURCES in compilation_flags
+        else _introduce_placeholder_child_resources(compiled_routine, backend)
+    )
+    tmp_routine = _add_derived_resources(tmp_routine, backend, derived_resources)
+
+    return replace(compiled_routine, resources=tmp_routine.resources)
 
 
 def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
     return "resource_name" in inspect.signature(func).parameters
+
+
+def _introduce_placeholder_resources(
+    compiled_routine: CompiledRoutine[T], backend: SymbolicBackend[T]
+) -> CompiledRoutine[T]:
+    return replace(
+        compiled_routine,
+        resources={
+            name: replace(res, value=backend.as_expression(f"{compiled_routine.name}.{name}"))
+            for name, res in compiled_routine.resources.items()
+        },
+    )
+
+
+def _introduce_placeholder_child_resources(
+    compiled_routine: CompiledRoutine[T], backend: SymbolicBackend[T]
+) -> CompiledRoutine[T]:
+    return replace(
+        compiled_routine,
+        children={
+            cname: _introduce_placeholder_resources(child, backend)
+            for cname, child in compiled_routine.children.items()
+        },
+    )
 
 
 def _add_derived_resources(
@@ -424,8 +456,8 @@ def _add_derived_resources(
 
 
 def _generate_arithmetic_resources(
-    resources: dict[str, Resource], compiled_children: dict[str, CompiledRoutine[T]], backend: SymbolicBackend[T]
-) -> dict[str, Resource]:
+    resources: dict[str, Resource[T]], compiled_children: dict[str, CompiledRoutine[T]], backend: SymbolicBackend[T]
+) -> dict[str, Resource[T]]:
     """Returns resources dict with sum/prod of all the additive/multiplicative resources of the children.
 
     Since additive/multiplicative resources follow simple rules (value of a resource is equal to sum/product of

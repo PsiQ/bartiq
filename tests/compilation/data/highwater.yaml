@@ -135,7 +135,7 @@
         value: 7
       - name: qubit_highwater
         type: qubits
-        value: N + 16
+        value: Max(N, child.qubit_highwater) + 7
       type: null
     version: v1
 # Flat program with multiple children
@@ -319,7 +319,7 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: N
+        value: Max(N, A.qubit_highwater, 3 + B.qubit_highwater, N - 3 + C.qubit_highwater, 2 + D.qubit_highwater, N - 2 + E.qubit_highwater)
       type: null
     version: v1
 # Program with an extra hierarchy level
@@ -512,7 +512,7 @@
         resources:
         - name: qubit_highwater
           type: qubits
-          value: N + 3
+          value: Max(N, AA.qubit_highwater, 3 + AB.qubit_highwater, N - 3 + AC.qubit_highwater)
         type: null
       - name: B
         input_params: [N]
@@ -593,7 +593,7 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: N + 3
+        value: Max(N, A.qubit_highwater, 3 + B.qubit_highwater, N - 3 + C.qubit_highwater, 2 + D.qubit_highwater, N - 2 + E.qubit_highwater)
       type: null
     version: v1
 # Flat program with disconnected components
@@ -731,7 +731,7 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: M + N + 7
+        value: Max(N + M, M + A.qubit_highwater, M + B.qubit_highwater, N + C.qubit_highwater, N + D.qubit_highwater)
       type: null
     version: v1
 # Program with repetitions
@@ -805,10 +805,10 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: N + 2
+        value: Max(N, a.qubit_highwater)
       type: null
     version: v1
-# Program with multiple layes & passthroughs
+# Program with multiple layers & passthroughs
 - - program:
       children:
       - name: A
@@ -938,7 +938,7 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: 2*M + N + 4
+        value: Max(A.qubit_highwater, 2*M+1 + B.qubit_highwater, 2*M +1 + C.qubit_highwater, D.qubit_highwater)
       type: null
     version: v1
 # Flat program with two (connected) strains
@@ -1101,6 +1101,6 @@
       resources:
       - name: qubit_highwater
         type: qubits
-        value: N + 7
+        value: Max(N, S.qubit_highwater, N/2 + A.qubit_highwater, N/2 + B.qubit_highwater, N/2 + C.qubit_highwater, N/2 + D.qubit_highwater)
       type: null
     version: v1
