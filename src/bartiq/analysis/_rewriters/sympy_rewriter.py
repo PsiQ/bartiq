@@ -4,7 +4,7 @@ from bartiq.analysis._rewriters._expression_rewriter import ExpressionRewriter, 
 from sympy import Symbol, Expr, Add, Function, Max, Basic
 
 
-class SympyExpressionRewriter(ExpressionRewriter[Expr]):
+class SympyExpressionRewriter(ExpressionRewriter[Basic]):
     """A class to rewrite SymPy expressions.
 
     Args:
@@ -50,7 +50,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             raise ValueError(f"No variable '{symbol_name}'.")
 
     def focus(self, variables: str | Iterable[str]) -> Expr:
-        """Return those terms that involve only those variables passed.
+        """Return terms that involve only those variables passed.
 
         Args:
             variables: a symbol name, or iterable of symbol names, to focus on.
@@ -81,7 +81,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """
         return self.expression.atoms(Function, Max)
 
-    def list_arguments_of_function(self, function_name: str) -> list[tuple[Basic, ...] | Basic]:
+    def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of all arguments of a named function.
 
         Args:
@@ -98,4 +98,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
 
 class SympyResourceRewriter(ResourceRewriter):
-    _expression_rewriter_cls = SympyExpressionRewriter
+    """A class for rewriting sympy expressions across entire routines."""
+
+    _rewriter = SympyExpressionRewriter
