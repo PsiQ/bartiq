@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, Generic, TypeAlias, cast, TypeVar
+from typing import Any, Generic, TypeAlias, cast
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T
