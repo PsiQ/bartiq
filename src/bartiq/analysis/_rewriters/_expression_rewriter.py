@@ -1,10 +1,11 @@
 from __future__ import annotations
-from typing import TypeAlias, ParamSpec, Any, Generic
+
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
+from typing import Any, Generic, ParamSpec, TypeAlias
+
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T
-from abc import abstractmethod, ABC
-
 
 Expr: TypeAlias = T | str
 P = ParamSpec("P")

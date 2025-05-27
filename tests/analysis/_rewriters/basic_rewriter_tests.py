@@ -1,5 +1,7 @@
-import pytest
 from typing import Type
+
+import pytest
+
 from bartiq.analysis._rewriters.sympy_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
 

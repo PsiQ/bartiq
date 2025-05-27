@@ -1,7 +1,13 @@
 from collections.abc import Iterable
+
+from sympy import Add, Basic, Expr, Function, Max, Symbol
+
 from bartiq import sympy_backend
-from bartiq.analysis._rewriters._expression_rewriter import ExpressionRewriter, ResourceRewriter, update_expression
-from sympy import Symbol, Expr, Add, Function, Max, Basic
+from bartiq.analysis._rewriters._expression_rewriter import (
+    ExpressionRewriter,
+    ResourceRewriter,
+    update_expression,
+)
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Basic]):

@@ -1,9 +1,8 @@
 import pytest
 import sympy
 
-from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
 from bartiq import sympy_backend
-
+from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
 from tests.analysis._rewriters.basic_rewriter_tests import ExpressionRewriterTests
 
 
