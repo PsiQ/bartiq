@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/PsiQ/bartiq/compare/v0.13.0...v0.13.1) (2025-05-27)
+
+
+### Documentation
+
+* add information for Unitary Hack ([#206](https://github.com/PsiQ/bartiq/issues/206)) ([30f8759](https://github.com/PsiQ/bartiq/commit/30f8759dc0a316ec1e4f998a64422082f8723ef7))
+
 ## [0.13.0](https://github.com/PsiQ/bartiq/compare/v0.12.1...v0.13.0) (2025-05-23)
 
 
