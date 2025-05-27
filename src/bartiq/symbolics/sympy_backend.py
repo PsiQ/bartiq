@@ -32,7 +32,7 @@ from typing_extensions import TypeAlias
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
+from .sympy_interpreter import SPECIAL_FUNCS, Max, SympyInterpreter
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -254,7 +254,7 @@ class SympyBackend:
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return sympy.Max(*args)
+        return Max(*set(args))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""

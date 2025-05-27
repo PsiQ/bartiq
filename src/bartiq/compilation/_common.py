@@ -105,7 +105,8 @@ def evaluate_constraints(
 ) -> Iterable[Constraint[T]]:
     custom_funcs = {} if custom_funcs is None else custom_funcs
     return tuple(
-        _evaluate_constraint(constraint, inputs, backend, custom_funcs)
+        new_constraint
         for constraint in constraints
-        if constraint.status != ConstraintStatus.satisfied
+        if (new_constraint := _evaluate_constraint(constraint, inputs, backend, custom_funcs)).status
+        != ConstraintStatus.satisfied
     )
