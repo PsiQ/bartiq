@@ -2,20 +2,20 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, Generic, ParamSpec, TypeAlias
+from typing import Any, Generic, TypeAlias, cast, TypeVar
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T
 
 Expr: TypeAlias = T | str
-P = ParamSpec("P")
 
 
-def update_expression(function: Callable[P, str | Expr[T]]) -> Callable[P, Expr[T]]:
+def update_expression(function: Callable[..., T | int | float]) -> Callable[..., T | int | float]:
     """Decorator for updating the stored expression in ExpressionRewriter."""
 
-    def _inner(self: ExpressionRewriter, *args: P.args, **kwargs: P.kwargs) -> Expr[T]:
-        self.expression = function(self, *args, **kwargs)
+    def _inner(*args, **kwargs) -> T | int | float:
+        self = args[0]
+        self.expression = function(*args, **kwargs)
         return self.expression
 
     return _inner
@@ -25,7 +25,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
     def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
-        self._expr = backend.as_expression(expression)
+        self._expr = cast(T, backend.as_expression(expression))
         self.original_expression = self._expr
         self._backend = backend
 
@@ -41,10 +41,10 @@ class ExpressionRewriter(ABC, Generic[T]):
     @update_expression
     def evaluate_expression(
         self,
-        variable_assignments: dict[Expr[T], float],
+        variable_assignments: Mapping[str, int | float | T],
         original_expression: bool = False,
         functions_map: Mapping[str, Callable[[Any], int | float]] | None = None,
-    ) -> T:
+    ) -> int | float | T:
         """Assign explicit values to certain variables.
 
         Args:
@@ -78,7 +78,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return an expression containing terms that involve specific variables."""
 
 
-class ResourceRewriter:
+class ResourceRewriter(Generic[T]):
     """A class for rewriting resource expressions in entire routines.
 
     Args:
@@ -93,9 +93,9 @@ class ResourceRewriter:
         self.resource = resource
         if resource not in self.routine.resources:
             raise ValueError(f"Routine {routine.name} has no resource {self.resource}.")
-        self.top_level_expression = self.routine.resources[self.resource].value
+        self.top_level_expression = cast(T | str, self.routine.resources[self.resource].value)
 
-        self.rewriter = self._rewriter(expression=self.top_level_expression)
+        self.rewriter = self._rewriter(expression=self.top_level_expression)  # type: ignore
 
     def __getattr__(self, name: str):
         return getattr(self.rewriter, name)
