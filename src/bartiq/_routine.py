@@ -145,6 +145,78 @@ class BaseRoutine(Generic[T]):
     def sorted_children(self) -> Iterable[Self]:
         return [self.children[child_name] for child_name in self.sorted_children_order]
 
+    def find_descendants(
+        self,
+        name: str,
+        mode: str = "dfs",
+        max_depth: int | None = None,
+        first_only: bool = False,
+        return_objects: bool = False,
+    ):
+        """
+        Find all pathways to descendant subroutines with the given name.
+    
+        Args:
+            name: The name of the desired subroutine.
+            mode: 'dfs' (default) or 'bfs' for traversal order.
+            max_depth: Maximum depth to search (None = unlimited).
+            first_only: If True, return only the first match found.
+            return_objects: If True, return (path, routine) tuples instead of just paths.
+    
+        Returns:
+            List of pathways (each a list of child names) or (path, routine) tuples.
+        """
+        results = []
+        found = False
+    
+        if mode == "dfs":
+            def dfs(routine, path, depth):
+                nonlocal found
+                if max_depth is not None and depth > max_depth:
+                    return
+                for child_name, child in routine.children.items():
+                    new_path = path + [child_name]
+                    if child_name == name:
+                        if return_objects:
+                            results.append((new_path, child))
+                        else:
+                            results.append(new_path)
+                        if first_only:
+                            found = True
+                            return
+                    if not found:
+                        dfs(child, new_path, depth + 1)
+            dfs(self, [], 1)
+        elif mode == "bfs":
+            queue = [(self, [], 1)]
+            while queue and not found:
+                routine, path, depth = queue.pop(0)
+                if max_depth is not None and depth > max_depth:
+                    continue
+                for child_name, child in routine.children.items():
+                    new_path = path + [child_name]
+                    if child_name == name:
+                        if return_objects:
+                            results.append((new_path, child))
+                        else:
+                            results.append(new_path)
+                        if first_only:
+                            found = True
+                            break
+                    queue.append((child, new_path, depth + 1))
+        else:
+            raise ValueError(f"Unknown mode: {mode}")
+        return results
+    
+    def get_descendant(self, path: list[str]):
+        """
+        Get the descendant routine by following a path of child names.
+        """
+        routine = self
+        for name in path:
+            routine = routine.children[name]
+        return routine
+
 
 @dataclass(frozen=True, kw_only=True)
 class Routine(BaseRoutine[T]):
