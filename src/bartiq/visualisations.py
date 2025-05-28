@@ -109,7 +109,7 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: 
     }
 
 
-NestedContributions = tuple[Contributions, dict[str, NestedContributions]]
+NestedContributions = tuple[Contributions, dict[str, Contributions]]
 
 
 def _get_descendant_contributions(
