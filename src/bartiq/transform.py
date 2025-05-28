@@ -42,15 +42,17 @@ def postorder_transform(transform: CompiledRoutineTransform[T, P]) -> CompiledRo
     pass
 
 
-def postorder_transform(transform):
+def postorder_transform(
+    transform: Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]],
+) -> Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]]:
     """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
 
     Args:
         transform: a function accepting a routine and a symbolic backend and returning a new routine.
 
     Returns:
-        A function with the same signature as [`transform`][bartiq.transform]. The function works by traversing the
-        hierarchical graph in postorder, applying [`transform`][bartiq.transform] to each child before applying it to
+        A function with the same signature as `transform`. The function works by traversing the
+        hierarchical graph in postorder, applying `transform` to each child before applying it to
         the parent.
     """
 
@@ -78,7 +80,7 @@ def add_aggregated_resources(
     remove_decomposed: bool = True,
     backend: SymbolicBackend[T] = BACKEND,
 ) -> CompiledRoutine[T]:
-    """Add aggregated resources to bartiq routine based on the aggregation dictionary.
+    """Add aggregated resources to bartiq [`routine`][bartiq.CompiledRoutine] based on the aggregation dictionary.
 
     Args:
         routine: The program to which the resources will be added.
@@ -96,7 +98,7 @@ def add_aggregated_resources(
             Defaults to `sympy_backend`.
 
     Returns:
-        Routine: The program with aggregated resources.
+        CompiledRoutine[T]: The routine with aggregated resources added.
 
     """
     routine = evaluate(routine, {}, backend=backend).routine
@@ -151,10 +153,13 @@ def _expand_aggregation_dict(
     aggregation_dict: AggregationDict[T], backend: SymbolicBackend[T] = BACKEND
 ) -> AggregationDict[T]:
     """Expand the aggregation dictionary to handle nested resources.
+
     Args:
         aggregation_dict: The input aggregation dictionary.
+        backend: The symbolic backend to use for expression handling.
+
     Returns:
-        Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
+        AggregationDict[T]: The expanded aggregation dictionary with nested resources resolved.
     """
     sorted_resources = _topological_sort(aggregation_dict)
     expanded_dict: dict[str, dict[str, TExpr[T]]] = {}
@@ -170,9 +175,13 @@ def _expand_resource(
     backend: SymbolicBackend[T] = BACKEND,
 ) -> dict[str, TExpr[T]]:
     """Recursively expand resource mapping to handle nested resources and detect circular dependencies.
+
     Args:
         resource: The resource to expand.
         aggregation_dict: The input aggregation dictionary.
+        expanded_dict: The dictionary containing already expanded resources.
+        backend: The symbolic backend to use for expression handling.
+
     Returns:
         Dict[str, Any]: The expanded resource mapping.
     """
