@@ -152,7 +152,7 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
-            through the `CompilationFlags` object. By default None.
+            through the [`CompilationFlags`][bartiq.compilation.CompilationFlags] object. By default None.
     
     Raises:
         BartiqCompilationError: if the routine is not valid, or if the verification step fails.
