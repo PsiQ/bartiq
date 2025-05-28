@@ -128,7 +128,7 @@ class Round(Function):
             raise TypeError(f"Input x must be a number; found {x}")
         if not ndigits.is_integer:
             raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
-
+    
         # Boogie down
         return round(x, ndigits=ndigits)
 
@@ -142,15 +142,10 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        from sympy import Float, Integer
-
         if isinstance(n, Integer):
             n = int(n)
             return (n & -n).bit_length() - 1
-        if isinstance(n, float) or isinstance(n, Float):
-            raise TypeError("Input to nlz must be an integer, not a float")
-        # For all other types (including symbolic), raise TypeError
-        raise TypeError("Input to nlz must be an integer")
+        raise TypeError(f"Input to nlz must be an integer, got: {n}")
 
 
 class Max(Function):
