@@ -1,5 +1,3 @@
-from typing import Type
-
 import pytest
 
 from bartiq.analysis._rewriters.sympy_rewriter import ExpressionRewriter
@@ -7,8 +5,8 @@ from bartiq.symbolics.backend import SymbolicBackend
 
 
 class ExpressionRewriterTests:
-    rewriter: Type[ExpressionRewriter]
-    backend = Type[SymbolicBackend]
+    rewriter: type[ExpressionRewriter]
+    backend = type[SymbolicBackend]
 
     @pytest.fixture(scope="class")
     def trivial(self):
