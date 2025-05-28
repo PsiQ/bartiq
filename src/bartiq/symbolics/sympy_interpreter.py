@@ -147,7 +147,6 @@ class nlz(Function):
             n = int(n)
             return (n & -n).bit_length() - 1
         # Check for float (Python float or sympy Float)
-        from sympy import Float
         if isinstance(n, float) or isinstance(n, Float):
             raise TypeError("Input to nlz must be an integer, not a float")
         # All other types (including Symbolic)
