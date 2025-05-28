@@ -331,9 +331,8 @@ LATEX_TEST_CASES = [
             resources=[
                 {"name": "local_highwater", "type": "other", "value": "10"},
             ],
-            ),
+        ),
         {},
-
         r"""
 &\text{RoutineV1 \textrm{(my\_routine)}}\newline
 &\underline{\text{Resources:}}\\
