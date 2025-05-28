@@ -95,7 +95,7 @@ class TreeMap:
 ######################################################
 
 
-type Contributions = dict[str, Number]
+Contributions = dict[str, Number]
 
 
 def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: str | int = 1) -> Contributions:
@@ -109,7 +109,7 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: 
     }
 
 
-type NestedContributions = tuple[Contributions, dict[str, NestedContributions]]
+NestedContributions = tuple[Contributions, dict[str, NestedContributions]]
 
 
 def _get_descendant_contributions(
