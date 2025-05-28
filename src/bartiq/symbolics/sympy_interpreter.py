@@ -110,7 +110,11 @@ class Round(Function):
                 return round(x, ndigits=ndigits)
 
     def doit(self, deep=True, **hints):
-        """Define the delayed evaluation in the case where the input is not yet defined."""
+        """Define the delayed evaluation in the case where the input is not yet defined.
+        
+        Raises:
+            TypeError: If the input is not a number or if ndigits is not an integer.
+        """
         x, *other_args = self.args
 
         assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
