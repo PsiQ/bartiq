@@ -142,7 +142,7 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        from sympy import Integer, Float
+        from sympy import Float, Integer
 
         if isinstance(n, Integer):
             n = int(n)
