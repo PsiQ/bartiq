@@ -150,6 +150,20 @@ def _replace_in(expression: str) -> str:
 # Preprocessing stage replacing "in"s with _in
 _IN_REPLACEMENT = _PreprocessingStage(matches=_contains_in, preprocess=_replace_in)
 
+
+def _contains_xor_op(expression: str) -> bool:
+    return "^" in expression
+
+
+def _replace_xor_op(expression: str) -> str:
+    warn("Using ^ operator to denote exponentiation is deprecated.", DeprecationWarning)
+    return expression.replace("^", "**")
+
+
+# Preprocessing stage replacing ^ with ** for exponentiation
+_XOR_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
+
+
 # Sequence of all known preprocessing stages.
 # If there are any new preprocessing stages, they should be added here.
 # Note that this list is not exposed/configurable by the user, because it wouldn't really make sens -
@@ -159,6 +173,7 @@ _PREPROCESSING_STAGES = (
     _PORT_REPLACEMENT,
     _LAMBDA_REPLACEMENT,
     _IN_REPLACEMENT,
+    _XOR_REPLACEMENT,
 )
 
 
