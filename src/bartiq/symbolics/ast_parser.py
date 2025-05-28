@@ -161,7 +161,7 @@ def _replace_xor_op(expression: str) -> str:
 
 
 # Preprocessing stage replacing ^ with ** for exponentiation
-_XOR_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
+_XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
 
 
 # Sequence of all known preprocessing stages.
@@ -173,7 +173,7 @@ _PREPROCESSING_STAGES = (
     _PORT_REPLACEMENT,
     _LAMBDA_REPLACEMENT,
     _IN_REPLACEMENT,
-    _XOR_REPLACEMENT,
+    _XOR_OP_REPLACEMENT,
 )
 
 
