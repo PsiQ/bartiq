@@ -15,9 +15,8 @@ Expr: TypeAlias = T | str
 def update_expression(function: Callable[..., T | int | float]) -> Callable[..., T | int | float]:
     """Decorator for updating the stored expression in ExpressionRewriter."""
 
-    def _inner(*args, **kwargs) -> T | int | float:
-        self = args[0]
-        self.expression = function(*args, **kwargs)
+    def _inner(self: ExpressionRewriter, *args, **kwargs) -> T | int | float:
+        self.expression = function(self, *args, **kwargs)
         return self.expression
 
     return _inner
