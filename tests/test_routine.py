@@ -41,18 +41,20 @@ def test_resource_values():
 def test_find_descendants_modes_and_options():
     from bartiq import Routine
 
-    dummy = lambda name: Routine(
-        name=name,
-        type=None,
-        children={},
-        ports={},
-        resources={},
-        connections={},
-        input_params=(),
-        linked_params={},
-        local_variables={},
-        children_order=(),
-    )
+    def dummy(name):
+        return Routine(
+            name=name,
+            type=None,
+            children={},
+            ports={},
+            resources={},
+            connections={},
+            input_params=(),
+            linked_params={},
+            local_variables={},
+            children_order=(),
+        )
+
     root = Routine(
         name="root",
         type=None,
