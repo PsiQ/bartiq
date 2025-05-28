@@ -23,6 +23,7 @@ from bartiq import CompiledRoutine, Resource, ResourceType, Routine
 from bartiq.compilation._evaluate import evaluate
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq.compilation.derived_resources import calculate_highwater
 
 P = ParamSpec("P")
 BACKEND = sympy_backend
@@ -212,3 +213,36 @@ def _topological_sort(aggregation_dict: dict[str, dict[str, Any]]) -> list[str]:
     }
 
     return list(TopologicalSorter(predecessors).static_order())
+
+
+def add_circuit_volume(
+    routine: CompiledRoutine[T],
+    name_of_aggregated_t: str = "aggregated_t_gates",
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
+    """
+    Adds a 'circuit_volume' resource to each subroutine, calculated as:
+        circuit_volume = aggregated_t_gates * qubit_highwater
+    Args:
+        routine: The compiled routine to which the resource will be added.
+        name_of_aggregated_t: Name of the resource representing the number of T gates (default: 'aggregated_t_gates').
+        backend: Symbolic backend to use for symbolic operations.
+    Returns:
+        CompiledRoutine[T]: The routine with the 'circuit_volume' resource added to each subroutine.
+    """
+    def _add_volume(subroutine: CompiledRoutine[T]) -> CompiledRoutine[T]:
+        # Recursively process children
+        new_children = {name: _add_volume(child) for name, child in subroutine.children.items()}
+        resources = dict(subroutine.resources)
+        # Only add if both required resources are present
+        if name_of_aggregated_t in resources and "qubit_highwater" in resources:
+            t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
+            qubit_highwater = backend.as_expression(resources["qubit_highwater"].value)
+            circuit_volume = backend.mul(t_gates, qubit_highwater) if hasattr(backend, 'mul') else t_gates * qubit_highwater
+            resources["circuit_volume"] = Resource(
+                name="circuit_volume",
+                type=ResourceType.additive,
+                value=circuit_volume,
+            )
+        return replace(subroutine, resources=resources, children=new_children)
+    return _add_volume(routine)

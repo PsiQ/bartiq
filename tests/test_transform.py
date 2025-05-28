@@ -17,7 +17,7 @@ import sympy
 from qref.schema_v1 import RoutineV1
 
 from bartiq import Routine
-from bartiq.transform import add_aggregated_resources
+from bartiq.transform import add_aggregated_resources, add_circuit_volume
 
 ccry_gate = {
     "name": "ccry_gate",
@@ -223,3 +223,24 @@ def _compare_routines(routine, expected):
 
     for child in routine.children:
         _compare_routines(routine.children[child], expected.children[child])
+
+
+def test_add_circuit_volume_simple(backend):
+    from bartiq import CompiledRoutine, Resource, ResourceType
+    # Create a simple routine with required resources
+    routine = CompiledRoutine(
+        name="test",
+        type=None,
+        input_params=[],
+        children={},
+        ports={},
+        resources={
+            "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 5),
+            "qubit_highwater": Resource("qubit_highwater", ResourceType.qubits, 3),
+        },
+        connections={},
+        children_order=(),
+    )
+    out = add_circuit_volume(routine, backend=backend)
+    assert "circuit_volume" in out.resources
+    assert backend.value_of(out.resources["circuit_volume"].value) == 15
