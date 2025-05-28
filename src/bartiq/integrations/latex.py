@@ -24,6 +24,7 @@ from qref.schema_v1 import (
     SchemaV1,
 )
 from sympy import latex, symbols
+from sympy.printing.latex import modifier_dict as sympy_latex_modifier_dict
 
 from ..symbolics.sympy_backend import parse_to_sympy
 
@@ -200,6 +201,13 @@ def _format_param_math_with_subscript(param: str) -> str:
     symbol, subscript = param.split("_", 1)
     subscript = subscript.replace("_", r"\_")
     subscript_latex = latex(symbols(subscript))
+
+    # Check if any modifier would be applied when using SymPy's default Latex
+    # printing - if so, enclose the symbol with curly braces to create a Latex
+    # grouping and avoid unwanted modifications (e.g., "local" would become
+    # "\mathcal{lo}" just because the string ends with the "cal" modifier)
+    if any(symbol.endswith(modifier) for modifier in list(sympy_latex_modifier_dict.keys())):
+        symbol = "{" + symbol + "}"
     symbol_latex = latex(symbols(symbol))
 
     # If subscript contains something that needs LaTeX to render, use that, but render text as text.
