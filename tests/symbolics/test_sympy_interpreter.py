@@ -64,7 +64,7 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backend import parse_to_sympy
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity
+from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity, nlz
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -397,9 +397,6 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
     expr = "x ^ 2"
     with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
         _ = parse_to_sympy(expr)
-
-
-from bartiq.symbolics.sympy_interpreter import nlz
 
 
 @pytest.mark.parametrize(
