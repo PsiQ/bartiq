@@ -128,7 +128,7 @@ class Round(Function):
             raise TypeError(f"Input x must be a number; found {x}")
         if not ndigits.is_integer:
             raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
-    
+
         # Boogie down
         return round(x, ndigits=ndigits)
 
@@ -145,7 +145,7 @@ class nlz(Function):
         if isinstance(n, Integer):
             n = int(n)
             return (n & -n).bit_length() - 1
-        raise TypeError(f"Input to nlz must be an integer, got: {n}")
+        raise TypeError(f"Input to nlz must be an integer: value {n} has type {type(n)}")
 
 
 class Max(Function):
