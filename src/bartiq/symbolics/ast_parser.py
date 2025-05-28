@@ -60,7 +60,6 @@ _BINARY_OP_MAP = {
     ast.Sub: operator.sub,
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
-    ast.BitXor: operator.pow,
     ast.FloorDiv: operator.floordiv,
 }
 
@@ -140,19 +139,6 @@ def _replace_lambda(expression: str) -> str:
 _LAMBDA_REPLACEMENT = _PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
 
 
-def _contains_xor_op(expression: str) -> bool:
-    return "^" in expression
-
-
-def _replace_xor_op(expression: str) -> str:
-    warn("Using ^ operator to denote exponentiation is deprecated. Use ** operator instead.", DeprecationWarning)
-    return expression.replace("^", "**")
-
-
-# Preprocessing stage replacing xor operators (^) with power (**) operators.
-_XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
-
-
 def _contains_in(expression: str) -> bool:
     return re.search(_IN_PATTERN, expression) is not None
 
@@ -172,7 +158,6 @@ _PREPROCESSING_STAGES = (
     _WILDCARD_REPLACEMENT,
     _PORT_REPLACEMENT,
     _LAMBDA_REPLACEMENT,
-    _XOR_OP_REPLACEMENT,
     _IN_REPLACEMENT,
 )
 
