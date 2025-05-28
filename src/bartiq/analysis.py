@@ -177,8 +177,7 @@ class Optimizer:
             momentum: The momentum factor to control the influence of previous updates.
 
         Returns:
-            Dict: A dictionary containing the final value of the parameter and the history of values
-            during optimization.
+            A dictionary containing the final value of the parameter and the history of values during optimization.
 
         Raises:
             ValueError: If the initial value is out of bounds.

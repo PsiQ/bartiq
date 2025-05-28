@@ -51,9 +51,9 @@ def postorder_transform(
         transform: a function accepting a routine and a symbolic backend and returning a new routine.
 
     Returns:
-        A function with the same signature as `transform`. The function works by traversing the
-        hierarchical graph in postorder, applying `transform` to each child before applying it to
-        the parent.
+        A function with the same signature as `transform`. The function works by traversing \
+        the hierarchical graph in postorder, applying `transform` to each child before \
+        applying it to the parent.
     """
 
     @wraps(transform)
@@ -98,7 +98,7 @@ def add_aggregated_resources(
             Defaults to `sympy_backend`.
 
     Returns:
-        CompiledRoutine[T]: The routine with aggregated resources added.
+        The routine with aggregated resources added.
 
     """
     routine = evaluate(routine, {}, backend=backend).routine
