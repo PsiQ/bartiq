@@ -124,7 +124,7 @@ class CompilationResult(Generic[T]):
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        """Converts `routine` to QREF using `_backend`."""
+        """Converts [`routine`][bartiq.CompiledRoutine] to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 

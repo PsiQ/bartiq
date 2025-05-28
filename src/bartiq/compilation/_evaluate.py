@@ -52,7 +52,7 @@ class EvaluationResult(Generic[T]):
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        """Converts [`routine`][bartiq.CompiledRoutine] to QREF using [`_backend`][bartiq.SymbolicBackend]."""
+        """Converts [`routine`][bartiq.CompiledRoutine] to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 

@@ -52,7 +52,7 @@ class PortDirection(str, Enum):
     This class is used to categorize ports in routines, such as input, output, and through ports.
 
     Possible values:
-        - **input**: Represents an input [`Port`][bartiq.Port] for receiving data.https://unitaryhack.dev/bounties/
+        - **input**: Represents an input [`Port`][bartiq.Port] for receiving data.
         - **output**: Represents an output [`Port`][bartiq.Port] for sending data.
         - **through**: Represents a through [`Port`][bartiq.Port] for passing data without modification.
     """
