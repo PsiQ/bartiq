@@ -16,7 +16,7 @@ import pytest
 import sympy
 from qref.schema_v1 import RoutineV1
 
-from bartiq import Routine, Resource, ResourceType
+from bartiq import Resource, ResourceType, Routine
 from bartiq.transform import add_aggregated_resources
 
 ccry_gate = {
@@ -276,8 +276,8 @@ def _compare_routines(routine, expected):
     ],
 )
 def test_add_circuit_volume_strict(resources, expected_volume, should_exist, backend):
-    from bartiq.transform import add_circuit_volume
     from bartiq import CompiledRoutine
+    from bartiq.transform import add_circuit_volume
 
     routine = CompiledRoutine(
         name="test",
