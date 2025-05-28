@@ -37,27 +37,58 @@ def test_resource_values():
     # Assert: it matches the original resource values.
     assert values == {"res1": 5, "res2": 10}
 
+
 def test_find_descendants_modes_and_options():
     from bartiq import Routine
 
     dummy = lambda name: Routine(
-        name=name, type=None, children={}, ports={}, resources={}, connections={}, input_params=(), linked_params={}, local_variables={}, children_order=()
+        name=name,
+        type=None,
+        children={},
+        ports={},
+        resources={},
+        connections={},
+        input_params=(),
+        linked_params={},
+        local_variables={},
+        children_order=(),
     )
     root = Routine(
-        name="root", type=None,
+        name="root",
+        type=None,
         children={
             "A": Routine(
-                name="A", type=None,
+                name="A",
+                type=None,
                 children={"X": dummy("X"), "Y": dummy("Y")},
-                ports={}, resources={}, connections={}, input_params=(), linked_params={}, local_variables={}, children_order=("X", "Y")
+                ports={},
+                resources={},
+                connections={},
+                input_params=(),
+                linked_params={},
+                local_variables={},
+                children_order=("X", "Y"),
             ),
             "B": Routine(
-                name="B", type=None,
+                name="B",
+                type=None,
                 children={"X": dummy("X"), "Y": dummy("Y"), "Z": dummy("Z")},
-                ports={}, resources={}, connections={}, input_params=(), linked_params={}, local_variables={}, children_order=("X", "Y", "Z")
+                ports={},
+                resources={},
+                connections={},
+                input_params=(),
+                linked_params={},
+                local_variables={},
+                children_order=("X", "Y", "Z"),
             ),
         },
-        ports={}, resources={}, connections={}, input_params=(), linked_params={}, local_variables={}, children_order=("A", "B")
+        ports={},
+        resources={},
+        connections={},
+        input_params=(),
+        linked_params={},
+        local_variables={},
+        children_order=("A", "B"),
     )
 
     # BFS, first_only
