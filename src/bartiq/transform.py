@@ -23,7 +23,6 @@ from bartiq import CompiledRoutine, Resource, ResourceType, Routine
 from bartiq.compilation._evaluate import evaluate
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
-from bartiq.compilation.derived_resources import calculate_highwater
 
 P = ParamSpec("P")
 BACKEND = sympy_backend
@@ -230,6 +229,7 @@ def add_circuit_volume(
     Returns:
         CompiledRoutine[T]: The routine with the 'circuit_volume' resource added to each subroutine.
     """
+
     def _add_volume(subroutine: CompiledRoutine[T]) -> CompiledRoutine[T]:
         # Recursively process children
         new_children = {name: _add_volume(child) for name, child in subroutine.children.items()}
@@ -238,11 +238,14 @@ def add_circuit_volume(
         if name_of_aggregated_t in resources and "qubit_highwater" in resources:
             t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
             qubit_highwater = backend.as_expression(resources["qubit_highwater"].value)
-            circuit_volume = backend.mul(t_gates, qubit_highwater) if hasattr(backend, 'mul') else t_gates * qubit_highwater
+            circuit_volume = (
+                backend.mul(t_gates, qubit_highwater) if hasattr(backend, "mul") else t_gates * qubit_highwater
+            )
             resources["circuit_volume"] = Resource(
                 name="circuit_volume",
                 type=ResourceType.additive,
                 value=circuit_volume,
             )
         return replace(subroutine, resources=resources, children=new_children)
+
     return _add_volume(routine)

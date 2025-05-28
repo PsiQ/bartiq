@@ -227,6 +227,7 @@ def _compare_routines(routine, expected):
 
 def test_add_circuit_volume_simple(backend):
     from bartiq import CompiledRoutine, Resource, ResourceType
+
     # Create a simple routine with required resources
     routine = CompiledRoutine(
         name="test",
