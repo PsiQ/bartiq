@@ -121,8 +121,7 @@ def add_circuit_volume(
         CompiledRoutine with the 'circuit_volume' resource added.
     """
     new_children = {
-        name: add_circuit_volume(child, name_of_aggregated_t, backend)
-        for name, child in routine.children.items()
+        name: add_circuit_volume(child, name_of_aggregated_t, backend) for name, child in routine.children.items()
     }
 
     resources = dict(routine.resources)
@@ -136,6 +135,7 @@ def add_circuit_volume(
         )
 
     return replace(routine, resources=resources, children=new_children)
+
 
 def _add_aggregated_resources_to_subroutine(
     subroutine: CompiledRoutine[T],

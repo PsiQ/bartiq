@@ -225,7 +225,6 @@ def _compare_routines(routine, expected):
         _compare_routines(routine.children[child], expected.children[child])
 
 
-
 @pytest.mark.parametrize(
     "resources,expected_volume,should_exist",
     [
