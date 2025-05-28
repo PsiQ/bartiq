@@ -33,7 +33,7 @@ S = TypeVar("S", default=str | None)
 class ResourceType(str, Enum):
     """Class for representing types of resources.
     This class is used to categorize resources in routines, such as time, energy, qubits, etc.
-    
+
     Possible values:
         - **additive**: Represents an additive resource, such as time or energy.
         - **multiplicative**: Represents a multiplicative resource, such as qubits or gates.
@@ -50,7 +50,7 @@ class ResourceType(str, Enum):
 class PortDirection(str, Enum):
     """Class for representing port direction.
     This class is used to categorize ports in routines, such as input, output, and through ports.
-    
+
     Possible values:
         - **input**: Represents an input [`Port`][bartiq.Port] for receiving data.https://unitaryhack.dev/bounties/
         - **output**: Represents an output [`Port`][bartiq.Port] for sending data.
@@ -210,7 +210,8 @@ class CompiledRoutine(BaseRoutine[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-        """Load [`CompiledRoutine`][bartiq.CompiledRoutine] from a QREF definition, using specified backend for parsing expressions."""
+        """Load [`CompiledRoutine`][bartiq.CompiledRoutine] from a QREF definition,
+        using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return CompiledRoutine[T](

@@ -179,7 +179,7 @@ class Optimizer:
         Returns:
             Dict: A dictionary containing the final value of the parameter and the history of values
             during optimization.
-        
+
         Raises:
             ValueError: If the initial value is out of bounds.
             RuntimeError: If the maximum number of iterations is reached without convergence.

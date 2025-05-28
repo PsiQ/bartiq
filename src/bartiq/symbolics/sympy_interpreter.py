@@ -111,7 +111,7 @@ class Round(Function):
 
     def doit(self, deep=True, **hints):
         """Define the delayed evaluation in the case where the input is not yet defined.
-        
+
         Raises:
             TypeError: If the input is not a number or if ndigits is not an integer.
         """

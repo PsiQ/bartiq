@@ -116,7 +116,7 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 @lru_cache
 def _value_of(expr: Expr) -> Number | None:
     """Compute a numerical value of an expression, return None if it's not possible.
-    
+
     Raises:
         TypeError: If the expression cannot be rounded.
     """
@@ -202,7 +202,7 @@ class SympyBackend:
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
         """Define an undefined function.
-        
+
         Raises:
             BartiqCompilationError: If the function name is a built-in function.
         """

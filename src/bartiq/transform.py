@@ -49,8 +49,9 @@ def postorder_transform(transform):
         transform: a function accepting a routine and a symbolic backend and returning a new routine.
 
     Returns:
-        A function with the same signature as [`transform`][bartiq.transform]. The function works by traversing the hierarchical graph
-        in postorder, applying [`transform`][bartiq.transform] to each child before applying it to the parent.
+        A function with the same signature as [`transform`][bartiq.transform]. The function works by traversing the
+        hierarchical graph in postorder, applying [`transform`][bartiq.transform] to each child before applying it to
+        the parent.
     """
 
     @wraps(transform)
