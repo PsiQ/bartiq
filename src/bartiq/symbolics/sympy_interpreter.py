@@ -142,15 +142,16 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        # Check for sympy Integer
+        from sympy import Integer, Float
+
         if isinstance(n, Integer):
             n = int(n)
             return (n & -n).bit_length() - 1
-        # Check for float (Python float or sympy Float)
         if isinstance(n, float) or isinstance(n, Float):
             raise TypeError("Input to nlz must be an integer, not a float")
-        # All other types (including Symbolic)
+        # For all other types (including symbolic), raise TypeError
         raise TypeError("Input to nlz must be an integer")
+
 
 class Max(Function):
     """A custom implementation of Max.

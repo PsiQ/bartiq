@@ -401,6 +401,7 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
 
 from bartiq.symbolics.sympy_interpreter import nlz
 
+
 @pytest.mark.parametrize(
     "value,expected,raises,match",
     [
@@ -408,7 +409,7 @@ from bartiq.symbolics.sympy_interpreter import nlz
         (8.0, None, TypeError, "must be an integer, not a float"),  # float integer, should raise
         (8.5, None, TypeError, "must be an integer"),  # non-integer float, should raise
         (Symbol("x"), None, TypeError, "must be an integer"),  # symbolic, should raise
-    ]
+    ],
 )
 def test_nlz_parametrized(value, expected, raises, match):
     if raises:
