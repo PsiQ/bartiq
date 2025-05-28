@@ -219,13 +219,16 @@ def add_circuit_volume(
     name_of_aggregated_t: str = "aggregated_t_gates",
     backend: SymbolicBackend[T] = BACKEND,
 ) -> CompiledRoutine[T]:
-    """
-    Adds a 'circuit_volume' resource to each subroutine, calculated as:
+    """Add a 'circuit_volume' resource to a routine and its children.
+
+    This is calculated as:
         circuit_volume = aggregated_t_gates * qubit_highwater
+
     Args:
         routine: The compiled routine to which the resource will be added.
         name_of_aggregated_t: Name of the resource representing the number of T gates (default: 'aggregated_t_gates').
         backend: Symbolic backend to use for symbolic operations.
+
     Returns:
         CompiledRoutine[T]: The routine with the 'circuit_volume' resource added to each subroutine.
     """
