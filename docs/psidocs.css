@@ -26,3 +26,54 @@
 .md-typeset a:hover {
     color: #6D677D;
 }
+
+.doc-function-name {
+    font-size: 1.1em !important;
+    font-weight: 700 !important;
+    display: inline-block !important;
+    margin: 16px 0 8px 0 !important;
+}
+
+h3.doc-heading {
+    margin-top: 2em !important;
+    margin-bottom: 1em !important;
+    border-bottom: 2px solid #e9ecef !important;
+    padding-bottom: 8px !important;
+}
+
+.doc-section-title {
+    font-weight: 600 !important;
+    font-size: 0.85em !important;
+    color: #495057 !important;
+    background-color: transparent !important;
+    padding: 6px 12px !important;
+    border-left: 3px solid #33526d !important;
+    display: inline-block !important;
+    margin: 12px 0 8px 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.doc-function {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    padding-bottom: 12px !important;
+    padding-top: 0px !important;
+    padding-inline: 20px !important;
+    margin: 12px 0 !important;
+}
+
+.doc-section-title + table {
+    margin-top: 8px !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+}
+
+.doc-signature {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 6px !important;
+    margin: 12px 0 !important;
+    overflow-x: auto !important;
+}
