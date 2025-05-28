@@ -223,3 +223,80 @@ def _compare_routines(routine, expected):
 
     for child in routine.children:
         _compare_routines(routine.children[child], expected.children[child])
+
+
+from bartiq.transform import add_circuit_volume
+from bartiq import CompiledRoutine, Resource, ResourceType
+
+@pytest.mark.parametrize(
+    "resources,expected_volume,should_exist",
+    [
+        # Correct case: aggregated_t_gates and qubit_highwater present
+        (
+            {
+                "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 10),
+                "qubit_highwater": Resource("qubit_highwater", ResourceType.other, 5),
+            },
+            50,
+            True,
+        ),
+        # Symbolic case
+        (
+            {
+                "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, "n"),
+                "qubit_highwater": Resource("qubit_highwater", ResourceType.other, "m"),
+            },
+            "n*m",
+            True,
+        ),
+        # Missing qubit_highwater
+        (
+            {
+                "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 10),
+                # "qubit_highwater" missing
+            },
+            None,
+            False,
+        ),
+        # Missing aggregated_t_gates
+        (
+            {
+                "qubit_highwater": Resource("qubit_highwater", ResourceType.other, 5),
+                # "aggregated_t_gates" missing
+            },
+            None,
+            False,
+        ),
+        # Both present, but with float
+        (
+            {
+                "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 2.5),
+                "qubit_highwater": Resource("qubit_highwater", ResourceType.other, 4),
+            },
+            10.0,
+            True,
+        ),
+    ],
+)
+def test_add_circuit_volume_strict(resources, expected_volume, should_exist, backend):
+    from bartiq.transform import add_circuit_volume
+    from bartiq import CompiledRoutine
+
+    routine = CompiledRoutine(
+        name="test",
+        type=None,
+        input_params=(),
+        children={},
+        ports={},
+        resources=resources,
+        constraints=(),
+        connections={},
+        repetition=None,
+        children_order=(),
+    )
+    result = add_circuit_volume(routine, backend=backend)
+    if should_exist:
+        assert "circuit_volume" in result.resources
+        assert sympy.simplify(result.resources["circuit_volume"].value - sympy.sympify(expected_volume)) == 0
+    else:
+        assert "circuit_volume" not in result.resources

@@ -103,6 +103,40 @@ def add_aggregated_resources(
     return _add_aggregated_resources_to_subroutine(routine, expanded_aggregation_dict, remove_decomposed, backend)
 
 
+def add_circuit_volume(
+    routine: CompiledRoutine[T],
+    name_of_aggregated_t: str = "aggregated_t_gates",
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
+    """
+    Adds a 'circuit_volume' resource to each subroutine, defined as
+    circuit_volume = aggregated_t_gates * qubit_highwater.
+
+    Args:
+        routine: The compiled routine to which the resource will be added.
+        name_of_aggregated_t: Name of the resource representing the total T-gate count.
+        backend: Symbolic backend to use for expressions.
+
+    Returns:
+        CompiledRoutine with the 'circuit_volume' resource added.
+    """
+    new_children = {
+        name: add_circuit_volume(child, name_of_aggregated_t, backend)
+        for name, child in routine.children.items()
+    }
+
+    resources = dict(routine.resources)
+    if name_of_aggregated_t in resources and "qubit_highwater" in resources:
+        t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
+        highwater = backend.as_expression(resources["qubit_highwater"].value)
+        resources["circuit_volume"] = Resource(
+            name="circuit_volume",
+            type=ResourceType.other,
+            value=t_gates * highwater,
+        )
+
+    return replace(routine, resources=resources, children=new_children)
+
 def _add_aggregated_resources_to_subroutine(
     subroutine: CompiledRoutine[T],
     expanded_aggregation_dict: AggregationDict[T],
