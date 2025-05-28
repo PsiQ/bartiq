@@ -77,6 +77,8 @@ class Constraint(Generic[T]):
 
 @dataclass(frozen=True)
 class Port(Generic[T]):
+    """Class for representing a port in a routine."""
+
     name: str
     direction: str
     size: TExpr[T]
