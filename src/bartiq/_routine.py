@@ -31,7 +31,15 @@ S = TypeVar("S", default=str | None)
 
 
 class ResourceType(str, Enum):
-    """Class for representing types of resources."""
+    """Class for representing types of resources.
+    This class is used to categorize resources in routines, such as time, energy, qubits, etc.
+    
+    Possible values:
+        - **additive**: Represents an additive resource, such as time or energy.
+        - **multiplicative**: Represents a multiplicative resource, such as qubits or gates.
+        - **qubits**: Represents the number of qubits used in a routine.
+        - **other**: Represents any other resource type not covered by the above categories.
+    """
 
     additive = "additive"
     multiplicative = "multiplicative"
@@ -40,7 +48,14 @@ class ResourceType(str, Enum):
 
 
 class PortDirection(str, Enum):
-    """Class for representing port direction."""
+    """Class for representing port direction.
+    This class is used to categorize ports in routines, such as input, output, and through ports.
+    
+    Possible values:
+        - **input**: Represents an input port for receiving data.
+        - **output**: Represents an output port for sending data.
+        - **through**: Represents a through port for passing data without modification.
+    """
 
     input = "input"
     output = "output"
