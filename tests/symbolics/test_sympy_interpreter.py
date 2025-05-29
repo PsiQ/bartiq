@@ -441,6 +441,23 @@ def test_nlz_parametrized(value, expected, raises, match):
         (Number(3.14), Number(2.5), None, TypeError),
         (Number(3.14), Symbol("x"), None, None),
         (Symbol("x"), None, None, None),  # This is fine
+        (3.14, None, 3, None),  # plain float
+        (3.14, 1, 3.1, None),  # plain float, int ndigits
+        (3.14, 2.0, 3.14, TypeError),  # float ndigits as float (should be cast)
+        (3.14, 2.5, None, TypeError),  # float ndigits as non-integer
+        (3, None, 3, None),  # plain int
+        (3, 2, 3, None),  # plain int, int ndigits
+        (3, 2.0, 3, TypeError),  # plain int, float ndigits
+        (3, 2.5, None, TypeError),  # plain int, non-integer ndigits
+        (Number(3.14), None, 3, None),  # sympy Number, no ndigits
+        (Number(3.14), 0, 3, None),  # sympy Number, ndigits=0
+        (Number(3.14), -1, 0.0, None),  # negative ndigits
+        (Number(3.14), Number(-1), 0.0, None),  # negative ndigits as sympy Number
+        (Number(3.14), None, 3, None),  # duplicate for completeness
+        (Symbol("x"), 2, None, None),  # symbolic x, numeric ndigits
+        (Symbol("x"), "foo", None, None),  # symbolic x, string ndigits
+        ("foo", None, None, AttributeError),  # string as x
+        (None, None, None, AttributeError),  # None as x
     ],
 )
 def test_round_parametrized(x, ndigits, expected, raises):
@@ -449,7 +466,7 @@ def test_round_parametrized(x, ndigits, expected, raises):
             Round(x, ndigits)
     else:
         # Skip the case where x is symbolic and ndigits is None (Round(Symbol("x")) is valid)
-        if x.is_Symbol and ndigits is None:
+        if hasattr(x, "is_Symbol") and x.is_Symbol and ndigits is None:
             result = Round(x)
             assert isinstance(result, Round)
             return
@@ -458,5 +475,7 @@ def test_round_parametrized(x, ndigits, expected, raises):
             assert isinstance(result, Round)
         elif isinstance(expected, float):
             assert result is not None and float(result) == pytest.approx(expected)
+        elif isinstance(result, Float) and isinstance(expected, int):
+            assert float(result) == pytest.approx(expected)
         else:
             assert result == expected
