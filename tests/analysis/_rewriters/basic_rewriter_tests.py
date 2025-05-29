@@ -1,6 +1,6 @@
 import pytest
 
-from bartiq.analysis._rewriters.sympy_rewriter import ExpressionRewriter
+from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
 
 
@@ -43,7 +43,7 @@ class ExpressionRewriterTests:
     @pytest.mark.parametrize("fixture", ["trivial", "sum_and_mul", "many_funcs", "nested_max"])
     def test_variables(self, fixture, request):
         rewriter = request.getfixturevalue(fixture)
-        assert rewriter.variables == rewriter.expression.free_symbols
+        assert rewriter.free_symbols_in == rewriter.expression.free_symbols
 
     def test_expand(self):
         expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
