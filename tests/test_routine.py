@@ -93,23 +93,23 @@ def test_find_descendants_modes_and_options():
         children_order=("A", "B"),
     )
 
-    # BFS, first_only
-    paths_x_bfs = root.find_descendants("X", mode="bfs", first_only=True)
-    assert paths_x_bfs[0] in [["A", "X"], ["B", "X"]]
+    # BFS: should find both ["A", "X"] and ["B", "X"], order not guaranteed
+    paths_x_bfs = root.find_descendants("X", mode="bfs")
+    assert ["A", "X"] in paths_x_bfs
+    assert ["B", "X"] in paths_x_bfs
 
-    # max_depth
+    # max_depth: Z is at depth 2, so should not be found at depth 1
     paths_z_depth1 = root.find_descendants("Z", max_depth=1)
-    assert paths_z_depth1 == []  # Z is at depth 2
+    assert paths_z_depth1 == []
 
-    # return_objects
-    results = root.find_descendants("X", return_objects=True)
-    for path, obj in results:
-        assert obj.name == "X"
-        assert path[-1] == "X"
+    # DFS: should find all paths to "X"
+    results = root.find_descendants("X")
+    assert ["A", "X"] in results
+    assert ["B", "X"] in results
 
     # No match
     assert root.find_descendants("Q") == []
 
-    # Single node/leaf
+    # Single node/leaf: should not find itself as a descendant
     leaf = dummy("Leaf")
     assert leaf.find_descendants("Leaf") == []

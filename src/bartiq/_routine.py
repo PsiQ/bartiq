@@ -150,9 +150,7 @@ class BaseRoutine(Generic[T]):
         name: str,
         mode: Literal["dfs", "bfs"] = "dfs",
         max_depth: int | None = None,
-        first_only: bool = False,
-        return_objects: bool = False,
-    ):
+    ) -> list[list[str]]:
         """
         Find all pathways to descendant subroutines with the given name.
 
@@ -160,57 +158,43 @@ class BaseRoutine(Generic[T]):
             name: The name of the desired subroutine.
             mode: 'dfs' (default) or 'bfs' for traversal order.
             max_depth: Maximum depth to search (None = unlimited).
-            first_only: If True, return only the first match found.
-            return_objects: If True, return (path, routine) tuples instead of just paths.
 
         Returns:
-            List of pathways (each a list of child names) or (path, routine) tuples.
+            List of pathways (each a list of child names).
         """
-        results = []
-        found = False
+
+        def _depth_first_search(routine: Self, path: list[str], depth: int) -> list[list[str]]:
+            results: list[list[str]] = []
+            if max_depth and depth > max_depth:
+                return results
+            for child_name, child in routine.children.items():
+                new_path = path + [child_name]
+                if child_name == name:
+                    results.append(new_path)
+                results.extend(_depth_first_search(child, new_path, depth + 1))
+            return results
+
+        def _breadth_first_search(routine: Self) -> list[list[str]]:
+            results: list[list[str]] = []
+            queue: list[tuple[Self, list[str], int]] = [(routine, [], 1)]
+            while queue:
+                current, path, depth = queue.pop(0)
+                if max_depth and depth > max_depth:
+                    continue
+                for child_name, child in current.children.items():
+                    new_path = path + [child_name]
+                    if child_name == name:
+                        results.append(new_path)
+                    queue.append((child, new_path, depth + 1))
+            return results
 
         if mode == "dfs":
+            return _depth_first_search(self, [], 1)
+        if mode == "bfs":
+            return _breadth_first_search(self)
+        raise ValueError(f"Unknown mode: {mode}. Options are 'dfs', 'bfs'.")
 
-            def dfs(routine, path, depth):
-                nonlocal found
-                if max_depth is not None and depth > max_depth:
-                    return
-                for child_name, child in routine.children.items():
-                    new_path = path + [child_name]
-                    if child_name == name:
-                        if return_objects:
-                            results.append((new_path, child))
-                        else:
-                            results.append(new_path)
-                        if first_only:
-                            found = True
-                            return
-                    if not found:
-                        dfs(child, new_path, depth + 1)
-
-            dfs(self, [], 1)
-        elif mode == "bfs":
-            queue = [(self, [], 1)]
-            while queue and not found:
-                routine, path, depth = queue.pop(0)
-                if max_depth is not None and depth > max_depth:
-                    continue
-                for child_name, child in routine.children.items():
-                    new_path = path + [child_name]
-                    if child_name == name:
-                        if return_objects:
-                            results.append((new_path, child))
-                        else:
-                            results.append(new_path)
-                        if first_only:
-                            found = True
-                            break
-                    queue.append((child, new_path, depth + 1))
-        else:
-            raise ValueError(f"Unknown mode: {mode}")
-        return results
-
-    def get_descendant(self, path: list[str]):
+    def get_descendant(self, path: Iterable[str]) -> Self:
         """
         Get the descendant routine by following a path of child names.
         """
