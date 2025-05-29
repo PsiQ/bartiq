@@ -138,7 +138,8 @@ class Round(Function):
 class multiplicity(Function):
     @classmethod
     def eval(cls, p, n):
-        return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
+        if getattr(p, "is_integer", False) and getattr(n, "is_integer", False):
+            return orig_multiplicity(p, n)
 
 
 class nlz(Function):
@@ -154,8 +155,8 @@ class nlz(Function):
             ValueError: If input is a negative integer.
         """
         # Numeric evaluation
-        if n.is_number:
-            if not n.is_integer:
+        if getattr(n, "is_number", False):
+            if not getattr(n, "is_integer", False):
                 raise TypeError(f"nlz requires integer argument; found {n}")
             n = int(n)
             if n < 0:
