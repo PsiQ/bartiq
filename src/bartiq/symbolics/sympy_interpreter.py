@@ -141,9 +141,22 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        if isinstance(n, Integer):
-            n = int(n)
-            return (n & -n).bit_length() - 1
+        # Convert to float first to handle both int and float inputs
+        try:
+            n_float = float(n)
+        except Exception as e:
+            raise ValueError(f"nlz function requires an integer argument: {str(e)}")
+        # Check if it's actually an integer
+        if not n_float.is_integer():
+            raise ValueError("nlz function requires an integer argument")
+        n = int(n_float)
+        # Check for negative numbers
+        if n < 0:
+            raise ValueError("nlz function requires a non-negative integer argument")
+        # Special case for zero
+        if n == 0:
+            return 0
+        return (n & -n).bit_length() - 1
 
 
 class Max(Function):

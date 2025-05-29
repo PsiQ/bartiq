@@ -64,7 +64,7 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backend import parse_to_sympy
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity
+from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity, nlz
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -397,3 +397,34 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
     expr = "x ^ 2"
     with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
         _ = parse_to_sympy(expr)
+
+
+def test_nlz_function():
+    """Test the nlz function with various input types."""
+    from bartiq.symbolics.sympy_interpreter import nlz
+    
+    # Test with integer inputs
+    assert nlz(0) == 0
+    assert nlz(1) == 0
+    assert nlz(2) == 1
+    assert nlz(4) == 2
+    assert nlz(8) == 3
+    assert nlz(16) == 4
+    
+    # Test with float inputs that are actually integers
+    assert nlz(0.0) == 0
+    assert nlz(1.0) == 0
+    assert nlz(2.0) == 1
+    assert nlz(4.0) == 2
+    assert nlz(8.0) == 3
+    assert nlz(16.0) == 4
+    
+    # Test with non-integer float inputs
+    with pytest.raises(ValueError, match="nlz function requires an integer argument"):
+        nlz(1.5)
+    
+    # Test with negative numbers
+    with pytest.raises(ValueError, match="nlz function requires a non-negative integer argument"):
+        nlz(-1)
+    
+    
