@@ -152,8 +152,8 @@ class nlz(Function):
             ValueError: If input is a negative integer.
         """
         # Numeric evaluation
-        if getattr(n, "is_number", False):
-            if not getattr(n, "is_integer", False):
+        if n.is_number:
+            if not n.is_integer:
                 raise TypeError(f"nlz requires integer argument; found {n}")
             n = int(n)
             if n < 0:
