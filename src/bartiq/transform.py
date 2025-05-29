@@ -34,26 +34,64 @@ CompiledRoutineTransform = Callable[Concatenate[CompiledRoutine[T], SymbolicBack
 
 @overload
 def postorder_transform(transform: RoutineTransform[T, P]) -> RoutineTransform[T, P]:
+    """Transform a hierarchical routine graph in postorder fashion.
+
+    This overload accepts a transform function that operates on `Routine` objects.
+
+    Args:
+        transform: A function that accepts a `Routine` and `SymbolicBackend`, returning a new `Routine`.
+
+    Returns:
+        A function with the same signature as `transform` that applies the transformation
+        in postorder traversal.
+    """
     pass
 
 
 @overload
 def postorder_transform(transform: CompiledRoutineTransform[T, P]) -> CompiledRoutineTransform[T, P]:
+    """Transform a hierarchical compiled routine graph in postorder fashion.
+
+    This overload accepts a transform function that operates on `CompiledRoutine` objects.
+
+    Args:
+        transform: A function that accepts a `CompiledRoutine` and `SymbolicBackend`, returning a new `CompiledRoutine`.
+
+    Returns:
+        A function with the same signature as `transform` that applies the transformation
+        in postorder traversal.
+    """
     pass
 
 
-def postorder_transform(
-    transform: Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]],
-) -> Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]]:
+def postorder_transform(transform):
     """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
 
+    This function is overloaded to handle different types of routines:
+
+    - **RoutineTransform**: For working with `Routine` objects
+    - **CompiledRoutineTransform**: For working with `CompiledRoutine` objects
+
+    Both overloads follow the same pattern: they traverse the hierarchical graph in postorder,
+    applying the transform to each child before applying it to the parent.
+
     Args:
-        transform: a function accepting a routine and a symbolic backend and returning a new routine.
+        transform: A function accepting a routine and a symbolic backend and returning a new routine.
+                  The function signature varies based on the overload:
+
+            - For [`Routine`][bartiq.Routine] objects: `(Routine[T], SymbolicBackend[T], *args, **kwargs) -> Routine[T]`
+            - For [`CompiledRoutine`][bartiq.CompiledRoutine] objects: `(CompiledRoutine[T], SymbolicBackend[T], \
+                *args, **kwargs) -> CompiledRoutine[T]`
 
     Returns:
         A function with the same signature as `transform`. The function works by traversing \
         the hierarchical graph in postorder, applying `transform` to each child before \
         applying it to the parent.
+
+    Note:
+        The postorder traversal ensures that child routines are processed before their parents,
+        which is essential for bottom-up transformations where parent behavior depends on
+        the transformed children.
     """
 
     @wraps(transform)

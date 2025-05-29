@@ -77,3 +77,239 @@ h3.doc-heading {
     margin: 12px 0 !important;
     overflow-x: auto !important;
 }
+
+.doc-overload-header {
+    background-color: #e9ecef !important;
+    padding: 8px 16px !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 600 !important;
+    font-size: 0.9em !important;
+    color: #495057 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.doc-overload-item {
+    padding: 16px !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    position: relative !important;
+}
+
+.doc-overload-item:last-child {
+    border-bottom: none !important;
+    border-radius: 0 0 8px 8px !important;
+}
+
+.doc-overload-badge {
+    background-color: #7030A0 !important;
+    color: white !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 0.75em !important;
+    font-weight: 500 !important;
+    position: absolute !important;
+    top: 12px !important;
+    right: 16px !important;
+}
+
+.doc-overload-signature {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    margin: 8px 0 12px 0 !important;
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 0.85em !important;
+    overflow-x: auto !important;
+}
+
+.doc-overload-description {
+    color: #495057 !important;
+    margin-top: 8px !important;
+}
+
+/* Special styling for function overloads in tables */
+.md-typeset table .doc-overload-signature {
+    margin: 4px 0 !important;
+    padding: 8px !important;
+    font-size: 0.8em !important;
+}
+
+/* Responsive adjustments for overload styling */
+@media screen and (max-width: 768px) {
+    .doc-overload-badge {
+        position: static !important;
+        display: inline-block !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .doc-overload-signature {
+        font-size: 0.8em !important;
+        padding: 8px !important;
+    }
+    
+    .doc-overloads .doc-signature::before,
+    .doc-overloads + .doc-signature::before {
+        position: static !important;
+        display: inline-block !important;
+        margin-bottom: 8px !important;
+        margin-left: 0 !important;
+    }
+    
+    .doc-overloads .doc-signature {
+        padding: 12px !important;
+    }
+}
+
+.doc-type-annotation {
+    color: #7030A0 !important;
+    font-weight: 500 !important;
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 0.9em !important;
+}
+
+.doc-parameter-type {
+    background-color: #f8f9fa !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    border: 1px solid #e9ecef !important;
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 0.85em !important;
+    color: #495057 !important;
+}
+
+.doc-return-type {
+    background-color: #d4edda !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    border: 1px solid #c3e6cb !important;
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 0.85em !important;
+    color: #155724 !important;
+}
+
+/* Specific styling for mkdocstrings-generated overload functions */
+.doc-overloads {
+    background-color: #fafbfc !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    padding: 0 !important;
+    margin: 16px 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.doc-overloads::before {
+    content: "Function Overloads" !important;
+    background: linear-gradient(135deg, #7030A0 0%, #8A2BE2 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 0.85em !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 10px 16px !important;
+    display: block !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    box-shadow: 0 2px 4px rgba(112, 48, 160, 0.1) !important;
+}
+
+.doc-overloads .doc-signature {
+    margin: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f3f4 !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    position: relative !important;
+    padding: 20px 16px 16px 16px !important;
+    counter-increment: overload-counter !important;
+}
+
+.doc-overloads .doc-signature:last-child {
+    border-bottom: none !important;
+}
+
+.doc-overloads .doc-signature::before {
+    content: "Overload " counter(overload-counter) !important;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    border-radius: 15px !important;
+    font-size: 0.75em !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+.doc-overloads {
+    counter-reset: overload-counter !important;
+}
+
+.doc-overloads + .doc-signature {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%) !important;
+    border: 1px solid #bee5eb !important;
+    border-radius: 8px !important;
+    margin: 16px 0 !important;
+    position: relative !important;
+    padding: 20px 16px 16px 16px !important;
+}
+
+.doc-overloads + .doc-signature::before {
+    content: "Implementation" !important;
+    background: linear-gradient(135deg, #0ea5e9 0%, #7030A0 100%) !important;
+    color: white !important;
+    padding: 4px 12px !important;
+    border-radius: 15px !important;
+    font-size: 0.75em !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+.doc-overloads .highlight pre {
+    background-color: #ffffff !important;
+    margin-top: 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.doc-overloads .highlight .n {
+    font-weight: 500 !important;
+}
+
+.doc-overloads .highlight .nf {
+    color: #7030A0 !important;
+    font-weight: 700 !important;
+}
+
+.doc-overloads .highlight .n:contains("RoutineTransform"),
+.doc-overloads .highlight .n:contains("CompiledRoutineTransform") {
+    background-color: rgba(112, 48, 160, 0.1) !important;
+    padding: 1px 4px !important;
+    border-radius: 3px !important;
+}
+
+.doc-overloads .doc-signature:hover {
+    background-color: #f8f9fa !important;
+}
+
+.doc-contents code {
+    background-color: #f8f9fa !important;
+    color: #7030A0 !important;
+    border-radius: 3px !important;
+    font-weight: 500 !important;
+}
+
+
+@media screen and (max-width: 768px) {
+    .doc-overloads .doc-signature::before,
+    .doc-overloads + .doc-signature::before {
+        position: static !important;
+        display: inline-block !important;
+        margin-bottom: 8px !important;
+        margin-left: 0 !important;
+    }
+    
+    .doc-overloads .doc-signature {
+        padding: 12px !important;
+    }
+}
