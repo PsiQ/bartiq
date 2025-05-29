@@ -41,9 +41,11 @@ class ExpressionRewriterTests:
         )
 
     @pytest.mark.parametrize("fixture", ["trivial", "sum_and_mul", "many_funcs", "nested_max"])
-    def test_variables(self, fixture, request):
+    def test_free_symbols_in(self, fixture, request):
         rewriter = request.getfixturevalue(fixture)
-        assert rewriter.free_symbols_in == rewriter.expression.free_symbols
+        assert set(rewriter.free_symbols_in) == set(
+            map(self.backend.as_expression, self.backend.free_symbols_in(rewriter.expression))
+        )
 
     def test_expand(self):
         expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
