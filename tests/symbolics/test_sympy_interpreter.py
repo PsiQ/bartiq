@@ -403,14 +403,23 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
 @pytest.mark.parametrize(
     "value,expected,raises,match",
     [
-        (8, 3, None, None),  # integer input, should succeed
-        (8.0, None, TypeError, "integer argument"),  # float integer, should raise
-        (8.5, None, TypeError, "integer argument"),  # non-integer float, should raise
-        (Symbol("x"), None, TypeError, "integer argument"),  # symbolic, should raise
-        (0, 0, None, None),  # zero input, should succeed
-        (-1, None, ValueError, "non-negative integer argument"),  # negative, should raise
-        (Integer(16), 4, None, None),  # SymPy Integer, should succeed
-        (Integer(-5), None, ValueError, "non-negative integer argument"),  # negative SymPy Integer
+        (0, 0, None, None),
+        (1, 0, None, None),
+        (2, 1, None, None),
+        (4, 2, None, None),
+        (8, 3, None, None),
+        (16, 4, None, None),
+        (Integer(0), 0, None, None),
+        (Integer(1), 0, None, None),
+        (Integer(2), 1, None, None),
+        (Integer(4), 2, None, None),
+        (Integer(8), 3, None, None),
+        (Integer(16), 4, None, None),
+        (1.5, None, TypeError, "nlz function requires an integer argument; found 1.5"),
+        (10.0, None, TypeError, "nlz function requires an integer argument; found 10.0"),
+        (Symbol("x"), None, TypeError, "nlz function requires an integer argument; found x"),
+        (-1, None, ValueError, "nlz function requires a non-negative integer argument; found -1"),
+        (Integer(-5), None, ValueError, "nlz function requires a non-negative integer argument; found -5"),
     ],
 )
 def test_nlz_parametrized(value, expected, raises, match):
