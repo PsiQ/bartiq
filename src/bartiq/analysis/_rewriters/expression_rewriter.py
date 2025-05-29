@@ -42,27 +42,27 @@ class ExpressionRewriter(ABC, Generic[T]):
     @update_expression
     def evaluate_expression(
         self,
-        variable_assignments: Mapping[str, int | float | T],
+        assignments: Mapping[str, int | float | T],
         original_expression: bool = False,
         functions_map: Mapping[str, Callable[[Any], int | float]] | None = None,
     ) -> int | float | T:
         """Assign explicit values to certain variables.
 
         Args:
-            variable_assignments : A dictionary of (variable: value) key, val pairs.
+            assignments : A dictionary of (variable: value) key, val pairs.
             original_expression: Whether or not to evaluate the original expression, by default False.
             functions_map: A map for certain functions.
         """
         return self._backend.substitute(
             self.original_expression if original_expression else self.expression,
-            replacements=variable_assignments,
+            replacements=assignments,
             functions_map=functions_map,
         )
 
     @property
     @abstractmethod
-    def variables(self) -> Iterable[T]:
-        """Return the variable parameters in the expression."""
+    def free_symbols_in(self) -> Iterable[T]:
+        """Return the free symbols in the expression."""
 
     @property
     @abstractmethod
@@ -75,12 +75,15 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Expand all brackets in the expression."""
 
     @abstractmethod
-    def focus(self, variables: str | Iterable[str]) -> T:
-        """Return an expression containing terms that involve specific variables."""
+    def focus(self, symbols: str | Iterable[str]) -> T:
+        """Return an expression containing terms that involve specific symbols."""
 
 
 class ResourceRewriter(Generic[T]):
-    """A class for rewriting resource expressions in entire routines.
+    """A class for rewriting resource expressions of routines.
+
+    By default, this class only acts on the top level resource. In the future, the ability to propagate
+    a list of instructions through resources in a routine hierarchy will be made available.
 
     Args:
         routine: a CompiledRoutine object with symbolic resources.
