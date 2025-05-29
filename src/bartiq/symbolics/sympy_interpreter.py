@@ -111,12 +111,8 @@ class Round(Function):
         if getattr(ndigits, "is_integer", None) is True or isinstance(ndigits, int):
             return round(float(x), int(ndigits))
 
-        # If ndigits is a number but not an integer (e.g., 2.5)
-        if getattr(ndigits, "is_number", False) or isinstance(ndigits, float):
-            raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
-
-        # If ndigits is a string or other type, also raise
-        if isinstance(ndigits, str):
+        # If ndigits is a number or string but not an integer (e.g., 2.5)
+        if getattr(ndigits, "is_number", False) or isinstance(ndigits, float) or isinstance(ndigits, str):
             raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
 
     def doit(self, deep=True, **hints):
