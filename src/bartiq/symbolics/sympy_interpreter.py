@@ -139,24 +139,44 @@ class multiplicity(Function):
 
 
 class nlz(Function):
+    """Number of Leading Zeros (NLZ) function.
+    
+    This function calculates the number of leading zeros in the binary representation of a non-negative integer.
+    For example:
+    - nlz(0) = 0 (binary: 0)
+    - nlz(1) = 0 (binary: 1)
+    - nlz(4) = 2 (binary: 100)
+    - nlz(8) = 3 (binary: 1000)
+    
+    Args:
+        n: A non-negative integer.
+        
+    Returns:
+        The number of leading zeros in the binary representation of n.
+        
+    Raises:
+        TypeError: If the input is not an integer.
+        ValueError: If the input is a negative integer.
+    """
     @classmethod
     def eval(cls, n):
-        # Convert to float first to handle both int and float inputs
-        try:
-            n_float = float(n)
-        except Exception as e:
-            raise ValueError(f"nlz function requires an integer argument: {str(e)}")
-        # Check if it's actually an integer
-        if not n_float.is_integer():
-            raise ValueError("nlz function requires an integer argument")
-        n = int(n_float)
+        # Check if it's an integer (either SymPy Integer or Python int)
+        if not isinstance(n, (Integer, int)):
+            raise TypeError(f"nlz function requires an integer argument; found {n}")
+            
+        # Convert SymPy Integer to Python int if needed
+        n = int(n)
+            
         # Check for negative numbers
         if n < 0:
-            raise ValueError("nlz function requires a non-negative integer argument")
+            raise ValueError(f"nlz function requires a non-negative integer argument; found {n}")
+            
         # Special case for zero
         if n == 0:
             return 0
+            
         return (n & -n).bit_length() - 1
+
 
 
 class Max(Function):

@@ -411,20 +411,22 @@ def test_nlz_function():
     assert nlz(8) == 3
     assert nlz(16) == 4
     
-    # Test with float inputs that are actually integers
-    assert nlz(0.0) == 0
-    assert nlz(1.0) == 0
-    assert nlz(2.0) == 1
-    assert nlz(4.0) == 2
-    assert nlz(8.0) == 3
-    assert nlz(16.0) == 4
+    # Test with SymPy Integer type
+    from sympy import Integer
+    assert nlz(Integer(0)) == 0
+    assert nlz(Integer(1)) == 0
+    assert nlz(Integer(2)) == 1
+    assert nlz(Integer(4)) == 2
+    assert nlz(Integer(8)) == 3
+    assert nlz(Integer(16)) == 4
     
-    # Test with non-integer float inputs
-    with pytest.raises(ValueError, match="nlz function requires an integer argument"):
+    # Test with non-integer inputs
+    with pytest.raises(TypeError, match="nlz function requires an integer argument; found 1.5"):
         nlz(1.5)
-    
+    with pytest.raises(TypeError, match="nlz function requires an integer argument; found 10.0"):
+        nlz(10.0)
     # Test with negative numbers
-    with pytest.raises(ValueError, match="nlz function requires a non-negative integer argument"):
+    with pytest.raises(ValueError, match="nlz function requires a non-negative integer argument; found -1"):
         nlz(-1)
-    
+
     
