@@ -101,6 +101,9 @@ class Round(Function):
 
     @classmethod
     def eval(cls, x, ndigits=None):
+        if not getattr(x, "is_number", False):
+            return None  # symbolic x, leave unevaluated
+
         if ndigits is None:
             return round(float(x))
 
