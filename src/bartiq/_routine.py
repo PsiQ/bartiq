@@ -162,46 +162,11 @@ class BaseRoutine(Generic[T]):
         Returns:
             List of pathways (each a list of child names).
         """
-
-        def _depth_first_search(routine: Self, path: list[str], depth: int) -> list[list[str]]:
-            results: list[list[str]] = []
-            if max_depth and depth > max_depth:
-                return results
-            for child_name, child in routine.children.items():
-                new_path = path + [child_name]
-                if child_name == name:
-                    results.append(new_path)
-                results.extend(_depth_first_search(child, new_path, depth + 1))
-            return results
-
-        def _breadth_first_search(routine: Self) -> list[list[str]]:
-            results: list[list[str]] = []
-            queue: list[tuple[Self, list[str], int]] = [(routine, [], 1)]
-            while queue:
-                current, path, depth = queue.pop(0)
-                if max_depth and depth > max_depth:
-                    continue
-                for child_name, child in current.children.items():
-                    new_path = path + [child_name]
-                    if child_name == name:
-                        results.append(new_path)
-                    queue.append((child, new_path, depth + 1))
-            return results
-
         if mode == "dfs":
-            return _depth_first_search(self, [], 1)
+            return _depth_first_search(self, name, [], 1, max_depth)
         if mode == "bfs":
-            return _breadth_first_search(self)
+            return _breadth_first_search(self, name, max_depth)
         raise ValueError(f"Unknown mode: {mode}. Options are 'dfs', 'bfs'.")
-
-    def get_descendant(self, path: Iterable[str]) -> Self:
-        """
-        Get the descendant routine by following a path of child names.
-        """
-        routine = self
-        for name in path:
-            routine = routine.children[name]
-        return routine
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -365,3 +330,30 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         repetition=repetition_to_qref(routine.repetition, backend),
         **kwargs,
     )
+
+
+def _depth_first_search(routine, name, path, depth, max_depth):
+    results = []
+    if max_depth and depth > max_depth:
+        return results
+    for child_name, child in routine.children.items():
+        new_path = path + [child_name]
+        if child_name == name:
+            results.append(new_path)
+        results.extend(_depth_first_search(child, name, new_path, depth + 1, max_depth))
+    return results
+
+
+def _breadth_first_search(routine, name, max_depth):
+    results = []
+    queue = [(routine, [], 1)]
+    while queue:
+        current, path, depth = queue.pop(0)
+        if max_depth and depth > max_depth:
+            continue
+        for child_name, child in current.children.items():
+            new_path = path + [child_name]
+            if child_name == name:
+                results.append(new_path)
+            queue.append((child, new_path, depth + 1))
+    return results
