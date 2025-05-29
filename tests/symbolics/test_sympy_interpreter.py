@@ -415,11 +415,11 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
         (Integer(4), 2, None, None),
         (Integer(8), 3, None, None),
         (Integer(16), 4, None, None),
-        (1.5, None, TypeError, "nlz function requires an integer argument; found 1.5"),
-        (10.0, None, TypeError, "nlz function requires an integer argument; found 10.0"),
+        (1.5, None, TypeError, r"nlz requires integer argument; found 1\.5+"),
+        (10.0, None, TypeError, r"nlz requires integer argument; found 10\.0+"),
         (Symbol("x"), nlz(Symbol("x")), None, None),
-        (-1, None, ValueError, "nlz function requires a non-negative integer argument; found -1"),
-        (Integer(-5), None, ValueError, "nlz function requires a non-negative integer argument; found -5"),
+        (-1, None, ValueError, "nlz requires non-negative integer; found -1"),
+        (Integer(-5), None, ValueError, "nlz requires non-negative integer; found -5"),
     ],
 )
 def test_nlz_parametrized(value, expected, raises, match):

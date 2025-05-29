@@ -152,17 +152,16 @@ class nlz(Function):
             ValueError: If input is a negative integer.
         """
         # Numeric evaluation
-        if isinstance(n, (Integer, int)):
+        if n.is_number:
+            if not n.is_integer:
+                raise TypeError(f"nlz requires integer argument; found {n}")
             n = int(n)
             if n < 0:
-                raise ValueError(f"nlz function requires a non-negative integer argument; found {n}")
+                raise ValueError(f"nlz requires non-negative integer; found {n}")
             if n == 0:
                 return 0
             return (n & -n).bit_length() - 1
-        # If n is a numeric float, error
-        if isinstance(n, Float) or isinstance(n, float):
-            raise TypeError(f"nlz function requires an integer argument; found {n}")
-        # For symbolic input, return None to keep nlz(n) unevaluated
+        # Symbolic: return None for unevaluated
         return None
 
 
