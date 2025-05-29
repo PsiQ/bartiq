@@ -299,17 +299,77 @@ h3.doc-heading {
     font-weight: 500 !important;
 }
 
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".transform"],
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".analysis"],
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".symbolics"],
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".errors"],
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".integrations"],
+.md-typeset h3.doc-heading[data-mkdocstrings-identifier$="._routine"] {
+    display: none !important;
+}
+
+.md-typeset h3.doc-heading[id$=".transform"],
+.md-typeset h3.doc-heading[id$=".analysis"], 
+.md-typeset h3.doc-heading[id$=".symbolics"],
+.md-typeset h3.doc-heading[id$=".errors"],
+.md-typeset h3.doc-heading[id$=".integrations"],
+.md-typeset h3.doc-heading[id$="._routine"] {
+    display: none !important;
+}
+
+.md-typeset h2[id*="bartiq.compilation"],
+.md-typeset h2[id*="bartiq.analysis"],
+.md-typeset h2[id*="bartiq.symbolics"],
+.md-typeset h2[id*="bartiq.integrations"],
+.md-typeset h2[id*="bartiq.errors"] {
+    font-size: 2em !important;
+    font-weight: 700 !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 1.5em !important;
+    border-bottom: 3px solid #7030A0 !important;
+    padding-bottom: 12px !important;
+    color: #7030A0 !important;
+}
+
+.md-typeset h4.doc-heading[id*="bartiq."][id*="."]:not([id$=".transform"]):not([id$=".analysis"]):not([id$=".compilation"]):not([id$=".symbolics"]):not([id$=".errors"]):not([id$=".integrations"]),
+.md-typeset h5.doc-heading[id*="bartiq."][id*="."]:not([id$=".transform"]):not([id$=".analysis"]):not([id$=".compilation"]):not([id$=".symbolics"]):not([id$=".errors"]):not([id$=".integrations"]) {
+    display: block !important;
+    font-size: 1.1em !important;
+    font-weight: 700 !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 0.5em !important;
+    color: #495057 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    padding-bottom: 4px !important;
+}
+
+.md-typeset h3.doc-heading[id*="Routine"],
+.md-typeset h3.doc-heading[id*="Resource"],
+.md-typeset h3.doc-heading[id*="Port"],
+.md-typeset h3.doc-heading[id*="Backend"],
+.md-typeset h3.doc-heading[id*="compile"],
+.md-typeset h3.doc-heading[id*="evaluate"],
+.md-typeset h4.doc-heading[id*="Routine"],
+.md-typeset h4.doc-heading[id*="Resource"],
+.md-typeset h4.doc-heading[id*="Port"],
+.md-typeset h4.doc-heading[id*="Backend"],
+.md-typeset h4.doc-heading[id*="compile"],
+.md-typeset h4.doc-heading[id*="evaluate"] {
+    display: block !important;
+    font-size: 1.5em !important;
+    font-weight: 600 !important;
+    margin-top: 2em !important;
+    margin-bottom: 1em !important;
+    border-bottom: 2px solid #e9ecef !important;
+    padding-bottom: 8px !important;
+    line-height: 1.3 !important;
+    color: #495057 !important;
+}
 
 @media screen and (max-width: 768px) {
-    .doc-overloads .doc-signature::before,
-    .doc-overloads + .doc-signature::before {
-        position: static !important;
-        display: inline-block !important;
-        margin-bottom: 8px !important;
-        margin-left: 0 !important;
-    }
-    
-    .doc-overloads .doc-signature {
-        padding: 12px !important;
+    .md-typeset h2.doc-heading,
+    .md-typeset h3.doc-heading {
+        font-size: 1.3em !important;
+        margin-top: 1.5em !important;
     }
 }
