@@ -21,6 +21,7 @@ from sympy import (
     LambertW,
     Min,
     Mod,
+    Number,
     Product,
     Rational,
     Sum,
@@ -428,3 +429,34 @@ def test_nlz_parametrized(value, expected, raises, match):
             nlz(value)
     else:
         assert nlz(value) == expected
+
+
+@pytest.mark.parametrize(
+    "x, ndigits, expected, raises",
+    [
+        (Number(3.14), None, 3, None),
+        (Number(3.14), 1, 3.1, None),
+        (Number(3.14), Number(2), 3.14, None),
+        (Number(3.14), "foo", None, None),  # Should return unevaluated, not raise
+        (Number(3.14), Number(2.5), None, TypeError),
+        (Number(3.14), Symbol("x"), None, None),
+        (Symbol("x"), None, None, None),  # This is fine
+    ],
+)
+def test_round_parametrized(x, ndigits, expected, raises):
+    if raises:
+        with pytest.raises(raises):
+            Round(x, ndigits)
+    else:
+        # Skip the case where x is symbolic and ndigits is None (Round(Symbol("x")) is valid)
+        if x.is_Symbol and ndigits is None:
+            result = Round(x)
+            assert isinstance(result, Round)
+            return
+        result = Round(x, ndigits)
+        if expected is None:
+            assert isinstance(result, Round)
+        elif isinstance(expected, float):
+            assert result is not None and float(result) == pytest.approx(expected)
+        else:
+            assert result == expected

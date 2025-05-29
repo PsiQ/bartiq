@@ -101,13 +101,27 @@ class Round(Function):
 
     @classmethod
     def eval(cls, x, ndigits=None):
-        """Define the function's immediate evaluation in the case where the input is a number."""
-        # Evaluate for explicit number x
-        if x.is_number:
-            if ndigits is None:
-                return round(x)
-            elif ndigits.is_integer:
-                return round(x, ndigits=ndigits)
+        # Only evaluate if x is a number
+        if not getattr(x, "is_number", False):
+            return None  # symbolic x, leave unevaluated
+
+        if ndigits is None:
+            return round(float(x))
+
+        # If ndigits is an integer (SymPy or Python)
+        if getattr(ndigits, "is_integer", None) is True or isinstance(ndigits, int):
+            return round(float(x), int(ndigits))
+
+        # If ndigits is a number but not an integer (e.g., 2.5)
+        if getattr(ndigits, "is_number", False) or isinstance(ndigits, float):
+            raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
+
+        # If ndigits is a string or other type, also raise
+        if isinstance(ndigits, str):
+            raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
+
+        # If ndigits is symbolic, leave unevaluated
+        return None
 
     def doit(self, deep=True, **hints):
         """Define the delayed evaluation in the case where the input is not yet defined."""
