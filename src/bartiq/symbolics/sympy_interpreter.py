@@ -101,38 +101,36 @@ class Round(Function):
 
     @classmethod
     def eval(cls, x, ndigits=None):
-        # Only evaluate if x is a number
-        if getattr(x, "is_number", False):
+        """Define the function's immediate evaluation in the case where the input is a number."""
+        # Evaluate for explicit number x
+        if x.is_number:
             if ndigits is None:
-                return round(float(x))
-            if getattr(ndigits, "is_integer", None) is True or isinstance(ndigits, int):
-                return round(float(x), int(ndigits))
-            if ndigits is not None:
-                # Only raise if ndigits is a number but not an integer
-                if getattr(ndigits, "is_number", False) and not getattr(ndigits, "is_integer", False):
-                    raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
+                return round(x)
+            elif ndigits.is_integer:
+                return round(x, ndigits=ndigits)
 
     def doit(self, deep=True, **hints):
         """Define the delayed evaluation in the case where the input is not yet defined."""
         x, *other_args = self.args
-        ndigits = other_args[0] if other_args else None
+
+        assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
+        ndigits = other_args[0] if other_args else Number(0)
 
         # If deep, propagate the evaluation downwards
         if deep:
             x = x.doit(deep=True, **hints)
-            if ndigits is not None:
-                ndigits = ndigits.doit(deep=True, **hints)
+            ndigits = ndigits.doit(deep=True, **hints)
 
         # Check we're ready to boogie
         # NOTE: don't use ``not x.is_number`` to deal with Nones. See below for more info:
         # https://docs.sympy.org/latest/guides/custom-functions.html#best-practices-for-eval
-        if not getattr(x, "is_number", False):
+        if not x.is_number:
             raise TypeError(f"Input x must be a number; found {x}")
-        if ndigits is not None and not getattr(ndigits, "is_integer", False):
+        if not ndigits.is_integer:
             raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
 
         # Boogie down
-        return round(float(x), int(ndigits) if ndigits is not None else 0)
+        return round(x, ndigits=ndigits)
 
 
 class multiplicity(Function):
