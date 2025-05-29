@@ -146,18 +146,24 @@ class nlz(Function):
         Returns the number of trailing zeros in the binary representation of n.
         Only defined for non-negative integers.
         Returns 0 for input 0.
+        For symbolic input, returns unevaluated nlz(n).
         Raises:
-            TypeError: If input is not an integer.
+            TypeError: If input is not an integer (when numeric).
             ValueError: If input is a negative integer.
         """
-        if not isinstance(n, (Integer, int)):
+        # Numeric evaluation
+        if isinstance(n, (Integer, int)):
+            n = int(n)
+            if n < 0:
+                raise ValueError(f"nlz function requires a non-negative integer argument; found {n}")
+            if n == 0:
+                return 0
+            return (n & -n).bit_length() - 1
+        # If n is a numeric float, error
+        if isinstance(n, Float) or isinstance(n, float):
             raise TypeError(f"nlz function requires an integer argument; found {n}")
-        n = int(n)
-        if n < 0:
-            raise ValueError(f"nlz function requires a non-negative integer argument; found {n}")
-        if n == 0:
-            return 0
-        return (n & -n).bit_length() - 1
+        # For symbolic input, return None to keep nlz(n) unevaluated
+        return None
 
 
 class Max(Function):
