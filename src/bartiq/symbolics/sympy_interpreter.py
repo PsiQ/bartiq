@@ -136,8 +136,7 @@ class Round(Function):
 class multiplicity(Function):
     @classmethod
     def eval(cls, p, n):
-        if getattr(p, "is_integer", False) and getattr(n, "is_integer", False):
-            return orig_multiplicity(p, n)
+        return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
 
 
 class nlz(Function):
