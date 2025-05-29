@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from sympy import Add, Basic, Expr, Function, Max, Symbol
 
 from bartiq import sympy_backend
-from bartiq.analysis._rewriters._expression_rewriter import (
+from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
     update_expression,
@@ -23,7 +23,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         super().__init__(expression=expression, backend=sympy_backend)
 
     @property
-    def variables(self) -> set[Basic]:
+    def free_symbols_in(self) -> set[Basic]:
         return self.expression.free_symbols
 
     @property
@@ -50,17 +50,17 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             ValueError: If no Symbol with the input name is in the expression.
         """
         try:
-            return next(sym for sym in self.variables if sym.name == symbol_name)
+            return next(sym for sym in self.free_symbols_in if sym.name == symbol_name)
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
-    def focus(self, variables: str | Iterable[str]) -> Expr:
-        """Return a reduced version of the expression, where only terms that include the input variables are shown.
+    def focus(self, symbols: str | Iterable[str]) -> Expr:
+        """Return a reduced version of the expression, where only terms that include the input symbols are shown.
 
         Args:
-            variables: symbol name(s) to focus on.
+            symbols: symbol name(s) to focus on.
         """
-        variables = set(map(self.get_symbol, [variables] if isinstance(variables, str) else variables))
+        variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
         return sum([term for term in self.as_individual_terms if term.free_symbols & variables]).collect(variables)
 
     def all_functions_and_arguments(self) -> set[Expr]:
@@ -94,6 +94,10 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
 
 
 class SympyResourceRewriter(ResourceRewriter):
-    """A class for rewriting sympy expressions across entire routines."""
+    """A class for rewriting sympy resource expressions in routines.
+
+    By default, this class only acts on the top level resource. In the future, the ability to propagate
+    a list of instructions through resources in a routine hierarchy will be made available.
+    """
 
     _rewriter = SympyExpressionRewriter
