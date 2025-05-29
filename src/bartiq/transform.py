@@ -254,9 +254,8 @@ def add_circuit_volume(
             value=circuit_volume,
         )
     else:
-        if name_of_aggregated_t not in resources or name_of_qubit_highwater not in resources:
-            warnings.warn(
-                f"Routine '{routine.name}' missing required resources: "
-                f"{name_of_aggregated_t} or {name_of_qubit_highwater}. 'circuit_volume' not added."
-            )
+        warnings.warn(
+            f"Routine '{routine.name}' missing required resources: "
+            f"{name_of_aggregated_t} or {name_of_qubit_highwater}. 'circuit_volume' not added."
+        )
     return replace(routine, resources=resources, children=new_children)
