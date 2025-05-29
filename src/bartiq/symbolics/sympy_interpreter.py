@@ -101,10 +101,6 @@ class Round(Function):
 
     @classmethod
     def eval(cls, x, ndigits=None):
-        # Only evaluate if x is a number
-        if not getattr(x, "is_number", False):
-            return None  # symbolic x, leave unevaluated
-
         if ndigits is None:
             return round(float(x))
 
@@ -119,9 +115,6 @@ class Round(Function):
         # If ndigits is a string or other type, also raise
         if isinstance(ndigits, str):
             raise TypeError(f"Input ndigits must be an integer; found {ndigits}")
-
-        # If ndigits is symbolic, leave unevaluated
-        return None
 
     def doit(self, deep=True, **hints):
         """Define the delayed evaluation in the case where the input is not yet defined."""
@@ -175,8 +168,6 @@ class nlz(Function):
             if n == 0:
                 return 0
             return (n & -n).bit_length() - 1
-        # Symbolic: return None for unevaluated
-        return None
 
 
 class Max(Function):
