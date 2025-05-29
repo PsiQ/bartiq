@@ -212,3 +212,50 @@ def _topological_sort(aggregation_dict: dict[str, dict[str, Any]]) -> list[str]:
     }
 
     return list(TopologicalSorter(predecessors).static_order())
+
+
+def add_circuit_volume(
+    routine: CompiledRoutine[T],
+    name_of_aggregated_t: str = "aggregated_t_gates",
+    name_of_qubit_highwater: str = "qubit_highwater",
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
+    """Add a 'circuit_volume' resource to a routine and its children.
+
+    This is calculated as:
+        circuit_volume = aggregated_t_gates * qubit_highwater
+
+    Args:
+        routine: The compiled routine to which the resource will be added.
+        name_of_aggregated_t: Name of the resource representing the number of T gates (default: 'aggregated_t_gates').
+        name_of_qubit_highwater: Name of the resource representing the qubit highwater mark
+        (default: 'qubit_highwater').
+        backend: Symbolic backend to use for symbolic operations.
+
+    Returns:
+        CompiledRoutine[T]: The routine with the 'circuit_volume' resource added to each subroutine.
+    """
+    import warnings
+
+    # Recursively process children
+    new_children = {
+        name: add_circuit_volume(child, name_of_aggregated_t, name_of_qubit_highwater, backend)
+        for name, child in routine.children.items()
+    }
+    resources = dict(routine.resources)
+    # Only add if both required resources are present
+    if name_of_aggregated_t in resources and name_of_qubit_highwater in resources:
+        t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
+        qubit_highwater = backend.as_expression(resources[name_of_qubit_highwater].value)
+        circuit_volume = t_gates * qubit_highwater
+        resources["circuit_volume"] = Resource(
+            name="circuit_volume",
+            type=ResourceType.other,
+            value=circuit_volume,
+        )
+    else:
+        warnings.warn(
+            f"Routine '{routine.name}' missing required resources: "
+            f"{name_of_aggregated_t} or {name_of_qubit_highwater}. 'circuit_volume' not added."
+        )
+    return replace(routine, resources=resources, children=new_children)
