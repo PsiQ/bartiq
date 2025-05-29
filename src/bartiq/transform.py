@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import copy
+import warnings
 from dataclasses import replace
 from functools import wraps
 from graphlib import TopologicalSorter
@@ -106,6 +107,7 @@ def add_aggregated_resources(
 def add_circuit_volume(
     routine: CompiledRoutine[T],
     name_of_aggregated_t: str = "aggregated_t_gates",
+    name_of_qubit_highwater: str = "qubit_highwater",
     backend: SymbolicBackend[T] = BACKEND,
 ) -> CompiledRoutine[T]:
     """
@@ -115,24 +117,29 @@ def add_circuit_volume(
     Args:
         routine: The compiled routine to which the resource will be added.
         name_of_aggregated_t: Name of the resource representing the total T-gate count.
+        name_of_qubit_highwater: Name of the resource representing the qubit highwater mark.
         backend: Symbolic backend to use for expressions.
 
     Returns:
         CompiledRoutine with the 'circuit_volume' resource added.
     """
     new_children = {
-        name: add_circuit_volume(child, name_of_aggregated_t, backend) for name, child in routine.children.items()
+        name: add_circuit_volume(child, name_of_aggregated_t, name_of_qubit_highwater, backend)
+        for name, child in routine.children.items()
     }
 
     resources = dict(routine.resources)
-    if name_of_aggregated_t in resources and "qubit_highwater" in resources:
+    if name_of_aggregated_t in resources and name_of_qubit_highwater in resources:
         t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
-        highwater = backend.as_expression(resources["qubit_highwater"].value)
+        highwater = backend.as_expression(resources[name_of_qubit_highwater].value)
         resources["circuit_volume"] = Resource(
             name="circuit_volume",
             type=ResourceType.other,
             value=t_gates * highwater,
         )
+    # Optionally, raise a warning or error if either resource is missing
+    else:
+        warnings.warn(f"Missing required resources: {name_of_aggregated_t} or {name_of_qubit_highwater}")
 
     return replace(routine, resources=resources, children=new_children)
 
