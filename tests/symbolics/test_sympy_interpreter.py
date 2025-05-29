@@ -17,6 +17,7 @@ from sympy import (
     Float,
     Function,
     Heaviside,
+    Integer,
     LambertW,
     Min,
     Mod,
@@ -400,17 +401,21 @@ def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
 
 
 @pytest.mark.parametrize(
-    "value,expected,raises",
+    "value,expected,raises,match",
     [
-        (8, 3, None),  # integer input, should succeed
-        (8.0, None, TypeError),  # float integer, should raise
-        (8.5, None, TypeError),  # non-integer float, should raise
-        (Symbol("x"), None, TypeError),  # symbolic, should raise
+        (8, 3, None, None),  # integer input, should succeed
+        (8.0, None, TypeError, "integer argument"),  # float integer, should raise
+        (8.5, None, TypeError, "integer argument"),  # non-integer float, should raise
+        (Symbol("x"), None, TypeError, "integer argument"),  # symbolic, should raise
+        (0, 0, None, None),  # zero input, should succeed
+        (-1, None, ValueError, "non-negative integer argument"),  # negative, should raise
+        (Integer(16), 4, None, None),  # SymPy Integer, should succeed
+        (Integer(-5), None, ValueError, "non-negative integer argument"),  # negative SymPy Integer
     ],
 )
-def test_nlz_parametrized(value, expected, raises):
+def test_nlz_parametrized(value, expected, raises, match):
     if raises:
-        with pytest.raises(raises):
+        with pytest.raises(raises, match=match):
             nlz(value)
     else:
         assert nlz(value) == expected

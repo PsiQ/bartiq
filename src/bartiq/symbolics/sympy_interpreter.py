@@ -142,10 +142,22 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        if isinstance(n, Integer):
-            n = int(n)
-            return (n & -n).bit_length() - 1
-        raise TypeError(f"Input to nlz must be an integer: value {n} has type {type(n)}")
+        """
+        Returns the number of trailing zeros in the binary representation of n.
+        Only defined for non-negative integers.
+        Returns 0 for input 0.
+        Raises:
+            TypeError: If input is not an integer.
+            ValueError: If input is a negative integer.
+        """
+        if not isinstance(n, (Integer, int)):
+            raise TypeError(f"nlz function requires an integer argument; found {n}")
+        n = int(n)
+        if n < 0:
+            raise ValueError(f"nlz function requires a non-negative integer argument; found {n}")
+        if n == 0:
+            return 0
+        return (n & -n).bit_length() - 1
 
 
 class Max(Function):
