@@ -393,7 +393,6 @@ def test_parse_to_sympy(expression, expected_sympy_expression):
     assert sympy_expression == expected_sympy_expression
 
 
-def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
-    expr = "x ^ 2"
-    with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
-        _ = parse_to_sympy(expr)
+def test_sympy_interpreter_raises_on_xor_operator():
+    with pytest.raises(NotImplementedError, match="XOR operator \\(\\^\\) is not supported. Use \\*\\* for exponentiation."):
+        parse_to_sympy("x ^ 2")

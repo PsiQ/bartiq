@@ -81,8 +81,7 @@ _RESTRICTED_NAMES = {"__lambda__": "lambda", "__in__": "in"}
 class _PreprocessingStage:
     """Class for representing a single step performed during preprocessing.
 
-    Example stages, defined below, include preprocessing expression to replace
-    the xor operator (^) with power operator (**), or replacing wildcard
+    Example stages, defined below, include replacing wildcard
     characters (~) with calls to wildcard() function.
 
     Attributes:
@@ -151,18 +150,6 @@ def _replace_in(expression: str) -> str:
 _IN_REPLACEMENT = _PreprocessingStage(matches=_contains_in, preprocess=_replace_in)
 
 
-def _contains_xor_op(expression: str) -> bool:
-    return "^" in expression
-
-
-def _replace_xor_op(expression: str) -> str:
-    warn("Using ^ operator to denote exponentiation is deprecated.", DeprecationWarning)
-    return expression.replace("^", "**")
-
-
-# Preprocessing stage replacing ^ with ** for exponentiation
-_XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
-
 
 # Sequence of all known preprocessing stages.
 # If there are any new preprocessing stages, they should be added here.
@@ -173,7 +160,6 @@ _PREPROCESSING_STAGES = (
     _PORT_REPLACEMENT,
     _LAMBDA_REPLACEMENT,
     _IN_REPLACEMENT,
-    _XOR_OP_REPLACEMENT,
 )
 
 
@@ -231,6 +217,8 @@ class _NodeConverter:
         down the tree and convert children, and then combine the results using operator as given in
         _BINARY_OP_MAP.
         """
+        if isinstance(node.op, ast.BitXor):
+            raise NotImplementedError("XOR operator (^) is not supported. Use ** for exponentiation.")
         return _BINARY_OP_MAP[type(node.op)](self.convert_node(node.left), self.convert_node(node.right))
 
     @convert_node.register
