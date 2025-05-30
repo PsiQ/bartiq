@@ -1,43 +1,33 @@
 name: "📊 Coverage Report"
-
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      - uses: actions/setup-python@v4
+        with: { python-version: "3.x" }
 
-      - name: Install dependencies
+      - name: Install Poetry & deps
         run: |
           pip install poetry
+          poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
-          pip install pytest pytest-cov
 
       - name: Run tests with coverage
-        # output Cobertura XML named coverage.xml
-        run: pytest --cov=bartiq --cov-report=xml:coverage.xml
+        run: |
+          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml
 
       - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
         with:
-          # matches the XML you just wrote
           path: coverage.xml
-          # comment on the PR
           publish: true
-          # include a diff against main
           diff: true
           diff-branch: main
-          # fail the job if coverage drops or new misses appear
           coverage-reduction-failure: true
           new-uncovered-statements-failure: true
