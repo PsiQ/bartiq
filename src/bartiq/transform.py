@@ -34,33 +34,11 @@ CompiledRoutineTransform = Callable[Concatenate[CompiledRoutine[T], SymbolicBack
 
 @overload
 def postorder_transform(transform: RoutineTransform[T, P]) -> RoutineTransform[T, P]:
-    """Transform a hierarchical routine graph in postorder fashion.
-
-    This overload accepts a transform function that operates on `Routine` objects.
-
-    Args:
-        transform: A function that accepts a `Routine` and `SymbolicBackend`, returning a new `Routine`.
-
-    Returns:
-        A function with the same signature as `transform` that applies the transformation
-        in postorder traversal.
-    """
     pass
 
 
 @overload
 def postorder_transform(transform: CompiledRoutineTransform[T, P]) -> CompiledRoutineTransform[T, P]:
-    """Transform a hierarchical compiled routine graph in postorder fashion.
-
-    This overload accepts a transform function that operates on `CompiledRoutine` objects.
-
-    Args:
-        transform: A function that accepts a `CompiledRoutine` and `SymbolicBackend`, returning a new `CompiledRoutine`.
-
-    Returns:
-        A function with the same signature as `transform` that applies the transformation
-        in postorder traversal.
-    """
     pass
 
 
