@@ -77,7 +77,7 @@
         value: 10*N
       - name: z
         type: multiplicative
-        value: N ^ 10
+        value: N ** 10
       type: null
     version: v1
 # Basic case with a symbolic count (with a function) and a constant sequence
@@ -162,7 +162,7 @@
         value: N*alpha
       - name: z
         type: multiplicative
-        value: fun(N) ^ alpha
+        value: fun(N) ** alpha
 
       type: null
     version: v1
@@ -287,7 +287,7 @@
         resources:
         - name: rotations
           type: additive
-          value: "14.0*1.5 ^ N - 14.0"
+          value: "14.0*1.5 ** N - 14.0"
       - name: child_1
         input_params:
           - M
@@ -354,7 +354,7 @@
       resources:
       - name: rotations
         type: additive
-        value: "14.0*1.5 ^ N + 3.5*M*(3*M + 1) - 14.0"
+        value: "14.0*1.5 ** N + 3.5*M*(3*M + 1) - 14.0"
 
     version: v1
 # Repeated routine with substructure
@@ -715,10 +715,10 @@
         resources:
         - name: y
           type: additive
-          value: 1.0*N ^ 3
+          value: 1.0*N ** 3
         - name: z
           type: multiplicative
-          value: 0.564189583547756*2 ^ N*N ^ N*gamma(N + 0.5)
+          value: 0.564189583547756*2 ** N*N ** N*gamma(N + 0.5)
         type: null
       connections:
       - source: a.out_0
@@ -743,9 +743,9 @@
       resources:
       - name: y
         type: additive
-        value: 10.0*N ^ 3
+        value: 10.0*N ** 3
       - name: z
         type: multiplicative
-        value: 0.00326776364305339*2 ^ (10*N)*N ^ (10*N)*gamma(N + 0.5) ^ 10
+        value: 0.00326776364305339*2 ** (10*N)*N ** (10*N)*gamma(N + 0.5) ** 10
       type: null
     version: v1

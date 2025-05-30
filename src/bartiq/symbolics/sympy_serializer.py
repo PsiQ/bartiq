@@ -44,7 +44,7 @@ class BartiqPrinter(StrPrinter):
         base, exponent = expr.args
         base_str = self._print(self.parenthesize(expr.base, PREC))
         exp_str = self._print(self.parenthesize(expr.exp, PREC))
-        return f"{base_str} ^ {exp_str}"
+        return f"{base_str} ** {exp_str}"
 
 
 def serialize_expression(expr: Expr) -> str:

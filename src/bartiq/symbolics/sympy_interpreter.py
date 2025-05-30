@@ -69,7 +69,6 @@ BINARY_OPS = {
     "*": operator.mul,
     "/": operator.truediv,
     "//": operator.floordiv,
-    "^": operator.pow,
     "**": operator.pow,
     "%": operator.mod,
 }
