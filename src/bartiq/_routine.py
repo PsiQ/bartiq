@@ -145,6 +145,29 @@ class BaseRoutine(Generic[T]):
     def sorted_children(self) -> Iterable[Self]:
         return [self.children[child_name] for child_name in self.sorted_children_order]
 
+    def find_descendants(
+        self,
+        name: str,
+        mode: Literal["dfs", "bfs"] = "dfs",
+        max_depth: int | None = None,
+    ) -> list[list[str]]:
+        """
+        Find all pathways to descendant subroutines with the given name.
+
+        Args:
+            name: The name of the desired subroutine.
+            mode: 'dfs' (default) or 'bfs' for traversal order.
+            max_depth: Maximum depth to search (None = unlimited).
+
+        Returns:
+            List of pathways (each a list of child names).
+        """
+        if mode == "dfs":
+            return _depth_first_search(self, name, [], 1, max_depth)
+        if mode == "bfs":
+            return _breadth_first_search(self, name, max_depth)
+        raise ValueError(f"Unknown mode: {mode}. Options are 'dfs', 'bfs'.")
+
 
 @dataclass(frozen=True, kw_only=True)
 class Routine(BaseRoutine[T]):
@@ -307,3 +330,30 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         repetition=repetition_to_qref(routine.repetition, backend),
         **kwargs,
     )
+
+
+def _depth_first_search(routine, name, path, depth, max_depth):
+    results = []
+    if max_depth and depth > max_depth:
+        return results
+    for child_name, child in routine.children.items():
+        new_path = path + [child_name]
+        if child_name == name:
+            results.append(new_path)
+        results.extend(_depth_first_search(child, name, new_path, depth + 1, max_depth))
+    return results
+
+
+def _breadth_first_search(routine, name, max_depth):
+    results = []
+    queue = [(routine, [], 1)]
+    while queue:
+        current, path, depth = queue.pop(0)
+        if max_depth and depth > max_depth:
+            continue
+        for child_name, child in current.children.items():
+            new_path = path + [child_name]
+            if child_name == name:
+                results.append(new_path)
+            queue.append((child, new_path, depth + 1))
+    return results

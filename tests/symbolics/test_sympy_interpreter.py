@@ -17,6 +17,7 @@ from sympy import (
     Float,
     Function,
     Heaviside,
+    Integer,
     LambertW,
     Min,
     Mod,
@@ -64,7 +65,13 @@ from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 
 from bartiq.symbolics.sympy_backend import parse_to_sympy
-from bartiq.symbolics.sympy_interpreter import SPECIAL_PARAMS, Max, Round, multiplicity
+from bartiq.symbolics.sympy_interpreter import (
+    SPECIAL_PARAMS,
+    Max,
+    Round,
+    multiplicity,
+    nlz,
+)
 from bartiq.symbolics.sympy_serializer import serialize_expression
 
 
@@ -393,6 +400,38 @@ def test_parse_to_sympy(expression, expected_sympy_expression):
     assert sympy_expression == expected_sympy_expression
 
 
+
 def test_sympy_interpreter_raises_on_xor_operator():
     with pytest.raises(NotImplementedError, match="XOR operator \\(\\^\\) is not supported. Use \\*\\* for exponentiation."):
         parse_to_sympy("x ^ 2")
+
+
+@pytest.mark.parametrize(
+    "value,expected,raises,match",
+    [
+        (0, 0, None, None),
+        (1, 0, None, None),
+        (2, 1, None, None),
+        (4, 2, None, None),
+        (8, 3, None, None),
+        (16, 4, None, None),
+        (Integer(0), 0, None, None),
+        (Integer(1), 0, None, None),
+        (Integer(2), 1, None, None),
+        (Integer(4), 2, None, None),
+        (Integer(8), 3, None, None),
+        (Integer(16), 4, None, None),
+        (1.5, None, TypeError, r"nlz requires integer argument; found 1\.5+"),
+        (10.0, None, TypeError, r"nlz requires integer argument; found 10\.0+"),
+        (Symbol("x"), nlz(Symbol("x")), None, None),
+        (-1, None, ValueError, "nlz requires non-negative integer; found -1"),
+        (Integer(-5), None, ValueError, "nlz requires non-negative integer; found -5"),
+    ],
+)
+def test_nlz_parametrized(value, expected, raises, match):
+    if raises:
+        with pytest.raises(raises, match=match):
+            nlz(value)
+    else:
+        assert nlz(value) == expected
+
