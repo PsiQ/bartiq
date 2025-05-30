@@ -49,8 +49,6 @@ import re
 from dataclasses import dataclass
 from functools import singledispatch, singledispatchmethod
 from typing import Callable
-from warnings import warn
-
 from .interpreter import Interpreter
 
 _BINARY_OP_MAP = {
@@ -148,7 +146,6 @@ def _replace_in(expression: str) -> str:
 
 # Preprocessing stage replacing "in"s with _in
 _IN_REPLACEMENT = _PreprocessingStage(matches=_contains_in, preprocess=_replace_in)
-
 
 
 # Sequence of all known preprocessing stages.
