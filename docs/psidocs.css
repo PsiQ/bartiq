@@ -299,6 +299,15 @@ h3.doc-heading {
     font-weight: 500 !important;
 }
 
+/* Hide mkdocstrings symbol abbreviations */
+code.doc-symbol-method::after {
+    content: 'method' !important;
+}
+
+code.doc-symbol-module::after {
+    content: 'module' !important;
+}
+
 .md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".transform"],
 .md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".analysis"],
 .md-typeset h3.doc-heading[data-mkdocstrings-identifier$=".symbolics"],
