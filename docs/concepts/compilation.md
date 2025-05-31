@@ -47,7 +47,7 @@ The `bartiq`'s compilation engine makes several assumptions about the routine be
 at the expense of flexibility. For instance, `bartiq` assumes all port sizes are single parameters of size `#port_name`.
 Another (very important) assumption is that there are no parameter links reaching deeper than one level of nesting.
 
-Writing a routine conforming to those requirements by hand is possible, but tedious. Instead, `bartiq` allows for
+Writing a [`Routine`][bartiq.Routine] conforming to those requirements by hand is possible, but tedious. Instead, `bartiq` allows for
 violation of some of its assumptions, and preprocesses the routine so that all the requirements are met.
 
 As an example, suppose some port `in_0` has size `1`. `bartiq` replaces this size with `#in_0`, and then adds a
@@ -124,13 +124,13 @@ Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
 ```
 This provides a performance boost when routines have multiple routines and subroutines, and expressions become unweildy. 
 
-To override this, we can pass in a _compilation flag_ into the `compile_routine` function call:
+To override this, we can pass in a _compilation flag_ into the [`compile_routine`][bartiq.compile_routine] function call:
 ```python
 from bartiq.compilation import CompilationFlags
 
 compile_routine(..., compilation_flags=CompilationFlags.EXPAND_RESOURCES)
 ```
-Alternatively, we can call `evaluate` on the resultant compiled routine with no variable assignments to expand the resources:
+Alternatively, we can call [`evaluate`][bartiq.evaluate] on the resultant compiled routine with no variable assignments to expand the resources:
 ```python
 expanded_resources_routine = evaluate(routine_compiled_transitively, {})
 ```

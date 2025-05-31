@@ -38,7 +38,8 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
         backend: a backend used for manipulating symbolic expressions.
 
     Returns:
-        A routine with all the additive resources defined appropriately at all levels of the hierarchy.
+        Routine[T]: A [`routine`][bartiq.Routine] with all the additive resources defined appropriately at all levels
+        of the hierarchy.
     """
     warnings.warn(
         "Usage of propagate_child_resources has been deprecated, as this is now handled" "directly in the compilation.",
@@ -87,11 +88,11 @@ def promote_unlinked_inputs(routine: Routine[T], backend: SymbolicBackend[T]) ->
     linked to the parent and adds it to the parent alongside a corresponding link.
 
     Args:
-        routine: routine to be preprocessed
+        routine: [`routine`][bartiq.Routine] to be preprocessed
         backend: a backend used for manipulating symbolic expressions.
 
     Returns:
-        A routine with the missing links added.
+        Routine[T]: A [`routine`][bartiq.Routine] with the missing links added.
     """
     all_targets = [tuple(target) for _, targets in routine.linked_params.items() for target in targets]
 
@@ -166,11 +167,11 @@ def introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) -
     """Adds variables representing port sizes to a routine.
 
     Args:
-        routine: routine to be preprocessed
+        routine: [`routine`][bartiq.Routine] to be preprocessed
         backend: a backend used for manipulating symbolic expressions.
 
     Returns:
-        A routine with the extra variables representing port sizes.
+        Routine[T]: A [`routine`][bartiq.Routine] with the extra variables representing port sizes.
     """
     return replace(
         routine, children={name: _introduce_port_variables(child, backend) for name, child in routine.children.items()}
@@ -181,11 +182,12 @@ def propagate_linked_params(routine: Routine[T], backend: SymbolicBackend[T]) ->
     """Turns parameter links of level deeper than one into sequence of direct links.
 
     Args:
-        routine: routine to be preprocessed
+        routine: [`routine`][bartiq.Routine] to be preprocessed
         backend: a backend used for manipulating symbolic expressions.
 
     Returns:
-        A routine with the deep linked params decomposed and approprietly defined at each level.
+        Routine[T]: A [`routine`][bartiq.Routine] with the deep linked params decomposed and
+        approprietly defined at each level.
     """
     new_linked_params: dict[str, tuple[tuple[str, str], ...]] = {}
     children = routine.children.copy()

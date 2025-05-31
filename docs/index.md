@@ -29,7 +29,7 @@ with open("alias_sampling_basic.json", "r") as f:
 uncompiled_routine = SchemaV1(**routine_dict)
 compiled_routine = compile_routine(uncompiled_routine).routine
 ```
-After loading the alias sampling JSON file we cast it to the `qref.SchemaV1` type, our [data format](https://github.com/PsiQ/qref) for representing quantum algorithms for the purposes for resource estimation. This provides us with an `uncompiled_routine`, which we can then compile with `bartiq`. The compilation engine will propagate the resource costs from low-level subroutines up, to create aggregated global costs for the whole circuit. 
+After loading the alias sampling JSON file we cast it to the [`qref.SchemaV1`](https://github.com/PsiQ/qref/blob/main/src/qref/schema_v1.py) type, our [data format](https://github.com/PsiQ/qref) for representing quantum algorithms for the purposes for resource estimation. This provides us with an `uncompiled_routine`, which we can then compile with [`compile_routine`][bartiq.compile_routine]. The compilation engine will propagate the resource costs from low-level subroutines up, to create aggregated global costs for the whole circuit. 
 
 To see, for example, the symbolic $T$-gate count for this circuit:
 ```python
@@ -37,7 +37,7 @@ print(compiled_routine.resources["T_gates"].value)
 >>> 4*L + 8*L/multiplicity(2, L) + 4*mu + O(log2(L)) - 8
 ```
 
-To obtain numeric resource costs we can assign values to our variables $L$ and $\mu$ and then `evaluate` the routine
+To obtain numeric resource costs we can assign values to our variables $L$ and $\mu$ and then [`evaluate`][bartiq.evaluate] the routine
 
 ```python
 assignments = {"L": 100, "mu": 10}
