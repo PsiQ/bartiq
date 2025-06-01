@@ -14,6 +14,7 @@
 
 from ._routine import (
     CompiledRoutine,
+    Port,
     PortDirection,
     Resource,
     ResourceType,
@@ -24,6 +25,7 @@ from .compilation import compile_routine, evaluate
 from .symbolics import sympy_backend
 
 __all__ = [
+    "Port",
     "PortDirection",
     "ResourceType",
     "Routine",

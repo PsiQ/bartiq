@@ -37,6 +37,9 @@ def aggregate_resources(
         remove_decomposed : Whether to remove the decomposed resources from the routine.
             Defaults to True.
 
+    Returns:
+        PostprocessingStage[T]: A postprocessing stage that can be used in the compilation pipeline.
+
     """
 
     def _inner(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> CompiledRoutine[T]:

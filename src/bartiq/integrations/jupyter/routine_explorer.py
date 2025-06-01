@@ -76,7 +76,7 @@ def explore_routine(routine: RoutineV1, tree_min_width="initial", resource_max_w
     """Widget faciliting exploration of routine's costs.
 
     Args:
-        routine: Routine object to analyze.
+        routine: [`Routine`][bartiq.Routine] object to analyze.
         tree_min_width: string defining the minimal width of the left part of the widget (tree).
             For pixel values, should be specified as "100px". Defaults to "initial".
         resource_max_width: string defining the minimal width of the right part of the widget (resources).

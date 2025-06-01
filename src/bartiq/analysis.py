@@ -177,8 +177,11 @@ class Optimizer:
             momentum: The momentum factor to control the influence of previous updates.
 
         Returns:
-            Dict: A dictionary containing the final value of the parameter and the history of values
-            during optimization.
+            A dictionary containing the final value of the parameter and the history of values during optimization.
+
+        Raises:
+            ValueError: If the initial value is out of bounds.
+            RuntimeError: If the maximum number of iterations is reached without convergence.
         """
         if x0 is None:
             x0 = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
@@ -246,6 +249,10 @@ def minimize(
 
     1. Plot `x_history` (parameter values) on the x-axis.
     2. Plot `minimum_cost` on the y-axis.
+
+    Raises:
+        ValueError: If the optimizer is not recognized or if required parameters are missing.
+        ImportError: If SciPy is not installed and the "scipy" optimizer is selected.
 
     """
 

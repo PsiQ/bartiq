@@ -31,7 +31,15 @@ S = TypeVar("S", default=str | None)
 
 
 class ResourceType(str, Enum):
-    """Class for representing types of resources."""
+    """Class for representing types of resources.
+    This class is used to categorize resources in routines, such as time, energy, qubits, etc.
+
+    Possible values:
+        - **additive**: Represents an additive resource, such as time or energy.
+        - **multiplicative**: Represents a multiplicative resource, such as qubits or gates.
+        - **qubits**: Represents the number of qubits used in a [`Routine`][bartiq.Routine].
+        - **other**: Represents any other resource type not covered by the above categories.
+    """
 
     additive = "additive"
     multiplicative = "multiplicative"
@@ -40,7 +48,14 @@ class ResourceType(str, Enum):
 
 
 class PortDirection(str, Enum):
-    """Class for representing port direction."""
+    """Class for representing port direction.
+    This class is used to categorize ports in routines, such as input, output, and through ports.
+
+    Possible values:
+        - **input**: Represents an input [`Port`][bartiq.Port] for receiving data.
+        - **output**: Represents an output [`Port`][bartiq.Port] for sending data.
+        - **through**: Represents a through [`Port`][bartiq.Port] for passing data without modification.
+    """
 
     input = "input"
     output = "output"
@@ -62,6 +77,8 @@ class Constraint(Generic[T]):
 
 @dataclass(frozen=True)
 class Port(Generic[T]):
+    """Class for representing a port in a routine."""
+
     name: str
     direction: str
     size: TExpr[T]
@@ -181,7 +198,7 @@ class Routine(BaseRoutine[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> Routine[T]:
-        """Load Routine from a QREF definition, using specified backend for parsing expressions."""
+        """Load [`Routine`][bartiq.Routine] from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return Routine[T](
@@ -218,7 +235,8 @@ class CompiledRoutine(BaseRoutine[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-        """Load CompiledRoutine from a QREF definition, using specified backend for parsing expressions."""
+        """Load [`CompiledRoutine`][bartiq.CompiledRoutine] from a QREF definition,
+        using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return CompiledRoutine[T](
@@ -228,7 +246,7 @@ class CompiledRoutine(BaseRoutine[T]):
         )
 
     def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
-        """Exports Routine to QREF.
+        """Exports [`CompiledRoutine`][bartiq.CompiledRoutine] to QREF.
 
         Args:
             backend: backend used to serialize the symbolic expressions.

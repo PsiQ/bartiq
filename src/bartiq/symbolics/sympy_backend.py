@@ -115,7 +115,11 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 @lru_cache
 def _value_of(expr: Expr) -> Number | None:
-    """Compute a numerical value of an expression, return None if it's not possible."""
+    """Compute a numerical value of an expression, return None if it's not possible.
+
+    Raises:
+        TypeError: If the expression cannot be rounded.
+    """
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
     except TypeError as e:
@@ -197,7 +201,11 @@ class SympyBackend:
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
-        """Define an undefined function."""
+        """Define an undefined function.
+
+        Raises:
+            BartiqCompilationError: If the function name is a built-in function.
+        """
         # Catch attempt to define special function names
         if func_name in BUILT_IN_FUNCTIONS:
             raise BartiqCompilationError(
