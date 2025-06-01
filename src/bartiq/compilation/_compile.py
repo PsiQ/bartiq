@@ -151,7 +151,10 @@ def compile_routine(
             and the function mapping a routine to the value of resource.
         skip_verification: flag indicating whether verification of the routine should be skipped.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
-            through the `CompilationFlags` object. By default None.
+            through the [`CompilationFlags`][bartiq.compilation.CompilationFlags] object. By default None.
+
+    Raises:
+        BartiqCompilationError: if the routine is not valid, or if the verification step fails.
     """
     compilation_flags = compilation_flags or CompilationFlags(0)
     if CompilationFlags.SKIP_VERIFICATION not in compilation_flags and not isinstance(routine, Routine):

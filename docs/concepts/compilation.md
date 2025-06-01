@@ -122,7 +122,18 @@ By default, we compile resources *transitively* with the compilation flag `allow
 ```
 Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
 ```
-By setting `allow_transitive_resources=False` when calling `compile_routine`, these expressions are expanded into full symbolic or numeric expressions.
+This provides a performance boost when routines have multiple routines and subroutines, and expressions become unweildy. 
+
+To override this, we can pass in a _compilation flag_ into the [`compile_routine`][bartiq.compile_routine] function call:
+```python
+from bartiq.compilation import CompilationFlags
+
+compile_routine(..., compilation_flags=CompilationFlags.EXPAND_RESOURCES)
+```
+Alternatively, we can call [`evaluate`][bartiq.evaluate] on the resultant compiled routine with no variable assignments to expand the resources:
+```python
+expanded_resources_routine = evaluate(routine_compiled_transitively, {})
+```
 
 #### Step 2.8: Output port compilation
 
