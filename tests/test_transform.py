@@ -17,7 +17,7 @@ import sympy
 from qref.schema_v1 import RoutineV1
 
 from bartiq import Routine
-from bartiq.transform import add_aggregated_resources
+from bartiq.transform import add_aggregated_resources, add_circuit_volume
 
 ccry_gate = {
     "name": "ccry_gate",
@@ -223,3 +223,84 @@ def _compare_routines(routine, expected):
 
     for child in routine.children:
         _compare_routines(routine.children[child], expected.children[child])
+
+
+def test_add_circuit_volume_simple(backend):
+    from bartiq import CompiledRoutine, Resource, ResourceType
+
+    # Create a simple routine with required resources
+    routine = CompiledRoutine(
+        name="test",
+        type=None,
+        input_params=[],
+        children={},
+        ports={},
+        resources={
+            "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 5),
+            "qubit_highwater": Resource("qubit_highwater", ResourceType.qubits, 3),
+        },
+        connections={},
+        children_order=(),
+    )
+    out = add_circuit_volume(routine, backend=backend)
+    assert "circuit_volume" in out.resources
+    assert backend.value_of(out.resources["circuit_volume"].value) == 15
+
+
+def test_add_circuit_volume_with_children(backend):
+    from bartiq import CompiledRoutine, Resource, ResourceType
+    from bartiq.transform import add_circuit_volume
+
+    # Create a child routine with required resources
+    child = CompiledRoutine(
+        name="child",
+        type=None,
+        input_params=[],
+        children={},
+        ports={},
+        resources={
+            "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 2),
+            "qubit_highwater": Resource("qubit_highwater", ResourceType.qubits, 4),
+        },
+        connections={},
+        children_order=(),
+    )
+    # Create a parent routine with required resources and the child
+    parent = CompiledRoutine(
+        name="parent",
+        type=None,
+        input_params=[],
+        children={"child": child},
+        ports={},
+        resources={
+            "aggregated_t_gates": Resource("aggregated_t_gates", ResourceType.additive, 3),
+            "qubit_highwater": Resource("qubit_highwater", ResourceType.qubits, 5),
+        },
+        connections={},
+        children_order=("child",),
+    )
+    out = add_circuit_volume(parent, backend=backend)
+    assert "circuit_volume" in out.resources
+    assert backend.value_of(out.resources["circuit_volume"].value) == 15
+    assert "circuit_volume" in out.children["child"].resources
+    assert backend.value_of(out.children["child"].resources["circuit_volume"].value) == 8
+
+    # Test with custom resource names
+    child2 = CompiledRoutine(
+        name="child2",
+        type=None,
+        input_params=[],
+        children={},
+        ports={},
+        resources={
+            "custom_t": Resource("custom_t", ResourceType.additive, 7),
+            "custom_highwater": Resource("custom_highwater", ResourceType.qubits, 2),
+        },
+        connections={},
+        children_order=(),
+    )
+    out2 = add_circuit_volume(
+        child2, name_of_aggregated_t="custom_t", name_of_qubit_highwater="custom_highwater", backend=backend
+    )
+    assert "circuit_volume" in out2.resources
+    assert backend.value_of(out2.resources["circuit_volume"].value) == 14
