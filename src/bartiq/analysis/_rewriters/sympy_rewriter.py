@@ -15,7 +15,7 @@
 
 from collections.abc import Iterable
 
-from sympy import Add, Basic, Expr, Function, Max, Symbol
+from sympy import Add, Basic, Expr, Function, Max, Symbol, Min
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.expression_rewriter import (
@@ -28,8 +28,11 @@ from bartiq.analysis._rewriters.expression_rewriter import (
 class SympyExpressionRewriter(ExpressionRewriter[Basic]):
     """Rewrite SymPy expressions.
 
+    This class accepts a SymPy expression as input, and provides methods for efficient simplification / rewriting of
+    the input expression.
+
     Args:
-        expression: The sympy expression to rewrite.
+        expression: The sympy expression of interest.
     """
 
     def __init__(self, expression: Expr):
@@ -59,6 +62,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         Args:
             symbol_name: Name of the symbol.
 
+        Returns:
+            A SymPy Symbol object.
+
         Raises:
             ValueError: If no Symbol with the input name is in the expression.
         """
@@ -68,10 +74,13 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             raise ValueError(f"No variable '{symbol_name}'.")
 
     def focus(self, symbols: str | Iterable[str]) -> Expr:
-        """Return a reduced version of the expression, where only terms that include the input symbols are shown.
+        """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
 
         Args:
             symbols: symbol name(s) to focus on.
+
+        Returns:
+            A SymPy expression whose terms include the input symbols.
         """
         variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
         return sum([term for term in self.as_individual_terms if term.free_symbols & variables]).collect(variables)
@@ -82,22 +91,33 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         The returned set will include all functions at every level of the expression, i.e.
 
         All functions and arguments of the following expression:
-        >>> max(a, 1 - max(b, 1 - max(c, lamda)))
-
+        ```
+        max(a, 1 - max(b, 1 - max(c, lamda)))
+        ```
         would be returned as:
-        >>> {
-        >>> Max(c, lamda),
-        >>> Max(b, 1 - Max(c, lamda)),
-        >>> Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-        >>> }
+        ```
+        {
+            Max(c, lamda),
+            Max(b, 1 - Max(c, lamda)),
+            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+        }
+        ```
+
+        Returns:
+            A set of unique functions that exist in the expression.
+
         """
-        return self.expression.atoms(Function, Max)
+        return self.expression.atoms(Function, Max, Min)
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of arguments X, such that each function_name(x) (for x in X) exists in the expression.
 
         Args:
             function_name: function name to return the arguments of.
+
+        Returns:
+            A list of arguments of the input function. If the function takes multiple arguments,
+            they are returned as a tuple in the order they appear.
         """
         return [
             tuple(_arg for _arg in _func.args if (_arg or _arg == 0)) if len(_func.args) > 1 else _func.args[0]
