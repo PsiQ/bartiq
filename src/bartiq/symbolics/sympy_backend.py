@@ -164,7 +164,7 @@ class SympyBackend:
         return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
 
     @empty_for_numbers
-    def free_symbols_in(self, expr: Expr) -> Iterable[str]:
+    def free_symbols(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
         return tuple(map(str, expr.free_symbols))
 
@@ -186,7 +186,7 @@ class SympyBackend:
         functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
     ) -> TExpr[Expr]:
 
-        symbols_in_expr = self.free_symbols_in(expr)
+        symbols_in_expr = self.free_symbols(expr)
         restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
         expr = expr.subs(restricted_replacements)
         if functions_map is None:

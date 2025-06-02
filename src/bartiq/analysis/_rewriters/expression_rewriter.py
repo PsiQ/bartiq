@@ -65,6 +65,9 @@ class ExpressionRewriter(ABC, Generic[T]):
             assignments : A dictionary of (variable: value) key, val pairs.
             original_expression: Whether or not to evaluate the original expression, by default False.
             functions_map: A map for certain functions.
+
+        Returns:
+            A fully or partially evaluated expression.
         """
         return self._backend.substitute(
             self.original_expression if original_expression else self.expression,
@@ -74,7 +77,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def free_symbols_in(self) -> Iterable[T]:
+    def free_symbols(self) -> Iterable[T]:
         """Return the free symbols in the expression."""
 
     @property

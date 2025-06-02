@@ -54,10 +54,10 @@ class ExpressionRewriterTests:
         )
 
     @pytest.mark.parametrize("fixture", ["trivial", "sum_and_mul", "many_funcs", "nested_max"])
-    def test_free_symbols_in(self, fixture, request):
+    def test_free_symbols(self, fixture, request):
         rewriter = request.getfixturevalue(fixture)
-        assert set(rewriter.free_symbols_in) == set(
-            map(self.backend.as_expression, self.backend.free_symbols_in(rewriter.expression))
+        assert set(rewriter.free_symbols) == set(
+            map(self.backend.as_expression, self.backend.free_symbols(rewriter.expression))
         )
 
     def test_expand(self):

@@ -36,7 +36,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         super().__init__(expression=expression, backend=sympy_backend)
 
     @property
-    def free_symbols_in(self) -> set[Basic]:
+    def free_symbols(self) -> set[Basic]:
         return self.expression.free_symbols
 
     @property
@@ -63,7 +63,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             ValueError: If no Symbol with the input name is in the expression.
         """
         try:
-            return next(sym for sym in self.free_symbols_in if sym.name == symbol_name)
+            return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
             raise ValueError(f"No variable '{symbol_name}'.")
 
