@@ -15,7 +15,7 @@
 
 from collections.abc import Iterable
 
-from sympy import Add, Basic, Expr, Function, Max, Symbol, Min
+from sympy import Add, Basic, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.expression_rewriter import (
