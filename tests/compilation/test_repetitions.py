@@ -270,7 +270,7 @@ def test_custom_sequence_throws_error_when_replacing_iterator_symbol_on_evaluate
         evaluate(compiled_routine, assignments).routine
 
 
-# At present, the default method of compilation (with transitive resourceSs does not raise an error
+# At present, the default method of compilation (with transitive resources) does not raise an error
 # when attempting to compile a routine where a resource value has the same symbol as an iterator symbol.
 # This is because the resource hierarchy is not compiled fully,
 # and so the parameter map during the compile sequence does not contain child information.
@@ -357,7 +357,7 @@ def test_error_raised_when_mismatch_between_parent_and_child_resources_and_skipp
     with pytest.raises(
         BartiqCompilationError, match="Routine with repetition does not share the same resources as its child*"
     ):
-        compile_routine(routine, skip_verification=True)
+        compile_routine(routine, compilation_flags=CompilationFlags.SKIP_VERIFICATION)
 
 
 def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_skipping_verification():
@@ -368,4 +368,4 @@ def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_
         BartiqCompilationError,
         match="Routine with repetition should have resource names like `child_name.resource_name.*",
     ):
-        compile_routine(routine, skip_verification=True)
+        compile_routine(routine, compilation_flags=CompilationFlags.SKIP_VERIFICATION)

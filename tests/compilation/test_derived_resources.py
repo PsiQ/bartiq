@@ -18,7 +18,7 @@ import pytest
 import yaml
 from qref import SchemaV1
 
-from bartiq import compile_routine
+from bartiq import CompiledRoutine, compile_routine
 from bartiq.compilation import CompilationFlags
 from bartiq.compilation.derived_resources import calculate_highwater
 
@@ -120,7 +120,7 @@ def test_highwater_of_an_empty_routine_is_zero():
     assert compiled_routine.resources["qubit_highwater"].value == 0
 
 
-@pytest.mark.parametrize("compilation_flags", [None, CompilationFlags.EXPAND_RESOURCES])
+@pytest.mark.parametrize("compilation_flags", [CompilationFlags(0), CompilationFlags.EXPAND_RESOURCES])
 def test_additive_derived_resources_are_processed_correctly(compilation_flags):
     resource_name = "test_resource"
     input_routine = {
