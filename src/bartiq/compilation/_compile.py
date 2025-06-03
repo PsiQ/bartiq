@@ -85,6 +85,9 @@ class CompilationFlags(Flag):
     EXPAND_RESOURCES = auto()
     """Expand resource values into full, rather than transitive, expressions."""
 
+    SKIP_VERIFICATION = auto()
+    """Skip the verification step on the routine."""
+
 
 class Calculate(Protocol[T]):
 
@@ -132,7 +135,6 @@ def compile_routine(
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
     derived_resources: Iterable[DerivedResources] = (),
-    skip_verification: bool = False,
     compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -149,7 +151,6 @@ def compile_routine(
         derived_resources: iterable with dictionaries describing how to calculate derived resources.
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
-        skip_verification: flag indicating whether verification of the routine should be skipped.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
             through the [`CompilationFlags`][bartiq.compilation.CompilationFlags] object. By default None.
 
@@ -188,7 +189,7 @@ def _compile_local_variables(
     local_variables: dict[str, TExpr[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
 ) -> dict[str, TExpr[T]]:
     predecessors: dict[str, set[str]] = {
-        var: set(other_var for other_var in backend.free_symbols(expr) if other_var in local_variables)
+        var: set(other_var for other_var in backend.free_symbols_in(expr) if other_var in local_variables)
         for var, expr in local_variables.items()
     }
 
@@ -246,23 +247,20 @@ def _process_repeated_resources(
 
     # Ensure that routine with repetition only contains resources that we will later overwrite
     child_resources = copy.copy(children[0].resources)
-    # if child_resources_not_in_parent := child_resources.keys() - resources.keys():
-    #     raise BartiqCompilationError(
-    #         """Routine with repetition does not share the same resources as its child."""
-    #         f"""\nFollowing resources are in the child, but not the parent: {child_resources_not_in_parent}"""
-    #     )
-    # if incorrectly_named_resources := [
-    #     x
-    #     for resource in resources.values()
-    #     if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
-    # ]:
-    #     raise BartiqCompilationError(
-    #         """Routine with repetition should have resource names like `child_name.resource_name."""
-    #         f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
-    #     )
-    for resource_name, resource in resources.items():
-        assert resource_name in child_resources
-        assert backend.serialize(resource.value) == f"{children[0].name}.{resource.name}"
+    if parent_resources_not_in_child := resources.keys() - child_resources.keys():
+        raise BartiqCompilationError(
+            """Routine with repetition does not share the same resources as its child."""
+            f"""\nFollowing resources are in the parent, but not the child: {parent_resources_not_in_child}"""
+        )
+    if incorrectly_named_resources := [
+        x
+        for resource in resources.values()
+        if (x := backend.serialize(resource.value)) != f"{children[0].name}.{resource.name}"
+    ]:
+        raise BartiqCompilationError(
+            """Routine with repetition should have resource names like `child_name.resource_name."""
+            f"""\nFound the following incorrectly named resources {incorrectly_named_resources}"""
+        )
 
     new_resources = {}
     for resource in child_resources.values():
@@ -299,7 +297,7 @@ def _compile(
     inputs: dict[str, TExpr[T]],
     context: Context,
     derived_resources: Iterable[DerivedResources] = (),
-    compilation_flags: CompilationFlags | None = None,
+    compilation_flags: CompilationFlags = CompilationFlags(0),  # CompilationsFlags(0) corresponds to no flags
 ) -> CompiledRoutine[T]:
     try:
         new_constraints = evaluate_constraints(routine.constraints, inputs, backend)
@@ -309,7 +307,7 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
-    compilation_flags = compilation_flags or CompilationFlags(0)
+
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)
@@ -373,10 +371,10 @@ def _compile(
 
     new_input_params = sorted(
         (
-            set(symbol for expr in inputs.values() for symbol in backend.free_symbols(expr))
+            set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr))
             if inputs
             else set(routine.input_params)
-        ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols(port.size))
+        ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
     )
 
     new_resources = evaluate_resources(resources, parameter_map[None], backend)
