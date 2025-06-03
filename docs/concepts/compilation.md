@@ -118,8 +118,8 @@ to the repetition rules; the repetition specification itself gets updated using 
 
 At this stage each child should have input and through ports defined in terms of global variables, and we can now compile the resources. Parents have their resources updated from the compiled resources of their children.
 
-By default, we compile resources *transitively* with the compilation flag `allow_transitive_resources=True` in the `compile_routine` function call. This means that the resources of a particular routine are defined only in terms of the relevant contributions from their immedite children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
-```
+By default, we compile resources *transitively* such that the resources of a particular routine are defined only in terms of the relevant contributions from their immedite children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
+```python
 Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
 ```
 This provides a performance boost when routines have multiple routines and subroutines, and expressions become unweildy. 
