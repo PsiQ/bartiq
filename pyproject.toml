@@ -8,6 +8,8 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
+pandas = "^2.2"
+plotly = "^5.17"
 python = "^3.10"
 pydantic = "^2.7"
 sympy = "^1.12"
