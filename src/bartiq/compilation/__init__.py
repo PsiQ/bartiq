@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ._compile import CompilationResult, compile_routine
+from ._compile import CompilationFlags, CompilationResult, compile_routine
 from ._evaluate import EvaluationResult, evaluate
 
-__all__ = ["compile_routine", "CompilationResult", "evaluate", "EvaluationResult"]
+__all__ = ["compile_routine", "CompilationResult", "evaluate", "EvaluationResult", "CompilationFlags"]

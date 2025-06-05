@@ -15,11 +15,11 @@ import operator
 from typing import Any
 
 from sympy import (
+    Float,
     Function,
     Heaviside,
     Integer,
     LambertW,
-    Max,
     Min,
     Mod,
     Number,
@@ -57,6 +57,7 @@ from sympy import multiplicity as orig_multiplicity
 from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
+from sympy.core.sorting import ordered
 
 from .interpreter import Interpreter, debuggable
 
@@ -109,7 +110,11 @@ class Round(Function):
                 return round(x, ndigits=ndigits)
 
     def doit(self, deep=True, **hints):
-        """Define the delayed evaluation in the case where the input is not yet defined."""
+        """Define the delayed evaluation in the case where the input is not yet defined.
+
+        Raises:
+            TypeError: If the input is not a number or if ndigits is not an integer.
+        """
         x, *other_args = self.args
 
         assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
@@ -141,9 +146,48 @@ class multiplicity(Function):
 class nlz(Function):
     @classmethod
     def eval(cls, n):
-        if isinstance(n, Integer):
+        """
+        Returns the number of trailing zeros in the binary representation of n.
+        Only defined for non-negative integers.
+        Returns 0 for input 0.
+        For symbolic input, returns unevaluated nlz(n).
+        Raises:
+            TypeError: If input is not an integer (when numeric).
+            ValueError: If input is a negative integer.
+        """
+        # Numeric evaluation
+        if n.is_number:
+            if not n.is_integer:
+                raise TypeError(f"nlz requires integer argument; found {n}")
             n = int(n)
+            if n < 0:
+                raise ValueError(f"nlz requires non-negative integer; found {n}")
+            if n == 0:
+                return 0
             return (n & -n).bit_length() - 1
+
+
+class Max(Function):
+    """A custom implementation of Max.
+
+    We use a custom Max because for our use cases, Sympy's simplification efforts are usually
+    fruitless. Not doing any advanced simplifications saves us significant amount of time,
+    especially when computing highwater with lots of nested maximums.
+    """
+
+    def __new__(cls, *args, **assumptions):
+        args = ordered(set(args))
+        return Function.__new__(cls, *args, **assumptions)
+
+    @classmethod
+    def eval(cls, *args):
+
+        if not args:
+            return sympy_constants.NegativeInfinity
+        elif len(args) == 1:
+            return args[0]
+        elif all(isinstance(n, (Integer, Float)) for n in args):
+            return max(args)
 
 
 SPECIAL_FUNCS = {

@@ -135,6 +135,12 @@ class SymbolicBackend(Protocol[T]):
     def max(self, *args: TExpr[T]) -> TExpr[T]:
         """Returns a biggest value from given args."""
 
+    def sum(self, *args: TExpr[T]) -> TExpr[T]:
+        """Compute sum of expressions given in args."""
+
+    def prod(self, *args: TExpr[T]) -> TExpr[T]:
+        """Compute the product of expressions given in args."""
+
     def sequence_sum(self, term: TExpr[T], iterator_symbol: TExpr[T], start: TExpr[T], end: TExpr[T]) -> TExpr[T]:
         """Express a sum of terms expressed using `iterator_symbol`."""
 

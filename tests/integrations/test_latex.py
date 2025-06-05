@@ -323,6 +323,22 @@ LATEX_TEST_CASES = [
 &\text{out\_0} = None
 """,
     ),
+    # Latex printer modification case
+    (
+        RoutineV1(
+            name="my_routine",
+            type=None,
+            resources=[
+                {"name": "local_highwater", "type": "other", "value": "10"},
+            ],
+        ),
+        {},
+        r"""
+&\text{RoutineV1 \textrm{(my\_routine)}}\newline
+&\underline{\text{Resources:}}\\
+&{local}_{\text{highwater}} = 10
+""",
+    ),
 ]
 
 

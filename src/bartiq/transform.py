@@ -20,6 +20,7 @@ from graphlib import TopologicalSorter
 from typing import Any, Callable, Concatenate, ParamSpec, overload
 
 from bartiq import CompiledRoutine, Resource, ResourceType, Routine
+from bartiq.compilation._evaluate import evaluate
 from bartiq.symbolics import sympy_backend
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
@@ -44,12 +45,31 @@ def postorder_transform(transform: CompiledRoutineTransform[T, P]) -> CompiledRo
 def postorder_transform(transform):
     """Given a callable mapping a routine to a routine, expand it to transform hierarchical graph in postorder fashion.
 
+    This function is overloaded to handle different types of routines:
+
+    - **RoutineTransform**: For working with `Routine` objects
+    - **CompiledRoutineTransform**: For working with `CompiledRoutine` objects
+
+    Both overloads follow the same pattern: they traverse the hierarchical graph in postorder,
+    applying the transform to each child before applying it to the parent.
+
     Args:
-        transform: a function accepting a routine and a symbolic backend and returning a new routine.
+        transform: A function accepting a routine and a symbolic backend and returning a new routine.
+                  The function signature varies based on the overload:
+
+            - For [`Routine`][bartiq.Routine] objects: `(Routine[T], SymbolicBackend[T], *args, **kwargs) -> Routine[T]`
+            - For [`CompiledRoutine`][bartiq.CompiledRoutine] objects: `(CompiledRoutine[T], SymbolicBackend[T], \
+                *args, **kwargs) -> CompiledRoutine[T]`
 
     Returns:
-        A function with the same signature as `transform`. The function works by traversing the hierarchical graph
-        in postorder, applying `transform` to each child before applying it to the parent.
+        A function with the same signature as `transform`. The function works by traversing \
+        the hierarchical graph in postorder, applying `transform` to each child before \
+        applying it to the parent.
+
+    Note:
+        The postorder traversal ensures that child routines are processed before their parents,
+        which is essential for bottom-up transformations where parent behavior depends on
+        the transformed children.
     """
 
     @wraps(transform)
@@ -76,7 +96,7 @@ def add_aggregated_resources(
     remove_decomposed: bool = True,
     backend: SymbolicBackend[T] = BACKEND,
 ) -> CompiledRoutine[T]:
-    """Add aggregated resources to bartiq routine based on the aggregation dictionary.
+    """Add aggregated resources to bartiq [`routine`][bartiq.CompiledRoutine] based on the aggregation dictionary.
 
     Args:
         routine: The program to which the resources will be added.
@@ -94,9 +114,10 @@ def add_aggregated_resources(
             Defaults to `sympy_backend`.
 
     Returns:
-        Routine: The program with aggregated resources.
+        The routine with aggregated resources added.
 
     """
+    routine = evaluate(routine, {}, backend=backend).routine
     expanded_aggregation_dict = _expand_aggregation_dict(aggregation_dict, backend)
     return _add_aggregated_resources_to_subroutine(routine, expanded_aggregation_dict, remove_decomposed, backend)
 
@@ -148,10 +169,13 @@ def _expand_aggregation_dict(
     aggregation_dict: AggregationDict[T], backend: SymbolicBackend[T] = BACKEND
 ) -> AggregationDict[T]:
     """Expand the aggregation dictionary to handle nested resources.
+
     Args:
         aggregation_dict: The input aggregation dictionary.
+        backend: The symbolic backend to use for expression handling.
+
     Returns:
-        Dict[str, Dict[str, Any]]: The expanded aggregation dictionary.
+        AggregationDict[T]: The expanded aggregation dictionary with nested resources resolved.
     """
     sorted_resources = _topological_sort(aggregation_dict)
     expanded_dict: dict[str, dict[str, TExpr[T]]] = {}
@@ -167,9 +191,13 @@ def _expand_resource(
     backend: SymbolicBackend[T] = BACKEND,
 ) -> dict[str, TExpr[T]]:
     """Recursively expand resource mapping to handle nested resources and detect circular dependencies.
+
     Args:
         resource: The resource to expand.
         aggregation_dict: The input aggregation dictionary.
+        expanded_dict: The dictionary containing already expanded resources.
+        backend: The symbolic backend to use for expression handling.
+
     Returns:
         Dict[str, Any]: The expanded resource mapping.
     """
@@ -210,3 +238,50 @@ def _topological_sort(aggregation_dict: dict[str, dict[str, Any]]) -> list[str]:
     }
 
     return list(TopologicalSorter(predecessors).static_order())
+
+
+def add_circuit_volume(
+    routine: CompiledRoutine[T],
+    name_of_aggregated_t: str = "aggregated_t_gates",
+    name_of_qubit_highwater: str = "qubit_highwater",
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
+    """Add a 'circuit_volume' resource to a routine and its children.
+
+    This is calculated as:
+        circuit_volume = aggregated_t_gates * qubit_highwater
+
+    Args:
+        routine: The compiled routine to which the resource will be added.
+        name_of_aggregated_t: Name of the resource representing the number of T gates (default: 'aggregated_t_gates').
+        name_of_qubit_highwater: Name of the resource representing the qubit highwater mark
+        (default: 'qubit_highwater').
+        backend: Symbolic backend to use for symbolic operations.
+
+    Returns:
+        CompiledRoutine[T]: The routine with the 'circuit_volume' resource added to each subroutine.
+    """
+    import warnings
+
+    # Recursively process children
+    new_children = {
+        name: add_circuit_volume(child, name_of_aggregated_t, name_of_qubit_highwater, backend)
+        for name, child in routine.children.items()
+    }
+    resources = dict(routine.resources)
+    # Only add if both required resources are present
+    if name_of_aggregated_t in resources and name_of_qubit_highwater in resources:
+        t_gates = backend.as_expression(resources[name_of_aggregated_t].value)
+        qubit_highwater = backend.as_expression(resources[name_of_qubit_highwater].value)
+        circuit_volume = t_gates * qubit_highwater
+        resources["circuit_volume"] = Resource(
+            name="circuit_volume",
+            type=ResourceType.other,
+            value=circuit_volume,
+        )
+    else:
+        warnings.warn(
+            f"Routine '{routine.name}' missing required resources: "
+            f"{name_of_aggregated_t} or {name_of_qubit_highwater}. 'circuit_volume' not added."
+        )
+    return replace(routine, resources=resources, children=new_children)

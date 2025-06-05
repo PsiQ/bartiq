@@ -18,12 +18,8 @@ from typing import Callable, Generic, TypeVar
 
 from qref import SchemaV1
 
-from bartiq.errors import BartiqCompilationError
-
-from .._routine import CompiledRoutine, routine_to_qref
-from ..symbolics import sympy_backend
-from ..symbolics.backend import SymbolicBackend, T, TExpr
-from ._common import (
+from bartiq._routine import CompiledRoutine, routine_to_qref
+from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
     evaluate_constraints,
@@ -31,6 +27,9 @@ from ._common import (
     evaluate_repetition,
     evaluate_resources,
 )
+from bartiq.errors import BartiqCompilationError
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 S = TypeVar("S")
 
@@ -53,7 +52,7 @@ class EvaluationResult(Generic[T]):
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        """Converts `routine` to QREF using `_backend`."""
+        """Converts [`routine`][bartiq.CompiledRoutine] to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 
@@ -103,17 +102,25 @@ def _evaluate_internal(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
+
+    updated_children: dict[str, CompiledRoutine[T]] = {
+        name: _evaluate_internal(
+            child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)
+        )
+        for name, child in compiled_routine.children.items()
+    }
+
+    child_substitutions: dict[str, TExpr] = {
+        f"{cname}.{rname}": resource.value
+        for cname, child in updated_children.items()
+        for rname, resource in child.resources.items()
+    }
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
         ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
-        resources=evaluate_resources(compiled_routine.resources, inputs, backend, functions_map),
+        resources=evaluate_resources(compiled_routine.resources, inputs | child_substitutions, backend, functions_map),
         constraints=new_constraints,
         repetition=evaluate_repetition(compiled_routine.repetition, inputs, backend, functions_map),
-        children={
-            name: _evaluate_internal(
-                child, inputs, backend=backend, functions_map=functions_map, context=context.descend(name)
-            )
-            for name, child in compiled_routine.children.items()
-        },
+        children=updated_children,
     )

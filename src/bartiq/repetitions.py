@@ -17,7 +17,7 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, replace
 from functools import singledispatch
-from typing import Callable, Generic, Literal, cast
+from typing import Callable, Generic, Iterable, Literal, cast
 
 from qref.schema_v1 import (
     ArithmeticSequenceV1,
@@ -172,9 +172,10 @@ class CustomSequence(Generic[T]):
         if functions_map is None:
             functions_map = {}
 
-        symbols_to_substitute = [backend.free_symbols_in(expr) for expr in inputs.values()]
-        symbols_to_substitute = [symbol for sublist in symbols_to_substitute for symbol in sublist]
-        symbols_to_be_substituted = inputs.keys()
+        symbols_to_substitute: list[TExpr] = [
+            symbols for expr in inputs.values() for symbols in backend.free_symbols_in(expr)
+        ]
+        symbols_to_be_substituted: Iterable[TExpr] = inputs.keys()
         if backend.serialize(self.iterator_symbol) in [*symbols_to_substitute, *symbols_to_be_substituted]:
             raise BartiqCompilationError(
                 f"Tried to replace symbol that's used as iterator symbol in a sequence: {self.iterator_symbol}."

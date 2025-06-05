@@ -32,7 +32,7 @@ from typing_extensions import TypeAlias
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
+from .sympy_interpreter import SPECIAL_FUNCS, Max, SympyInterpreter
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
@@ -115,7 +115,11 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 @lru_cache
 def _value_of(expr: Expr) -> Number | None:
-    """Compute a numerical value of an expression, return None if it's not possible."""
+    """Compute a numerical value of an expression, return None if it's not possible.
+
+    Raises:
+        TypeError: If the expression cannot be rounded.
+    """
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
     except TypeError as e:
@@ -200,7 +204,11 @@ class SympyBackend:
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
-        """Define an undefined function."""
+        """Define an undefined function.
+
+        Raises:
+            BartiqCompilationError: If the function name is a built-in function.
+        """
         # Catch attempt to define special function names
         if func_name in BUILT_IN_FUNCTIONS:
             raise BartiqCompilationError(
@@ -257,7 +265,15 @@ class SympyBackend:
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return sympy.Max(*args)
+        return Max(*set(args))
+
+    def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
+        """Return sum of all args."""
+        return sympy.Add(*args)
+
+    def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
+        """Return product of all args."""
+        return sympy.Mul(*args)
 
     def sequence_sum(
         self,

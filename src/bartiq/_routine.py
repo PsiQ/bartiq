@@ -31,7 +31,15 @@ S = TypeVar("S", default=str | None)
 
 
 class ResourceType(str, Enum):
-    """Class for representing types of resources."""
+    """Class for representing types of resources.
+    This class is used to categorize resources in routines, such as time, energy, qubits, etc.
+
+    Possible values:
+        - **additive**: Represents an additive resource, such as time or energy.
+        - **multiplicative**: Represents a multiplicative resource, such as qubits or gates.
+        - **qubits**: Represents the number of qubits used in a [`Routine`][bartiq.Routine].
+        - **other**: Represents any other resource type not covered by the above categories.
+    """
 
     additive = "additive"
     multiplicative = "multiplicative"
@@ -40,7 +48,14 @@ class ResourceType(str, Enum):
 
 
 class PortDirection(str, Enum):
-    """Class for representing port direction."""
+    """Class for representing port direction.
+    This class is used to categorize ports in routines, such as input, output, and through ports.
+
+    Possible values:
+        - **input**: Represents an input [`Port`][bartiq.Port] for receiving data.
+        - **output**: Represents an output [`Port`][bartiq.Port] for sending data.
+        - **through**: Represents a through [`Port`][bartiq.Port] for passing data without modification.
+    """
 
     input = "input"
     output = "output"
@@ -62,6 +77,8 @@ class Constraint(Generic[T]):
 
 @dataclass(frozen=True)
 class Port(Generic[T]):
+    """Class for representing a port in a routine."""
+
     name: str
     direction: str
     size: TExpr[T]
@@ -110,6 +127,10 @@ class BaseRoutine(Generic[T]):
             )
 
     @property
+    def resource_values(self) -> dict[str, TExpr[T]]:
+        return {k: v.value for k, v in self.resources.items()}
+
+    @property
     def inner_connections(self) -> dict[Endpoint[str], Endpoint[str]]:
         return cast(
             dict[Endpoint[str], Endpoint[str]],
@@ -141,6 +162,29 @@ class BaseRoutine(Generic[T]):
     def sorted_children(self) -> Iterable[Self]:
         return [self.children[child_name] for child_name in self.sorted_children_order]
 
+    def find_descendants(
+        self,
+        name: str,
+        mode: Literal["dfs", "bfs"] = "dfs",
+        max_depth: int | None = None,
+    ) -> list[list[str]]:
+        """
+        Find all pathways to descendant subroutines with the given name.
+
+        Args:
+            name: The name of the desired subroutine.
+            mode: 'dfs' (default) or 'bfs' for traversal order.
+            max_depth: Maximum depth to search (None = unlimited).
+
+        Returns:
+            List of pathways (each a list of child names).
+        """
+        if mode == "dfs":
+            return _depth_first_search(self, name, [], 1, max_depth)
+        if mode == "bfs":
+            return _breadth_first_search(self, name, max_depth)
+        raise ValueError(f"Unknown mode: {mode}. Options are 'dfs', 'bfs'.")
+
 
 @dataclass(frozen=True, kw_only=True)
 class Routine(BaseRoutine[T]):
@@ -154,7 +198,7 @@ class Routine(BaseRoutine[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> Routine[T]:
-        """Load Routine from a QREF definition, using specified backend for parsing expressions."""
+        """Load [`Routine`][bartiq.Routine] from a QREF definition, using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return Routine[T](
@@ -191,7 +235,8 @@ class CompiledRoutine(BaseRoutine[T]):
 
     @classmethod
     def from_qref(cls, qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> CompiledRoutine[T]:
-        """Load CompiledRoutine from a QREF definition, using specified backend for parsing expressions."""
+        """Load [`CompiledRoutine`][bartiq.CompiledRoutine] from a QREF definition,
+        using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         return CompiledRoutine[T](
@@ -201,7 +246,7 @@ class CompiledRoutine(BaseRoutine[T]):
         )
 
     def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
-        """Exports Routine to QREF.
+        """Exports [`CompiledRoutine`][bartiq.CompiledRoutine] to QREF.
 
         Args:
             backend: backend used to serialize the symbolic expressions.
@@ -219,7 +264,7 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "name": program.name,
         "type": program.type,
         "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
-        "input_params": tuple(program.input_params),
+        "input_params": program.input_params,
         "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
         "repetition": repetition_from_qref(program.repetition, backend),
         "connections": {
@@ -303,3 +348,30 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         repetition=repetition_to_qref(routine.repetition, backend),
         **kwargs,
     )
+
+
+def _depth_first_search(routine, name, path, depth, max_depth):
+    results = []
+    if max_depth and depth > max_depth:
+        return results
+    for child_name, child in routine.children.items():
+        new_path = path + [child_name]
+        if child_name == name:
+            results.append(new_path)
+        results.extend(_depth_first_search(child, name, new_path, depth + 1, max_depth))
+    return results
+
+
+def _breadth_first_search(routine, name, max_depth):
+    results = []
+    queue = [(routine, [], 1)]
+    while queue:
+        current, path, depth = queue.pop(0)
+        if max_depth and depth > max_depth:
+            continue
+        for child_name, child in current.children.items():
+            new_path = path + [child_name]
+            if child_name == name:
+                results.append(new_path)
+            queue.append((child, new_path, depth + 1))
+    return results

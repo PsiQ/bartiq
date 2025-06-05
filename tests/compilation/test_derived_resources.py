@@ -18,7 +18,8 @@ import pytest
 import yaml
 from qref import SchemaV1
 
-from bartiq import compile_routine
+from bartiq import CompiledRoutine, compile_routine
+from bartiq.compilation import CompilationFlags
 from bartiq.compilation.derived_resources import calculate_highwater
 
 
@@ -37,8 +38,8 @@ HIGHWATER_TEST_DATA = load_highwater_test_data()
 @pytest.mark.parametrize("routine, expected_routine", HIGHWATER_TEST_DATA)
 def test_compute_highwater(routine, expected_routine, backend):
     derived_resources = [{"name": "qubit_highwater", "type": "qubits", "calculate": calculate_highwater}]
-    compiled_routine = compile_routine(routine, derived_resources=derived_resources, backend=backend)
-    assert compiled_routine.to_qref() == expected_routine
+    compiled_routine = compile_routine(routine, derived_resources=derived_resources, backend=backend).routine
+    assert compiled_routine == CompiledRoutine.from_qref(expected_routine, backend)
 
 
 def test_compute_highwater_with_custom_names(backend):
@@ -117,3 +118,50 @@ def test_highwater_of_an_empty_routine_is_zero():
     compiled_routine = compile_routine(input_routine, derived_resources=derived_resources).routine
 
     assert compiled_routine.resources["qubit_highwater"].value == 0
+
+
+@pytest.mark.parametrize("compilation_flags", [CompilationFlags(0), CompilationFlags.EXPAND_RESOURCES])
+def test_additive_derived_resources_are_processed_correctly(compilation_flags):
+    resource_name = "test_resource"
+    input_routine = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": None,
+            "children": [
+                {
+                    "name": "a",
+                    "type": "a",
+                },
+                {
+                    "name": "b",
+                    "type": "b",
+                },
+                {
+                    "name": "c",
+                    "type": "c",
+                    "resources": [
+                        {"name": resource_name, "type": "additive", "value": 7},
+                    ],
+                },
+            ],
+        },
+    }
+
+    def add_test_resource(routine, _):
+        if resource_name in routine.resources or len(routine.children) != 0:
+            return None
+        else:
+            return 5
+
+    derived_resources = [{"name": resource_name, "type": "additive", "calculate": add_test_resource}]
+    compilation_result = compile_routine(
+        input_routine, derived_resources=derived_resources, compilation_flags=compilation_flags
+    )
+    compiled_routine = compilation_result.routine
+    backend = compilation_result._backend
+    assert (
+        compiled_routine.resources[resource_name].value == 17
+        if CompilationFlags.EXPAND_RESOURCES in compilation_flags
+        else backend.as_expression("+".join(f"{child}.{resource_name}" for child in compiled_routine.children))
+    )

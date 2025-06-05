@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from dataclasses import replace
 
+import pytest
 from qref.schema_v1 import RoutineV1
 
 from bartiq import compile_routine
 from bartiq._routine import Routine
+from bartiq.compilation import CompilationFlags
 from bartiq.compilation.postprocessing import aggregate_resources
 
 
@@ -68,10 +69,26 @@ def test_two_postprocessing_stages(backend):
         assert child.type == "cool_kid"
 
 
-def test_aggregate_resources(backend):
+@pytest.mark.parametrize("compilation_flags", [CompilationFlags(0), CompilationFlags.EXPAND_RESOURCES])
+def test_aggregate_resources(backend, compilation_flags):
     routine = _get_simple_routine(backend)
     aggregation_dict = {"a": {"op": 1}, "b": {"op": 2}, "c": {"op": 3}}
     postprocessing_stages = [aggregate_resources(aggregation_dict, remove_decomposed=True)]
-    compiled_routine = compile_routine(routine, postprocessing_stages=postprocessing_stages, backend=backend).routine
+    compiled_routine = compile_routine(
+        routine,
+        postprocessing_stages=postprocessing_stages,
+        backend=backend,
+        compilation_flags=compilation_flags,
+    ).routine
     assert len(compiled_routine.resources) == 1
-    assert compiled_routine.resources["op"].value == 22
+    assert (
+        compiled_routine.resources["op"].value == 22
+        if CompilationFlags.EXPAND_RESOURCES in compilation_flags
+        else backend.as_expression(
+            "+".join(
+                f"{aggregation_dict[resource]['op']}*{child}.{resource}"
+                for child in routine.children
+                for resource in routine.children[child].resources
+            )
+        )
+    )

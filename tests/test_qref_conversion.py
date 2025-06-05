@@ -12,23 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pathlib import Path
 
 import pytest
-import yaml
-from qref import SchemaV1
 
 from bartiq import CompiledRoutine, Routine, routine_to_qref
 from bartiq.symbolics.sympy_backend import SympyBackend
-
-
-def load_compile_test_data():
-    test_files_path = Path(__file__).parent / "compilation/data/compile/"
-    for path in sorted(test_files_path.rglob("*.yaml")):
-        with open(path) as f:
-            for original, expected in yaml.safe_load(f):
-                yield (SchemaV1(**original), SchemaV1(**expected))
-
+from tests.utilities import load_compile_test_data
 
 COMPILE_TEST_DATA = load_compile_test_data()
 

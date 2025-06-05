@@ -18,12 +18,12 @@ from .._routine import CompiledRoutine
 from ..symbolics.backend import SymbolicBackend, T, TExpr
 
 
-def _inflow(routine: CompiledRoutine[T]) -> TExpr[T]:
-    return sum(port.size for port in routine.filter_ports(["input", "through"]).values())
+def _inflow(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    return backend.sum(*[port.size for port in routine.filter_ports(["input", "through"]).values()])
 
 
-def _outflow(routine: CompiledRoutine[T]) -> TExpr[T]:
-    return sum(port.size for port in routine.filter_ports(["output", "through"]).values())
+def _outflow(routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T]:
+    return backend.sum(*[port.size for port in routine.filter_ports(["output", "through"]).values()])
 
 
 def calculate_highwater(
@@ -46,8 +46,8 @@ def calculate_highwater(
     Returns:
         The routine with added added the highwater resource.
     """
-    active_flow = _inflow(routine)
-    outflow = _outflow(routine)
+    active_flow = _inflow(routine, backend)
+    outflow = _outflow(routine, backend)
     watermarks: list[TExpr[T]] = [active_flow]
 
     if routine.children_order != routine.sorted_children_order:
@@ -57,13 +57,13 @@ def calculate_highwater(
         )
 
     for child in routine.sorted_children():
-        inflow = _inflow(child)
-        outflow = _outflow(child)
+        inflow = _inflow(child, backend)
+        outflow = _outflow(child, backend)
 
         watermarks.append(active_flow - inflow + child.resources[resource_name].value)
         active_flow = active_flow - inflow + outflow
 
-    watermarks.append(_outflow(routine))
+    watermarks.append(_outflow(routine, backend))
     local_ancillae = routine.resources[ancillae_name].value if ancillae_name in routine.resources else 0
 
     nonzero_watermarks = [watermark for watermark in watermarks if watermark != 0]

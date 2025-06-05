@@ -13,34 +13,32 @@
 # limitations under the License.
 
 import re
-from pathlib import Path
 
 import pytest
-import yaml
-from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
-from bartiq import compile_routine
+from bartiq import Routine, compile_routine
+from bartiq.compilation import CompilationFlags
 from bartiq.compilation.preprocessing import introduce_port_variables
 from bartiq.errors import BartiqCompilationError, BartiqPreprocessingError
-
-
-def load_compile_test_data():
-    test_files_path = Path(__file__).parent / "data/compile/"
-    for path in sorted(test_files_path.rglob("*.yaml")):
-        with open(path) as f:
-            for original, expected in yaml.safe_load(f):
-                yield (SchemaV1(**original), SchemaV1(**expected))
-
+from tests.utilities import load_compile_test_data, load_transitive_resource_data
 
 COMPILE_TEST_DATA = load_compile_test_data()
+COMPILE_TEST_DATA_TRANSITIVE_RESOURCES = load_transitive_resource_data()
 
 
-@pytest.mark.filterwarnings("ignore:Found the following issues with the provided routine")
 @pytest.mark.parametrize("routine, expected_routine", COMPILE_TEST_DATA)
-def test_compile(routine, expected_routine, backend):
-    compiled_routine = compile_routine(routine, skip_verification=False, backend=backend).to_qref()
+def test_compile_with_no_transitive_resources(routine, expected_routine, backend):
+    compiled_routine = compile_routine(
+        routine, backend=backend, compilation_flags=CompilationFlags.EXPAND_RESOURCES
+    ).to_qref()
     assert compiled_routine == expected_routine
+
+
+@pytest.mark.parametrize("routine, compiled_transitive, _", COMPILE_TEST_DATA_TRANSITIVE_RESOURCES)
+def test_compile_with_transitive_resources(routine, compiled_transitive, _, backend):
+    compiled_routine = compile_routine(routine, backend=backend).to_qref()
+    assert compiled_routine == compiled_transitive
 
 
 def f_1_simple(x):
@@ -57,7 +55,11 @@ def f_3_optional_inputs(a, b=2, c=3):
     return a + b * c
 
 
-def test_compiling_correctly_propagates_global_functions():
+@pytest.mark.parametrize(
+    "compilation_flags, expected_resource_value",
+    [[None, "a.X + b.X + c.X"], [CompilationFlags.EXPAND_RESOURCES, "2*O(1) + f(1, 2, 3) + g(7) + 5"]],
+)
+def test_compiling_correctly_propagates_global_functions(compilation_flags, expected_resource_value):
     routine = RoutineV1(
         name="root",
         type="dummy",
@@ -81,10 +83,9 @@ def test_compiling_correctly_propagates_global_functions():
         ],
     )
 
-    result = compile_routine(routine)
-
+    result = compile_routine(routine, compilation_flags=compilation_flags)
     # resources[0] is the only resource X
-    assert result.to_qref().program.resources[0].value == "2*O(1) + f(1, 2, 3) + g(7) + 5"
+    assert result.to_qref().program.resources[0].value == expected_resource_value
 
 
 COMPILE_ERRORS_TEST_CASES = [
@@ -139,7 +140,10 @@ COMPILE_ERRORS_TEST_CASES = [
 def test_compile_errors(routine, expected_error, backend):
     with pytest.raises(BartiqCompilationError, match=re.escape(expected_error)):
         compile_routine(
-            routine, preprocessing_stages=[introduce_port_variables], backend=backend, skip_verification=True
+            routine,
+            preprocessing_stages=[introduce_port_variables],
+            backend=backend,
+            compilation_flags=CompilationFlags.SKIP_VERIFICATION,
         )
 
 
@@ -220,3 +224,57 @@ def test_compilation_fails_if_input_ports_has_size_depending_on_undefined_variab
         BartiqPreprocessingError, match=r"Size of the port in_0 depends on symbols \['M', 'N'\] which are undefined."
     ):
         compile_routine(routine, backend=backend)
+
+
+N_CHILDREN = 1000
+
+
+# Note: we will serialize the obtained value and compare it to the f-strings below. Theoretically,
+# we could instead parse the strings and compare them to the actual values - but in practice this would
+# mess up the parser because of the recursion limit.
+# Also note: these strings are specific to sympy.
+@pytest.mark.order(-1)
+@pytest.mark.timeout(30)
+@pytest.mark.parametrize(
+    "compilation_flags, expected_t_count, expected_foo",
+    [
+        [CompilationFlags.EXPAND_RESOURCES, f"{N_CHILDREN}*n", f"n ^ {N_CHILDREN}"],
+        [
+            None,
+            " + ".join(sorted(f"child_{x}.t_count" for x in range(N_CHILDREN))),
+            "*".join(sorted(f"child_{x}.foo" for x in range(N_CHILDREN))),
+        ],
+    ],
+)
+def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
+    backend, compilation_flags, expected_t_count, expected_foo
+):
+    # This test does not check correctness, but rather serves as litmus paper detecting performance
+    # regression. See https://github.com/PsiQ/bartiq/issues/181
+
+    qref_def = {
+        "version": "v1",
+        "program": {
+            "name": "root",
+            "type": "root",
+            "input_params": ["n"],
+            "children": [
+                {
+                    "name": f"child_{i}",
+                    "resources": [
+                        {"type": "additive", "name": "t_count", "value": "n"},
+                        {"type": "multiplicative", "name": "foo", "value": "n"},
+                    ],
+                }
+                for i in range(N_CHILDREN)
+            ],
+        },
+    }
+
+    routine = Routine.from_qref(qref_def, backend)
+    compilation_result = compile_routine(routine, backend=backend, compilation_flags=compilation_flags).routine
+    assert (
+        list(compilation_result.resources) == ["t_count", "foo"]
+        and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count
+        and backend.serialize(compilation_result.resources["foo"].value) == expected_foo
+    )

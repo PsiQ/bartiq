@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.13.1](https://github.com/PsiQ/bartiq/compare/v0.13.0...v0.13.1) (2025-05-27)
+
+
+### Documentation
+
+* add information for Unitary Hack ([#206](https://github.com/PsiQ/bartiq/issues/206)) ([30f8759](https://github.com/PsiQ/bartiq/commit/30f8759dc0a316ec1e4f998a64422082f8723ef7))
+
+## [0.13.0](https://github.com/PsiQ/bartiq/compare/v0.12.1...v0.13.0) (2025-05-23)
+
+
+### Features
+
+* add server-side enforcement for conventional commits. ([#198](https://github.com/PsiQ/bartiq/issues/198)) ([8bca534](https://github.com/PsiQ/bartiq/commit/8bca534e82f5a81301c389370aee8b27144e228b))
+* created `CompilationFlags` enum ([#197](https://github.com/PsiQ/bartiq/issues/197)) ([03ccaec](https://github.com/PsiQ/bartiq/commit/03ccaec64e598bc245d90f7efa241516cc237196))
+* more performant calculation of derived resources ([#204](https://github.com/PsiQ/bartiq/issues/204)) ([f1a419e](https://github.com/PsiQ/bartiq/commit/f1a419ed9adf579fc495967b9b12e98d59323ed2))
+
+
+### Bug Fixes
+
+* **ci:** fix PR title linting ([#203](https://github.com/PsiQ/bartiq/issues/203)) ([1498b31](https://github.com/PsiQ/bartiq/commit/1498b310bcfdda41796652e9bf3cc691bc747992))
+
+## [0.12.1](https://github.com/PsiQ/bartiq/compare/v0.12.0...v0.12.1) (2025-04-28)
+
+
+### Bug Fixes
+
+* move adding arithmetic resources from preprocessing to compilation ([#190](https://github.com/PsiQ/bartiq/issues/190)) ([f6ac145](https://github.com/PsiQ/bartiq/commit/f6ac145a3cbbc4042e43560b7c49e388af55bc44))
+
+## [0.12.0](https://github.com/PsiQ/bartiq/compare/v0.11.0...v0.12.0) (2025-04-08)
+
+
+### Features
+
+* Add backend sum and backend prod ([#182](https://github.com/PsiQ/bartiq/issues/182)) ([42176cf](https://github.com/PsiQ/bartiq/commit/42176cf5ed2a2bc39c70be40daa020ae1dd30c70))
+
 ## [0.11.0](https://github.com/PsiQ/bartiq/compare/v0.10.0...v0.11.0) (2025-03-25)
 
 
