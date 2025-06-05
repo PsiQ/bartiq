@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import re
-from enum import StrEnum
-from collections.abc import Callable
-from typing import Optional, Any
 import warnings
+from collections.abc import Callable
+from enum import StrEnum
+from typing import Any, Optional
+
 import sympy
-from sympy import Add, Expr, Symbol, Wild, Function
+from sympy import Add, Expr, Function, Symbol, Wild
+
 from bartiq.symbolics.sympy_backend import parse_to_sympy, sympy_backend
 
 

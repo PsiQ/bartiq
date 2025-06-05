@@ -1,9 +1,11 @@
 from __future__ import annotations
+
+from numbers import Number
 from typing import Literal
+
 import pandas as pd
 import plotly.express as px
 from plotly.graph_objs._figure import Figure as PlotlyFig
-from numbers import Number
 
 from bartiq import CompiledRoutine, Resource
 
@@ -17,6 +19,7 @@ class TreeMap:
     Raises:
         ValueError: If any resource in the top level routine has a non-numeric value.
     """
+
     COLUMNS = ["Routine", "Parent", "Contribution"]
 
     def __init__(self, routine: CompiledRoutine):
@@ -117,11 +120,7 @@ class TreeMap:
             unique_parent = old_name_to_latest_unique_name.get(parent, parent)
             old_name_to_latest_unique_name[routine] = unique_routine_name
 
-            result.append({
-                **row,
-                routine_col: unique_routine_name,
-                parent_col: unique_parent
-            })
+            result.append({**row, routine_col: unique_routine_name, parent_col: unique_parent})
 
         return pd.DataFrame(result)
 

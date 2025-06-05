@@ -17,28 +17,39 @@ import pandas as pd
 
 from bartiq.visualisations import TreeMap
 
-test_data_df = np.array([['child', 'root', 3630.0],
-       ['child', 'child', 7260.0],
-       ['child', 'child', 10890.0],
-       ['child', 'child', 14520.0],
-       ['child', 'child', 18150.0]], dtype=object)
+test_data_df = np.array(
+    [
+        ["child", "root", 3630.0],
+        ["child", "child", 7260.0],
+        ["child", "child", 10890.0],
+        ["child", "child", 14520.0],
+        ["child", "child", 18150.0],
+    ],
+    dtype=object,
+)
 
-expected_data = np.array([['child', 'root', 3630.0],
-       ['child_2', 'child', 7260.0],
-       ['child_3', 'child_2', 10890.0],
-       ['child_4', 'child_3', 14520.0],
-       ['child_5', 'child_4', 18150.0]], dtype=object)
+expected_data = np.array(
+    [
+        ["child", "root", 3630.0],
+        ["child_2", "child", 7260.0],
+        ["child_3", "child_2", 10890.0],
+        ["child_4", "child_3", 14520.0],
+        ["child_5", "child_4", 18150.0],
+    ],
+    dtype=object,
+)
+
 
 def test_dataframe_with_unique_routine_names(monkeypatch):
-        columns = ['Routine', 'Parent', 'Contribution']
-        df = pd.DataFrame(test_data_df, columns=columns)
-        result = TreeMap.dataframe_with_unique_routine_names(df)
-        assert result.columns.tolist() == columns
+    columns = ["Routine", "Parent", "Contribution"]
+    df = pd.DataFrame(test_data_df, columns=columns)
+    result = TreeMap.dataframe_with_unique_routine_names(df)
+    assert result.columns.tolist() == columns
 
-        result = result.to_numpy()
+    result = result.to_numpy()
 
-        assert result.shape == expected_data.shape
-        for row1, row2 in zip(result, expected_data):
-            assert len(row1) == len(row2)
-            for entry1, entry2 in zip(row1, row2):
-                assert entry1 == entry2
+    assert result.shape == expected_data.shape
+    for row1, row2 in zip(result, expected_data):
+        assert len(row1) == len(row2)
+        for entry1, entry2 in zip(row1, row2):
+            assert entry1 == entry2
