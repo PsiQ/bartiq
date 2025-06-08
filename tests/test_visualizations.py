@@ -14,8 +14,36 @@
 
 import numpy as np
 import pandas as pd
+import pytest
+from qref import SchemaV1
 
-from bartiq.visualisations import TreeMap
+from bartiq import Routine, compile_routine
+from bartiq.symbolics.sympy_backend import SympyBackend
+from bartiq.visualizations import TreeMap
+
+
+def test_tree_map_input_non_routine_raises():
+    with pytest.raises(ValueError, match="Routine should be of type Routine or CompiledRoutine"):
+        TreeMap(0.4)
+
+
+def test_tree_map_non_numeric_routine_raises():
+    input_schema = SchemaV1(
+        program={
+            "name": "root",
+            "resources": [
+                {"name": "success_rate", "type": "multiplicative", "value": "success"},
+            ],
+        },
+        version="v1",
+    )
+
+    backend = SympyBackend()
+    routine_from_qref = Routine.from_qref(input_schema, backend=backend)
+    c_routine = compile_routine(routine_from_qref).routine
+    with pytest.raises(ValueError, match="only accepts numeric routines"):
+        TreeMap(c_routine)
+
 
 test_data_df = np.array(
     [
