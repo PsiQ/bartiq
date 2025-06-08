@@ -17,11 +17,13 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 from graphlib import TopologicalSorter
+from numbers import Number
 from typing import Generic, Literal, cast
 
 from qref import SchemaV1
 from qref.functools import AnyQrefType, ensure_routine
 from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1
+from sympy import Expr, Symbol
 from typing_extensions import Self, TypedDict, TypeVar
 
 from .repetitions import Repetition, repetition_from_qref, repetition_to_qref
@@ -256,6 +258,42 @@ class CompiledRoutine(BaseRoutine[T]):
 
         """
         return SchemaV1(version="v1", program=_routine_to_qref_program(self, backend))
+
+    def is_numeric(self) -> bool:
+        """Determines if this and nested compiled routines are numeric."""
+        for resource, resource_obj in getattr(self, "resources", {}).items():
+            resource_val = resource_obj.value
+            print(resource_val)
+            if isinstance(resource_val, Symbol):
+                # If the Symbol is generated, it was not user entered - routine
+                # is still numeric
+                if not self._is_resource_value_generated_sympy_symbol(resource):
+                    return False
+            elif not isinstance(resource_val, (Number, Expr)):
+                return False
+        for child in getattr(self, "children", {}).values():
+            if not child.is_numeric():
+                return False
+        return True
+
+    def _is_resource_value_generated_sympy_symbol(self, resource: str) -> bool:
+        """Check that the value of a specific resource is generated Symbol.
+
+        During compilation of a ``Routine``, some routines may not have the
+        ``value`` set and those are defined based on the values of children.
+
+        This function checks if the expected ``child_name.resource_name`` string is
+        the pattern of the resource value that's extracted. If that's the case,
+        this function returns ``True``, otherwise ``False``.
+        """
+        str1 = str(self.resource_values[resource])
+        if "." in str1:
+            substrings = str1.split(".")
+            if len(substrings) == 2:
+                first = substrings[0]
+                sec = substrings[1]
+                return first in self.children and sec in self.children[first].resources
+        return False
 
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:

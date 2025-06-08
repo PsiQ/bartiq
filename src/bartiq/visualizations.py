@@ -1,17 +1,37 @@
+# Copyright 2025 PsiQuantum, Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""Functions and classes for visualizing the data contained in routines."""
+
 from __future__ import annotations
 
 from numbers import Number
-from typing import Literal
+from typing import Literal, Union
 
 import pandas as pd
 import plotly.express as px
 from plotly.graph_objs._figure import Figure as PlotlyFig
 
-from bartiq import CompiledRoutine, Resource
+from bartiq import CompiledRoutine, Resource, Routine
+from bartiq.compilation import compile_routine
 
 
 class TreeMap:
     """Plot treemaps for different resources given a numeric compiled routine.
+
+    The input should be a ``Routine`` or a ``CompiledRoutine`` object. If the
+    routine was not compiled before, then instantiating this class will compile
+    it.
 
     Args:
         routine: The routine to generate treemaps for.
@@ -22,11 +42,19 @@ class TreeMap:
 
     COLUMNS = ["Routine", "Parent", "Contribution"]
 
-    def __init__(self, routine: CompiledRoutine):
-        self.routine = routine
-        if not all(isinstance(resource_value, Number) for resource_value in self.routine.resources_values().values():
+    def __init__(self, routine: Union[CompiledRoutine, Routine]):
+        if not isinstance(routine, (CompiledRoutine, Routine)):
+            raise ValueError(
+                f"Routine should be of type Routine or CompiledRoutine, received object with type {type(routine)}."
+            )
+
+        if isinstance(routine, Routine):
+            routine = compile_routine(routine).routine
+
+        if not routine.is_numeric():
             raise ValueError(f"{self.__class__.__name__} only accepts numeric routines.")
 
+        self.routine = routine
         self.valid_resources = set([resource_name for resource_name in self.routine.resources.keys()])
 
     def get_dataframe(self, resource: str, scale_to: Literal["parent", "root"] | Number = 1) -> pd.DataFrame:
