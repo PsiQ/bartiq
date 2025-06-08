@@ -24,7 +24,7 @@ class TreeMap:
 
     def __init__(self, routine: CompiledRoutine):
         self.routine = routine
-        if any(not isinstance(x.value, Number) for x in self.routine.resources.values()):
+        if not all(isinstance(resource_value, Number) for resource_value in self.routine.resources_values().values():
             raise ValueError(f"{self.__class__.__name__} only accepts numeric routines.")
 
         self.valid_resources = set([resource_name for resource_name in self.routine.resources.keys()])
