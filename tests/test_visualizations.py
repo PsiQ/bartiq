@@ -140,6 +140,29 @@ def test_get_dataframe(monkeypatch):
             assert entry1 == entry2
 
 
+def test_plot_output_type(monkeypatch):
+    from plotly.graph_objs._figure import Figure
+
+    input_schema = SchemaV1(
+        program={
+            "name": "root",
+            "resources": [
+                {"name": "success_rate", "type": "multiplicative", "value": 2320.0},
+            ],
+        },
+        version="v1",
+    )
+
+    backend = SympyBackend()
+    routine_from_qref = Routine.from_qref(input_schema, backend=backend)
+    c_routine = compile_routine(routine_from_qref).routine
+
+    tree_map = TreeMap(c_routine)
+    result = tree_map.plot("success_rate")
+
+    assert isinstance(result, Figure)
+
+
 def test_plot_invalid_resource_raises():
     input_schema = SchemaV1(
         program={
