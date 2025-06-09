@@ -119,7 +119,7 @@ class TreeMap:
             names=routine,
             values=contribution,
             parents=parent,
-            color="Contribution",
+            color=contribution,
             color_continuous_scale="reds",
             title=f"{resource}",
         )
