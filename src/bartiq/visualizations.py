@@ -90,64 +90,6 @@ class TreeMap:
 
         return _update_dataframe_recursive(output_from_parent, self.routine.name, df)
 
-    @classmethod
-    def dataframe_with_unique_routine_names(cls, df):
-        """Get the dataframe with unique routine names ready to be plotted.
-
-        Certain routine names may appear more than once in a
-        ``CompiledRoutine``. These are not easily handled by ``plotly`` because
-        it cannot work out redundant routine names as well as parent-child
-        relations for redundant names.
-
-        This method applies a renaming based on the input dataframe such that
-        each new definition of a routine whose name already exists is renamed.
-        The new name is the original routine name folowed by an underscore
-        separator and a numerical counter.
-
-        Note: this method assumes that the data in the dataframe are ordered.
-        This is used to determine new parent data. Specficially, each time a
-        routine is defined with a certain name, any following row in the
-        dataframe that contains this routine as its parent will (of course) be
-        mapped to that particular routine as a child. Due to the renaming
-        described above, the parent entry of new row is also renamed to the
-        latest unique name that was created based on an input routine name.
-
-        For example: assume that "routine1" has been defined and "routine1" is
-        redefined once again. This method will rename the new routine to
-        "routine1_2" and any subsequent rows marking "routine1" as a parent
-        will also be changed such that they mark "routine1_2" as a parent.
-
-        Args:
-            df: Input dataframe that (likely) contains redundancies in the
-                routine names.
-
-        Returns:
-            pd.DataFrame
-        """
-        routine_name_counter: dict[str, int] = {}
-        old_name_to_latest_unique_name: dict[str, str] = {}
-        result = []
-
-        routine_col = cls.COLUMNS[0]
-        parent_col = cls.COLUMNS[1]
-
-        for _, row in df.iterrows():
-            routine = row[routine_col]
-            parent = row[parent_col]
-
-            # Handle routine name uniqueness
-            count = routine_name_counter.get(routine, 0) + 1
-            routine_name_counter[routine] = count
-            unique_routine_name = f"{routine}_{count}" if count > 1 else routine
-
-            # Update parent to latest known mapping
-            unique_parent = old_name_to_latest_unique_name.get(parent, parent)
-            old_name_to_latest_unique_name[routine] = unique_routine_name
-
-            result.append({**row, routine_col: unique_routine_name, parent_col: unique_parent})
-
-        return pd.DataFrame(result)
-
     def plot(self, resource: str) -> PlotlyFig:
         """Plot the treemap. This function returns a plotly `Figure` object, and calling
         .show() on the output will display the plot.
@@ -164,7 +106,7 @@ class TreeMap:
         # plotly may not render treemap without unique ID (routine) labels -
         # create new dataframe with unique routine names if needed
         if data_frame[routine_col].duplicated().any():
-            data_frame = self.dataframe_with_unique_routine_names(data_frame)
+            data_frame = _dataframe_with_unique_routine_names(data_frame)
 
         fig = px.treemap(
             data_frame,
@@ -209,3 +151,61 @@ def _get_descendant_contributions(routine: CompiledRoutine, resource: str) -> Ne
         for child in direct_children_contributions
     }
     return (direct_children_contributions, grandchildren)
+
+
+def _dataframe_with_unique_routine_names(df):
+    """Get the dataframe with unique routine names ready to be plotted.
+
+    Certain routine names may appear more than once in a
+    ``CompiledRoutine``. These are not easily handled by ``plotly`` because
+    it cannot work out redundant routine names as well as parent-child
+    relations for redundant names.
+
+    This method applies a renaming based on the input dataframe such that
+    each new definition of a routine whose name already exists is renamed.
+    The new name is the original routine name folowed by an underscore
+    separator and a numerical counter.
+
+    Note: this method assumes that the data in the dataframe are ordered.
+    This is used to determine new parent data. Specficially, each time a
+    routine is defined with a certain name, any following row in the
+    dataframe that contains this routine as its parent will (of course) be
+    mapped to that particular routine as a child. Due to the renaming
+    described above, the parent entry of new row is also renamed to the
+    latest unique name that was created based on an input routine name.
+
+    For example: assume that "routine1" has been defined and "routine1" is
+    redefined once again. This method will rename the new routine to
+    "routine1_2" and any subsequent rows marking "routine1" as a parent
+    will also be changed such that they mark "routine1_2" as a parent.
+
+    Args:
+        df: Input dataframe that (likely) contains redundancies in the
+            routine names.
+
+    Returns:
+        pd.DataFrame
+    """
+    routine_name_counter: dict[str, int] = {}
+    old_name_to_latest_unique_name: dict[str, str] = {}
+    result = []
+
+    routine_col = TreeMap.COLUMNS[0]
+    parent_col = TreeMap.COLUMNS[1]
+
+    for _, row in df.iterrows():
+        routine = row[routine_col]
+        parent = row[parent_col]
+
+        # Handle routine name uniqueness
+        count = routine_name_counter.get(routine, 0) + 1
+        routine_name_counter[routine] = count
+        unique_routine_name = f"{routine}_{count}" if count > 1 else routine
+
+        # Update parent to latest known mapping
+        unique_parent = old_name_to_latest_unique_name.get(parent, parent)
+        old_name_to_latest_unique_name[routine] = unique_routine_name
+
+        result.append({**row, routine_col: unique_routine_name, parent_col: unique_parent})
+
+    return pd.DataFrame(result)

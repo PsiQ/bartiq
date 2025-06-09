@@ -1,4 +1,4 @@
-# Copyright 2024 PsiQuantum, Corp.
+# Copyright 2025 PsiQuantum, Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from qref import SchemaV1
 
 from bartiq import Routine, compile_routine
 from bartiq.symbolics.sympy_backend import SympyBackend
-from bartiq.visualizations import TreeMap
+from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
 
 
 def test_tree_map_input_non_routine_raises():
@@ -71,7 +71,7 @@ expected_data = np.array(
 def test_dataframe_with_unique_routine_names(monkeypatch):
     columns = ["Routine", "Parent", "Contribution"]
     df = pd.DataFrame(test_data_df, columns=columns)
-    result = TreeMap.dataframe_with_unique_routine_names(df)
+    result = _dataframe_with_unique_routine_names(df)
     assert result.columns.tolist() == columns
 
     result = result.to_numpy()
