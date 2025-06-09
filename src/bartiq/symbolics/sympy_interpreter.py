@@ -54,7 +54,17 @@ from sympy import (
     log,
 )
 from sympy import multiplicity as orig_multiplicity
-from sympy import prod, re, sec, sech, sin, sinh, sqrt, tan, tanh
+from sympy import (
+    prod,
+    re,
+    sec,
+    sech,
+    sin,
+    sinh,
+    sqrt,
+    tan,
+    tanh,
+)
 from sympy.codegen.cfunctions import exp2, log2, log10
 from sympy.core.numbers import S as sympy_constants
 from sympy.core.sorting import ordered
