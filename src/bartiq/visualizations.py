@@ -18,9 +18,15 @@ from __future__ import annotations
 from numbers import Number
 from typing import Union, cast
 
-import pandas as pd
-import plotly.express as px  # type: ignore
-from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
+try:
+    import pandas as pd
+    import plotly.express as px  # type: ignore
+    from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "To use the Bartiq visualization functionality, reinstall with `poetry install -E visualization`."
+    )
+
 from sympy import Symbol
 
 from bartiq import CompiledRoutine, Resource, ResourceType
