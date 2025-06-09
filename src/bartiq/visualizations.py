@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from numbers import Number
-from typing import Literal, Union
+from typing import Union
 
 import pandas as pd
 import plotly.express as px
@@ -57,21 +57,17 @@ class TreeMap:
         self.routine = routine
         self.valid_resources = set([resource_name for resource_name in self.routine.resources.keys()])
 
-    def get_dataframe(self, resource: str, scale_to: Literal["parent", "root"] | Number = 1) -> pd.DataFrame:
+    def get_dataframe(self, resource: str) -> pd.DataFrame:
         """Get the dataframe defining the treemap for a given resource in the routine.
 
         Args:
             resource: Resource type to isolate.
-            scale_to: Optional input to rescale the values. Accepts a numeric value or string literal `parent`,
-            which will scale each resource count as a fraction of its parents. Defaults to 1, which is no scaling.
 
         Returns:
             pd.DataFrame
         """
         df = pd.DataFrame([], columns=self.COLUMNS)
-        output_from_parent = _get_descendant_contributions(
-            self.routine, resource, scale_to=self.routine.resources[resource].value if scale_to == "root" else scale_to
-        )
+        output_from_parent = _get_descendant_contributions(self.routine, resource)
 
         def _update_dataframe_recursive(
             output_from_parent: NestedContributions, parent: str, df: pd.DataFrame
@@ -152,19 +148,17 @@ class TreeMap:
 
         return pd.DataFrame(result)
 
-    def plot(self, resource: str, scale_to: Literal["parent"] | Number = 1) -> PlotlyFig:
+    def plot(self, resource: str) -> PlotlyFig:
         """Plot the treemap. This function returns a plotly `Figure` object, and calling
         .show() on the output will display the plot.
 
         Args:
             resource: Resource type to isolate.
-            scale_to: Optional input to rescale the values. Accepts a numeric value or string literal `parent`,
-            which will scale each resource count as a fraction of its parents. Defaults to 1, which is no scaling.
 
         Returns:
             PlotlyFig
         """
-        data_frame = self.get_dataframe(resource=resource, scale_to=scale_to)
+        data_frame = self.get_dataframe(resource=resource)
         routine_col = self.COLUMNS[0]
 
         # plotly may not render treemap without unique ID (routine) labels -
@@ -194,13 +188,13 @@ class TreeMap:
 Contributions = dict[str, Number]
 
 
-def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: str | int = 1) -> Contributions:
+def _get_child_contributions(routine: CompiledRoutine, resource: str) -> Contributions:
     return {
         child_routine.name: x
         for child_routine in routine.children.values()
         if (
             x := child_routine.resources.get(resource, Resource(name=resource, type=None, value=0)).value
-            / (routine.resources[resource].value if scale_to == "parent" else scale_to)
+            / (routine.resources[resource].value)
         )
     }
 
@@ -208,12 +202,10 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str, scale_to: 
 NestedContributions = tuple[Contributions, dict[str, Contributions]]
 
 
-def _get_descendant_contributions(
-    routine: CompiledRoutine, resource: str, scale_to: str | int = 1
-) -> NestedContributions:
-    direct_children_contributions = _get_child_contributions(routine=routine, resource=resource, scale_to=scale_to)
+def _get_descendant_contributions(routine: CompiledRoutine, resource: str) -> NestedContributions:
+    direct_children_contributions = _get_child_contributions(routine=routine, resource=resource)
     grandchildren = {
-        child: _get_descendant_contributions(routine=routine.children[child], resource=resource, scale_to=scale_to)
+        child: _get_descendant_contributions(routine=routine.children[child], resource=resource)
         for child in direct_children_contributions
     }
     return (direct_children_contributions, grandchildren)
