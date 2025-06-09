@@ -23,7 +23,7 @@ from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
 
 
 def test_tree_map_input_non_routine_raises():
-    with pytest.raises(ValueError, match="Routine should be of type Routine or CompiledRoutine"):
+    with pytest.raises(ValueError, match="Routine should be of type CompiledRoutine"):
         TreeMap(0.4)
 
 
@@ -109,6 +109,9 @@ def test_get_dataframe():
                     ],
                 },
             ],
+            "resources": [
+                {"name": "success_rate", "type": "multiplicative", "value": 2320.0},
+            ],
         },
         version="v1",
     )
@@ -163,7 +166,7 @@ def test_plot_output_type():
     assert isinstance(result, Figure)
 
 
-def test_plot_invalid_resource_raises():
+def test_get_dataframe_invalid_resource_raises():
     input_schema = SchemaV1(
         program={
             "name": "root",
@@ -179,4 +182,4 @@ def test_plot_invalid_resource_raises():
     c_routine = compile_routine(routine_from_qref).routine
     tree_map = TreeMap(c_routine)
     with pytest.raises(ValueError, match="Resource to be plotted should be in the valid resources"):
-        tree_map.plot("non_existent_resource")
+        tree_map.get_dataframe("non_existent_resource")

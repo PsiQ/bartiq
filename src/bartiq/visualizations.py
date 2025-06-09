@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+from numbers import Number
 from typing import Union, cast
 
 import pandas as pd
@@ -22,8 +23,7 @@ import plotly.express as px  # type: ignore
 from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
 from sympy import Symbol
 
-from bartiq import CompiledRoutine, Resource, ResourceType, Routine
-from bartiq.compilation import compile_routine
+from bartiq import CompiledRoutine, Resource, ResourceType
 
 
 class TreeMap:
@@ -45,19 +45,14 @@ class TreeMap:
 
     COLUMNS = ["Routine", "Parent", "Contribution"]
 
-    def __init__(self, routine: Union[CompiledRoutine, Routine]):
-        if not isinstance(routine, (CompiledRoutine, Routine)):
-            raise ValueError(
-                f"Routine should be of type Routine or CompiledRoutine, received object with type {type(routine)}."
-            )
-
-        if isinstance(routine, Routine):
-            routine = compile_routine(routine).routine
-
-        if not routine.is_numeric():
-            raise ValueError(f"{self.__class__.__name__} only accepts numeric routines.")
+    def __init__(self, routine: CompiledRoutine):
+        if not isinstance(routine, CompiledRoutine):
+            raise ValueError(f"Routine should be of type CompiledRoutine, received object with type {type(routine)}.")
 
         self.routine = routine
+        if any(not isinstance(x.value, Number) for x in self.routine.resources.values()):
+            raise ValueError(f"{self.__class__.__name__} only accepts numeric routines.")
+
         self.valid_resources = set([resource_name for resource_name in self.routine.resources.keys()])
 
     def get_dataframe(self, resource: str) -> pd.DataFrame:
@@ -69,6 +64,11 @@ class TreeMap:
         Returns:
             pd.DataFrame
         """
+        if resource not in self.valid_resources:
+            raise ValueError(
+                "Resource to be plotted should be in the valid resources of the "
+                "routine for which the tree map was created."
+            )
         df = pd.DataFrame([], columns=self.COLUMNS)
         output_from_parent = _get_descendant_contributions(self.routine, resource)
 
@@ -104,11 +104,6 @@ class TreeMap:
         Returns:
             PlotlyFig
         """
-        if resource not in self.valid_resources:
-            raise ValueError(
-                "Resource to be plotted should be in the valid resources of the "
-                "routine for which the tree map was created."
-            )
 
         data_frame = self.get_dataframe(resource=resource)
         routine_col = self.COLUMNS[0]
