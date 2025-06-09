@@ -27,7 +27,7 @@ def test_tree_map_input_non_routine_raises():
         TreeMap(0.4)
 
 
-def test_tree_map_non_numeric_routine_raises():
+def test_tree_map_invalid_routine_raises():
     input_schema = SchemaV1(
         program={
             "name": "root",
@@ -68,7 +68,7 @@ expected_data = np.array(
 )
 
 
-def test_dataframe_with_unique_routine_names(monkeypatch):
+def test_dataframe_with_unique_routine_names():
     columns = ["Routine", "Parent", "Contribution"]
     df = pd.DataFrame(test_data_df, columns=columns)
     result = _dataframe_with_unique_routine_names(df)
@@ -83,7 +83,7 @@ def test_dataframe_with_unique_routine_names(monkeypatch):
             assert entry1 == entry2
 
 
-def test_get_dataframe(monkeypatch):
+def test_get_dataframe():
     input_schema = SchemaV1(
         program={
             "name": "root",
@@ -140,7 +140,7 @@ def test_get_dataframe(monkeypatch):
             assert entry1 == entry2
 
 
-def test_plot_output_type(monkeypatch):
+def test_plot_output_type():
     from plotly.graph_objs._figure import Figure
 
     input_schema = SchemaV1(

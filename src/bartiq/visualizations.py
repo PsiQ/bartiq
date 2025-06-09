@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Functions and classes for visualizing the data contained in routines."""
+"""Functions and classes for visualizing data contained in routine objects."""
 
 from __future__ import annotations
 
@@ -37,7 +37,10 @@ class TreeMap:
         routine: The routine to generate treemaps for.
 
     Raises:
-        ValueError: If any resource in the top level routine has a non-numeric value.
+        ValueError: If object passed in as routine is not a ``Routine`` or a
+            ``CompiledRoutine`` object.
+        ValueError: If any resource in the top level routine has a non-numeric
+            value.
     """
 
     COLUMNS = ["Routine", "Parent", "Contribution"]
@@ -157,7 +160,7 @@ def _get_descendant_contributions(routine: CompiledRoutine, resource: str) -> Ne
     return (direct_children_contributions, grandchildren)
 
 
-def _dataframe_with_unique_routine_names(df):
+def _dataframe_with_unique_routine_names(df: pd.DataFrame) -> pd.DataFrame:
     """Get the dataframe with unique routine names ready to be plotted.
 
     Certain routine names may appear more than once in a
