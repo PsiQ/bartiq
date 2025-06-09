@@ -186,7 +186,7 @@ def test_min_max_works_for_symbols(backend):
     [
         (
             "celing(a*log_2(x))/log_10(y) + mlz(x*y/z)*log_10(x*y)",
-            [("log_2", "log2"), ("log_10", "log10"), ("celing", "ceiling"), ("mlz", "ntz")],
+            [("log_2", "log2"), ("log_10", "log10"), ("celing", "ceiling"), ("mlz", "nlz")],
             [],
         ),
         (

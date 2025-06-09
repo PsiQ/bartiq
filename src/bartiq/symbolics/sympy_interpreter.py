@@ -170,6 +170,7 @@ class ntz(Function):
 
 class nlz(ntz):
     """Deprecated alias for ntz; use ntz instead."""
+
     def __new__(cls, n, *args, **kwargs):
         warnings.warn(
             "nlz is deprecated and will be removed in a future release; use ntz instead",
@@ -255,6 +256,7 @@ SPECIAL_FUNCS = {
     "heaviside": Heaviside,
     "multiplicity": multiplicity,
     "ntz": ntz,
+    "nlz": nlz,
 }
 
 
