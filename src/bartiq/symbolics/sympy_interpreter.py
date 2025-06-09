@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import operator
+import warnings
 from typing import Any
 
 from sympy import (
@@ -165,6 +166,17 @@ class ntz(Function):
             if n == 0:
                 return 0
             return (n & -n).bit_length() - 1
+
+
+class nlz(ntz):
+    """Deprecated alias for ntz; use ntz instead."""
+    def __new__(cls, n, *args, **kwargs):
+        warnings.warn(
+            "nlz is deprecated and will be removed in a future release; use ntz instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, n, *args, **kwargs)
 
 
 class Max(Function):
