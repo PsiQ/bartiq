@@ -100,6 +100,12 @@ class TreeMap:
         Returns:
             PlotlyFig
         """
+        if resource not in self.valid_resources:
+            raise ValueError(
+                "Resource to be plotted should be in the valid resources of the "
+                "routine for which the tree map was created."
+            )
+
         data_frame = self.get_dataframe(resource=resource)
         routine_col = self.COLUMNS[0]
 

@@ -81,3 +81,22 @@ def test_dataframe_with_unique_routine_names(monkeypatch):
         assert len(row1) == len(row2)
         for entry1, entry2 in zip(row1, row2):
             assert entry1 == entry2
+
+
+def test_plot_invalid_resource_raises():
+    input_schema = SchemaV1(
+        program={
+            "name": "root",
+            "resources": [
+                {"name": "success_rate", "type": "multiplicative", "value": 30.0},
+            ],
+        },
+        version="v1",
+    )
+
+    backend = SympyBackend()
+    routine_from_qref = Routine.from_qref(input_schema, backend=backend)
+    c_routine = compile_routine(routine_from_qref).routine
+    tree_map = TreeMap(c_routine)
+    with pytest.raises(ValueError, match="Resource to be plotted should be in the valid resources"):
+        tree_map.plot("non_existent_resource")
