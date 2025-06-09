@@ -114,11 +114,12 @@ class TreeMap:
         if data_frame[routine_col].duplicated().any():
             data_frame = _dataframe_with_unique_routine_names(data_frame)
 
+        routine, parent, contribution = self.COLUMNS
         fig = px.treemap(
             data_frame,
-            names="Routine",
-            values="Contribution",
-            parents="Parent",
+            names=routine,
+            values=contribution,
+            parents=parent,
             color="Contribution",
             color_continuous_scale="reds",
             title=f"{resource}",
