@@ -141,10 +141,7 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str) -> Contrib
     return {
         child_routine.name: x
         for child_routine in routine.children.values()
-        if (
-            x := child_routine.resources.get(resource, Resource(name=resource, type=None, value=0)).value
-            / (routine.resources[resource].value)
-        )
+        if (x := child_routine.resources.get(resource, Resource(name=resource, type=None, value=0)).value)
     }
 
 

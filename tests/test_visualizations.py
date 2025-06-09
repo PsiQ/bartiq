@@ -83,6 +83,63 @@ def test_dataframe_with_unique_routine_names(monkeypatch):
             assert entry1 == entry2
 
 
+def test_get_dataframe(monkeypatch):
+    input_schema = SchemaV1(
+        program={
+            "name": "root",
+            "children": [
+                {
+                    "name": "child1",
+                    "children": [
+                        {
+                            "name": "child3",
+                            "resources": [
+                                {"name": "success_rate", "type": "multiplicative", "value": 7260.0},
+                            ],
+                        },
+                    ],
+                    "resources": [
+                        {"name": "success_rate", "type": "multiplicative", "value": 3630.0},
+                    ],
+                },
+                {
+                    "name": "child2",
+                    "resources": [
+                        {"name": "success_rate", "type": "multiplicative", "value": 2320.0},
+                    ],
+                },
+            ],
+        },
+        version="v1",
+    )
+
+    expected_data = np.array(
+        [
+            ["child1", "root", 3630.0],
+            ["child3", "child1", 7260.0],
+            ["child2", "root", 2320.0],
+        ],
+        dtype=object,
+    )
+
+    backend = SympyBackend()
+    routine_from_qref = Routine.from_qref(input_schema, backend=backend)
+    c_routine = compile_routine(routine_from_qref).routine
+
+    columns = ["Routine", "Parent", "Contribution"]
+    tree_map = TreeMap(c_routine)
+    result = tree_map.get_dataframe("success_rate")
+    assert result.columns.tolist() == columns
+
+    result = result.to_numpy()
+
+    assert result.shape == expected_data.shape
+    for row1, row2 in zip(result, expected_data):
+        assert len(row1) == len(row2)
+        for entry1, entry2 in zip(row1, row2):
+            assert entry1 == entry2
+
+
 def test_plot_invalid_resource_raises():
     input_schema = SchemaV1(
         program={

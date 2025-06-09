@@ -263,7 +263,6 @@ class CompiledRoutine(BaseRoutine[T]):
         """Determines if this and nested compiled routines are numeric."""
         for resource, resource_obj in getattr(self, "resources", {}).items():
             resource_val = resource_obj.value
-            print(resource_val)
             if isinstance(resource_val, Symbol):
                 # If the Symbol is generated, it was not user entered - routine
                 # is still numeric
