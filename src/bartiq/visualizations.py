@@ -15,14 +15,14 @@
 
 from __future__ import annotations
 
-from numbers import Number
-from typing import Union
+from typing import Union, cast
 
 import pandas as pd
-import plotly.express as px
-from plotly.graph_objs._figure import Figure as PlotlyFig
+import plotly.express as px  # type: ignore
+from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
+from sympy import Symbol
 
-from bartiq import CompiledRoutine, Resource, Routine
+from bartiq import CompiledRoutine, Resource, ResourceType, Routine
 from bartiq.compilation import compile_routine
 
 
@@ -87,8 +87,9 @@ class TreeMap:
                         ],
                         ignore_index=True,
                     )
-                if child in grandchildren_contributions:
-                    df = _update_dataframe_recursive(grandchildren_contributions[child], parent=child, df=df)
+                child_value = grandchildren_contributions.get(child)
+                if isinstance(child_value, tuple):
+                    df = _update_dataframe_recursive(child_value, parent=child, df=df)
             return df
 
         return _update_dataframe_recursive(output_from_parent, self.routine.name, df)
@@ -136,25 +137,29 @@ class TreeMap:
 
 ######################################################
 
-
-Contributions = dict[str, Number]
+Contributions = dict[str, Union[int, float, Symbol]]
 
 
 def _get_child_contributions(routine: CompiledRoutine, resource: str) -> Contributions:
     return {
         child_routine.name: x
         for child_routine in routine.children.values()
-        if (x := child_routine.resources.get(resource, Resource(name=resource, type=None, value=0)).value)
+        if (x := child_routine.resources.get(resource, Resource(name=resource, type=ResourceType.other, value=0)).value)
     }
 
 
-NestedContributions = tuple[Contributions, dict[str, Contributions]]
+NestedContributions = tuple[Contributions, dict[str, Union[Contributions, "NestedContributions"]]]
 
 
 def _get_descendant_contributions(routine: CompiledRoutine, resource: str) -> NestedContributions:
+
     direct_children_contributions = _get_child_contributions(routine=routine, resource=resource)
-    grandchildren = {
-        child: _get_descendant_contributions(routine=routine.children[child], resource=resource)
+
+    grandchildren: dict[str, Union[Contributions, NestedContributions]] = {
+        child: cast(
+            Union[Contributions, NestedContributions],
+            _get_descendant_contributions(routine.children[child], resource=resource),
+        )
         for child in direct_children_contributions
     }
     return (direct_children_contributions, grandchildren)
