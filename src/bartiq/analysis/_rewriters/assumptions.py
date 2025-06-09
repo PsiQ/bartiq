@@ -17,14 +17,14 @@ from numbers import Number
 import re
 
 from dataclasses import dataclass
-from typing import Literal, TypeAlias
-
-from bartiq.analysis._rewriters.expression_rewriter import Expr, T
+from sympy import Symbol
 
 from enum import StrEnum
 
 
 class Relationals(StrEnum):
+    """A collection of relational symbols for parsing assumptions."""
+
     GREATER_THAN_OR_EQUAL_TO = ">="
     LESS_THAN_OR_EQUAL_TO = "<="
     GREATER_THAN = ">"
@@ -33,15 +33,22 @@ class Relationals(StrEnum):
 
 @dataclass
 class Assumption:
-    variable: Expr[T]
+    """A simple class for storing information about symbol assumptions."""
+
+    symbol_name: str
     relationship: Relationals
     value: Number
 
     def __post_init__(self):
-        self.properties = _get_properties(self.variable, self.relationship, self.value)
+        self.symbol_properties = _get_properties(self.symbol_name, self.relationship, self.value)
 
-    def compose_assumption(self, other: Assumption, expression: str):
-        pass
+    def to_symbol(self) -> Symbol:
+        """Return a sympy Symbol object with the correct properties."""
+        return Symbol(self.symbol_name, **self.symbol_properties)
+
+    @classmethod
+    def from_string(cls, assumption_string: str) -> Assumption:
+        return Assumption(*_unpack_assumption(assumption_string))
 
 
 # def _apply_assumption(expression: Expr, assumption: str) -> Expr:
@@ -84,13 +91,8 @@ class Assumption:
 #     return expression
 
 
-def _get_properties(
-    variable: str, relationship: str, reference_value: str | Number
-) -> tuple[str, str, Number, dict[str, bool | None]]:
-    """Parse an assumption, and return useful information about it.
-
-    At present this function just checks if the provided assumption allows for the symbol to be defined
-    as positive or negative, and this is provided in a dictionary.
+def _get_properties(variable: str, relationship: str, reference_value: str | Number) -> dict[str, bool | None]:
+    """Derive properties of a
 
     Args:
         variable: Variable involved in the assumption.
@@ -100,13 +102,15 @@ def _get_properties(
     Returns:
         A dictionary of properties for the assumption.
     """
-    try:
-        reference_value = eval(reference_value)
-    except NameError:
-        raise NotImplementedError(
-            f"""Assumption tries to draw a relationship between two variables: {variable}, {reference_value}.
-            At present, this is not possible!"""
-        )
+
+    if not isinstance(reference_value, Number):
+        try:
+            reference_value = eval(reference_value)
+        except NameError:
+            raise NotImplementedError(
+                f"""Assumption tries to draw a relationship between two variables: {variable}, {reference_value}.
+                At present, this is not possible!"""
+            )
 
     gt: bool = relationship == Relationals.GREATER_THAN
     gte: bool = relationship == Relationals.GREATER_THAN_OR_EQUAL_TO
@@ -115,18 +119,16 @@ def _get_properties(
     lte: bool = relationship == Relationals.LESS_THAN_OR_EQUAL_TO
 
     value_positive: bool = reference_value >= 0
-    value_negative: bool = reference_value <= 0
+    value_negative: bool = reference_value <= 0 or (not value_positive)
     value_non_zero: bool = reference_value != 0
 
     properties: dict[str, bool | None] = dict(
-        positive=((gt or gte) and value_positive) or None,
-        negative=((lt or lte) and value_negative) or None,
-        nonzero=(
-            (gt and value_positive)
-            or (lt and value_negative)
-            or (gte and value_positive and value_non_zero)
-            or (lte and value_negative and value_non_zero)
-        )
+        positive=((gt or gte) and value_positive),
+        negative=((lt or lte) and value_negative),
+        zero=(gt and value_positive)
+        or (lt and value_negative)
+        or (gte and value_positive and value_non_zero)
+        or (lte and value_negative and value_non_zero)
         or None,
     )
 
@@ -159,4 +161,5 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
 
 
 if __name__ == "__main__":
-    print(_unpack_assumption("A$d"))
+    a = Assumption("A", ">=", 0)
+    print(a.symbol_properties)

@@ -21,6 +21,7 @@ from typing import Any, Generic, TypeAlias, cast
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T
+from bartiq.analysis._rewriters.assumptions import Assumption
 
 Expr: TypeAlias = T | str
 
@@ -93,6 +94,10 @@ class ExpressionRewriter(ABC, Generic[T]):
     @abstractmethod
     def focus(self, symbols: str | Iterable[str]) -> T:
         """Return an expression containing terms that involve specific symbols."""
+
+    @abstractmethod
+    def add_assumption(self, assume: str | Assumption) -> T:
+        """Add an assumption on a symbol."""
 
 
 class ResourceRewriter(Generic[T]):
