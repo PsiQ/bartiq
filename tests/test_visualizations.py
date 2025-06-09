@@ -21,6 +21,7 @@ from bartiq.symbolics.sympy_backend import SympyBackend
 
 try:
     import pandas as pd
+
     from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
 
     SKIP_VIS_TESTS = False
