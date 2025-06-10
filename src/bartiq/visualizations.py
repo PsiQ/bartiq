@@ -20,12 +20,12 @@ from typing import Union, cast
 
 try:
     import pandas as pd
-    import plotly.express as px  # type: ignore
-    from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
-except ModuleNotFoundError:
+    import plotly.express as px
+    from plotly.graph_objs._figure import Figure as PlotlyFig
+except ModuleNotFoundError as exc:
     raise ModuleNotFoundError(
-        "To use the Bartiq visualization functionality, reinstall with `poetry install -E visualization`."
-    )
+        """To use the Bartiq visualization functionality, reinstall with `pip install "bartiq[interactive]"`."""
+    ) from exc
 
 from sympy import Symbol
 
