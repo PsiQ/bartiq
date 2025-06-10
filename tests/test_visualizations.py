@@ -24,18 +24,18 @@ try:
 
     from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
 
-    SKIP_VIS_TESTS = False
+    SKIP_VIZ_TESTS = False
 except ModuleNotFoundError:
-    SKIP_VIS_TESTS = True
+    SKIP_VIZ_TESTS = True
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_tree_map_input_non_routine_raises():
     with pytest.raises(ValueError, match="Routine should be of type CompiledRoutine"):
         TreeMap(0.4)
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_tree_map_invalid_routine_raises():
     input_schema = SchemaV1(
         program={
@@ -77,7 +77,7 @@ expected_data = np.array(
 )
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_dataframe_with_unique_routine_names():
     columns = ["Routine", "Parent", "Contribution"]
     df = pd.DataFrame(test_data_df, columns=columns)
@@ -93,7 +93,7 @@ def test_dataframe_with_unique_routine_names():
             assert entry1 == entry2
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_get_dataframe():
     input_schema = SchemaV1(
         program={
@@ -154,7 +154,7 @@ def test_get_dataframe():
             assert entry1 == entry2
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_plot_output_type():
     from plotly.graph_objs._figure import Figure
 
@@ -178,7 +178,7 @@ def test_plot_output_type():
     assert isinstance(result, Figure)
 
 
-@pytest.mark.skipif(SKIP_VIS_TESTS, reason="Requires pandas and plotly to test.")
+@pytest.mark.skipif(SKIP_VIZ_TESTS, reason="Requires pandas and plotly to test.")
 def test_get_dataframe_invalid_resource_raises():
     input_schema = SchemaV1(
         program={
