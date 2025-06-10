@@ -21,9 +21,9 @@ from bartiq.symbolics.sympy_backend import SympyBackend
 
 pandas = pytest.importorskip("pandas")
 plotly = pytest.importorskip("plotly")
-import pandas as pd
 
-from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
+import pandas as pd  # noqa: E402
+from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names  # noqa: E402
 
 
 def test_tree_map_input_non_routine_raises():
