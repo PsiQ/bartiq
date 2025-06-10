@@ -2960,6 +2960,19 @@ packaging = "*"
 tenacity = ">=6.2.0"
 
 [[package]]
+name = "plotly-stubs"
+version = "0.0.5"
+description = "Type stubs for plotly."
+optional = true
+python-versions = "<3.14,>=3.10"
+groups = ["main"]
+markers = "extra == \"interactive\""
+files = [
+    {file = "plotly_stubs-0.0.5-py3-none-any.whl", hash = "sha256:2db5c784835e48aa7cd70165eb6ce1880d5fd149a32064182e3afe5d28e3f1f3"},
+    {file = "plotly_stubs-0.0.5.tar.gz", hash = "sha256:1f373acfd137a09b45a6e68adec0406c62347b5114b5f8f5529a27c0d3e418c5"},
+]
+
+[[package]]
 name = "pluggy"
 version = "1.6.0"
 description = "plugin and hook calling mechanisms for python"
@@ -4438,11 +4451,11 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_it
 type = ["pytest-mypy"]
 
 [extras]
-interactive = ["ipytree", "ipywidgets", "pandas", "plotly", "traitlets"]
+interactive = ["ipytree", "ipywidgets", "pandas", "plotly", "plotly-stubs", "traitlets"]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
 optimization = ["scipy"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.10"
-content-hash = "1ace8adff3288ea3f5419c9530633ec0fd00cd32da481b093d2abe77cb74031a"
+python-versions = "^3.10,<3.14"
+content-hash = "153c27d50773b68b775ac9ac1035e81b563a2020399466165cfce09a41be0a77"
