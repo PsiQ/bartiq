@@ -21,12 +21,11 @@ traitlets = { version = "^5.14.3", optional = true }
 scipy = { version = "^1.14.1", optional = true }
 pandas = { version = "^2.2", optional = true }
 plotly = { version = "^5.17", optional = true }
-plotly-stubs = { version = "*", optional = true , python = ">=3.10,<3.14"}
 
 [tool.poetry.extras]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
 optimization = ["scipy"]
-interactive = ["pandas", "plotly","plotly-stubs", "ipytree", "ipywidgets", "traitlets"]
+interactive = ["pandas", "plotly", "ipytree", "ipywidgets", "traitlets"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -71,5 +70,5 @@ target-version = ['py310']
 
 
 [[tool.mypy.overrides]]
-module = ["ipywidgets.*", "ipytree.*", "sympy.*"]
+module = ["ipywidgets.*", "ipytree.*", "sympy.*", "plotly.*"]
 ignore_missing_imports = true
