@@ -29,7 +29,7 @@ except ModuleNotFoundError as exc:
 
 from sympy import Symbol
 
-from bartiq import CompiledRoutine, Resource, ResourceType
+from bartiq import CompiledRoutine
 
 
 class TreeMap:
