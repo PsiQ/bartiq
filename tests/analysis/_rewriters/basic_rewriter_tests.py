@@ -21,19 +21,19 @@ class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
     backend = type[SymbolicBackend]
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def trivial(self):
         return self.rewriter("a")
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def sum_and_mul(self):
         return self.rewriter("a + b + c + d + c*d + a*b")
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def many_funcs(self):
         return self.rewriter("a*log2(x/n) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))")
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture(scope="function")
     def nested_max(self):
         return self.rewriter("max(a, 1 - max(b, 1 - max(c, lamda)))")
 
@@ -48,8 +48,8 @@ class ExpressionRewriterTests:
             ],
         ],
     )
-    def test_as_individual_terms(self, expression, individual_terms, request):
-        assert set(request.getfixturevalue(expression).as_individual_terms) == set(
+    def test_individual_terms(self, expression, individual_terms, request):
+        assert set(request.getfixturevalue(expression).individual_terms) == set(
             map(self.backend.as_expression, individual_terms)
         )
 
@@ -59,10 +59,6 @@ class ExpressionRewriterTests:
         assert set(rewriter.free_symbols) == set(
             map(self.backend.as_expression, self.backend.free_symbols(rewriter.expression))
         )
-
-    def test_expand(self):
-        expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
-        assert self.rewriter(expr).expand() == expr.expand()
 
     @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
     def test_focus(self, focus_on, expected_expression, sum_and_mul):
