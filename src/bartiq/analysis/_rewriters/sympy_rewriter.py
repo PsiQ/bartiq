@@ -22,6 +22,7 @@ from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
     update_expression,
+    TExpr,
 )
 
 
@@ -47,14 +48,18 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         return Add.make_args(self.expression)
 
     @update_expression
-    def expand(self) -> Expr:
+    def expand(self) -> TExpr[Basic]:
         """Expand all brackets in the expression."""
-        return getattr(self.expression, "expand", self.expression)
+        if callable(expand := getattr(self.expression, "expand", None)):
+            return expand()
+        return self.expression
 
     @update_expression
-    def simplify(self) -> Expr:
+    def simplify(self) -> TExpr[Basic]:
         """Run SymPy's `simplify` method on the expression."""
-        return getattr(self.expression, "simplify", self.expression)
+        if callable(simplify := getattr(self.expression, "simplify", None)):
+            return simplify()
+        return self.expression
 
     def get_symbol(self, symbol_name: str) -> Symbol:
         """Get the SymPy Symbol object, given the Symbol's name.
@@ -109,7 +114,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         """
         if callable(atoms := getattr(self.expression, "atoms", None)):
             return atoms(Function, Max, Min)
-        return self.expression
+        return set()
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of arguments X, such that each function_name(x) (for x in X) exists in the expression.
