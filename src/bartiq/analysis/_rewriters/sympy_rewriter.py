@@ -41,7 +41,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
     @property
     def free_symbols(self) -> set[Basic]:
         return getattr(self.expression, "free_symbols", set())
-        # return self.expression.free_symbols
 
     @property
     def as_individual_terms(self) -> Iterable[Expr]:
@@ -51,13 +50,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
     def expand(self) -> Expr:
         """Expand all brackets in the expression."""
         return getattr(self.expression, "expand", self.expression)
-        # return self.expression.expand()
 
     @update_expression
     def simplify(self) -> Expr:
         """Run SymPy's `simplify` method on the expression."""
         return getattr(self.expression, "simplify", self.expression)
-        # return self.expression.simplify()
 
     def get_symbol(self, symbol_name: str) -> Symbol:
         """Get the SymPy Symbol object, given the Symbol's name.
