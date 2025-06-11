@@ -21,7 +21,6 @@ from bartiq import sympy_backend
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
-    T,
     TExpr,
     update_expression,
 )
@@ -45,7 +44,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         return getattr(self.expression, "free_symbols", set())
 
     @property
-    def as_individual_terms(self) -> Iterable[Expr]:
+    def individual_terms(self) -> Iterable[Expr]:
         return Add.make_args(self.expression)
 
     @update_expression
@@ -89,7 +88,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols.
         """
         variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
-        return sum([term for term in self.as_individual_terms if not term.free_symbols.isdisjoint(variables)]).collect(
+        return sum([term for term in self.individual_terms if not term.free_symbols.isdisjoint(variables)]).collect(
             variables
         )
 

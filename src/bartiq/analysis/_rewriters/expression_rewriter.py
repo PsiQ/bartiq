@@ -76,7 +76,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def as_individual_terms(self) -> Iterable[T]:
+    def individual_terms(self) -> Iterable[T]:
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
