@@ -19,23 +19,26 @@ from bartiq.symbolics.backend import SymbolicBackend
 
 class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
-    backend = type[SymbolicBackend]
+    backend: type[SymbolicBackend]
 
     @pytest.fixture(scope="function")
-    def trivial(self):
+    def trivial(self) -> ExpressionRewriter:
         return self.rewriter("a")
 
     @pytest.fixture(scope="function")
-    def sum_and_mul(self):
+    def sum_and_mul(self) -> ExpressionRewriter:
         return self.rewriter("a + b + c + d + c*d + a*b")
 
     @pytest.fixture(scope="function")
-    def many_funcs(self):
+    def many_funcs(self) -> ExpressionRewriter:
         return self.rewriter("a*log2(x/n) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))")
 
     @pytest.fixture(scope="function")
-    def nested_max(self):
+    def nested_max(self) -> ExpressionRewriter:
         return self.rewriter("max(a, 1 - max(b, 1 - max(c, lamda)))")
+
+    def test_trivial(trivial):
+        assert trivial.evaluate_expression({"a": 10}) == 10
 
     @pytest.mark.parametrize(
         "expression, individual_terms",
