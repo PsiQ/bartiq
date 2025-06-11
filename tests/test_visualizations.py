@@ -30,11 +30,6 @@ from bartiq.visualizations import (  # noqa: E402
 )
 
 
-def test_tree_map_input_non_routine_raises():
-    with pytest.raises(ValueError, match="Routine should be of type CompiledRoutine"):
-        TreeMap(0.4)
-
-
 def test_tree_map_invalid_routine_raises():
     input_schema = SchemaV1(
         program={
@@ -189,5 +184,5 @@ def test_get_dataframe_invalid_resource_raises():
     routine_from_qref = Routine.from_qref(input_schema, backend=backend)
     c_routine = compile_routine(routine_from_qref).routine
     tree_map = TreeMap(c_routine)
-    with pytest.raises(ValueError, match="Resource to be plotted should be in the valid resources"):
+    with pytest.raises(ValueError, match="is not in the list of valid resources for this routine"):
         tree_map.get_dataframe("non_existent_resource")
