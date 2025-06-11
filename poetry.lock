@@ -970,7 +970,7 @@ version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["dev"]
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
     {file = "h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1"},
@@ -4310,4 +4310,4 @@ optimization = ["scipy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "feb55c1ca3cacce4b039cd1db214c21be05edbd4b40a3ab92f3888b26b15e66a"
+content-hash = "b986dd6ae20ae2e215d60ef0bb3e88f6d7035cb270823aed2fb18febbf37ccc6"
