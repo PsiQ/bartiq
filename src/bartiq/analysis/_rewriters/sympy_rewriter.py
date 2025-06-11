@@ -15,7 +15,7 @@
 
 from collections.abc import Iterable
 
-from sympy import Add, Basic, Expr, Function, Max, Min, Symbol
+from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.expression_rewriter import (
@@ -26,7 +26,7 @@ from bartiq.analysis._rewriters.expression_rewriter import (
 )
 
 
-class SympyExpressionRewriter(ExpressionRewriter[Basic]):
+class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
     This class accepts a SymPy expression as input, and provides methods for efficient simplification / rewriting of
@@ -40,7 +40,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         super().__init__(expression=expression, backend=sympy_backend)
 
     @property
-    def free_symbols(self) -> set[Basic]:
+    def free_symbols(self) -> set[Expr]:
         return getattr(self.expression, "free_symbols", set())
 
     @property
@@ -48,14 +48,14 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         return Add.make_args(self.expression)
 
     @update_expression
-    def expand(self) -> TExpr[Basic]:
+    def expand(self) -> TExpr[Expr]:
         """Expand all brackets in the expression."""
         if callable(expand := getattr(self.expression, "expand", None)):
             return expand()
         return self.expression
 
     @update_expression
-    def simplify(self) -> TExpr[Basic]:
+    def simplify(self) -> TExpr[Expr]:
         """Run SymPy's `simplify` method on the expression."""
         if callable(simplify := getattr(self.expression, "simplify", None)):
             return simplify()
@@ -141,3 +141,13 @@ class SympyResourceRewriter(ResourceRewriter):
     """
 
     _rewriter = SympyExpressionRewriter
+
+
+if __name__ == "__main__":
+    from sympy import Symbol
+
+    x = Symbol("x")
+    print(isinstance(Expr, type(Symbol)))
+    # print(isinstance(x, Expr))
+    # print(isinstance(x, Expr))
+    # print(isinstance(x, Symbol))
