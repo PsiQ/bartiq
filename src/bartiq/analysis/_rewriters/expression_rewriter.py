@@ -43,7 +43,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
         self.expression = cast(TExpr[T], backend.as_expression(expression))
-        self.original_expression = self._expr
+        self.original_expression = self.expression
         self._backend = backend
 
     @update_expression
