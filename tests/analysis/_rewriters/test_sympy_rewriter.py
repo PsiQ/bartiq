@@ -51,7 +51,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         "fixture, args_and_fns",
         [
             ["trivial", []],
-            ["many_funcs", ["log2(x/n)", "max(1+y, 2+x)", "Heaviside(aleph, beth)"]],
+            ["many_funcs", ["log2(x/n)", "max(0, 1+y, 2+x)", "Heaviside(aleph, beth)"]],
             ["nested_max", ["max(c, lamda)", "max(b, 1-max(c, lamda))", "max(a, 1-max(b, 1-max(c, lamda)))"]],
         ],
     )
@@ -61,7 +61,8 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         )
 
     @pytest.mark.parametrize(
-        "function, expected_args", [["log2", ["x/n"]], ["max", [("x+2", "y+1")]], ["Heaviside", [("aleph", "beth")]]]
+        "function, expected_args",
+        [["log2", ["x/n"]], ["max", [("0", "x+2", "y+1")]], ["Heaviside", [("aleph", "beth")]]],
     )
     def test_list_arguments_of_function(self, function, expected_args, many_funcs):
 

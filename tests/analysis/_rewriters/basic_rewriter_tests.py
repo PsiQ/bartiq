@@ -31,7 +31,7 @@ class ExpressionRewriterTests:
 
     @pytest.fixture(scope="class")
     def many_funcs(self):
-        return self.rewriter("a*log2(x/n) + b*(max(1+y, 2+x) + Heaviside(aleph, beth))")
+        return self.rewriter("a*log2(x/n) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))")
 
     @pytest.fixture(scope="class")
     def nested_max(self):
@@ -44,7 +44,7 @@ class ExpressionRewriterTests:
             ["sum_and_mul", ["a", "b", "c", "d", "c*d", "a*b"]],
             [
                 "many_funcs",
-                ["a*log2(x/n)", "b*(max(1+y, 2+x) + Heaviside(aleph, beth))"],
+                ["a*log2(x/n)", "b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))"],
             ],
         ],
     )
