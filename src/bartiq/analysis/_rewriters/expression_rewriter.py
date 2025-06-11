@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Generic, TypeAlias, cast, ParamSpec, Concatenate
+from typing import Concatenate, Generic, ParamSpec, TypeAlias, cast
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
@@ -76,7 +76,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def individual_terms(self) -> Iterable[T]:
+    def as_individual_terms(self) -> Iterable[T]:
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
