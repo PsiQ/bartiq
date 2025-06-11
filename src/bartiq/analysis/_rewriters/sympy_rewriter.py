@@ -23,6 +23,7 @@ from bartiq.analysis._rewriters.expression_rewriter import (
     ResourceRewriter,
     update_expression,
     TExpr,
+    T,
 )
 
 
@@ -88,7 +89,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols.
         """
         variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
-        return sum([term for term in self.as_individual_terms if term.free_symbols & variables]).collect(variables)
+        return sum([term for term in self.as_individual_terms if not term.free_symbols.isdisjoint(variables)]).collect(
+            variables
+        )
 
     def all_functions_and_arguments(self) -> set[Expr]:
         """Get a set of all unique functions and their arguments in the expression.
@@ -133,7 +136,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         ]
 
 
-class SympyResourceRewriter(ResourceRewriter):
+class SympyResourceRewriter(ResourceRewriter[Expr]):
     """A class for rewriting sympy resource expressions in routines.
 
     By default, this class only acts on the top level resource. In the future, the ability to propagate
@@ -141,13 +144,3 @@ class SympyResourceRewriter(ResourceRewriter):
     """
 
     _rewriter = SympyExpressionRewriter
-
-
-if __name__ == "__main__":
-    from sympy import Symbol
-
-    x = Symbol("x")
-    print(isinstance(Expr, type(Symbol)))
-    # print(isinstance(x, Expr))
-    # print(isinstance(x, Expr))
-    # print(isinstance(x, Symbol))
