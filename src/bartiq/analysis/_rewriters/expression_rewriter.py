@@ -17,18 +17,21 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, Generic, TypeAlias, cast
+from typing import Any, Generic, TypeAlias, cast, ParamSpec, Concatenate
 
 from bartiq import CompiledRoutine
-from bartiq.symbolics.backend import SymbolicBackend, T
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 Expr: TypeAlias = T | str
+P = ParamSpec("P")
+
+_UpdateableMethod = Callable[Concatenate["ExpressionRewriter[T]", P], TExpr[T]]
 
 
-def update_expression(function: Callable[..., T | int | float]) -> Callable[..., T | int | float]:
+def update_expression(function: _UpdateableMethod[T, P]) -> _UpdateableMethod[T, P]:
     """Decorator for updating the stored expression in ExpressionRewriter."""
 
-    def _inner(self: ExpressionRewriter, *args, **kwargs) -> T | int | float:
+    def _inner(self: ExpressionRewriter[T], *args: P.args, **kwargs: P.kwargs) -> TExpr[T]:
         self.expression = function(self, *args, **kwargs)
         return self.expression
 
@@ -39,17 +42,17 @@ class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
     def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
-        self._expr = cast(T, backend.as_expression(expression))
+        self._expr = cast(TExpr[T], backend.as_expression(expression))
         self.original_expression = self._expr
         self._backend = backend
 
     @property
-    def expression(self) -> T:
+    def expression(self) -> TExpr[T]:
         """Return the current form of the expression."""
         return self._expr
 
     @expression.setter
-    def expression(self, other: T):
+    def expression(self, other: TExpr[T]):
         self._expr = other
 
     @update_expression

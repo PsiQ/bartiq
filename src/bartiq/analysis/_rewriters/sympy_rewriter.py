@@ -40,7 +40,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
 
     @property
     def free_symbols(self) -> set[Basic]:
-        return self.expression.free_symbols
+        return getattr(self.expression, "free_symbols", set())
+        # return self.expression.free_symbols
 
     @property
     def as_individual_terms(self) -> Iterable[Expr]:
@@ -49,12 +50,14 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
     @update_expression
     def expand(self) -> Expr:
         """Expand all brackets in the expression."""
-        return self.expression.expand()
+        return getattr(self.expression, "expand", self.expression)
+        # return self.expression.expand()
 
     @update_expression
     def simplify(self) -> Expr:
         """Run SymPy's `simplify` method on the expression."""
-        return self.expression.simplify()
+        return getattr(self.expression, "simplify", self.expression)
+        # return self.expression.simplify()
 
     def get_symbol(self, symbol_name: str) -> Symbol:
         """Get the SymPy Symbol object, given the Symbol's name.
@@ -107,7 +110,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             A set of unique functions that exist in the expression.
 
         """
-        return self.expression.atoms(Function, Max, Min)
+        if callable(atoms := getattr(self.expression, "atoms", None)):
+            return atoms(Function, Max, Min)
+        return self.expression
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of arguments X, such that each function_name(x) (for x in X) exists in the expression.
