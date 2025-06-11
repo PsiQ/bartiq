@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, Generic, TypeAlias, cast, ParamSpec, Concatenate
+from typing import Generic, TypeAlias, cast, ParamSpec, Concatenate
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
@@ -42,26 +42,17 @@ class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
     def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
-        self._expr = cast(TExpr[T], backend.as_expression(expression))
+        self.expression = cast(TExpr[T], backend.as_expression(expression))
         self.original_expression = self._expr
         self._backend = backend
-
-    @property
-    def expression(self) -> TExpr[T]:
-        """Return the current form of the expression."""
-        return self._expr
-
-    @expression.setter
-    def expression(self, other: TExpr[T]):
-        self._expr = other
 
     @update_expression
     def evaluate_expression(
         self,
-        assignments: Mapping[str, int | float | T],
+        assignments: Mapping[str, TExpr[T]],
         original_expression: bool = False,
-        functions_map: Mapping[str, Callable[[Any], int | float]] | None = None,
-    ) -> int | float | T:
+        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
+    ) -> TExpr[T]:
         """Assign explicit values to certain variables.
 
         Args:
