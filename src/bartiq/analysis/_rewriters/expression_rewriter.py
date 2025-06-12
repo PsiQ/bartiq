@@ -17,21 +17,22 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Concatenate, Generic, ParamSpec, TypeAlias, cast
+from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
-Expr: TypeAlias = T | str
 P = ParamSpec("P")
 
-_UpdateableMethod = Callable[Concatenate["ExpressionRewriter[T]", P], TExpr[T]]
+TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
 
 
-def update_expression(function: _UpdateableMethod[T, P]) -> _UpdateableMethod[T, P]:
+def update_expression(
+    function: Callable[Concatenate[TRewriter, P], TExpr[T]],
+) -> Callable[Concatenate[TRewriter, P], TExpr[T]]:
     """Decorator for updating the stored expression in ExpressionRewriter."""
 
-    def _inner(self: ExpressionRewriter[T], *args: P.args, **kwargs: P.kwargs) -> TExpr[T]:
+    def _inner(self: TRewriter, *args: P.args, **kwargs: P.kwargs) -> TExpr[T]:
         self.expression = function(self, *args, **kwargs)
         return self.expression
 
@@ -41,7 +42,7 @@ def update_expression(function: _UpdateableMethod[T, P]) -> _UpdateableMethod[T,
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
-    def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
+    def __init__(self, expression: T | str, backend: SymbolicBackend[T]):
         self.expression = cast(TExpr[T], backend.as_expression(expression))
         self.original_expression = self.expression
         self._backend = backend
@@ -81,11 +82,11 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @abstractmethod
     @update_expression
-    def expand(self) -> T:
+    def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
 
     @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> T:
+    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
         """Return an expression containing terms that involve specific symbols."""
 
 
