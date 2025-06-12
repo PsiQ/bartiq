@@ -16,18 +16,19 @@
 from collections.abc import Iterable
 from typing import cast
 
-from sympy import Add, Basic, Expr, Function, Max, Min, Symbol
+from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
+    TExpr,
     update_expression,
 )
 
 
-class SympyExpressionRewriter(ExpressionRewriter[Basic]):
+class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
     This class accepts a SymPy expression as input, and provides methods for efficient simplification / rewriting of
@@ -42,22 +43,26 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         cast(Expr, self.expression)
 
     @property
-    def free_symbols(self) -> set[Basic]:
-        return self.expression.free_symbols
+    def free_symbols(self) -> set[Expr]:
+        return getattr(self.expression, "free_symbols", set())
 
     @property
-    def as_individual_terms(self) -> Iterable[Expr]:
+    def individual_terms(self) -> Iterable[Expr]:
         return Add.make_args(self.expression)
 
     @update_expression
-    def expand(self) -> Expr:
+    def expand(self) -> TExpr[Expr]:
         """Expand all brackets in the expression."""
-        return self.expression.expand()
+        if callable(expand := getattr(self.expression, "expand", None)):
+            return expand()
+        return self.expression
 
     @update_expression
-    def simplify(self) -> Expr:
+    def simplify(self) -> TExpr[Expr]:
         """Run SymPy's `simplify` method on the expression."""
-        return self.expression.simplify()
+        if callable(simplify := getattr(self.expression, "simplify", None)):
+            return simplify()
+        return self.expression
 
     def get_symbol(self, symbol_name: str) -> Symbol:
         """Get the SymPy Symbol object, given the Symbol's name.
@@ -86,7 +91,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             A SymPy expression whose terms include the input symbols.
         """
         variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
-        return sum([term for term in self.as_individual_terms if term.free_symbols & variables]).collect(variables)
+        return sum([term for term in self.individual_terms if not term.free_symbols.isdisjoint(variables)]).collect(
+            variables
+        )
 
     def all_functions_and_arguments(self) -> set[Expr]:
         """Get a set of all unique functions and their arguments in the expression.
@@ -110,7 +117,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
             A set of unique functions that exist in the expression.
 
         """
-        return self.expression.atoms(Function, Max, Min)
+        if callable(atoms := getattr(self.expression, "atoms", None)):
+            return atoms(Function, Max, Min)
+        return set()
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of arguments X, such that each function_name(x) (for x in X) exists in the expression.
@@ -156,7 +165,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Basic]):
         # return self.expression
 
 
-class SympyResourceRewriter(ResourceRewriter):
+class SympyResourceRewriter(ResourceRewriter[Expr]):
     """A class for rewriting sympy resource expressions in routines.
 
     By default, this class only acts on the top level resource. In the future, the ability to propagate

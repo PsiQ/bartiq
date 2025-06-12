@@ -16,7 +16,10 @@ import sympy
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
-from tests.analysis._rewriters.basic_rewriter_tests import ExpressionRewriterTests
+from tests.analysis._rewriters.basic_rewriter_tests import (
+    CommonExpressions,
+    ExpressionRewriterTests,
+)
 
 
 class TestSympyExpressionRewriter(ExpressionRewriterTests):
@@ -30,42 +33,45 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     @pytest.mark.parametrize(
         "expression, symbol_names",
         [
-            ["trivial", ["a"]],
-            ["sum_and_mul", ["a", "b", "c", "d"]],
+            [CommonExpressions.TRIVIAL, ["a"]],
+            [CommonExpressions.SUM_AND_MUL, ["a", "b", "c", "d"]],
             [
-                "many_funcs",
+                CommonExpressions.MANY_FUNCS,
                 ["a", "x", "n", "b", "y", "aleph", "beth"],
             ],
         ],
     )
-    def test_get_symbol(self, expression, symbol_names, request):
+    def test_get_symbol(self, expression, symbol_names):
         for name in symbol_names:
-            assert request.getfixturevalue(expression).get_symbol(name) == sympy.Symbol(name)
+            assert self.rewriter(expression).get_symbol(name) == sympy.Symbol(name)
 
-    def test_get_symbol_raises_error_if_no_symbol_exists(self, many_funcs):
+    def test_get_symbol_raises_error_if_no_symbol_exists(self):
         sym = "foo"
+
         with pytest.raises(ValueError, match=f"No variable '{sym}'."):
-            many_funcs.get_symbol(sym)
+            self.rewriter(CommonExpressions.MANY_FUNCS).get_symbol(sym)
 
     @pytest.mark.parametrize(
-        "fixture, args_and_fns",
+        "expression, args_and_fns",
         [
-            ["trivial", []],
-            ["many_funcs", ["log2(x/n)", "max(1+y, 2+x)", "Heaviside(aleph, beth)"]],
-            ["nested_max", ["max(c, lamda)", "max(b, 1-max(c, lamda))", "max(a, 1-max(b, 1-max(c, lamda)))"]],
+            [CommonExpressions.TRIVIAL, []],
+            [CommonExpressions.MANY_FUNCS, ["log2(x/n)", "max(0, 1+y, 2+x)", "Heaviside(aleph, beth)"]],
+            [
+                CommonExpressions.NESTED_MAX,
+                ["max(c, lamda)", "max(b, 1-max(c, lamda))", "max(a, 1-max(b, 1-max(c, lamda)))"],
+            ],
         ],
     )
-    def test_all_functions_and_arguments(self, fixture, args_and_fns, request):
-        request.getfixturevalue(fixture).all_functions_and_arguments() == set(
-            map(self.backend.as_expression, args_and_fns)
-        )
+    def test_all_functions_and_arguments(self, expression, args_and_fns):
+        self.assert_expression_seqs_equal(self.rewriter(expression).all_functions_and_arguments(), args_and_fns)
 
     @pytest.mark.parametrize(
-        "function, expected_args", [["log2", ["x/n"]], ["max", [("x+2", "y+1")]], ["Heaviside", [("aleph", "beth")]]]
+        "function, expected_args",
+        [["log2", ["x/n"]], ["max", [("0", "x+2", "y+1")]], ["Heaviside", [("aleph", "beth")]]],
     )
-    def test_list_arguments_of_function(self, function, expected_args, many_funcs):
-
-        assert set(many_funcs.list_arguments_of_function(function)) == set(
+    def test_list_arguments_of_function(self, function, expected_args):
+        args_of_function = set(self.rewriter(CommonExpressions.MANY_FUNCS).list_arguments_of_function(function))
+        assert args_of_function == set(
             (
                 tuple(self.backend.as_expression(x) for x in ex)
                 if isinstance(ex, tuple)
@@ -73,3 +79,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             )
             for ex in expected_args
         )
+
+    def test_expand(self):
+        expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
+        assert self.rewriter(expr).expand() == expr.expand()

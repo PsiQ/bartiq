@@ -307,6 +307,7 @@ def _compile(
             + f"{e.args[0].lhs} = {e.args[0].rhs} evaluated into "
             + f"{e.args[1].lhs} = {e.args[1].rhs}."
         )
+
     connections_map = _expand_connections(routine.connections)
 
     local_variables = _compile_local_variables(routine.local_variables, inputs, backend)

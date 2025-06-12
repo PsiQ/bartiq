@@ -17,19 +17,22 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from typing import Any, Generic, TypeAlias, cast
+from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
-from bartiq.symbolics.backend import SymbolicBackend, T
-from bartiq.analysis._rewriters.assumptions import Assumption
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
-Expr: TypeAlias = T | str
+P = ParamSpec("P")
+
+TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
 
 
-def update_expression(function: Callable[..., T | int | float]) -> Callable[..., T | int | float]:
+def update_expression(
+    function: Callable[Concatenate[TRewriter, P], TExpr[T]],
+) -> Callable[Concatenate[TRewriter, P], TExpr[T]]:
     """Decorator for updating the stored expression in ExpressionRewriter."""
 
-    def _inner(self: ExpressionRewriter, *args, **kwargs) -> T | int | float:
+    def _inner(self: TRewriter, *args: P.args, **kwargs: P.kwargs) -> TExpr[T]:
         self.expression = function(self, *args, **kwargs)
         return self.expression
 
@@ -39,27 +42,18 @@ def update_expression(function: Callable[..., T | int | float]) -> Callable[...,
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
-    def __init__(self, expression: Expr[T], backend: SymbolicBackend[T]):
-        self._expr = cast(T, backend.as_expression(expression))
-        self.original_expression = self._expr
+    def __init__(self, expression: T | str, backend: SymbolicBackend[T]):
+        self.expression = cast(TExpr[T], backend.as_expression(expression))
+        self.original_expression = self.expression
         self._backend = backend
-
-    @property
-    def expression(self) -> T:
-        """Return the current form of the expression."""
-        return self._expr
-
-    @expression.setter
-    def expression(self, other: T):
-        self._expr = other
 
     @update_expression
     def evaluate_expression(
         self,
-        assignments: Mapping[str, int | float | T],
+        assignments: Mapping[str, TExpr[T]],
         original_expression: bool = False,
-        functions_map: Mapping[str, Callable[[Any], int | float]] | None = None,
-    ) -> int | float | T:
+        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
+    ) -> TExpr[T]:
         """Assign explicit values to certain variables.
 
         Args:
@@ -83,16 +77,16 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def as_individual_terms(self) -> Iterable[T]:
+    def individual_terms(self) -> Iterable[T]:
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
     @update_expression
-    def expand(self) -> T:
+    def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
 
     @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> T:
+    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
         """Return an expression containing terms that involve specific symbols."""
 
     @abstractmethod
