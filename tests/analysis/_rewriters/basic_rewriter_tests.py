@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from enum import StrEnum
+from enum import Enum
 
 import pytest
 
@@ -19,7 +19,7 @@ from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
 
 
-class CommonExpressions(StrEnum):
+class CommonExpressions(str, Enum):
     """Expressions to test rewriters on."""
 
     TRIVIAL = "a"
@@ -76,3 +76,16 @@ class ExpressionRewriterTests:
         assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
             expected_expression
         )
+
+    def test_sequence_of_commands(self):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        rewriter.evaluate_expression(assignments={"x": 10})
+        assert rewriter.expression == self.backend.as_expression(
+            "a*log2(10/n) + b*(max(0, 1+y, 12) + Heaviside(aleph, beth))"
+        )
+        with pytest.raises(ValueError, match="No variable"):
+            rewriter.focus("x")
+        rewriter.evaluate_expression(assignments={"y": 1})
+        assert rewriter.expression == self.backend.as_expression("a*log2(10/n) + b*(Heaviside(aleph, beth) + 12)")
+        rewriter.expand()
+        assert rewriter.focus("aleph") == self.backend.as_expression("b*Heaviside(aleph, beth)")
