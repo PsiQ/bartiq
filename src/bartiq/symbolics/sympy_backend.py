@@ -24,7 +24,7 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol, symbols
+from sympy import Expr, N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
