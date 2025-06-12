@@ -8,8 +8,6 @@ readme = "README.md"
 
 
 [tool.poetry.dependencies]
-pandas = "^2.2"
-plotly = "^5.17"
 python = "^3.10"
 pydantic = "^2.7"
 sympy = "^1.12"
@@ -21,10 +19,13 @@ ipytree = { version = "^0.2.2", optional = true }
 ipywidgets = { version = "^8.1.2", optional = true }
 traitlets = { version = "^5.14.3", optional = true }
 scipy = { version = "^1.14.1", optional = true }
+pandas = { version = "^2.2", optional = true }
+plotly = { version = "^5.17", optional = true }
 
 [tool.poetry.extras]
 jupyter = ["ipytree", "ipywidgets", "traitlets"]
 optimization = ["scipy"]
+interactive = ["pandas", "plotly", "ipytree", "ipywidgets", "traitlets"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -69,5 +70,5 @@ target-version = ['py310']
 
 
 [[tool.mypy.overrides]]
-module = ["ipywidgets.*", "ipytree.*", "sympy.*"]
+module = ["ipywidgets.*", "ipytree.*", "sympy.*", "plotly.*"]
 ignore_missing_imports = true

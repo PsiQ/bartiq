@@ -18,12 +18,18 @@ from __future__ import annotations
 from numbers import Number
 from typing import Union, cast
 
-import pandas as pd
-import plotly.express as px  # type: ignore
-from plotly.graph_objs._figure import Figure as PlotlyFig  # type: ignore
+try:
+    import pandas as pd
+    import plotly.express as px
+    from plotly.graph_objs._figure import Figure as PlotlyFig
+except ModuleNotFoundError as exc:
+    raise ModuleNotFoundError(
+        """To use the Bartiq visualization functionality, reinstall with `pip install "bartiq[interactive]"`."""
+    ) from exc
+
 from sympy import Symbol
 
-from bartiq import CompiledRoutine, Resource, ResourceType
+from bartiq import CompiledRoutine
 
 
 class TreeMap:
@@ -37,8 +43,6 @@ class TreeMap:
         routine: The routine to generate treemaps for.
 
     Raises:
-        ValueError: If object passed in as routine is not a ``Routine`` or a
-            ``CompiledRoutine`` object.
         ValueError: If any resource in the top level routine has a non-numeric
             value.
     """
@@ -46,12 +50,11 @@ class TreeMap:
     COLUMNS = ["Routine", "Parent", "Contribution"]
 
     def __init__(self, routine: CompiledRoutine):
-        if not isinstance(routine, CompiledRoutine):
-            raise ValueError(f"Routine should be of type CompiledRoutine, received object with type {type(routine)}.")
-
         self.routine = routine
-        if any(not isinstance(x.value, Number) for x in self.routine.resources.values()):
-            raise ValueError(f"{self.__class__.__name__} only accepts numeric routines.")
+        if not all(isinstance(x, Number) for x in self.routine.resource_values.values()):
+            raise ValueError(
+                f"{self.__class__.__name__} only accepts numeric routines; at least resource has a non-numeric value."
+            )
 
         self.valid_resources = set([resource_name for resource_name in self.routine.resources.keys()])
 
@@ -65,12 +68,10 @@ class TreeMap:
             pd.DataFrame
         """
         if resource not in self.valid_resources:
-            raise ValueError(
-                "Resource to be plotted should be in the valid resources of the "
-                "routine for which the tree map was created."
-            )
+            raise ValueError(f"Resource {resource} is not in the list of valid resources for this routine.")
         df = pd.DataFrame([], columns=self.COLUMNS)
-        output_from_parent = _get_descendant_contributions(self.routine, resource)
+
+        output_from_parent: NestedContributions = _get_descendant_contributions(self.routine, resource)
 
         def _update_dataframe_recursive(
             output_from_parent: NestedContributions, parent: str, df: pd.DataFrame
@@ -106,14 +107,13 @@ class TreeMap:
         """
 
         data_frame = self.get_dataframe(resource=resource)
-        routine_col = self.COLUMNS[0]
 
         # plotly may not render treemap without unique ID (routine) labels -
         # create new dataframe with unique routine names if needed
-        if data_frame[routine_col].duplicated().any():
+        routine, parent, contribution = self.COLUMNS
+        if data_frame[routine].duplicated().any():
             data_frame = _dataframe_with_unique_routine_names(data_frame)
 
-        routine, parent, contribution = self.COLUMNS
         fig = px.treemap(
             data_frame,
             names=routine,
@@ -139,7 +139,7 @@ def _get_child_contributions(routine: CompiledRoutine, resource: str) -> Contrib
     return {
         child_routine.name: x
         for child_routine in routine.children.values()
-        if (x := child_routine.resources.get(resource, Resource(name=resource, type=ResourceType.other, value=0)).value)
+        if (x := child_routine.resource_values.get(resource, 0))
     }
 
 

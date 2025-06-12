@@ -13,18 +13,21 @@
 # limitations under the License.
 
 import numpy as np
-import pandas as pd
 import pytest
 from qref import SchemaV1
 
 from bartiq import Routine, compile_routine
 from bartiq.symbolics.sympy_backend import SympyBackend
-from bartiq.visualizations import TreeMap, _dataframe_with_unique_routine_names
 
+pandas = pytest.importorskip("pandas")
+plotly = pytest.importorskip("plotly")
 
-def test_tree_map_input_non_routine_raises():
-    with pytest.raises(ValueError, match="Routine should be of type CompiledRoutine"):
-        TreeMap(0.4)
+import pandas as pd  # noqa: E402
+
+from bartiq.visualizations import (  # noqa: E402
+    TreeMap,
+    _dataframe_with_unique_routine_names,
+)
 
 
 def test_tree_map_invalid_routine_raises():
@@ -181,5 +184,5 @@ def test_get_dataframe_invalid_resource_raises():
     routine_from_qref = Routine.from_qref(input_schema, backend=backend)
     c_routine = compile_routine(routine_from_qref).routine
     tree_map = TreeMap(c_routine)
-    with pytest.raises(ValueError, match="Resource to be plotted should be in the valid resources"):
+    with pytest.raises(ValueError, match="is not in the list of valid resources for this routine"):
         tree_map.get_dataframe("non_existent_resource")
