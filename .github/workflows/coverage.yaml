@@ -21,7 +21,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml
+          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
 
       - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
