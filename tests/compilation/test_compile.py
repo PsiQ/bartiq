@@ -233,6 +233,7 @@ N_CHILDREN = 1000
 # we could instead parse the strings and compare them to the actual values - but in practice this would
 # mess up the parser because of the recursion limit.
 # Also note: these strings are specific to sympy.
+@pytest.mark.perftest
 @pytest.mark.order(-1)
 @pytest.mark.timeout(30)
 @pytest.mark.parametrize(
