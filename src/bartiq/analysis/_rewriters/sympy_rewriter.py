@@ -19,7 +19,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
-from bartiq.analysis._rewriters.assumptions import Assumption
+from bartiq.analysis._rewriters.assumptions import SympyAssumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
@@ -136,32 +136,22 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    @update_expression
-    def add_assumption(self, assume: str | Assumption):
-        assumption = assume if isinstance(assume, Assumption) else Assumption.from_string(assume)
-        # if assumption.value == 0:
-        #     self.expression = self.expression.subs({symbol_in_expr: assumption.to_symbol()})
-
+    def _add_assumption(self, assume: str | SympyAssumption) -> TExpr[T]:
+        """Add an assumption to our expression."""
+        assumption = assume if isinstance(assume, SympyAssumption) else SympyAssumption.from_string(assume)
         try:
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
             replacement = assumption.to_symbol()
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
-            exit()
-            # reference_symbol: Expr = parse_to_sympy(var)
-            # for _sym in reference_symbol.free_symbols:
-            #     reference_symbol = reference_symbol.subs(
-            #         _sym, next(symbol for symbol in expression.free_symbols if symbol.name == _sym.name)
-            #     )
+            reference_symbol = self._backend.as_expression(assumption.symbol_name)
 
         replacement_symbol = Symbol(name="O", **assumption.symbol_properties)
-        self.expression = self.expression.subs({reference_symbol: replacement_symbol + value}).subs(
-            {replacement_symbol: reference_symbol - value}
+        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
+            {replacement_symbol: reference_symbol - assumption.value}
         )
-        return expression
-
-        # return self.expression
+        return self.expression
 
 
 class SympyResourceRewriter(ResourceRewriter[Expr]):

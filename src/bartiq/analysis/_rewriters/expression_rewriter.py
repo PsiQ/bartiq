@@ -85,16 +85,21 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _expand(self) -> TExpr[T]:
         pass
 
+    @abstractmethod
+    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
+        """Return an expression containing terms that involve specific symbols."""
+
     @update_expression
     def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
         return self._expand()
 
-    @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
-        """Return an expression containing terms that involve specific symbols."""
 
     @abstractmethod
+    def _add_assumption(self, assume: str | Assumption) -> T:
+        pass
+
+    @update_expression
     def add_assumption(self, assume: str | Assumption) -> T:
         """Add an assumption on a symbol."""
 
