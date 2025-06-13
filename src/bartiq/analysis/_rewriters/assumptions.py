@@ -13,6 +13,7 @@
 # limitations under the License.
 """The Assumptions object allows properties of symbols to be parsed."""
 from __future__ import annotations
+from typing import Self
 from numbers import Number
 import re
 
@@ -37,58 +38,25 @@ class Assumption:
 
     symbol_name: str
     relationship: Relationals
-    value: Number
+    value: Number | str
 
     def __post_init__(self):
         self.symbol_properties = _get_properties(self.symbol_name, self.relationship, self.value)
 
+    def __repr__(self)->str:
+        return f"{self.__class__.__name__}({self.symbol_name}{self.relationship}{self.value})"
+
+    @classmethod
+    def from_string(cls, assumption_string: str) -> Self:
+        return cls(*_unpack_assumption(assumption_string))
+    
+
+class SympyAssumption(Assumption):
+    "A class for defining assumptions on variables in sympy."
     def to_symbol(self) -> Symbol:
         """Return a sympy Symbol object with the correct properties."""
         return Symbol(self.symbol_name, **self.symbol_properties)
 
-    @classmethod
-    def from_string(cls, assumption_string: str) -> Assumption:
-        return Assumption(*_unpack_assumption(assumption_string))
-
-
-# def _apply_assumption(expression: Expr, assumption: str) -> Expr:
-#     """Apply an assumption to a given expression.
-
-#     Args:
-#         expression (Expr): Expression to add an assumption to.
-#         assumption (str): Assumption, of the form A ? B.
-
-#     Returns:
-#         Expr
-#     """
-#     var, _, value, properties = _parse_assumption(assumption=assumption)
-#     try:
-#         reference_symbol: Symbol = next(symbol for symbol in expression.free_symbols if symbol.name == var)
-#         replacement = Symbol(
-#             var,
-#             positive=properties.get("positive"),
-#             negative=properties.get("negative"),
-#             nonzero=properties.get("nonzero"),
-#         )
-#         expression = expression.subs({reference_symbol: replacement})
-#         reference_symbol = replacement
-#     except StopIteration:
-#         reference_symbol: Expr = parse_to_sympy(var)
-#         for _sym in reference_symbol.free_symbols:
-#             reference_symbol = reference_symbol.subs(
-#                 _sym, next(symbol for symbol in expression.free_symbols if symbol.name == _sym.name)
-#             )
-
-#     replacement_symbol = Symbol(
-#         name="O",
-#         positive=properties.get("positive"),
-#         negative=properties.get("negative"),
-#         nonzero=properties.get("nonzero"),
-#     )
-#     expression = expression.subs({reference_symbol: replacement_symbol + value}).subs(
-#         {replacement_symbol: reference_symbol - value}
-#     )
-#     return expression
 
 
 def _get_properties(variable: str, relationship: str, reference_value: str | Number) -> dict[str, bool | None]:
@@ -125,7 +93,7 @@ def _get_properties(variable: str, relationship: str, reference_value: str | Num
     properties: dict[str, bool | None] = dict(
         positive=((gt or gte) and value_positive),
         negative=((lt or lte) and value_negative),
-        zero=(gt and value_positive)
+        nonzero=(gt and value_positive)
         or (lt and value_negative)
         or (gte and value_positive and value_non_zero)
         or (lte and value_negative and value_non_zero)
@@ -158,8 +126,3 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
     return parsed
-
-
-if __name__ == "__main__":
-    a = Assumption("A", ">=", 0)
-    print(a.symbol_properties)
