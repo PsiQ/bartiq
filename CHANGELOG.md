@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.14.0](https://github.com/PsiQ/bartiq/compare/v0.13.1...v0.14.0) (2025-06-13)
+
+
+### Features
+
+* added treemap visualisation class ([#216](https://github.com/PsiQ/bartiq/issues/216)) ([3bd44aa](https://github.com/PsiQ/bartiq/commit/3bd44aaf1a6a0582fa762336ad57df3041226a13))
+* **routine:** add dfs and bfs descendant search methods with tests ([#213](https://github.com/PsiQ/bartiq/issues/213)) ([8affd4d](https://github.com/PsiQ/bartiq/commit/8affd4d1fc403e4ec9c32c60b6177af24db617fb))
+* **symbolics:** improve nlz and round error handling for non-integer and non-SymPy object input ([#212](https://github.com/PsiQ/bartiq/issues/212)) ([131834c](https://github.com/PsiQ/bartiq/commit/131834c0806926417a87b65cf5da154464760aab))
+* **tests:** code cov with cov change comp ([#221](https://github.com/PsiQ/bartiq/issues/221)) ([0c450f7](https://github.com/PsiQ/bartiq/commit/0c450f7fad84b7a74cd1f4ffb97ad04d138dd209))
+* **transform:** add add_circuit_volume function to compute circuit v… ([#211](https://github.com/PsiQ/bartiq/issues/211)) ([a3d9da4](https://github.com/PsiQ/bartiq/commit/a3d9da4b21ffdc5bf1cb10a9e567f1585e54ad98))
+
+
+### Bug Fixes
+
+* avoid SymPy ``LatexPrinter`` modifiers to change subscripted parameter symbols ([#208](https://github.com/PsiQ/bartiq/issues/208)) ([57095ed](https://github.com/PsiQ/bartiq/commit/57095ed8794cec40a2c71e4af066e13f55515f94))
+
+
+### Documentation
+
+* improve the API docs ([#209](https://github.com/PsiQ/bartiq/issues/209)) ([b0273a3](https://github.com/PsiQ/bartiq/commit/b0273a39ca8e8b67eb006f7e1e89a70f2ba87af6))
+
 ## [0.13.1](https://github.com/PsiQ/bartiq/compare/v0.13.0...v0.13.1) (2025-05-27)
 
 
