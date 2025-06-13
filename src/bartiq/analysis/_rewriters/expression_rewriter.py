@@ -87,7 +87,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     @update_expression
     def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
-        self._expand()
+        return self._expand()
 
     @abstractmethod
     def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
