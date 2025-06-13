@@ -23,8 +23,7 @@ from bartiq.analysis._rewriters.assumptions import SympyAssumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
-    TExpr,
-    update_expression,
+    TExpr
 )
 
 
@@ -56,8 +55,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             return expand()
         return self.expression
 
-    @update_expression
-    def simplify(self) -> TExpr[Expr]:
+    def _simplify(self) -> TExpr[Expr]:
         """Run SymPy's `simplify` method on the expression."""
         if callable(simplify := getattr(self.expression, "simplify", None)):
             return simplify()
