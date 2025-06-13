@@ -17,7 +17,6 @@ import math
 import warnings
 
 import pytest
-
 import sympy
 from sympy.abc import x, y
 
