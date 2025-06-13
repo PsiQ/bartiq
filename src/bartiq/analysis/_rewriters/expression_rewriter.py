@@ -81,7 +81,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
-    def _expand(self) -> TExpr[T]: 
+    def _expand(self) -> TExpr[T]:
         pass
 
     @update_expression
