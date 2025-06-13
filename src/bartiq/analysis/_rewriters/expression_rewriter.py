@@ -38,6 +38,7 @@ def update_expression(
 
     return _inner
 
+
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
@@ -80,7 +81,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
-    def _expand(self)->TExpr[T]:...
+    def _expand(self) -> TExpr[T]: 
+        pass
 
     @update_expression
     def expand(self) -> TExpr[T]:
@@ -103,7 +105,7 @@ class ResourceRewriter(Generic[T]):
         resource: the resource in the routine we wish to apply rewriting rules to.
     """
 
-    _rewriter: Callable[[T| str], ExpressionRewriter[T]]
+    _rewriter: Callable[[T | str], ExpressionRewriter[T]]
 
     def __init__(self, routine: CompiledRoutine, resource: str):
         self.routine = routine
