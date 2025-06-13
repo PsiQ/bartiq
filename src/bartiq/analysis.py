@@ -11,19 +11,27 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import random
 import warnings
-from typing import Any, Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from collections.abc import Sequence
+from typing import Any, Callable, Literal, Protocol, TypeAlias, TypedDict
 
+import numpy as np
+from scipy.optimize import (
+    HessianUpdateStrategy,
+    LinearConstraint,
+    NonlinearConstraint,
+    OptimizeResult,
+)
 from sympy import Expr, Function, Poly, Symbol, prod
+from typing_extensions import NotRequired
 
 from bartiq.symbolics import sympy_backend
 
 Backend = sympy_backend
 
 try:
-    from scipy.optimize import minimize as scipy_minimize  # type: ignore
+    from scipy.optimize import minimize as scipy_minimize
 
     SCIPY_AVAILABLE = True
 except ImportError:
@@ -131,36 +139,56 @@ def _make_term_expression(gens, term):
     return prod(powers)
 
 
+_Array1D: TypeAlias = np.ndarray[tuple[int], np.dtype[np.floating]]
+_Array2D: TypeAlias = np.ndarray[tuple[int, int], np.dtype[np.floating]]
+
+
+class ConstraintDict(TypedDict):
+    type: Literal["eq", "ineq"]
+    fun: Callable[[_Array1D], float]
+    jac: NotRequired[Callable[[_Array1D], Sequence[float]]]
+    args: NotRequired[tuple[Any, ...]]
+
+
+AnyConstraint = LinearConstraint | NonlinearConstraint | ConstraintDict
+
+
 class OptimizerKwargs(TypedDict, total=False):
-    x0: Optional[float]
-    bounds: Optional[Tuple[float, float]]
-    learning_rate: Optional[float]
-    max_iter: Optional[int]
-    tolerance: Optional[float]
+    x0: float
+    bounds: tuple[float, float]
+    learning_rate: float
+    max_iter: int
+    tolerance: float
+
+
+class _Callback(Protocol):
+
+    def __call__(self, /, intermediate_result: OptimizeResult) -> Any:
+        pass
 
 
 class ScipyOptimizerKwargs(TypedDict, total=False):
-    args: Tuple[Any, ...]
-    method: Optional[str]
-    jac: Optional[Union[Callable, str, bool]]
-    hess: Optional[Union[Callable, str]]
-    hessp: Optional[Callable]
-    constraints: Union[Dict[str, Any], List[Dict[str, Any]]]
-    callback: Optional[Callable]
-    options: Optional[Dict[str, Any]]
+    args: tuple[Any, ...]
+    method: str | None
+    jac: None | Literal["2-point", "3-point", "cs"] | Callable[[_Array1D], Sequence[float]]
+    hess: None | Literal["2-point", "3-point", "cs"] | HessianUpdateStrategy | Callable[[_Array1D], _Array2D]
+    hessp: Callable[[_Array1D, _Array1D], _Array2D] | None
+    constraints: AnyConstraint | Sequence[AnyConstraint]
+    callback: _Callback | None
+    options: dict[str, Any] | None
 
 
 class Optimizer:
     @staticmethod
     def gradient_descent(
         cost_func: Callable[[float], float],
-        x0: Optional[float] = None,
-        bounds: Optional[Tuple[float, float]] = None,
+        x0: float | None = None,
+        bounds: tuple[float, float] | None = None,
         learning_rate: float = 1e-6,
         max_iter: int = 1000,
         tolerance: float = 1e-8,
         momentum: float = 0.9,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform gradient descent optimization to find the minimum of the expression with respect to the specified
         parameter.
@@ -177,8 +205,11 @@ class Optimizer:
             momentum: The momentum factor to control the influence of previous updates.
 
         Returns:
-            Dict: A dictionary containing the final value of the parameter and the history of values
-            during optimization.
+            A dictionary containing the final value of the parameter and the history of values during optimization.
+
+        Raises:
+            ValueError: If the initial value is out of bounds.
+            RuntimeError: If the maximum number of iterations is reached without convergence.
         """
         if x0 is None:
             x0 = random.uniform(*bounds) if bounds else random.uniform(-1, 1)
@@ -236,16 +267,20 @@ def minimize(
     expression: str,
     param: str,
     optimizer: str = "gradient_descent",
-    optimizer_kwargs: Optional[OptimizerKwargs] = None,
-    scipy_kwargs: Optional[ScipyOptimizerKwargs] = None,
+    optimizer_kwargs: OptimizerKwargs | None = None,
+    scipy_kwargs: ScipyOptimizerKwargs | None = None,
     backend=Backend,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Find the optimal parameter value that minimizes a given expression.
 
     To visualize `minimize` results using a plotting library like `matplotlib`:
 
     1. Plot `x_history` (parameter values) on the x-axis.
     2. Plot `minimum_cost` on the y-axis.
+
+    Raises:
+        ValueError: If the optimizer is not recognized or if required parameters are missing.
+        ImportError: If SciPy is not installed and the "scipy" optimizer is selected.
 
     """
 
@@ -279,9 +314,9 @@ def minimize(
             cost_func=cost_func_callable,
             x0=x0,
             bounds=bounds,
-            learning_rate=optimizer_kwargs.get("learning_rate") or 0.000001,
-            max_iter=optimizer_kwargs.get("max_iter") or 10000,
-            tolerance=optimizer_kwargs.get("tolerance") or 1e-8,
+            learning_rate=optimizer_kwargs.get("learning_rate", 0.000001),
+            max_iter=optimizer_kwargs.get("max_iter", 10000),
+            tolerance=optimizer_kwargs.get("tolerance", 1e-8),
         )
 
     elif optimizer == "scipy":
@@ -290,7 +325,10 @@ def minimize(
             if not optimizer_kwargs.get("x0"):
                 raise ValueError("SciPy optimization requires an initial value 'x0'.")
 
-            x0 = optimizer_kwargs.get("x0")
+            try:
+                x0 = optimizer_kwargs["x0"]
+            except KeyError:
+                raise ValueError("Optimizer_kwargs need x0 if scipy optimizer is used")
             bounds = optimizer_kwargs.get("bounds")
             bounds_scipy = [bounds] if isinstance(bounds, tuple) else bounds
             tol_scipy = optimizer_kwargs.get("tolerance")
@@ -299,21 +337,26 @@ def minimize(
                 fun=cost_func_callable,
                 x0=x0,
                 args=scipy_kwargs.get("args", ()),
-                method=scipy_kwargs.get("method"),
+                # The type: ignore below is needed, unless we want to copy the list with all supported optimizer
+                # names here.
+                method=scipy_kwargs.get("method"),  # type: ignore
                 jac=scipy_kwargs.get("jac"),
                 hess=scipy_kwargs.get("hess"),
                 hessp=scipy_kwargs.get("hessp"),
                 bounds=bounds_scipy,
-                constraints=scipy_kwargs.get("constraints", ()),
+                # Hard to define constraint dict without using optype package, the type that we currently
+                # use is pretty close to what scipy_stubs uses.
+                constraints=scipy_kwargs.get("constraints", []),  # type: ignore
                 tol=tol_scipy,
                 callback=scipy_kwargs.get("callback"),
+                # Defining dictionary for input as options would be an overkill.
                 options=scipy_kwargs.get(
                     "options",
                     {
                         "maxiter": optimizer_kwargs.get("max_iter"),
                         "disp": True,
                     },
-                ),
+                ),  # type: ignore
             )
             optimization_result = {
                 "optimal_value": float(scipy_result.x.item()) if scipy_result.x.size == 1 else scipy_result.x,

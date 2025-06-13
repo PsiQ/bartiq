@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import operator
+import warnings
 from typing import Any
 
 from sympy import (
@@ -110,7 +111,11 @@ class Round(Function):
                 return round(x, ndigits=ndigits)
 
     def doit(self, deep=True, **hints):
-        """Define the delayed evaluation in the case where the input is not yet defined."""
+        """Define the delayed evaluation in the case where the input is not yet defined.
+
+        Raises:
+            TypeError: If the input is not a number or if ndigits is not an integer.
+        """
         x, *other_args = self.args
 
         assert len(other_args) <= 1, f"Expected at most only a single extra argument; found {other_args}."
@@ -139,14 +144,14 @@ class multiplicity(Function):
         return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
 
 
-class nlz(Function):
+class ntz(Function):
     @classmethod
     def eval(cls, n):
         """
         Returns the number of trailing zeros in the binary representation of n.
         Only defined for non-negative integers.
         Returns 0 for input 0.
-        For symbolic input, returns unevaluated nlz(n).
+        For symbolic input, returns unevaluated ntz(n).
         Raises:
             TypeError: If input is not an integer (when numeric).
             ValueError: If input is a negative integer.
@@ -154,13 +159,25 @@ class nlz(Function):
         # Numeric evaluation
         if n.is_number:
             if not n.is_integer:
-                raise TypeError(f"nlz requires integer argument; found {n}")
+                raise TypeError(f"ntz requires integer argument; found {n}")
             n = int(n)
             if n < 0:
-                raise ValueError(f"nlz requires non-negative integer; found {n}")
+                raise ValueError(f"ntz requires non-negative integer; found {n}")
             if n == 0:
                 return 0
             return (n & -n).bit_length() - 1
+
+
+class nlz(ntz):
+    """Deprecated alias for ntz; use ntz instead."""
+
+    def __new__(cls, n, *args, **kwargs):
+        warnings.warn(
+            "nlz is deprecated and will be removed in a future release; use ntz instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, n, *args, **kwargs)
 
 
 class Max(Function):
@@ -238,6 +255,7 @@ SPECIAL_FUNCS = {
     "gamma": gamma,
     "heaviside": Heaviside,
     "multiplicity": multiplicity,
+    "ntz": ntz,
     "nlz": nlz,
 }
 

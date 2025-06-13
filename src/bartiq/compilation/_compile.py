@@ -124,7 +124,7 @@ class CompilationResult(Generic[T]):
     _backend: SymbolicBackend[T]
 
     def to_qref(self) -> SchemaV1:
-        """Converts `routine` to QREF using `_backend`."""
+        """Converts [`routine`][bartiq.CompiledRoutine] to QREF using `_backend`."""
         return routine_to_qref(self.routine, self._backend)
 
 
@@ -152,7 +152,10 @@ def compile_routine(
             Each dictionary should contain the derived resource's name, type
             and the function mapping a routine to the value of resource.
         compilation_flags: bitwise combination of compilation flags to tailor the compilation process; access these
-            through the `CompilationFlags` object. By default None.
+            through the [`CompilationFlags`][bartiq.compilation.CompilationFlags] object. By default None.
+
+    Raises:
+        BartiqCompilationError: if the routine is not valid, or if the verification step fails.
     """
     compilation_flags = compilation_flags or CompilationFlags(0)
     if CompilationFlags.SKIP_VERIFICATION not in compilation_flags and not isinstance(routine, Routine):
