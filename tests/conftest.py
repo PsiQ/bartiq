@@ -32,6 +32,7 @@ def pytest_addoption(parser):
         help="skip tests marked perftest",
     )
 
+
 def pytest_collection_modifyitems(config, items):
     if not config.getoption("--no-perf-tests"):
         return
