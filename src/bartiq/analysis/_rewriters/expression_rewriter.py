@@ -82,9 +82,13 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
+    def _expand(self) -> TExpr[T]:
+        pass
+
     @update_expression
     def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
+        return self._expand()
 
     @abstractmethod
     def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
@@ -106,7 +110,7 @@ class ResourceRewriter(Generic[T]):
         resource: the resource in the routine we wish to apply rewriting rules to.
     """
 
-    _rewriter: type[ExpressionRewriter[T]]
+    _rewriter: Callable[[T | str], ExpressionRewriter[T]]
 
     def __init__(self, routine: CompiledRoutine, resource: str):
         self.routine = routine
@@ -115,7 +119,7 @@ class ResourceRewriter(Generic[T]):
             raise ValueError(f"Routine {routine.name} has no resource {self.resource}.")
         self.top_level_expression = cast(T | str, self.routine.resources[self.resource].value)
 
-        self.rewriter = self._rewriter(expression=self.top_level_expression)  # type: ignore
+        self.rewriter = self._rewriter(self.top_level_expression)
 
     def __getattr__(self, name: str):
         return getattr(self.rewriter, name)

@@ -50,8 +50,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def individual_terms(self) -> Iterable[Expr]:
         return Add.make_args(self.expression)
 
-    @update_expression
-    def expand(self) -> TExpr[Expr]:
+    def _expand(self) -> TExpr[Expr]:
         """Expand all brackets in the expression."""
         if callable(expand := getattr(self.expression, "expand", None)):
             return expand()
