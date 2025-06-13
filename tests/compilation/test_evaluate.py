@@ -19,7 +19,7 @@ import yaml
 from qref import SchemaV1
 from qref.schema_v1 import RoutineV1
 
-from bartiq import CompiledRoutine, compile_routine, evaluate
+from bartiq import CompiledRoutine, Routine, compile_routine, evaluate, sympy_backend
 from bartiq.errors import BartiqCompilationError
 from tests.utilities import (
     load_transitive_resource_data,
@@ -179,19 +179,30 @@ def test_evaluation_raises_error_when_constraint_is_violated(backend):
 @pytest.mark.filterwarnings("ignore:Found the following issues")
 def test_compile_and_evaluate_double_factorization_routine(backend):
     with open(Path(__file__).parent / "data/df_qref.yaml") as f:
-        routine = SchemaV1(**yaml.safe_load(f))
+        routine = Routine.from_qref(qref_obj=yaml.safe_load(f), backend=sympy_backend)
 
     result = compile_routine(routine)
-    assignments = {"N_spatial": 10, "R": 54, "M": 480, "b": 10, "lamda": 2, "N_givens": 20, "Ksi_l": 10}
-    evaluated_routine = evaluate(result.routine, assignments=assignments).routine
+
+    def return_one(*args):
+        return 1
+
+    assignments = {"N_spatial": 10, "R": 54, "M_r": 480, "b_as": 10, "b_givens": 20, "b_mas": 10}
+    evaluated_routine = evaluate(
+        result.routine,
+        assignments=assignments,
+        functions_map={"calc_lambda": return_one, "select_elbow_const": return_one},
+    ).routine
     expected_resources = {
-        "toffs": 260,
-        "t_gates": 216,
-        "rotations": 4,
-        "measurements": 0,
-        "gidney_relbows": 56403,
-        "gidney_lelbows": 56403,
+        "active_volume": 18135184.5,
+        "gidney_lelbows": 210527,
+        "gidney_relbows": 210527,
+        "measurements": 460,
+        "ppms": 0,
+        "pprs": 72,
+        "rotations": 21,
+        "t_gates": 145,
+        "toffs": 819,
     }
 
     for resource_name in expected_resources:
-        assert expected_resources[resource_name] == int(evaluated_routine.resources[resource_name].value)
+        assert expected_resources[resource_name] == evaluated_routine.resources[resource_name].value
