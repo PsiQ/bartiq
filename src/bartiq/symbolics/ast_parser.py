@@ -21,16 +21,23 @@ syntax with carefully crafted function calls. In particular:
 
 1. Port designations are converted to Port function call, e.g.
 
-#in_0 -> Port(in_0)
-a.b.#out_1 -> a.b.Port(out_1)
+    ```
+    #in_0 -> Port(in_0)
+    a.b.#out_1 -> a.b.Port(out_1)
+    ```
 
 2. Wildcards are replaced by a call to wildcard function, e.g.
 
-~.a -> wildcard().a
-a~.b -> wildcard(a).b
+    ```
+    ~.a -> wildcard().a
+    a~.b -> wildcard(a).b
+    ```
 
 3. Reserved lambda keyword is replaced with __lambda__, e.g.
-lambda + gamma -> __lambda__ + gamma
+
+    ```
+    lambda + gamma -> __lambda__ + gamma
+    ```
 
 After the preprocessing is done, the resulting expression is also
 a valid Python expression. Therefore, we are able to use ast.parse
