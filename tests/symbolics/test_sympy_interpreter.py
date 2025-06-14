@@ -183,7 +183,7 @@ def make_alphabet_test_case(letter, use):
 
 def make_string_expression(x):
     """Create an expression string that contains all the possible operators."""
-    return f"{x} + {x} * {x} - {x} / {x} ^ {x} % {x}"
+    return f"{x} + {x} * {x} - {x} / {x} ** {x} % {x}"
 
 
 def make_sympy_expression(x):
@@ -248,18 +248,18 @@ PARSE_TEST_CASES = [
     ("2 * 3.14159", 6.28318),
     ("3.141 * 3.141 / 10", Float(0.9865881)),
     ("PI * PI / 10", Pi * Pi / 10),
-    ("PI ^ 2", Pi**2),
-    ("round(PI ^ 2)", 10),
+    ("PI ** 2", Pi**2),
+    ("round(PI ** 2)", 10),
     ("6.02E23 * 8.048", 4.844896e24),
     ("sin(PI / 2)", 1),
-    ("10 + sin(PI / 4) ^ 2", Rational(21, 2)),
+    ("10 + sin(PI / 4) ** 2", Rational(21, 2)),
     ("exp(0)", 1),
     ("exp(1)", E),
-    ("2 ^ 3 ^ 2", 512),
-    ("(2 ^ 3) ^ 2", 64),
-    ("2 ^ 3 + 2", 10),
-    ("2 ^ 3 + 5", 13),
-    ("2 ^ 9", 512),
+    ("2 ** 3 ** 2", 512),
+    ("(2 ** 3) ** 2", 64),
+    ("2 ** 3 + 2", 10),
+    ("2 ** 3 + 5", 13),
+    ("2 ** 9", 512),
     ("sgn(-2)", -1),
     ("sgn(0)", 0),
     ("sgn(0.1)", 1),
@@ -280,8 +280,8 @@ PARSE_TEST_CASES = [
     ("sum()", 0),
     ("sum(-1, 42, 0)", 41),
     ("sum(-1, 42, x)", 41 + x),
-    ("sum_over(x^2, x, 1, y)", Sum(x**2, (x, 1, y))),
-    ("prod_over(x^2, x, 1, y)", Product(x**2, (x, 1, y))),
+    ("sum_over(x**2, x, 1, y)", Sum(x**2, (x, 1, y))),
+    ("prod_over(x**2, x, 1, y)", Product(x**2, (x, 1, y))),
     ("round(1.49999999)", 1),
     ("round(1.50000001)", 2),
     ("round(x)", Round(x)),
@@ -358,7 +358,7 @@ PARSE_TEST_CASES = [
     ("x * y * z", x * y * z),
     ("x / y / z", (x / y) / z),
     ("x // y // z", (x // y) // z),
-    ("x ^ y ^ z", x ** (y**z)),
+    ("x ** y ** z", x ** (y**z)),
     ("x + y - z", ((x + y) - z)),
     ("x * y / z", ((x * y) / z)),
     ("x / y * z", ((x / y) * z)),
@@ -366,7 +366,7 @@ PARSE_TEST_CASES = [
     ("x // y * z", ((x // y) * z)),
     # Pathological cases
     ("x / y // z", (x / y) // z),
-    ("x ^ y ** z", x ** (y**z)),
+    ("x ** y ** z", x ** (y**z)),
     # Special functions
     ("multiplicity(x, y)", multiplicity(x, y)),
     ("multiplicity(x, 2)", multiplicity(x, 2)),
@@ -400,10 +400,11 @@ def test_parse_to_sympy(expression, expected_sympy_expression):
     assert sympy_expression == expected_sympy_expression
 
 
-def test_sympy_interpreter_warns_about_using_caret_sign_for_exponentiation():
-    expr = "x ^ 2"
-    with pytest.warns(match=r"Using \^ operator to denote exponentiation is deprecated\."):
-        _ = parse_to_sympy(expr)
+def test_sympy_interpreter_raises_on_xor_operator():
+    with pytest.raises(
+        NotImplementedError, match="XOR operator \\(\\^\\) is not supported. Use \\*\\* for exponentiation."
+    ):
+        parse_to_sympy("x ^ 2")
 
 
 @pytest.mark.parametrize(
