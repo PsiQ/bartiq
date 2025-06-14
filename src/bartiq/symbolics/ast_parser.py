@@ -49,6 +49,7 @@ import re
 from dataclasses import dataclass
 from functools import singledispatch, singledispatchmethod
 from typing import Callable
+
 from .interpreter import Interpreter
 
 _BINARY_OP_MAP = {

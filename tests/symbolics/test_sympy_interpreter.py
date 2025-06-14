@@ -402,8 +402,7 @@ def test_parse_to_sympy(expression, expected_sympy_expression):
 
 def test_sympy_interpreter_raises_on_xor_operator():
     with pytest.raises(
-        NotImplementedError,
-        match="XOR operator \\(\\^\\) is not supported. Use \\*\\* for exponentiation."
+        NotImplementedError, match="XOR operator \\(\\^\\) is not supported. Use \\*\\* for exponentiation."
     ):
         parse_to_sympy("x ^ 2")
 
