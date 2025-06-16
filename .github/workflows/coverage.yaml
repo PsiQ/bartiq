@@ -43,3 +43,4 @@ jobs:
           diff-branch: main
           coverage-reduction-failure: true
           new-uncovered-statements-failure: true
+          push-token: ${{ secrets.GITHUB_TOKEN }}
