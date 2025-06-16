@@ -16,6 +16,7 @@ from __future__ import annotations
 from typing import Self
 from numbers import Number
 import re
+from ast import literal_eval
 
 from dataclasses import dataclass
 from sympy import Symbol
@@ -41,46 +42,52 @@ class Assumption:
     value: Number | str
 
     def __post_init__(self):
-
         if not isinstance(self.value, Number):
             try:
-                self.value = eval(self.value)
+                self.value = literal_eval(self.value)
             except NameError:
                 raise NotImplementedError(
                     f"""Assumption tries to draw a relationship between two variables: {self.symbol_name}, {self.value}.
                     At present, this is not possible!"""
                 )
-        self.symbol_properties = _get_properties(self.symbol_name, self.relationship, self.value)
+        self.symbol_properties = _get_properties(self.relationship, self.value)
 
-    def __repr__(self)->str:
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.symbol_name}{self.relationship}{self.value})"
 
     @classmethod
     def from_string(cls, assumption_string: str) -> Self:
+        """Generate an assumption from a valid string.
+
+        Args:
+            assumption_string: A string describing an inequality.
+
+        Returns:
+            An Assumption class object.
+        """
         return cls(*_unpack_assumption(assumption_string))
-    
+
 
 class SympyAssumption(Assumption):
     "A class for defining assumptions on variables in sympy."
+
     def to_symbol(self) -> Symbol:
         """Return a sympy Symbol object with the correct properties."""
         return Symbol(self.symbol_name, **self.symbol_properties)
 
 
+def _get_properties(relationship: str, reference_value: Number) -> dict[str, bool | None]:
+    """Derive properties of an assumption.
 
-def _get_properties(variable: str, relationship: str, reference_value: Number) -> dict[str, bool | None]:
-    """Derive properties of a
+    At present this only detects positivity,
 
     Args:
-        variable: Variable involved in the assumption.
         relationship: Relationship in the assumption.
         reference_value: Reference value in the assumption.
 
     Returns:
         A dictionary of properties for the assumption.
     """
-
-
 
     gt: bool = relationship == Relationals.GREATER_THAN
     gte: bool = relationship == Relationals.GREATER_THAN_OR_EQUAL_TO
@@ -99,7 +106,7 @@ def _get_properties(variable: str, relationship: str, reference_value: Number) -
         or (lt and value_negative)
         or (gte and value_positive and value_non_zero)
         or (lte and value_negative and value_non_zero)
-        or None,
+        or None,  # If not True, should be None. non_zero=False implies the symbol _is_ zero.
     )
 
     return properties
