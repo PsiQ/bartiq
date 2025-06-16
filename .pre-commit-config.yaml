@@ -34,6 +34,7 @@ repos:
     rev: 7.0.0
     hooks:
       - id: flake8
+      - files: ^src/
 
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v3.2.0
