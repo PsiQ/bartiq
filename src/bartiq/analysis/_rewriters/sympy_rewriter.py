@@ -21,11 +21,7 @@ from sympy import Add, Expr, Function, Max, Min, Symbol
 from bartiq import sympy_backend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 from bartiq.analysis._rewriters.assumptions import SympyAssumption
-from bartiq.analysis._rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    ResourceRewriter,
-    TExpr
-)
+from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter, ResourceRewriter, TExpr
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -139,14 +135,16 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """Add an assumption to our expression."""
         assumption = assume if isinstance(assume, SympyAssumption) else SympyAssumption.from_string(assume)
         try:
+            ## If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
             replacement = assumption.to_symbol()
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
+            ## If the symbol does _not_ exist, parse the assumption expression.
             reference_symbol = self._backend.as_expression(assumption.symbol_name)
 
-        replacement_symbol = Symbol(name="O", **assumption.symbol_properties)
+        replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
         self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
             {replacement_symbol: reference_symbol - assumption.value}
         )
