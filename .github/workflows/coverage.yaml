@@ -1,6 +1,7 @@
 name: "📊 Coverage Report"
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request_target:
@@ -33,9 +34,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry run pytest \
-            --cov=bartiq --cov-report=xml:coverage.xml \
-            --timeout=300
+          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --timeout=300
 
       - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
