@@ -41,6 +41,15 @@ class Assumption:
     value: Number | str
 
     def __post_init__(self):
+
+        if not isinstance(self.value, Number):
+            try:
+                self.value = eval(self.value)
+            except NameError:
+                raise NotImplementedError(
+                    f"""Assumption tries to draw a relationship between two variables: {self.symbol_name}, {self.value}.
+                    At present, this is not possible!"""
+                )
         self.symbol_properties = _get_properties(self.symbol_name, self.relationship, self.value)
 
     def __repr__(self)->str:
@@ -59,7 +68,7 @@ class SympyAssumption(Assumption):
 
 
 
-def _get_properties(variable: str, relationship: str, reference_value: str | Number) -> dict[str, bool | None]:
+def _get_properties(variable: str, relationship: str, reference_value: Number) -> dict[str, bool | None]:
     """Derive properties of a
 
     Args:
@@ -71,14 +80,7 @@ def _get_properties(variable: str, relationship: str, reference_value: str | Num
         A dictionary of properties for the assumption.
     """
 
-    if not isinstance(reference_value, Number):
-        try:
-            reference_value = eval(reference_value)
-        except NameError:
-            raise NotImplementedError(
-                f"""Assumption tries to draw a relationship between two variables: {variable}, {reference_value}.
-                At present, this is not possible!"""
-            )
+
 
     gt: bool = relationship == Relationals.GREATER_THAN
     gte: bool = relationship == Relationals.GREATER_THAN_OR_EQUAL_TO
