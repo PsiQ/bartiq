@@ -17,12 +17,6 @@ from collections.abc import Sequence
 from typing import Any, Callable, Literal, Protocol, TypeAlias, TypedDict
 
 import numpy as np
-from scipy.optimize import (
-    HessianUpdateStrategy,
-    LinearConstraint,
-    NonlinearConstraint,
-    OptimizeResult,
-)
 from sympy import Expr, Function, Poly, Symbol, prod
 from typing_extensions import NotRequired
 
@@ -31,6 +25,12 @@ from bartiq.symbolics import sympy_backend
 Backend = sympy_backend
 
 try:
+    from scipy.optimize import (
+        HessianUpdateStrategy,
+        LinearConstraint,
+        NonlinearConstraint,
+        OptimizeResult,
+    )
     from scipy.optimize import minimize as scipy_minimize
 
     SCIPY_AVAILABLE = True

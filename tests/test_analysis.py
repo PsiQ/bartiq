@@ -15,6 +15,7 @@
 
 import math
 import warnings
+
 import pytest
 
 scipy = pytest.importorskip("scipy")
