@@ -20,10 +20,6 @@ import numpy as np
 from sympy import Expr, Function, Poly, Symbol, prod
 from typing_extensions import NotRequired
 
-from bartiq.symbolics import sympy_backend
-
-Backend = sympy_backend
-
 try:
     from scipy.optimize import (
         HessianUpdateStrategy,
@@ -36,6 +32,10 @@ try:
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
+
+from bartiq.symbolics import sympy_backend
+
+Backend = sympy_backend
 
 
 class BigO:
