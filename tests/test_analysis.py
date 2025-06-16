@@ -21,6 +21,7 @@ import pytest
 scipy = pytest.importorskip("scipy")
 import sympy
 from sympy.abc import x, y
+
 from bartiq.analysis import BigO, minimize
 
 
