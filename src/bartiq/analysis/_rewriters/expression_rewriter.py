@@ -72,9 +72,9 @@ class ExpressionRewriter(ABC, Generic[T]):
             replacements=assignments,
             functions_map=functions_map,
         )
-    
+
     @property
-    def applied_assumptions(self)->set[Assumption]:
+    def applied_assumptions(self) -> set[Assumption]:
         "Get a set of all assumptions previously applied to this expression."
         return self._assumptions
 
@@ -110,7 +110,6 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Simplify the expression with the backends built-in simplification tools."""
         return self._simplify()
 
-
     @abstractmethod
     def _add_assumption(self, assume: str | Assumption) -> T:
         pass
@@ -118,8 +117,16 @@ class ExpressionRewriter(ABC, Generic[T]):
     @update_expression
     def add_assumption(self, assume: str | Assumption) -> T:
         """Add an assumption on a symbol."""
+        valid = self._add_assumption(assume=assume)
         self._assumptions.add(assume)
-        return self._add_assumption(assume=assume)
+        return valid
+
+    @update_expression
+    def reapply_all_assumptions(self) -> T:
+        """Reapply all previously applied assumptions."""
+        for assumption in self._assumptions:
+            self.expression = self.add_assumption(assume=assumption)
+        return self.expression
 
 
 class ResourceRewriter(Generic[T]):
