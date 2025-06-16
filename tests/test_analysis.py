@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+# flake8: noqa
 import math
 import warnings
 
@@ -21,7 +21,6 @@ import pytest
 scipy = pytest.importorskip("scipy")
 import sympy
 from sympy.abc import x, y
-
 from bartiq.analysis import BigO, minimize
 
 
