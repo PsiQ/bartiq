@@ -15,8 +15,9 @@
 
 import math
 import warnings
-
 import pytest
+
+scipy = pytest.importorskip("scipy")
 import sympy
 from sympy.abc import x, y
 
