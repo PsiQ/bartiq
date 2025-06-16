@@ -19,6 +19,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 from bartiq.analysis._rewriters.assumptions import SympyAssumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
@@ -39,7 +40,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __init__(self, expression: Expr):
         super().__init__(expression=expression, backend=sympy_backend)
-        cast(Expr, self.expression)
+        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -134,7 +135,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _add_assumption(self, assume: str | SympyAssumption) -> TExpr[T]:
+    def _add_assumption(self, assume: str | SympyAssumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
         assumption = assume if isinstance(assume, SympyAssumption) else SympyAssumption.from_string(assume)
         try:
