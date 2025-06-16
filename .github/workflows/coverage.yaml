@@ -2,22 +2,22 @@ name: "📊 Coverage Report"
 
 on:
   workflow_dispatch:
-  pull_request:
+  pull_request_target:
     branches: [main]
 
-# No elevated permissions: only read-access needed for PR comment posting
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout PR code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # pull_request_target defaults to base; explicitly fetch the head commit
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -32,7 +32,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
+          poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --timeout=300
 
       - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
@@ -43,5 +43,3 @@ jobs:
           diff-branch: main
           coverage-reduction-failure: true
           new-uncovered-statements-failure: true
-          # use default GITHUB_TOKEN for posting comments, won't attempt repo push
-          push-token: ${{ secrets.GITHUB_TOKEN }}
