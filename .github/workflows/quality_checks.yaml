@@ -17,10 +17,12 @@ on: [pull_request]
 
 jobs:
   run_default_test_suite:
+    # The default test suite corresponds to no extras being installed.
+    # When there are no extras, certain tests are skipped.
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -36,6 +38,7 @@ jobs:
       - name: Run unit tests
         run: poetry run pytest --no-perf-tests
   run_all_tests:
+    # All extras are installed and all tests executed.
     runs-on: ubuntu-latest
     strategy:
       matrix:
