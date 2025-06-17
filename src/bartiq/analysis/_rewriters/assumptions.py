@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import re
 from ast import literal_eval
-from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Number
@@ -51,7 +50,7 @@ class Assumption:
                     f"""Assumption tries to draw a relationship between two variables: {self.symbol_name}, {self.value}.
                     At present, this is not possible!"""
                 )
-        self.symbol_properties = _get_properties(self.relationship, self.value)
+        self.symbol_properties: dict[str, bool] = _get_properties(self.relationship, self.value)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.symbol_name}{self.relationship}{self.value})"
@@ -80,7 +79,9 @@ class SympyAssumption(Assumption):
 def _get_properties(relationship: str, reference_value: Number) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
-    At present this only detects positivity,
+    At present this only detects positivity/negativity.
+
+    If the properties are unknowable, due to lack of information, they are None.
 
     Args:
         relationship: Relationship in the assumption.
@@ -98,22 +99,11 @@ def _get_properties(relationship: str, reference_value: Number) -> dict[str, boo
 
     value_positive: bool = reference_value >= 0
     value_negative: bool = reference_value <= 0 or (not value_positive)
-    value_non_zero: bool = reference_value != 0
 
-    properties: dict[str, bool | None] = defaultdict(None)
-    if is_positive := (gt or gte) and value_positive:
-        properties["positive"] = is_positive
-    if is_negative := (lt or lte) and value_negative:
-        properties["negative"] = is_negative
-    if (
-        is_nonzero := (gt and value_positive)
-        or (lt and value_negative)
-        or (gte and value_positive and value_non_zero)
-        or (lte and value_negative and value_non_zero)
-    ):
-        properties["nonzero"] = is_nonzero
-
-    return properties
+    return {
+        "positive": ((gt or gte) and value_positive) or None,
+        "negative": ((lt or lte) and value_negative) or None,
+    }
 
 
 def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
@@ -139,8 +129,3 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
     return parsed
-
-
-if __name__ == "__main__":
-    ass = Assumption.from_string("ceiling(log(a + y) / 4) <= 55")
-    print(ass.symbol_properties)
