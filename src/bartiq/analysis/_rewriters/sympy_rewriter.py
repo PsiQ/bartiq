@@ -148,6 +148,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             # If the symbol does _not_ exist, parse the assumption expression.
             reference_symbol = self._backend.as_expression(assumption.symbol_name)
 
+        # This is a hacky way to implement assumptions that relate to nonzero values.
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
         self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
             {replacement_symbol: reference_symbol - assumption.value}
