@@ -13,18 +13,19 @@
 # limitations under the License.
 """The Assumptions object allows properties of symbols to be parsed."""
 from __future__ import annotations
-from typing import Self
-from numbers import Number
+
 import re
 from ast import literal_eval
-
+from collections import defaultdict
 from dataclasses import dataclass
+from enum import Enum
+from numbers import Number
+from typing import Self
+
 from sympy import Symbol
 
-from enum import StrEnum
 
-
-class Relationals(StrEnum):
+class Relationals(str, Enum):
     """A collection of relational symbols for parsing assumptions."""
 
     GREATER_THAN_OR_EQUAL_TO = ">="
@@ -99,15 +100,18 @@ def _get_properties(relationship: str, reference_value: Number) -> dict[str, boo
     value_negative: bool = reference_value <= 0 or (not value_positive)
     value_non_zero: bool = reference_value != 0
 
-    properties: dict[str, bool | None] = dict(
-        positive=((gt or gte) and value_positive),
-        negative=((lt or lte) and value_negative),
-        nonzero=(gt and value_positive)
+    properties: dict[str, bool | None] = defaultdict(None)
+    if is_positive := (gt or gte) and value_positive:
+        properties["positive"] = is_positive
+    if is_negative := (lt or lte) and value_negative:
+        properties["negative"] = is_negative
+    if (
+        is_nonzero := (gt and value_positive)
         or (lt and value_negative)
         or (gte and value_positive and value_non_zero)
         or (lte and value_negative and value_non_zero)
-        or None,  # If not True, should be None. non_zero=False implies the symbol _is_ zero.
-    )
+    ):
+        properties["nonzero"] = is_nonzero
 
     return properties
 
@@ -135,3 +139,8 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
     return parsed
+
+
+if __name__ == "__main__":
+    ass = Assumption.from_string("ceiling(log(a + y) / 4) <= 55")
+    print(ass.symbol_properties)
