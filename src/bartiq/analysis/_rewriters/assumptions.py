@@ -18,6 +18,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Real
+
 from typing_extensions import Self
 
 
