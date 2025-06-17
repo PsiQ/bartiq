@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Real
-from typing import Self
+from typing_extensions import Self
 
 
 class Relationals(str, Enum):
