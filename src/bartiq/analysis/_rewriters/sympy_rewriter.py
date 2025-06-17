@@ -19,9 +19,13 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
-from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 from bartiq.analysis._rewriters.assumptions import SympyAssumption
-from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter, ResourceRewriter, TExpr
+from bartiq.analysis._rewriters.expression_rewriter import (
+    ExpressionRewriter,
+    ResourceRewriter,
+    TExpr,
+)
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
