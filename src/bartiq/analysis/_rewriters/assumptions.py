@@ -15,13 +15,10 @@
 from __future__ import annotations
 
 import re
-from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum
-from numbers import Number
+from numbers import Real
 from typing import Self
-
-from sympy import Symbol
 
 
 class Relationals(str, Enum):
@@ -38,14 +35,14 @@ class Assumption:
     """A simple class for storing information about symbol assumptions."""
 
     symbol_name: str
-    relationship: Relationals
-    value: Number | str
+    relationship: Relationals | str
+    value: Real | str
 
     def __post_init__(self):
-        if not isinstance(self.value, Number):
+        if not isinstance(self.value, Real):
             try:
-                self.value = literal_eval(self.value)
-            except NameError:
+                self.value = float(self.value)
+            except ValueError:
                 raise NotImplementedError(
                     f"""Assumption tries to draw a relationship between two variables: {self.symbol_name}, {self.value}.
                     At present, this is not possible!"""
@@ -68,15 +65,7 @@ class Assumption:
         return cls(*_unpack_assumption(assumption_string))
 
 
-class SympyAssumption(Assumption):
-    "A class for defining assumptions on variables in sympy."
-
-    def to_symbol(self) -> Symbol:
-        """Return a sympy Symbol object with the correct properties."""
-        return Symbol(self.symbol_name, **self.symbol_properties)
-
-
-def _get_properties(relationship: str, reference_value: Number) -> dict[str, bool | None]:
+def _get_properties(relationship: str, reference_value: float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
     At present this only detects positivity/negativity.

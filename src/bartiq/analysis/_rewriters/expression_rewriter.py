@@ -48,7 +48,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-        self._assumptions: set[str] = set()
+        self._assumptions: set[Assumption] = set()
 
     @update_expression
     def evaluate_expression(
@@ -111,18 +111,18 @@ class ExpressionRewriter(ABC, Generic[T]):
         return self._simplify()
 
     @abstractmethod
-    def _add_assumption(self, assume: str | Assumption) -> T:
+    def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         pass
 
     @update_expression
-    def add_assumption(self, assume: str | Assumption) -> T:
+    def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         """Add an assumption on a symbol."""
         valid = self._add_assumption(assume=assume)
-        self._assumptions.add(assume)
+        self._assumptions.add(Assumption.from_string(assume) if isinstance(assume, str) else assume)
         return valid
 
     @update_expression
-    def reapply_all_assumptions(self) -> T:
+    def reapply_all_assumptions(self) -> TExpr[T]:
         """Reapply all previously applied assumptions."""
         for assumption in self._assumptions:
             self.expression = self.add_assumption(assume=assumption)

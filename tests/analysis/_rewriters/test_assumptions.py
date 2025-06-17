@@ -13,11 +13,8 @@
 # limitations under the License.
 import pytest
 
-from bartiq.analysis._rewriters.assumptions import (
-    Assumption,
-    Relationals,
-    SympyAssumption,
-)
+from bartiq.analysis._rewriters.assumptions import Assumption, Relationals
+from bartiq.analysis._rewriters.sympy_rewriter import _create_symbol_from_assumption
 
 
 @pytest.mark.parametrize(
@@ -44,24 +41,24 @@ def test_error_raised_if_symbol_on_both_sides_of_relationship():
     "assumption, properties_it_has, properties_it_doesnt",
     [
         [
-            SympyAssumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=0),
+            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=0),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            SympyAssumption(symbol_name="X", relationship=Relationals.GREATER_THAN_OR_EQUAL_TO, value=5),
+            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN_OR_EQUAL_TO, value=5),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            SympyAssumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=0),
+            Assumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=0),
             ["is_negative"],
             ["is_positive"],
         ],
     ],
 )
-def test_sympy_assumption_to_symbol(assumption, properties_it_has, properties_it_doesnt):
-    sym = assumption.to_symbol()
+def test_symbol_creation_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
+    sym = _create_symbol_from_assumption(assumption)
     for property in properties_it_has:
         assert getattr(sym, property)
 
@@ -73,16 +70,16 @@ def test_sympy_assumption_to_symbol(assumption, properties_it_has, properties_it
     "assumption, properties_should_be_none",
     [
         [
-            SympyAssumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=10),
+            Assumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=10),
             ["is_positive", "is_negative"],
         ],
         [
-            SympyAssumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=-10),
+            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=-10),
             ["is_positive", "is_negative"],
         ],
     ],
 )
 def test_unknowable_properties_are_none(assumption, properties_should_be_none):
-    sym = assumption.to_symbol()
+    sym = _create_symbol_from_assumption(assumption)
     for property in properties_should_be_none:
         assert getattr(sym, property) is None

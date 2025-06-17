@@ -19,7 +19,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
-from bartiq.analysis._rewriters.assumptions import SympyAssumption
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
@@ -135,13 +135,15 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _add_assumption(self, assume: str | SympyAssumption) -> TExpr[Expr]:
+    def _add_assumption(self, assume: str | Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
-        assumption = assume if isinstance(assume, SympyAssumption) else SympyAssumption.from_string(assume)
+        if isinstance(self.expression, int | float):
+            return self.expression
+        assumption = assume if isinstance(assume, Assumption) else Assumption.from_string(assume)
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
-            replacement = assumption.to_symbol()
+            replacement = _create_symbol_from_assumption(assume=assumption)
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
@@ -164,3 +166,7 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
     """
 
     _rewriter = SympyExpressionRewriter
+
+
+def _create_symbol_from_assumption(assume: Assumption) -> Symbol:
+    return Symbol(assume.symbol_name, **assume.symbol_properties)
