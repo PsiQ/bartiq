@@ -139,13 +139,13 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """Add an assumption to our expression."""
         assumption = assume if isinstance(assume, SympyAssumption) else SympyAssumption.from_string(assume)
         try:
-            ## If the Symbol exists, replace it with a Symbol that has the correct properties.
+            # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
             replacement = assumption.to_symbol()
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
-            ## If the symbol does _not_ exist, parse the assumption expression.
+            # If the symbol does _not_ exist, parse the assumption expression.
             reference_symbol = self._backend.as_expression(assumption.symbol_name)
 
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)

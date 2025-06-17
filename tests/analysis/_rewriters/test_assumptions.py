@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-from bartiq.analysis._rewriters.assumptions import Assumption, Relationals, SympyAssumption
+
+from bartiq.analysis._rewriters.assumptions import (
+    Assumption,
+    Relationals,
+    SympyAssumption,
+)
 
 
 @pytest.mark.parametrize(
