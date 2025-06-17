@@ -20,8 +20,8 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
-from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 from bartiq.analysis._rewriters.assumptions import Assumption
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
 
