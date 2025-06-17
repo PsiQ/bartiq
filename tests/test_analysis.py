@@ -20,7 +20,7 @@ import sympy
 from sympy.abc import x, y
 
 scipy = pytest.importorskip("scipy")
-from bartiq.analysis import BigO, minimize  # noqa
+from bartiq.analysis import BigO, minimize  # noqa: E402
 
 
 @pytest.mark.parametrize(
