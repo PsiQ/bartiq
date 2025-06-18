@@ -63,7 +63,7 @@ or, for Poetry 1.x:
 poetry shell
 ```
 
-We encourage the use of `pre-commit` hooks in `bartiq` development to maintain code quality standards. You can view the documentation for `pre-commit` [here](https://pre-commit.com). WPrior to committing anything to your branch, run the following commands:
+We encourage the use of `pre-commit` hooks in `bartiq` development to maintain code quality standards. You can view the documentation for `pre-commit` [here](https://pre-commit.com). Prior to committing anything to your branch, run the following commands:
 ```bash
 poetry run pre-commit install
 ```
