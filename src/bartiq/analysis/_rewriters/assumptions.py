@@ -71,7 +71,7 @@ def _get_properties(relationship: str, reference_value: float) -> dict[str, bool
 
     At present this only detects positivity/negativity.
 
-    If the properties are unknowable, due to lack of information, they are None.
+    If the properties are unknowable due to lack of information, they are None.
 
     Args:
         relationship: Relationship in the assumption.
