@@ -63,7 +63,7 @@ or, for Poetry 1.x:
 poetry shell
 ```
 
-We encourage the use of `pre-commit` hooks in `bartiq` development to maintain code quality standards. With this in mind, prior to committing anything to your branch, run the following commands:
+We encourage the use of `pre-commit` hooks in `bartiq` development to maintain code quality standards. You can view the documentation for `pre-commit` [here](https://pre-commit.com). WPrior to committing anything to your branch, run the following commands:
 ```bash
 poetry run pre-commit install
 ```
@@ -74,6 +74,9 @@ To run all `pre-commit` hooks locally:
 poetry run pre-commit run --all
 ```
 This command will print a summary of the current code quality in your branch.
+
+!!!warning
+    If using Visual Studio Code, the `git` integration in Source Control does not detect `pre-commit` hooks. To use these, `git` commands must be run through the terminal in the installed `bartiq` virtual environment.
 
 ### Tests
 
