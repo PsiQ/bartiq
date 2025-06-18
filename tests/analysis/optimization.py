@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import math
 import warnings
 
@@ -20,7 +19,8 @@ import pytest
 import sympy
 from sympy.abc import x, y
 
-from bartiq.analysis import BigO, minimize
+scipy = pytest.importorskip("scipy")
+from bartiq.analysis import BigO, minimize  # noqa: E402
 
 
 @pytest.mark.parametrize(

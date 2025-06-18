@@ -37,8 +37,10 @@ black = "^24.4.1"
 isort = "^5.13.2"
 notebook = "^7.1.3"
 nbconvert = "^7.16.4"
+pytest-cov = "^4.0.0"
 pytest-timeout = "^2.3.1"
 pytest-order = "^1.3.0"
+pre-commit = "^4.2.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.5.3"
@@ -72,3 +74,9 @@ target-version = ['py310']
 [[tool.mypy.overrides]]
 module = ["ipywidgets.*", "ipytree.*", "sympy.*", "plotly.*"]
 ignore_missing_imports = true
+
+
+[tool.pytest.ini_options]
+markers = [
+  "perftest: mark a test as a performance test (skip with --no-perf-tests)",
+]

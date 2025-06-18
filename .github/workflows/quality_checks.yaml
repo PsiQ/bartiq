@@ -16,7 +16,29 @@ name: Tests and quality checks
 on: [pull_request]
 
 jobs:
-  run_tests:
+  run_default_test_suite:
+    # The default test suite corresponds to no extras being installed.
+    # When there are no extras, certain tests are skipped.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v2
+      - name: Install dependencies and the package
+        run: |
+          python -m pip install --upgrade pip poetry
+          poetry install
+      - name: Run unit tests
+        run: poetry run pytest --no-perf-tests
+  run_all_tests:
+    # All extras are installed and all tests executed.
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,7 +56,7 @@ jobs:
           python -m pip install --upgrade pip poetry
           poetry install -E optimization -E interactive
       - name: Run unit tests
-        run: poetry run pytest
+        run: poetry run pytest --no-perf-tests
 
   run_quality_checks:
     runs-on: ubuntu-latest
