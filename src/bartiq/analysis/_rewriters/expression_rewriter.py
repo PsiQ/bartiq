@@ -115,6 +115,17 @@ class ExpressionRewriter(ABC, Generic[T]):
         pass
 
     @update_expression
+    def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
+        """Substitute a symbol or subexpression for another symbol or subexpression.
+        Creates a one-to-one mapping, unless wildcard symbols are implemented.
+        """
+        return self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
+
+    @abstractmethod
+    def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
+        pass
+
+    @update_expression
     def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         """Add an assumption on a symbol."""
         valid = self._add_assumption(assume=assume)
