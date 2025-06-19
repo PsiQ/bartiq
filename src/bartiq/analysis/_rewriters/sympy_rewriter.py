@@ -13,10 +13,11 @@
 # limitations under the License.
 """A rewriter class for SymPy expressions."""
 
+import re
 from collections.abc import Iterable
 from typing import cast
 
-from sympy import Add, Expr, Function, Max, Min, Symbol
+from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.assumptions import Assumption
@@ -26,6 +27,8 @@ from bartiq.analysis._rewriters.expression_rewriter import (
     TExpr,
 )
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
+
+WILDCARD_FLAG = "$"
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -157,6 +160,25 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
         return self.expression
 
+    def _substitute(self, symbol_or_expr: Expr | str, replace_with: Expr | str) -> TExpr[Expr]:
+        """Substitute a symbol or expression with another symbol or expression.
+
+        Also permits wildcard substitutions
+        """
+        if _has_wildcard(symbol_or_expr):
+            return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
+        return self._backend.substitute(self.expression, {symbol_or_expr: replace_with})
+
+    def _wildcard_substitution(self, symbol_or_expr: str, replace_with: Expr | str) -> TExpr[Expr]:
+        wildcard_dict: dict[str, Wild] = {
+            sym[1:]: Wild(sym[1:], properties=[lambda x: x != 0]) for sym in _get_wild_characters(symbol_or_expr)
+        }
+        pattern = self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")).subs(wildcard_dict)
+        replacement = self._backend.substitute(
+            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
+        )
+        return _replace_subexpression(self.expression, pattern, replacement)
+
 
 class SympyResourceRewriter(ResourceRewriter[Expr]):
     """A class for rewriting sympy resource expressions in routines.
@@ -170,3 +192,48 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
 
 def _create_symbol_from_assumption(assume: Assumption) -> Symbol:
     return Symbol(assume.symbol_name, **assume.symbol_properties)
+
+
+def _has_wildcard(expression: str):
+    return WILDCARD_FLAG in expression
+
+
+def _get_wild_characters(expression: str) -> list[str]:
+    return re.findall(r"\$[a-zA-Z_][a-zA-Z0-9_]*", expression)
+
+
+def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
+    """Replace a subexpression within a larger expression.
+
+    Args:
+        expression: Top level expression.
+        expr: Subexpression to replace.
+        repl: Expression to use in place of expr.
+
+    Returns:
+        Expr
+    """
+
+    def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
+        return all(isinstance(x, Number) for x in values)
+
+    if any(isinstance(expression, x) for x in [Symbol, Number]) or _all_values_numeric(expression):
+        return expression
+
+    if A := expression.match(pattern):
+        return replacement.subs(A)
+
+    return expression.__class__(
+        *[
+            (
+                replacement.subs(A)
+                if (
+                    (A := arg.match(pattern) or {})
+                    and not _all_values_numeric(A.values())
+                    and not _all_values_numeric(arg)
+                )
+                else _replace_subexpression(arg, pattern, replacement)
+            )
+            for arg in expression.args
+        ]
+    )
