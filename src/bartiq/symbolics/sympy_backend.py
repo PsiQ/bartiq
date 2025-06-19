@@ -198,7 +198,8 @@ class SympyBackend:
                 old_sym = next(sym for sym in expr.free_symbols if sym.name == old)
                 restricted_replacements.append((old_sym, new))
             except StopIteration:
-                continue
+                restricted_replacements.append((self.as_expression(old), new))
+
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
             functions_map = {}
