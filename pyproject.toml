@@ -74,9 +74,3 @@ target-version = ['py310']
 [[tool.mypy.overrides]]
 module = ["ipywidgets.*", "ipytree.*", "sympy.*", "plotly.*"]
 ignore_missing_imports = true
-
-
-[tool.pytest.ini_options]
-markers = [
-  "perftest: mark a test as a performance test (skip with --no-perf-tests)",
-]

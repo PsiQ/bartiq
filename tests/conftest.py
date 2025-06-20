@@ -22,21 +22,3 @@ from bartiq.symbolics import sympy_backend
 def backend():
     """Backend used for manipulating symbolic expressions."""
     return sympy_backend
-
-
-def pytest_addoption(parser):
-    parser.addoption(
-        "--no-perf-tests",
-        action="store_true",
-        default=False,
-        help="skip tests marked perftest",
-    )
-
-
-def pytest_collection_modifyitems(config, items):
-    if not config.getoption("--no-perf-tests"):
-        return
-    skip = pytest.mark.skip(reason="skipped perftest (use without --no-perf-tests to run)")
-    for item in items:
-        if "perftest" in item.keywords:
-            item.add_marker(skip)
