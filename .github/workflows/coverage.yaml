@@ -20,18 +20,24 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for diff functionality
 
-      - uses: actions/setup-python@v4
-        with: { python-version: "3.x" }
+      - uses: actions/setup-python@v5
+        with: 
+          python-version: "3.x"
 
       - name: Install Poetry & deps
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --extras optimization
-
 
       - name: Run tests with coverage
         run: |
@@ -40,6 +46,7 @@ jobs:
       - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           path: coverage.xml
           publish: true
           diff: true
