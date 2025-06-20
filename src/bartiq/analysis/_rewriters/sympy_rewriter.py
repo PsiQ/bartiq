@@ -219,6 +219,8 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
     Returns:
         The new expression with all matching subexpressions replaced.
     """
+    if isinstance(replacement, int | float):
+        replacement = Number(replacement)
 
     def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
         return all(isinstance(x, Number) for x in values)
@@ -233,8 +235,10 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
     )
 
     if hasattr(replaced_expr, "args") and replaced_expr.args:
-        new_args = tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
+        # new_args = tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
         # if new_args != replaced_expr.args:
-        replaced_expr = replaced_expr.__class__(*new_args)
+        replaced_expr = replaced_expr.__class__(
+            *tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
+        )
 
     return replaced_expr
