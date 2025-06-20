@@ -163,7 +163,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def _substitute(self, symbol_or_expr: Expr | str, replace_with: Expr | str) -> TExpr[Expr]:
         """Substitute a symbol or expression with another symbol or expression.
 
-        Also permits wildcard substitutions
+        Also permits wildcard substitutions by prefacing a variable with '$'.
         """
         if _has_wildcard(symbol_or_expr):
             return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
@@ -173,9 +173,14 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         wildcard_dict: dict[str, Wild] = {
             sym[1:]: Wild(sym[1:], properties=[lambda x: x != 0]) for sym in _get_wild_characters(symbol_or_expr)
         }
-        pattern = self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")).subs(wildcard_dict)
+        pattern = (
+            self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", ""))
+            .replace(CustomMax, Max)
+            .subs(wildcard_dict)
+        )
         replacement = self._backend.substitute(
-            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
+            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")).replace(CustomMax, Max),
+            wildcard_dict,
         )
         return _replace_subexpression(self.expression, pattern, replacement)
 
@@ -203,37 +208,33 @@ def _get_wild_characters(expression: str) -> list[str]:
 
 
 def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
-    """Replace a subexpression within a larger expression.
+    """Recursively replace all subexpressions matching `pattern` inside `expression`
+    with `replacement`, applying the matched substitutions.
 
     Args:
-        expression: Top level expression.
-        expr: Subexpression to replace.
-        repl: Expression to use in place of expr.
+        expression: The top-level SymPy expression to process.
+        pattern: The pattern expression to match against subexpressions.
+        replacement: The expression to replace matches with (uses substitutions).
 
     Returns:
-        Expr
+        The new expression with all matching subexpressions replaced.
     """
 
     def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
         return all(isinstance(x, Number) for x in values)
 
-    if any(isinstance(expression, x) for x in [Symbol, Number]) or _all_values_numeric(expression):
+    if any(isinstance(expression, t) for t in [Symbol, Number]):
         return expression
 
-    if A := expression.match(pattern):
-        return replacement.subs(A)
-
-    return expression.__class__(
-        *[
-            (
-                replacement.subs(A)
-                if (
-                    (A := arg.match(pattern) or {})
-                    and not _all_values_numeric(A.values())
-                    and not _all_values_numeric(arg)
-                )
-                else _replace_subexpression(arg, pattern, replacement)
-            )
-            for arg in expression.args
-        ]
+    replaced_expr = (
+        replacement.subs(matches)
+        if (matches := expression.match(pattern)) and not _all_values_numeric(matches.values())
+        else expression
     )
+
+    if hasattr(replaced_expr, "args") and replaced_expr.args:
+        new_args = tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
+        # if new_args != replaced_expr.args:
+        replaced_expr = replaced_expr.__class__(*new_args)
+
+    return replaced_expr
