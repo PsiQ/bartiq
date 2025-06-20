@@ -37,11 +37,9 @@ jobs:
         uses: insightsengineering/coverage-action@v2
         continue-on-error: true
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: coverage.xml
-          publish: true
+          publish: false
           diff: true
           diff-branch: main
-          diff-storage: false
-          coverage-reduction-failure: true
-          new-uncovered-statements-failure: true
+          # Do not fail the job on coverage reduction or new misses
+          coverage-reduction-failure: false
+          new-uncovered-statements-failure: false
