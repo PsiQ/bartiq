@@ -14,9 +14,15 @@
 from enum import Enum
 
 import pytest
+import sympy
 
 from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
+
+
+def replace_custom_max_fn(expr: sympy.Expr):
+    return expr.replace(CustomMax, sympy.Max)
 
 
 class CommonExpressions(str, Enum):
@@ -40,7 +46,9 @@ class ExpressionRewriterTests:
     backend: type[SymbolicBackend]
 
     def assert_expression_seqs_equal(self, actual, expected):
-        assert len(actual) == len(expected) and set(actual) == set(map(self.backend.as_expression, expected))
+        assert len(actual) == len(expected) and set(actual) == set(
+            map(replace_custom_max_fn, map(self.backend.as_expression, expected))
+        )
 
     @pytest.mark.parametrize(
         "expression, expected_individual_terms",
@@ -49,7 +57,7 @@ class ExpressionRewriterTests:
             [CommonExpressions.SUM_AND_MUL, ["a", "b", "c", "d", "c*d", "a*b"]],
             [
                 CommonExpressions.MANY_FUNCS,
-                ["a*log2(x/n)", "b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))"],
+                ["a*log2(x/n)", "b*(Heaviside(aleph, beth) + max(0, x + 2, y + 1))"],
             ],
         ],
     )
@@ -73,15 +81,15 @@ class ExpressionRewriterTests:
     @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
     def test_focus(self, focus_on, expected_expression):
 
-        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
-            expected_expression
+        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == replace_custom_max_fn(
+            self.backend.as_expression(expected_expression)
         )
 
     def test_sequence_of_commands(self):
         rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         rewriter.evaluate_expression(assignments={"x": 10})
-        assert rewriter.expression == self.backend.as_expression(
-            "a*log2(10/n) + b*(max(0, 1+y, 12) + Heaviside(aleph, beth))"
+        assert rewriter.expression == replace_custom_max_fn(
+            self.backend.as_expression("a*log2(10/n) + b*(max(0, 1+y, 12) + Heaviside(aleph, beth))")
         )
         with pytest.raises(ValueError, match="No variable"):
             rewriter.focus("x")

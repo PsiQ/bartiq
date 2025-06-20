@@ -20,6 +20,7 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
@@ -47,6 +48,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
+        self._assumptions: set[Assumption] = set()
+
     @update_expression
     def evaluate_expression(
         self,
@@ -71,6 +74,11 @@ class ExpressionRewriter(ABC, Generic[T]):
         )
 
     @property
+    def applied_assumptions(self) -> set[Assumption]:
+        "Get a set of all assumptions previously applied to this expression."
+        return self._assumptions
+
+    @property
     @abstractmethod
     def free_symbols(self) -> Iterable[T]:
         """Return the free symbols in the expression."""
@@ -79,6 +87,10 @@ class ExpressionRewriter(ABC, Generic[T]):
     @abstractmethod
     def individual_terms(self) -> Iterable[T]:
         """Return the expression as an iterable of individual terms."""
+
+    @abstractmethod
+    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
+        """Return an expression containing terms that involve specific symbols."""
 
     @abstractmethod
     def _expand(self) -> TExpr[T]:
@@ -90,8 +102,31 @@ class ExpressionRewriter(ABC, Generic[T]):
         return self._expand()
 
     @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
-        """Return an expression containing terms that involve specific symbols."""
+    def _simplify(self) -> TExpr[T]:
+        pass
+
+    @update_expression
+    def simplify(self) -> TExpr[T]:
+        """Simplify the expression with the backends built-in simplification tools."""
+        return self._simplify()
+
+    @abstractmethod
+    def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
+        pass
+
+    @update_expression
+    def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
+        """Add an assumption on a symbol."""
+        valid = self._add_assumption(assume=assume)
+        self._assumptions.add(Assumption.from_string(assume) if isinstance(assume, str) else assume)
+        return valid
+
+    @update_expression
+    def reapply_all_assumptions(self) -> TExpr[T]:
+        """Reapply all previously applied assumptions."""
+        for assumption in self._assumptions:
+            self.expression = self.add_assumption(assume=assumption)
+        return self.expression
 
 
 class ResourceRewriter(Generic[T]):

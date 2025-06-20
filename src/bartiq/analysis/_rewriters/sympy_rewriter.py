@@ -14,16 +14,18 @@
 """A rewriter class for SymPy expressions."""
 
 from collections.abc import Iterable
+from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq import sympy_backend
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
     TExpr,
-    update_expression,
 )
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -38,6 +40,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __init__(self, expression: Expr):
         super().__init__(expression=expression, backend=sympy_backend)
+        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -53,8 +56,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             return expand()
         return self.expression
 
-    @update_expression
-    def simplify(self) -> TExpr[Expr]:
+    def _simplify(self) -> TExpr[Expr]:
         """Run SymPy's `simplify` method on the expression."""
         if callable(simplify := getattr(self.expression, "simplify", None)):
             return simplify()
@@ -133,6 +135,28 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
+    def _add_assumption(self, assume: str | Assumption) -> TExpr[Expr]:
+        """Add an assumption to our expression."""
+        if isinstance(self.expression, int | float):
+            return self.expression
+        assumption = assume if isinstance(assume, Assumption) else Assumption.from_string(assume)
+        try:
+            # If the Symbol exists, replace it with a Symbol that has the correct properties.
+            reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
+            replacement = _create_symbol_from_assumption(assume=assumption)
+            self.expression = self.expression.subs({reference_symbol: replacement})
+            reference_symbol = replacement
+        except ValueError:
+            # If the symbol does _not_ exist, parse the assumption expression.
+            reference_symbol = self._backend.as_expression(assumption.symbol_name)
+
+        # This is a hacky way to implement assumptions that relate to nonzero values.
+        replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
+        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
+            {replacement_symbol: reference_symbol - assumption.value}
+        )
+        return self.expression
+
 
 class SympyResourceRewriter(ResourceRewriter[Expr]):
     """A class for rewriting sympy resource expressions in routines.
@@ -142,3 +166,7 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
     """
 
     _rewriter = SympyExpressionRewriter
+
+
+def _create_symbol_from_assumption(assume: Assumption) -> Symbol:
+    return Symbol(assume.symbol_name, **assume.symbol_properties)
