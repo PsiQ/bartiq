@@ -183,14 +183,11 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
 
     result = compile_routine(routine)
 
-    def return_one(*args):
-        return 1
-
     assignments = {"N_spatial": 10, "R": 54, "M_r": 480, "b_as": 10, "b_givens": 20, "b_mas": 10}
     evaluated_routine = evaluate(
         result.routine,
         assignments=assignments,
-        functions_map={"calc_lambda": return_one, "select_elbow_const": return_one},
+        functions_map={"calc_lambda": lambda x: 1, "select_elbow_const": lambda x: 1},
     ).routine
     expected_resources = {
         "active_volume": 18135184.5,
