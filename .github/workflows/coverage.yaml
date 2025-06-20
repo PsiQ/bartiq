@@ -1,58 +1,48 @@
-```yaml
-name: "📊 Coverage Report"
+# Copyright 2025 PsiQuantum, Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+name: "📊 Coverage Report"
 on:
-  workflow_dispatch:
   pull_request:
     branches: [main]
-  # Only target base for write permissions
-  pull_request_target:
-    branches: [main]
-
-permissions:
-  contents: read
-  id-token: write
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      - uses: actions/setup-python@v4
+        with: { python-version: "3.x" }
 
-      - name: Install dependencies
+      - name: Install Poetry & deps
         run: |
-          pip install poetry pytest pytest-cov pycobertura
+          pip install poetry
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --extras optimization
+
 
       - name: Run tests with coverage
         run: |
           poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
 
-      - name: Compute coverage diff
-        # Always run, but don't fail PR
-        continue-on-error: true
-        run: |
-          if [ -f data/main/coverage.xml ]; then
-            pycobertura diff data/main/coverage.xml coverage.xml --format markdown > coverage_diff.md || true
-          else
-            echo "No baseline found; skipping diff."
-          fi
-
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+      - name: Publish coverage report
+        uses: insightsengineering/coverage-action@v2
         with:
-          name: coverage-reports
-          path: |
-            coverage.xml
-            coverage_diff.md
-```
+          path: coverage.xml
+          publish: true
+          diff: true
+          diff-branch: main
+          coverage-reduction-failure: true
+          new-uncovered-statements-failure: true
