@@ -2,30 +2,34 @@ name: "📊 Coverage Report"
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+  # Only target base for write permissions
   pull_request_target:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR code
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      - name: Install Poetry & dependencies
+      - name: Install dependencies
         run: |
-          pip install poetry
+          pip install poetry pytest pytest-cov pycobertura
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --extras optimization
 
@@ -33,13 +37,20 @@ jobs:
         run: |
           poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
 
-      - name: Publish coverage report (optional)
-        uses: insightsengineering/coverage-action@v2
+      - name: Compute coverage diff
+        # Always run, but don't fail PR
         continue-on-error: true
+        run: |
+          if [ -f data/main/coverage.xml ]; then
+            pycobertura diff data/main/coverage.xml coverage.xml --format markdown > coverage_diff.md || true
+          else
+            echo "No baseline found; skipping diff."
+          fi
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v3
         with:
-          publish: false
-          diff: true
-          diff-branch: main
-          # Do not fail the job on coverage reduction or new misses
-          coverage-reduction-failure: false
-          new-uncovered-statements-failure: false
+          name: coverage-reports
+          path: |
+            coverage.xml
+            coverage_diff.md
