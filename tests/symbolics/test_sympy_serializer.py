@@ -27,7 +27,7 @@ E = sympy_constants.Exp1
     "expression, expected_string",
     [
         # Exponentiation
-        (x ** (y**z), "x ^ (y ^ z)"),
+        (x ** (y**z), "x ** (y ** z)"),
         # Exponential
         (E, "exp(1)"),
         # Pi
@@ -35,13 +35,13 @@ E = sympy_constants.Exp1
         # Modulo
         (x % y, "Mod(x, y)"),
         # Summation series
-        (Sum(x**2, (x, 1, y)), "sum_over(x ^ 2, x, 1, y)"),
+        (Sum(x**2, (x, 1, y)), "sum_over(x ** 2, x, 1, y)"),
         # Product series
-        (Product(x**2, (x, 1, y)), "prod_over(x ^ 2, x, 1, y)"),
+        (Product(x**2, (x, 1, y)), "prod_over(x ** 2, x, 1, y)"),
         # All together now
         (
             Product(Sum(x ** (y**z) + x % y, (x, 1, E)), (y, 1, Pi)),
-            "prod_over(sum_over(x ^ (y ^ z) + Mod(x, y), x, 1, exp(1)), y, 1, PI)",
+            "prod_over(sum_over(x ** (y ** z) + Mod(x, y), x, 1, exp(1)), y, 1, PI)",
         ),
     ],
 )
