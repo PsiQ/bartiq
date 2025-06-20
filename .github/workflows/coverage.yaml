@@ -1,3 +1,4 @@
+```yaml
 name: "📊 Coverage Report"
 
 on:
@@ -48,9 +49,10 @@ jobs:
           fi
 
       - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: |
             coverage.xml
             coverage_diff.md
+```
