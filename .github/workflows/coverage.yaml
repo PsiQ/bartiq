@@ -1,47 +1,34 @@
 name: "📊 Coverage Report"
-
 on:
-  workflow_dispatch:
-  pull_request_target:
+  pull_request:
     branches: [main]
-
-permissions:
-  contents: write
 
 jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout PR code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          # pull_request_target defaults to base; explicitly fetch the head commit
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      - uses: actions/setup-python@v4
+        with: { python-version: "3.x" }
 
-      - name: Install Poetry & dependencies
+      - name: Install Poetry & deps
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --extras optimization
 
+
       - name: Run tests with coverage
         run: |
           poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
 
-      - name: Publish coverage report (optional)
+      - name: Publish coverage report
         uses: insightsengineering/coverage-action@v2
-        continue-on-error: true
         with:
           path: coverage.xml
           publish: true
-          diff: true
+          diff: trueAdd commentMore actions
           diff-branch: main
           coverage-reduction-failure: true
           new-uncovered-statements-failure: true
-          push-token: ${{ secrets.GITHUB_TOKEN }}
