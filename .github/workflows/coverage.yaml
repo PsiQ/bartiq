@@ -34,8 +34,9 @@ jobs:
         run: |
           poetry run pytest --cov=bartiq --cov-report=xml:coverage.xml --no-perf-tests
 
-      - name: Publish coverage report
+      - name: Publish coverage report (optional)
         uses: insightsengineering/coverage-action@v2
+        continue-on-error: true
         with:
           path: coverage.xml
           publish: true
