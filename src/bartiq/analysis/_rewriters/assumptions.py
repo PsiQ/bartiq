@@ -53,6 +53,9 @@ class Assumption:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.symbol_name}{self.relationship}{self.value})"
 
+    def __hash__(self):
+        return hash(str(self))
+
     @classmethod
     def from_string(cls, assumption_string: str) -> Self:
         """Generate an assumption from a valid string.
