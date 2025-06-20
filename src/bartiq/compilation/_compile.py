@@ -189,7 +189,7 @@ def _compile_local_variables(
     local_variables: dict[str, TExpr[T]], inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T]
 ) -> dict[str, TExpr[T]]:
     predecessors: dict[str, set[str]] = {
-        var: set(other_var for other_var in backend.free_symbols_in(expr) if other_var in local_variables)
+        var: set(other_var for other_var in backend.free_symbols(expr) if other_var in local_variables)
         for var, expr in local_variables.items()
     }
 
@@ -371,10 +371,10 @@ def _compile(
 
     new_input_params = sorted(
         (
-            set(symbol for expr in inputs.values() for symbol in backend.free_symbols_in(expr))
+            set(symbol for expr in inputs.values() for symbol in backend.free_symbols(expr))
             if inputs
             else set(routine.input_params)
-        ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols_in(port.size))
+        ).union(symbol for port in compiled_ports.values() for symbol in backend.free_symbols(port.size))
     )
 
     new_resources = evaluate_resources(resources, parameter_map[None], backend)
