@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+from sympy import Symbol
 
 from bartiq.analysis._rewriters.assumptions import Assumption, Relationals
-from bartiq.analysis._rewriters.sympy_rewriter import _create_symbol_from_assumption
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_error_raised_if_symbol_on_both_sides_of_relationship():
     ],
 )
 def test_symbol_creation_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
-    sym = _create_symbol_from_assumption(assumption)
+    sym = Symbol(assumption.name, **assumption.symbol_properties)
     for property in properties_it_has:
         assert getattr(sym, property)
 
@@ -80,6 +80,6 @@ def test_symbol_creation_has_correct_properties(assumption, properties_it_has, p
     ],
 )
 def test_unknowable_properties_are_none(assumption, properties_should_be_none):
-    sym = _create_symbol_from_assumption(assumption)
+    sym = Symbol(assumption.name, **assumption.symbol_properties)
     for property in properties_should_be_none:
         assert getattr(sym, property) is None
