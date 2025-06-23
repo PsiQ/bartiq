@@ -138,7 +138,7 @@ def _introduce_port_variables(routine: Routine[T], backend: SymbolicBackend[T]) 
         elif not backend.is_single_parameter(port.size):
             missing_symbols = [
                 symbol
-                for symbol in backend.free_symbols_in(port.size)
+                for symbol in backend.free_symbols(port.size)
                 if (
                     symbol not in routine.input_params
                     and symbol not in routine.local_variables
