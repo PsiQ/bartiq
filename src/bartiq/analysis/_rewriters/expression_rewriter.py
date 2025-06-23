@@ -51,7 +51,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     def evaluate_expression(
         self,
         assignments: Mapping[str, Number],
-        functions_map: Mapping[str, Callable[[TExpr[T]], Number]] | None = None,
+        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
         original_expression: bool = False,
     ) -> Number:
         """Assign explicit values to variables.
@@ -66,10 +66,16 @@ class ExpressionRewriter(ABC, Generic[T]):
         Returns:
             A fully or partially evaluated expression.
         """
-        return self._backend.substitute(
-            self.original_expression if original_expression else self.expression,
-            replacements=assignments,
-            functions_map=functions_map,
+        if not all(isinstance(x, Number) for x in assignments.values()) or set(assignments.keys()) != self.free_symbols:
+            raise ValueError("You must pass in numeric values for all symbols in the expression. ")
+        return cast(
+            Number,
+            self._backend.substitute(
+                self.original_expression if original_expression else self.expression,
+                replacements=assignments,  # type: ignore
+                # TODO: Remove this in future PR.
+                functions_map=functions_map,
+            ),
         )
 
     @property
