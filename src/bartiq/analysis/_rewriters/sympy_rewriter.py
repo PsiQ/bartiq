@@ -25,7 +25,6 @@ from bartiq.analysis._rewriters.expression_rewriter import (
     ResourceRewriter,
     TExpr,
 )
-from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -40,7 +39,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __init__(self, expression: Expr):
         super().__init__(expression=expression, backend=sympy_backend)
-        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
+        self._backend._USE_SYMPY_MAX = True
+        self.expression = cast(Expr, self.expression)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -143,7 +143,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
-            replacement = _create_symbol_from_assumption(assume=assumption)
+            replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
@@ -166,7 +166,3 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
     """
 
     _rewriter = SympyExpressionRewriter
-
-
-def _create_symbol_from_assumption(assume: Assumption) -> Symbol:
-    return Symbol(assume.symbol_name, **assume.symbol_properties)
