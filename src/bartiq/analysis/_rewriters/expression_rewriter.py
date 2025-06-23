@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
+from numbers import Number
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
-from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
@@ -48,16 +48,15 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-        self._assumptions: set[Assumption] = set()
-
-    @update_expression
     def evaluate_expression(
         self,
-        assignments: Mapping[str, TExpr[T]],
-        original_expression: bool = False,
+        assignments: Mapping[str, Number],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
-    ) -> TExpr[T]:
-        """Assign explicit values to certain variables.
+        original_expression: bool = False,
+    ) -> Number:
+        """Assign explicit values to variables.
+
+        This function does not store the result! Will be refactored in a future PR for a cleaner interface.
 
         Args:
             assignments : A dictionary of (variable: value) key, val pairs.
@@ -67,16 +66,17 @@ class ExpressionRewriter(ABC, Generic[T]):
         Returns:
             A fully or partially evaluated expression.
         """
-        return self._backend.substitute(
-            self.original_expression if original_expression else self.expression,
-            replacements=assignments,
-            functions_map=functions_map,
+        if not all(isinstance(x, Number) for x in assignments.values()) or set(assignments.keys()) != self.free_symbols:
+            raise ValueError("You must pass in numeric values for all symbols in the expression. ")
+        return cast(
+            Number,
+            self._backend.substitute(
+                self.original_expression if original_expression else self.expression,
+                replacements=assignments,  # type: ignore
+                # TODO: Remove this in future PR.
+                functions_map=functions_map,
+            ),
         )
-
-    @property
-    def applied_assumptions(self) -> set[Assumption]:
-        "Get a set of all assumptions previously applied to this expression."
-        return self._assumptions
 
     @property
     @abstractmethod
@@ -89,10 +89,6 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
-        """Return an expression containing terms that involve specific symbols."""
-
-    @abstractmethod
     def _expand(self) -> TExpr[T]:
         pass
 
@@ -102,31 +98,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         return self._expand()
 
     @abstractmethod
-    def _simplify(self) -> TExpr[T]:
-        pass
-
-    @update_expression
-    def simplify(self) -> TExpr[T]:
-        """Simplify the expression with the backends built-in simplification tools."""
-        return self._simplify()
-
-    @abstractmethod
-    def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
-        pass
-
-    @update_expression
-    def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
-        """Add an assumption on a symbol."""
-        valid = self._add_assumption(assume=assume)
-        self._assumptions.add(Assumption.from_string(assume) if isinstance(assume, str) else assume)
-        return valid
-
-    @update_expression
-    def reapply_all_assumptions(self) -> TExpr[T]:
-        """Reapply all previously applied assumptions."""
-        for assumption in self._assumptions:
-            self.expression = self.add_assumption(assume=assumption)
-        return self.expression
+    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
+        """Return an expression containing terms that involve specific symbols."""
 
 
 class ResourceRewriter(Generic[T]):

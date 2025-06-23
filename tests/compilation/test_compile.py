@@ -239,7 +239,7 @@ N_CHILDREN = 1000
 @pytest.mark.parametrize(
     "compilation_flags, expected_t_count, expected_foo",
     [
-        [CompilationFlags.EXPAND_RESOURCES, f"{N_CHILDREN}*n", f"n ^ {N_CHILDREN}"],
+        [CompilationFlags.EXPAND_RESOURCES, f"{N_CHILDREN}*n", f"n ** {N_CHILDREN}"],
         [
             None,
             " + ".join(sorted(f"child_{x}.t_count" for x in range(N_CHILDREN))),

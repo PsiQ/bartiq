@@ -153,9 +153,6 @@ def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
 
 
 class SympyBackend:
-
-    _USE_SYMPY_MAX: bool = False
-
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
 

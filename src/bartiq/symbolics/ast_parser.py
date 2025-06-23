@@ -56,7 +56,6 @@ import re
 from dataclasses import dataclass
 from functools import singledispatch, singledispatchmethod
 from typing import Callable
-from warnings import warn
 
 from .interpreter import Interpreter
 
@@ -67,7 +66,6 @@ _BINARY_OP_MAP = {
     ast.Sub: operator.sub,
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
-    ast.BitXor: operator.pow,
     ast.FloorDiv: operator.floordiv,
 }
 
@@ -89,8 +87,7 @@ _RESTRICTED_NAMES = {"__lambda__": "lambda", "__in__": "in"}
 class _PreprocessingStage:
     """Class for representing a single step performed during preprocessing.
 
-    Example stages, defined below, include preprocessing expression to replace
-    the xor operator (^) with power operator (**), or replacing wildcard
+    Example stages, defined below, include replacing wildcard
     characters (~) with calls to wildcard() function.
 
     Attributes:
@@ -147,19 +144,6 @@ def _replace_lambda(expression: str) -> str:
 _LAMBDA_REPLACEMENT = _PreprocessingStage(matches=_contains_lambda, preprocess=_replace_lambda)
 
 
-def _contains_xor_op(expression: str) -> bool:
-    return "^" in expression
-
-
-def _replace_xor_op(expression: str) -> str:
-    warn("Using ^ operator to denote exponentiation is deprecated. Use ** operator instead.", DeprecationWarning)
-    return expression.replace("^", "**")
-
-
-# Preprocessing stage replacing xor operators (^) with power (**) operators.
-_XOR_OP_REPLACEMENT = _PreprocessingStage(matches=_contains_xor_op, preprocess=_replace_xor_op)
-
-
 def _contains_in(expression: str) -> bool:
     return re.search(_IN_PATTERN, expression) is not None
 
@@ -171,6 +155,7 @@ def _replace_in(expression: str) -> str:
 # Preprocessing stage replacing "in"s with _in
 _IN_REPLACEMENT = _PreprocessingStage(matches=_contains_in, preprocess=_replace_in)
 
+
 # Sequence of all known preprocessing stages.
 # If there are any new preprocessing stages, they should be added here.
 # Note that this list is not exposed/configurable by the user, because it wouldn't really make sens -
@@ -179,7 +164,6 @@ _PREPROCESSING_STAGES = (
     _WILDCARD_REPLACEMENT,
     _PORT_REPLACEMENT,
     _LAMBDA_REPLACEMENT,
-    _XOR_OP_REPLACEMENT,
     _IN_REPLACEMENT,
 )
 
@@ -238,6 +222,8 @@ class _NodeConverter:
         down the tree and convert children, and then combine the results using operator as given in
         _BINARY_OP_MAP.
         """
+        if isinstance(node.op, ast.BitXor):
+            raise NotImplementedError("XOR operator (^) is not supported. Use ** for exponentiation.")
         return _BINARY_OP_MAP[type(node.op)](self.convert_node(node.left), self.convert_node(node.right))
 
     @convert_node.register

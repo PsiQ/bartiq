@@ -49,7 +49,7 @@ class ExpressionRewriterTests:
             [CommonExpressions.SUM_AND_MUL, ["a", "b", "c", "d", "c*d", "a*b"]],
             [
                 CommonExpressions.MANY_FUNCS,
-                ["a*log2(x/n)", "b*(Heaviside(aleph, beth) + max(0, x + 2, y + 1))"],
+                ["a*log2(x/n)", "b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))"],
             ],
         ],
     )
@@ -75,26 +75,4 @@ class ExpressionRewriterTests:
 
         assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
             expected_expression
-        )
-
-    def test_sequence_of_commands(self):
-        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        rewriter.evaluate_expression(assignments={"x": 10})
-        assert rewriter.expression == self.backend.as_expression(
-            "a*log2(10/n) + b*(max(0, 1+y, 12) + Heaviside(aleph, beth))"
-        )
-
-        with pytest.raises(ValueError, match="No variable"):
-            rewriter.focus("x")
-        rewriter.evaluate_expression(assignments={"y": 1})
-        assert rewriter.expression == self.backend.as_expression("a*log2(10/n) + b*(Heaviside(aleph, beth) + 12)")
-        rewriter.expand()
-        assert rewriter.focus("aleph") == self.backend.as_expression("b*Heaviside(aleph, beth)")
-
-    def test_assumptions_update_the_expression_and_are_stored(self):
-        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        rewriter.add_assumption("y > 0")
-        assert rewriter.focus("y") != self.backend.as_expression("b*(Heaviside(aleph, beth) + Max(x + 2, y + 1))")
-        assert str(rewriter.focus("y")) == str(
-            self.backend.as_expression("b*(Heaviside(aleph, beth) + Max(x + 2, y + 1))")
         )
