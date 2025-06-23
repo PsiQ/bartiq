@@ -222,11 +222,11 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
     if isinstance(replacement, int | float):
         replacement = Number(replacement)
 
-    def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
-        return all(isinstance(x, Number) for x in values)
-
     if any(isinstance(expression, t) for t in [Symbol, Number]):
         return expression
+
+    def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
+        return all(isinstance(x, Number) for x in values)
 
     replaced_expr = (
         replacement.subs(matches)
