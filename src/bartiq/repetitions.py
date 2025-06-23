@@ -173,7 +173,7 @@ class CustomSequence(Generic[T]):
             functions_map = {}
 
         symbols_to_substitute: list[TExpr] = [
-            symbols for expr in inputs.values() for symbols in backend.free_symbols_in(expr)
+            symbols for expr in inputs.values() for symbols in backend.free_symbols(expr)
         ]
         symbols_to_be_substituted: Iterable[TExpr] = inputs.keys()
         if backend.serialize(self.iterator_symbol) in [*symbols_to_substitute, *symbols_to_be_substituted]:

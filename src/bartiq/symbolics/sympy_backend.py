@@ -24,7 +24,7 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol, symbols
+from sympy import Expr, N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
@@ -59,14 +59,18 @@ ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
 TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 
 
-def empty_for_numbers(func: ExprTransformer[P, Iterable[T]]) -> TExprTransformer[P, Iterable[T]]:
+def empty_for_numbers(
+    func: ExprTransformer[P, Iterable[T]],
+) -> TExprTransformer[P, Iterable[T]]:
     def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:  # type: ignore
         return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
 
 
-def identity_for_numbers(func: ExprTransformer[P, T | Number]) -> TExprTransformer[P, T | Number]:
+def identity_for_numbers(
+    func: ExprTransformer[P, T | Number],
+) -> TExprTransformer[P, T | Number]:
     """Return a new method that preserves originally passed one on expressions and acts as identity on numbers.
 
     Note:
@@ -137,7 +141,6 @@ def _value_of(expr: Expr) -> Number | None:
 
 
 class SympyBackend:
-
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
 
@@ -168,7 +171,7 @@ class SympyBackend:
         return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
 
     @empty_for_numbers
-    def free_symbols_in(self, expr: Expr) -> Iterable[str]:
+    def free_symbols(self, expr: Expr) -> Iterable[str]:
         """Return an iterable over free symbol names in given expression."""
         return tuple(map(str, expr.free_symbols))
 
@@ -189,9 +192,13 @@ class SympyBackend:
         replacements: Mapping[str, TExpr[Expr]],
         functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
     ) -> TExpr[Expr]:
-
-        symbols_in_expr = self.free_symbols_in(expr)
-        restricted_replacements = [(symbols(old), new) for old, new in replacements.items() if old in symbols_in_expr]
+        restricted_replacements = []
+        for old, new in replacements.items():
+            try:
+                old_sym = next(sym for sym in expr.free_symbols if sym.name == old)
+                restricted_replacements.append((old_sym, new))
+            except StopIteration:
+                continue
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
             functions_map = {}
@@ -316,7 +323,10 @@ class SympyBackend:
             return []
 
         return [
-            (_func_name, match[0] if (match := difflib.get_close_matches(_func_name, BUILT_IN_FUNCTIONS)) else "")
+            (
+                _func_name,
+                match[0] if (match := difflib.get_close_matches(_func_name, BUILT_IN_FUNCTIONS)) else "",
+            )
             for _func_name in unknown_functions
             if _func_name not in list(user_defined) + BUILT_IN_FUNCTIONS
         ]
