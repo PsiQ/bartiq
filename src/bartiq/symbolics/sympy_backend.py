@@ -24,7 +24,9 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol
+from sympy import Expr
+from sympy import Max as SympyMax
+from sympy import N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
@@ -140,7 +142,20 @@ def _value_of(expr: Expr) -> Number | None:
     return value
 
 
+def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
+    def _inner(self: SympyBackend, value: TExpr[S] | str):
+        expr = sympy_backend_fn(self, value)
+        if getattr(self, "_USE_SYMPY_MAX", False):
+            return expr.replace(Max, SympyMax)
+        return expr
+
+    return _inner
+
+
 class SympyBackend:
+
+    _USE_SYMPY_MAX: bool = False
+
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
 
@@ -152,6 +167,7 @@ class SympyBackend:
     def _parse(self, value: str) -> TExpr[Expr]:
         return parse_to_sympy(value)
 
+    @replace_max_fn
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
