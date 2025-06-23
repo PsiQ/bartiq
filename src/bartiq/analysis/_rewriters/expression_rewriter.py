@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
+from numbers import Number
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
@@ -47,14 +48,15 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-    @update_expression
     def evaluate_expression(
         self,
-        assignments: Mapping[str, TExpr[T]],
+        assignments: Mapping[str, Number],
+        functions_map: Mapping[str, Callable[[TExpr[T]], Number]] | None = None,
         original_expression: bool = False,
-        functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
-    ) -> TExpr[T]:
-        """Assign explicit values to certain variables.
+    ) -> Number:
+        """Assign explicit values to variables.
+
+        This function does not store the result! Will be refactored in a future PR for a cleaner interface.
 
         Args:
             assignments : A dictionary of (variable: value) key, val pairs.
