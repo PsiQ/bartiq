@@ -15,9 +15,10 @@
 
 import re
 from collections.abc import Iterable
+from numbers import Number
 from typing import cast
 
-from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
+from sympy import Add, Expr, Function, Max, Min, Symbol, Wild
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.assumptions import Assumption
