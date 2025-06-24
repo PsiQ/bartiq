@@ -45,8 +45,8 @@ class Assumption:
                 self.value = float(self.value)
             except ValueError:
                 raise NotImplementedError(
-                    f"""Assumption tries to draw a comparator between two variables: {self.symbol_name}, {self.value}.
-                    At present, this is not possible!"""
+                    f"""Assumption tries to draw a comparison between two variables: {self.symbol_name}, {self.value}.
+                    At present, this is not possible."""
                 )
         self.symbol_properties: dict[str, bool] = _get_properties(self.comparator, self.value)
 
