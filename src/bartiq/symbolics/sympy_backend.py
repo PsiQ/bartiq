@@ -142,8 +142,10 @@ def _value_of(expr: Expr) -> Number | None:
     return value
 
 
-def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
-    def _inner(self: SympyBackend, value: TExpr[S] | str):
+def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]]):
+    """A wrapper to replace the custom `Max` implementation with Sympy's built-in `Max` function."""
+
+    def _inner(self: SympyBackend, value: TExpr[S]):
         expr = sympy_backend_fn(self, value)
         if self._USE_SYMPY_MAX and isinstance(expr, Expr):
             return expr.replace(Max, SympyMax)
@@ -153,6 +155,30 @@ def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
 
 
 class SympyBackend:
+    """A backend for parsing symbolic expressions with Sympy.
+
+    NOTE:
+        For performance reasons, this class by default uses a custom implementation of Sympy's `Max` function.
+        This may lead to unexpected behaviour, such as:
+        ```python
+            from sympy import Max, Symbol
+            a = Symbol('a')
+            sympy_expr = Max(0, a)
+
+            sympy_backend = SympyBackend()
+            sympy_backend.as_expression("max(0, a)") == sympy_expr # False
+        ```
+        This function will _not_ perform simplifications in the same way Sympy's built-in `Max` will.
+
+        To override this, and use the Sympy `Max`, a classmethod `with_sympy_max` can be called:
+        ```python
+            backend_with_sympy_max = sympy_backend.with_sympy_max()
+            backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr # True
+        ```
+
+    Args:
+        parse_function: A function that parses strings into Sympy expressions.
+    """
 
     _USE_SYMPY_MAX: bool = False
 
@@ -161,6 +187,7 @@ class SympyBackend:
 
     @classmethod
     def with_sympy_max(cls) -> SympyBackend:
+        """Return an instance of SympyBackend that uses the built-in Sympy `Max` function."""
         instance = SympyBackend()
         instance._USE_SYMPY_MAX = True
         return instance
