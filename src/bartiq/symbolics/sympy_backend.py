@@ -24,7 +24,9 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr, N, Order, Symbol
+from sympy import Expr
+from sympy import Max as SympyMax
+from sympy import N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
@@ -140,9 +142,55 @@ def _value_of(expr: Expr) -> Number | None:
     return value
 
 
+def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]]):
+    """A wrapper to replace the custom `Max` implementation with Sympy's built-in `Max` function."""
+
+    def _inner(self: SympyBackend, value: TExpr[S]):
+        expr = sympy_backend_fn(self, value)
+        if self._USE_SYMPY_MAX and isinstance(expr, Expr):
+            return expr.replace(Max, SympyMax)
+        return expr
+
+    return _inner
+
+
 class SympyBackend:
+    """A backend for parsing symbolic expressions with Sympy.
+
+    NOTE:
+        For performance reasons, this class by default uses a custom implementation of Sympy's `Max` function.
+        This may lead to unexpected behaviour, such as:
+        ```python
+            from sympy import Max, Symbol
+            a = Symbol('a')
+            sympy_expr = Max(0, a)
+
+            sympy_backend = SympyBackend()
+            sympy_backend.as_expression("max(0, a)") == sympy_expr # False
+        ```
+        This function will _not_ perform simplifications in the same way Sympy's built-in `Max` will.
+
+        To override this, and use the Sympy `Max`, a classmethod `with_sympy_max` can be called:
+        ```python
+            backend_with_sympy_max = sympy_backend.with_sympy_max()
+            backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr # True
+        ```
+
+    Args:
+        parse_function: A function that parses strings into Sympy expressions.
+    """
+
+    _USE_SYMPY_MAX: bool = False
+
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
+
+    @classmethod
+    def with_sympy_max(cls) -> SympyBackend:
+        """Return an instance of SympyBackend that uses the built-in Sympy `Max` function."""
+        instance = SympyBackend()
+        instance._USE_SYMPY_MAX = True
+        return instance
 
     @singledispatchmethod
     def _as_expression(self, value: TExpr[Expr]) -> TExpr[Expr]:
@@ -152,6 +200,7 @@ class SympyBackend:
     def _parse(self, value: str) -> TExpr[Expr]:
         return parse_to_sympy(value)
 
+    @replace_max_fn
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
