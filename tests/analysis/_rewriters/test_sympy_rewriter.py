@@ -83,3 +83,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     def test_expand(self):
         expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
         assert self.rewriter(expr).expand() == expr.expand()
+
+    # def test_add_assumption(self):
+    #     rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+    #     rewriter.
