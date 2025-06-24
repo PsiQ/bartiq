@@ -145,7 +145,7 @@ def _value_of(expr: Expr) -> Number | None:
 def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
     def _inner(self: SympyBackend, value: TExpr[S] | str):
         expr = sympy_backend_fn(self, value)
-        if getattr(self, "_USE_SYMPY_MAX", False):
+        if self._USE_SYMPY_MAX and isinstance(expr, Expr):
             return expr.replace(Max, SympyMax)
         return expr
 
@@ -153,8 +153,17 @@ def replace_max_fn(sympy_backend_fn: Callable[[TExpr[S]], TExpr[Expr]]):
 
 
 class SympyBackend:
+
+    _USE_SYMPY_MAX: bool = False
+
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
+
+    @classmethod
+    def with_sympy_max(cls) -> SympyBackend:
+        instance = SympyBackend()
+        instance._USE_SYMPY_MAX = True
+        return instance
 
     @singledispatchmethod
     def _as_expression(self, value: TExpr[Expr]) -> TExpr[Expr]:

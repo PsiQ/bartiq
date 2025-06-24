@@ -24,8 +24,7 @@ from tests.analysis._rewriters.basic_rewriter_tests import (
 
 class TestSympyExpressionRewriter(ExpressionRewriterTests):
     rewriter = SympyExpressionRewriter
-    backend = sympy_backend
-    backend._USE_SYMPY_MAX = True
+    backend = sympy_backend.with_sympy_max()
 
     def test_simplify(self):
         expr = self.backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")

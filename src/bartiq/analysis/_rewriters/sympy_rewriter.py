@@ -37,7 +37,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """
 
     def __init__(self, expression: Expr):
-        super().__init__(expression=expression, backend=sympy_backend)
+        super().__init__(expression=expression, backend=sympy_backend.with_sympy_max())
 
     @property
     def free_symbols(self) -> set[Expr]:

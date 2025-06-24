@@ -58,7 +58,7 @@ def test_error_raised_if_symbol_on_both_sides_of_relationship():
     ],
 )
 def test_symbol_creation_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
-    sym = Symbol(assumption.name, **assumption.symbol_properties)
+    sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
     for property in properties_it_has:
         assert getattr(sym, property)
 
@@ -80,6 +80,6 @@ def test_symbol_creation_has_correct_properties(assumption, properties_it_has, p
     ],
 )
 def test_unknowable_properties_are_none(assumption, properties_should_be_none):
-    sym = Symbol(assumption.name, **assumption.symbol_properties)
+    sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
     for property in properties_should_be_none:
         assert getattr(sym, property) is None
