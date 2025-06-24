@@ -22,7 +22,7 @@ from numbers import Real
 from typing_extensions import Self
 
 
-class Relationals(str, Enum):
+class Comparators(str, Enum):
     """A collection of relational symbols for parsing assumptions."""
 
     GREATER_THAN_OR_EQUAL_TO = ">="
@@ -36,7 +36,7 @@ class Assumption:
     """A simple class for storing information about symbol assumptions."""
 
     symbol_name: str
-    relationship: Relationals | str
+    relationship: Comparators | str
     value: Real | str
 
     def __post_init__(self):
@@ -84,11 +84,11 @@ def _get_properties(relationship: str, reference_value: float) -> dict[str, bool
         A dictionary of properties for the assumption.
     """
 
-    gt: bool = relationship == Relationals.GREATER_THAN
-    gte: bool = relationship == Relationals.GREATER_THAN_OR_EQUAL_TO
+    gt: bool = relationship == Comparators.GREATER_THAN
+    gte: bool = relationship == Comparators.GREATER_THAN_OR_EQUAL_TO
 
-    lt: bool = relationship == Relationals.LESS_THAN
-    lte: bool = relationship == Relationals.LESS_THAN_OR_EQUAL_TO
+    lt: bool = relationship == Comparators.LESS_THAN
+    lte: bool = relationship == Comparators.LESS_THAN_OR_EQUAL_TO
 
     value_positive: bool = reference_value >= 0
     value_negative: bool = reference_value <= 0 or (not value_positive)
@@ -117,7 +117,7 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     Returns:
         tuple[str, str, str]: A tuple of (variable name, relation, reference value)
     """
-    split_by: str = "(" + ")|(".join(Relationals) + ")"
+    split_by: str = "(" + ")|(".join(Comparators) + ")"
     parsed = tuple(x for x in re.split(split_by, assumption.replace(" ", "")) if x)
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")

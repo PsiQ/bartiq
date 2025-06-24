@@ -14,14 +14,14 @@
 import pytest
 from sympy import Symbol
 
-from bartiq.analysis._rewriters.assumptions import Assumption, Relationals
+from bartiq.analysis._rewriters.assumptions import Assumption, Comparators
 
 
 @pytest.mark.parametrize(
     "string, expected_attributes",
     [
-        ["a>0", ("a", Relationals.GREATER_THAN, 0)],
-        ["ceiling(log(a + y) / 4) <= 55", ("ceiling(log(a+y)/4)", Relationals.LESS_THAN_OR_EQUAL_TO, 55)],
+        ["a>0", ("a", Comparators.GREATER_THAN, 0)],
+        ["ceiling(log(a + y) / 4) <= 55", ("ceiling(log(a+y)/4)", Comparators.LESS_THAN_OR_EQUAL_TO, 55)],
     ],
 )
 def test_from_string(string, expected_attributes):
@@ -41,17 +41,17 @@ def test_error_raised_if_symbol_on_both_sides_of_relationship():
     "assumption, properties_it_has, properties_it_doesnt",
     [
         [
-            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=0),
+            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN, value=0),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN_OR_EQUAL_TO, value=5),
+            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=0),
+            Assumption(symbol_name="X", relationship=Comparators.LESS_THAN, value=0),
             ["is_negative"],
             ["is_positive"],
         ],
@@ -70,11 +70,11 @@ def test_symbol_creation_has_correct_properties(assumption, properties_it_has, p
     "assumption, properties_should_be_none",
     [
         [
-            Assumption(symbol_name="X", relationship=Relationals.LESS_THAN, value=10),
+            Assumption(symbol_name="X", relationship=Comparators.LESS_THAN, value=10),
             ["is_positive", "is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Relationals.GREATER_THAN, value=-10),
+            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN, value=-10),
             ["is_positive", "is_negative"],
         ],
     ],
