@@ -84,6 +84,50 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
         assert self.rewriter(expr).expand() == expr.expand()
 
-    # def test_add_assumption(self):
-    #     rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-    #     rewriter.
+    @pytest.mark.parametrize(
+        "method, expected_default_value",
+        [
+            ["free_symbols", set()],
+            ["expand", None],
+            ["simplify", None],
+            ["all_functions_and_arguments", set()],
+        ],
+    )
+    def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
+        rewriter = self.rewriter(2)
+        if callable(x := getattr(rewriter, method)):
+            assert x() == expected_default_value or 2
+        else:
+            assert x == expected_default_value
+
+    @pytest.mark.parametrize(
+        "expression, symbol, assumption, simplified_expression, property_symbol_satisfies",
+        [
+            ("max(0, a)", "a", "a > 0", "a", "is_positive"),
+            ("min(0, a)", "a", "a < 0", "a", "is_negative"),
+        ],
+    )
+    def test_add_assumption_simplifies_basic_expressions(
+        self, expression, symbol, assumption, simplified_expression, property_symbol_satisfies
+    ):
+        rewriter = self.rewriter(expression)
+        assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies, None) is None
+
+        rewriter.add_assumption(assume=assumption)
+        assert str(rewriter.expression) == simplified_expression
+        assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies)
+
+    def test_more_complex_expressions_have_assumptions_applied(self):
+        expr = "b*max(1 + log(2*x/5), 5) + c * d"
+        rewriter = self.rewriter(expr)
+        rewriter.add_assumption("log(2*x/5) > 4")
+        assert rewriter.expression == self.backend.as_expression("b*(log(2*x/5) + 1) + c*d")
+
+    def test_assumptions_are_properly_tracked(self):
+        rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
+        for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
+            rewriter.add_assumption(assumption)
+
+        assert set(map(str, rewriter.applied_assumptions)) == set(
+            ["Assumption(c>=0)", "Assumption(a>0)", "Assumption(b<0)", "Assumption(d<=10)"]
+        )
