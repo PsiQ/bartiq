@@ -26,32 +26,37 @@ from bartiq.analysis._rewriters.assumptions import Assumption, Comparators
 )
 def test_from_string(string, expected_attributes):
     from_str = Assumption.from_string(string)
-    name, relationship, val = expected_attributes
+    name, comparator, val = expected_attributes
     assert from_str.symbol_name == name
-    assert from_str.relationship == relationship
+    assert from_str.comparator == comparator
     assert from_str.value == val
 
 
-def test_error_raised_if_symbol_on_both_sides_of_relationship():
-    with pytest.raises(NotImplementedError, match="Assumption tries to draw a relationship between two variables"):
-        Assumption(symbol_name="Y", relationship="<=", value="X")
+def test_error_raised_if_symbol_on_both_sides_of_comparator():
+    with pytest.raises(NotImplementedError, match="Assumption tries to draw a comparison between two variables"):
+        Assumption(symbol_name="Y", comparator="<=", value="X")
+
+
+def test_error_raised_if_invalid_string():
+    with pytest.raises(ValueError, match="Invalid assumption!"):
+        Assumption.from_string("Y&4")
 
 
 @pytest.mark.parametrize(
     "assumption, properties_it_has, properties_it_doesnt",
     [
         [
-            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN, value=0),
+            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
+            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
             ["is_positive"],
             ["is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Comparators.LESS_THAN, value=0),
+            Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=0),
             ["is_negative"],
             ["is_positive"],
         ],
@@ -70,11 +75,11 @@ def test_symbol_creation_has_correct_properties(assumption, properties_it_has, p
     "assumption, properties_should_be_none",
     [
         [
-            Assumption(symbol_name="X", relationship=Comparators.LESS_THAN, value=10),
+            Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=10),
             ["is_positive", "is_negative"],
         ],
         [
-            Assumption(symbol_name="X", relationship=Comparators.GREATER_THAN, value=-10),
+            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=-10),
             ["is_positive", "is_negative"],
         ],
     ],

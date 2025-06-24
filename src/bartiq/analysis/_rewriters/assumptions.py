@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import re
+from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Real
@@ -42,12 +43,16 @@ class Assumption:
     def __post_init__(self):
         if not isinstance(self.value, Real):
             try:
-                self.value = float(self.value)
-            except ValueError:
-                raise NotImplementedError(
-                    f"""Assumption tries to draw a comparison between two variables: {self.symbol_name}, {self.value}.
-                    At present, this is not possible."""
-                )
+                self.value = literal_eval(self.value)
+            except ValueError as exc:
+                if "malformed node or string" in exc.args[0]:
+                    raise NotImplementedError(
+                        "Assumption tries to draw a comparison between two variables:"
+                        f" {self.symbol_name}, {self.value}.\n"
+                        "At present, this is not possible."
+                    )
+                else:
+                    raise exc
         self.symbol_properties: dict[str, bool] = _get_properties(self.comparator, self.value)
 
     def __repr__(self) -> str:
