@@ -74,7 +74,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         try:
             return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
-            raise ValueError(f"No variable '{symbol_name}'.")
+            raise ValueError(f"No variable '{symbol_name}' in expression '{self.expression}'.")
 
     def focus(self, symbols: str | Iterable[str]) -> Expr:
         """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
@@ -96,16 +96,16 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         The returned set will include all functions at every level of the expression, i.e.
 
         All functions and arguments of the following expression:
-        ```
-        max(a, 1 - max(b, 1 - max(c, lamda)))
+        ```python
+            max(a, 1 - max(b, 1 - max(c, lamda)))
         ```
         would be returned as:
-        ```
-        {
-            Max(c, lamda),
-            Max(b, 1 - Max(c, lamda)),
-            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-        }
+        ```python
+            {
+                Max(c, lamda),
+                Max(b, 1 - Max(c, lamda)),
+                Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+            }
         ```
 
         Returns:

@@ -116,6 +116,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     @update_expression
     def simplify(self) -> TExpr[T]:
         """Run the backend `simplify' functionality, if it exists."""
+        return self._simplify()
 
     @abstractmethod
     def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
