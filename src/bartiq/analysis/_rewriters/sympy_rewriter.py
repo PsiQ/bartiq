@@ -15,10 +15,8 @@
 
 import re
 from collections.abc import Iterable
-from numbers import Number
-from typing import cast
 
-from sympy import Add, Expr, Function, Max, Min, Symbol, Wild
+from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 
 from bartiq import sympy_backend
 from bartiq.analysis._rewriters.assumptions import Assumption
@@ -43,8 +41,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """
 
     def __init__(self, expression: Expr):
-        super().__init__(expression=expression, backend=sympy_backend)
-        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
+        super().__init__(expression=expression, backend=sympy_backend.with_sympy_max())
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -81,7 +78,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         try:
             return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
-            raise ValueError(f"No variable '{symbol_name}'.")
+            raise ValueError(f"No variable '{symbol_name}' in expression '{self.expression}'.")
 
     def focus(self, symbols: str | Iterable[str]) -> Expr:
         """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
@@ -103,16 +100,16 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         The returned set will include all functions at every level of the expression, i.e.
 
         All functions and arguments of the following expression:
-        ```
-        max(a, 1 - max(b, 1 - max(c, lamda)))
+        ```python
+            max(a, 1 - max(b, 1 - max(c, lamda)))
         ```
         would be returned as:
-        ```
-        {
-            Max(c, lamda),
-            Max(b, 1 - Max(c, lamda)),
-            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-        }
+        ```python
+            {
+                Max(c, lamda),
+                Max(b, 1 - Max(c, lamda)),
+                Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+            }
         ```
 
         Returns:
@@ -147,7 +144,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
-            replacement = _create_symbol_from_assumption(assume=assumption)
+            replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:

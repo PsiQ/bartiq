@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import re
+from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum
 from numbers import Real
@@ -22,7 +23,7 @@ from numbers import Real
 from typing_extensions import Self
 
 
-class Relationals(str, Enum):
+class Comparators(str, Enum):
     """A collection of relational symbols for parsing assumptions."""
 
     GREATER_THAN_OR_EQUAL_TO = ">="
@@ -36,22 +37,26 @@ class Assumption:
     """A simple class for storing information about symbol assumptions."""
 
     symbol_name: str
-    relationship: Relationals | str
+    comparator: Comparators | str
     value: Real | str
 
     def __post_init__(self):
         if not isinstance(self.value, Real):
             try:
-                self.value = float(self.value)
-            except ValueError:
-                raise NotImplementedError(
-                    f"""Assumption tries to draw a relationship between two variables: {self.symbol_name}, {self.value}.
-                    At present, this is not possible!"""
-                )
-        self.symbol_properties: dict[str, bool] = _get_properties(self.relationship, self.value)
+                self.value = literal_eval(self.value)
+            except ValueError as exc:
+                if "malformed node or string" in exc.args[0]:
+                    raise NotImplementedError(
+                        "Assumption tries to draw a comparison between two variables:"
+                        f" {self.symbol_name}, {self.value}.\n"
+                        "At present, this is not possible."
+                    )
+                else:
+                    raise exc
+        self.symbol_properties: dict[str, bool] = _get_properties(self.comparator, self.value)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.symbol_name}{self.relationship}{self.value})"
+        return f"{self.__class__.__name__}({self.symbol_name}{self.comparator}{self.value})"
 
     def __hash__(self):
         return hash(str(self))
@@ -69,7 +74,7 @@ class Assumption:
         return cls(*_unpack_assumption(assumption_string))
 
 
-def _get_properties(relationship: str, reference_value: float) -> dict[str, bool | None]:
+def _get_properties(comparator: str, reference_value: float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
     At present this only detects positivity/negativity.
@@ -77,18 +82,18 @@ def _get_properties(relationship: str, reference_value: float) -> dict[str, bool
     If the properties are unknowable due to lack of information, they are None.
 
     Args:
-        relationship: Relationship in the assumption.
+        comparator: Comparator in the assumption.
         reference_value: Reference value in the assumption.
 
     Returns:
         A dictionary of properties for the assumption.
     """
 
-    gt: bool = relationship == Relationals.GREATER_THAN
-    gte: bool = relationship == Relationals.GREATER_THAN_OR_EQUAL_TO
+    gt: bool = comparator == Comparators.GREATER_THAN
+    gte: bool = comparator == Comparators.GREATER_THAN_OR_EQUAL_TO
 
-    lt: bool = relationship == Relationals.LESS_THAN
-    lte: bool = relationship == Relationals.LESS_THAN_OR_EQUAL_TO
+    lt: bool = comparator == Comparators.LESS_THAN
+    lte: bool = comparator == Comparators.LESS_THAN_OR_EQUAL_TO
 
     value_positive: bool = reference_value >= 0
     value_negative: bool = reference_value <= 0 or (not value_positive)
@@ -105,19 +110,19 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
     An assumption should take the form of `A ? B`.
     where
     - A is a variable
-    - ? is a relation between A and B, one of '>', '<', '>=', '<='.
+    - ? is a comparison between A and B, one of '>', '<', '>=', '<='.
     - B is a reference value, either another variable or a number.
 
     Args:
         assumption (str): An assumption string.
 
     Raises:
-        ValueError: If an unrecognised relationship is passed.
+        ValueError: If an unrecognised comparator is passed.
 
     Returns:
         tuple[str, str, str]: A tuple of (variable name, relation, reference value)
     """
-    split_by: str = "(" + ")|(".join(Relationals) + ")"
+    split_by: str = "(" + ")|(".join(Comparators) + ")"
     parsed = tuple(x for x in re.split(split_by, assumption.replace(" ", "")) if x)
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
