@@ -18,7 +18,7 @@ import re
 from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum
-from numbers import Real
+from typing import cast
 
 from typing_extensions import Self
 
@@ -38,12 +38,15 @@ class Assumption:
 
     symbol_name: str
     comparator: Comparators | str
-    value: Real | str
+    value: int | float | str
 
-    def __post_init__(self):
-        if not isinstance(self.value, Real):
+    def __post_init__(self) -> None:
+        if not isinstance(self.value, int | float):
             try:
-                self.value = literal_eval(self.value)
+                if isinstance(parsed := literal_eval(self.value), int | float):
+                    self.value = parsed
+                else:
+                    raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed)}.")
             except ValueError as exc:
                 if "malformed node or string" in exc.args[0]:
                     raise NotImplementedError(
@@ -53,7 +56,7 @@ class Assumption:
                     )
                 else:
                     raise exc
-        self.symbol_properties: dict[str, bool] = _get_properties(self.comparator, self.value)
+        self.symbol_properties: dict[str, bool | None] = _get_properties(self.comparator, cast(int | float, self.value))
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.symbol_name}{self.comparator}{self.value})"
@@ -74,7 +77,7 @@ class Assumption:
         return cls(*_unpack_assumption(assumption_string))
 
 
-def _get_properties(comparator: str, reference_value: float) -> dict[str, bool | None]:
+def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
     At present this only detects positivity/negativity.
