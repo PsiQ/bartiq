@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
-from numbers import Real
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
@@ -53,10 +52,10 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def evaluate_expression(
         self,
-        assignments: Mapping[str, Real],
+        assignments: Mapping[str, int | float],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
         original_expression: bool = False,
-    ) -> Real:
+    ) -> int | float:
         """Assign explicit values to variables.
 
         This function does not store the result! Will be refactored in a future PR for a cleaner interface.
