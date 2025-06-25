@@ -48,7 +48,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-        self._assumptions: set[Assumption] = set()
+        self._assumptions: tuple[Assumption, ...] = tuple()
 
     def evaluate_expression(
         self,
@@ -75,7 +75,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         )
 
     @property
-    def applied_assumptions(self) -> set[Assumption]:
+    def applied_assumptions(self) -> tuple[Assumption, ...]:
         "Get a set of all assumptions previously applied to this expression."
         return self._assumptions
 
@@ -130,7 +130,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         """Add an assumption on a symbol."""
         valid = self._add_assumption(assume=assume)
-        self._assumptions.add(Assumption.from_string(assume) if isinstance(assume, str) else assume)
+        self._assumptions += (Assumption.from_string(assume) if isinstance(assume, str) else assume,)
         return valid
 
     @update_expression

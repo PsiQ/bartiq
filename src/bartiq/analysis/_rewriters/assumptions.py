@@ -45,6 +45,8 @@ class Assumption:
             try:
                 if isinstance(parsed := literal_eval(self.value), int | float):
                     self.value = parsed
+                else:
+                    raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed)}.")
             except ValueError as exc:
                 if "malformed node or string" in exc.args[0]:
                     raise NotImplementedError(

@@ -15,6 +15,7 @@ import pytest
 import sympy
 
 from bartiq import sympy_backend
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
 from tests.analysis._rewriters.basic_rewriter_tests import (
     CommonExpressions,
@@ -128,6 +129,9 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
             rewriter.add_assumption(assumption)
 
-        assert set(map(str, rewriter.applied_assumptions)) == set(
-            ["Assumption(c>=0)", "Assumption(a>0)", "Assumption(b<0)", "Assumption(d<=10)"]
+        assert rewriter.applied_assumptions == (
+            Assumption("a", ">", 0),
+            Assumption("b", "<", 0),
+            Assumption("c", ">=", 0),
+            Assumption("d", "<=", 10),
         )
