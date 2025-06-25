@@ -24,9 +24,7 @@ from functools import lru_cache, singledispatchmethod
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 import sympy
-from sympy import Expr
-from sympy import Max as SympyMax
-from sympy import N, Order, Symbol
+from sympy import Expr, N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
@@ -148,7 +146,7 @@ def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]
     def _inner(self: SympyBackend, value: TExpr[S]):
         expr = sympy_backend_fn(self, value)
         if self._USE_SYMPY_MAX and isinstance(expr, Expr):
-            return expr.replace(Max, SympyMax)
+            return expr.replace(Max, sympy.Max)
         return expr
 
     return _inner
@@ -308,6 +306,8 @@ class SympyBackend:
 
     def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
         try:
+            if func_name == "max" and self._USE_SYMPY_MAX:
+                return sympy.Max
             return SPECIAL_FUNCS[func_name]
         except KeyError:
             return sympy.Function(func_name)
@@ -318,7 +318,7 @@ class SympyBackend:
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return Max(*set(args))
+        return Max(*set(args)) if not self._USE_SYMPY_MAX else sympy.Max(*set(args))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
