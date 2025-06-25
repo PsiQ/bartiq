@@ -145,7 +145,7 @@ def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]
 
     def _inner(self: SympyBackend, value: TExpr[S]):
         expr = sympy_backend_fn(self, value)
-        if self._USE_SYMPY_MAX and isinstance(expr, Expr):
+        if self._use_sympy_max and isinstance(expr, Expr):
             return expr.replace(Max, sympy.Max)
         return expr
 
@@ -178,7 +178,7 @@ class SympyBackend:
         parse_function: A function that parses strings into Sympy expressions.
     """
 
-    _USE_SYMPY_MAX: bool = False
+    _use_sympy_max: bool = False
 
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
@@ -187,7 +187,7 @@ class SympyBackend:
     def with_sympy_max(cls) -> SympyBackend:
         """Return an instance of SympyBackend that uses the built-in Sympy `Max` function."""
         instance = SympyBackend()
-        instance._USE_SYMPY_MAX = True
+        instance._use_sympy_max = True
         return instance
 
     @singledispatchmethod
@@ -306,7 +306,7 @@ class SympyBackend:
 
     def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
         try:
-            if func_name == "max" and self._USE_SYMPY_MAX:
+            if func_name == "max" and self._use_sympy_max:
                 return sympy.Max
             return SPECIAL_FUNCS[func_name]
         except KeyError:
@@ -318,7 +318,7 @@ class SympyBackend:
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return Max(*set(args)) if not self._USE_SYMPY_MAX else sympy.Max(*set(args))
+        return Max(*set(args)) if not self._use_sympy_max else sympy.Max(*set(args))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
