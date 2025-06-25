@@ -136,9 +136,8 @@ class ExpressionRewriter(ABC, Generic[T]):
             self.expression = self.add_assumption(assume=assumption)
         return self.expression
 
-    @abstractmethod
     def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
-        pass
+        return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
 
     @update_expression
     def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
