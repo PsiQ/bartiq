@@ -76,3 +76,23 @@ class ExpressionRewriterTests:
         assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
             expected_expression
         )
+
+    @pytest.mark.parametrize(
+        "expression, expr_to_replace, replace_with, final_expression",
+        [
+            [CommonExpressions.TRIVIAL, "a", "b", "b"],
+            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
+            [
+                CommonExpressions.MANY_FUNCS,
+                "a*log2(x/n)",
+                "A(x)",
+                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
+            ],
+            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
+        ],
+    )
+    def test_substitutions_basic(self, expression, expr_to_replace, replace_with, final_expression):
+
+        assert self.rewriter(expression).substitute(expr_to_replace, replace_with) == self.backend.as_expression(
+            final_expression
+        )
