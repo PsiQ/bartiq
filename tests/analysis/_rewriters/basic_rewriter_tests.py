@@ -15,6 +15,7 @@ from enum import Enum
 
 import pytest
 
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
 
@@ -75,6 +76,18 @@ class ExpressionRewriterTests:
 
         assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
             expected_expression
+        )
+
+    def test_assumptions_are_properly_tracked(self):
+        rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
+        for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
+            rewriter.add_assumption(assumption)
+
+        assert rewriter.applied_assumptions == (
+            Assumption("a", ">", 0),
+            Assumption("b", "<", 0),
+            Assumption("c", ">=", 0),
+            Assumption("d", "<=", 10),
         )
 
     @pytest.mark.parametrize(

@@ -18,7 +18,6 @@ import re
 from ast import literal_eval
 from dataclasses import dataclass
 from enum import Enum
-from typing import cast
 
 from typing_extensions import Self
 
@@ -38,25 +37,10 @@ class Assumption:
 
     symbol_name: str
     comparator: Comparators | str
-    value: int | float | str
+    value: int | float
 
     def __post_init__(self) -> None:
-        if not isinstance(self.value, int | float):
-            try:
-                if isinstance(parsed := literal_eval(self.value), int | float):
-                    self.value = parsed
-                else:
-                    raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed)}.")
-            except ValueError as exc:
-                if "malformed node or string" in exc.args[0]:
-                    raise NotImplementedError(
-                        "Assumption tries to draw a comparison between two variables:"
-                        f" {self.symbol_name}, {self.value}.\n"
-                        "At present, this is not possible."
-                    )
-                else:
-                    raise exc
-        self.symbol_properties: dict[str, bool | None] = _get_properties(self.comparator, cast(int | float, self.value))
+        self.symbol_properties: dict[str, bool | None] = _get_properties(self.comparator, self.value)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.symbol_name}{self.comparator}{self.value})"
@@ -107,7 +91,7 @@ def _get_properties(comparator: str, reference_value: int | float) -> dict[str, 
     }
 
 
-def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
+def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
     """Unpack an assumption into its components.
 
     An assumption should take the form of `A ? B`.
@@ -123,10 +107,25 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, str]:
         ValueError: If an unrecognised comparator is passed.
 
     Returns:
-        tuple[str, str, str]: A tuple of (variable name, relation, reference value)
+        tuple[str, str, int | float]: A tuple of (variable name, relation, reference value)
     """
     split_by: str = "(" + ")|(".join(Comparators) + ")"
     parsed = tuple(x for x in re.split(split_by, assumption.replace(" ", "")) if x)
     if len(parsed) != 3:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
-    return parsed
+    symbol_name, comparator, value = parsed
+    try:
+        if isinstance(parsed_value := literal_eval(value), int | float):
+            value = parsed_value
+        else:
+            raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed_value)}.")
+    except ValueError as exc:
+        if "malformed node or string" in exc.args[0]:
+            raise NotImplementedError(
+                "Assumption tries to draw a comparison between two variables:"
+                f" {symbol_name}, {value}.\n"
+                "At present, this is not possible."
+            )
+        else:
+            raise exc
+    return symbol_name, comparator, value

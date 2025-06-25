@@ -15,7 +15,6 @@ import pytest
 import sympy
 
 from bartiq import sympy_backend
-from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
 from tests.analysis._rewriters.basic_rewriter_tests import (
     CommonExpressions,
@@ -123,15 +122,3 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         rewriter = self.rewriter(expr)
         rewriter.add_assumption("log(2*x/5) > 4")
         assert rewriter.expression == self.backend.as_expression("b*(log(2*x/5) + 1) + c*d")
-
-    def test_assumptions_are_properly_tracked(self):
-        rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
-        for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
-            rewriter.add_assumption(assumption)
-
-        assert rewriter.applied_assumptions == (
-            Assumption("a", ">", 0),
-            Assumption("b", "<", 0),
-            Assumption("c", ">=", 0),
-            Assumption("d", "<=", 10),
-        )
