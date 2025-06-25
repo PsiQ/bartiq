@@ -49,7 +49,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-        self._assumptions: tuple[Assumption] = tuple()
+        self._assumptions: tuple[Assumption, ...] = tuple()
 
     def evaluate_expression(
         self,
@@ -82,7 +82,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         )
 
     @property
-    def applied_assumptions(self) -> tuple[Assumption]:
+    def applied_assumptions(self) -> tuple[Assumption, ...]:
         "Get a set of all assumptions previously applied to this expression."
         return self._assumptions
 
