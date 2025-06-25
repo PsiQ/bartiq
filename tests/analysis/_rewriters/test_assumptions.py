@@ -34,7 +34,7 @@ def test_from_string(string, expected_attributes):
 
 def test_error_raised_if_symbol_on_both_sides_of_comparator():
     with pytest.raises(NotImplementedError, match="Assumption tries to draw a comparison between two variables"):
-        Assumption(symbol_name="Y", comparator="<=", value="X")
+        Assumption.from_string("X<=Y")
 
 
 def test_error_raised_if_invalid_string():
