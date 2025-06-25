@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import namedtuple
 from collections.abc import Callable, Iterable, Mapping
 from numbers import Number
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
@@ -27,6 +28,11 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 P = ParamSpec("P")
 
 TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
+
+
+Substitution = namedtuple(
+    "substitution", ["expression_to_replace", "replace_with", "wild_symbols"], defaults=[None, None, set()]
+)
 
 
 def update_expression(
