@@ -31,7 +31,7 @@ TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
 
 
 Substitution = namedtuple(
-    "substitution", ["expression_to_replace", "replace_with", "wild_symbols"], defaults=[None, None, set()]
+    "Substitution", ["expression_to_replace", "replace_with", "wild_symbols"], defaults=[None, None, tuple()]
 )
 
 
@@ -55,7 +55,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.original_expression = self.expression
         self._backend = backend
 
-        self._assumptions: tuple[Assumption, ...] = ()
+        self.applied_assumptions: tuple[Assumption, ...] = ()
+        self.applied_substitutions: tuple[Substitution, ...] = ()
 
     def evaluate_expression(
         self,
@@ -86,11 +87,6 @@ class ExpressionRewriter(ABC, Generic[T]):
                 functions_map=functions_map,
             ),
         )
-
-    @property
-    def applied_assumptions(self) -> tuple[Assumption, ...]:
-        "Get a set of all assumptions previously applied to this expression."
-        return self._assumptions
 
     @property
     @abstractmethod
@@ -132,23 +128,24 @@ class ExpressionRewriter(ABC, Generic[T]):
     def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         """Add an assumption on a symbol."""
         valid = self._add_assumption(assume=assume)
-        self._assumptions += (Assumption.from_string(assume) if isinstance(assume, str) else assume,)
+        self.applied_assumptions += (Assumption.from_string(assume) if isinstance(assume, str) else assume,)
         return valid
 
     @update_expression
-    def reapply_all_assumptions(self) -> TExpr[T]:
+    def reapply_allapplied_assumptions(self) -> TExpr[T]:
         """Reapply all previously applied assumptions."""
-        for assumption in self._assumptions:
+        for assumption in self.applied_assumptions:
             self.expression = self.add_assumption(assume=assumption)
         return self.expression
 
     def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
+        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
         return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
 
     @update_expression
     def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
         """Substitute a symbol or subexpression for another symbol or subexpression.
-        Creates a one-to-one mapping, unless wildcard symbols are implemented.
+        By default performs a one-to-one mapping, unless wildcard symbols are implemented.
         """
         return self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
 
