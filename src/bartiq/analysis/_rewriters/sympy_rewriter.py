@@ -25,7 +25,6 @@ from bartiq.analysis._rewriters.expression_rewriter import (
     ResourceRewriter,
     TExpr,
 )
-from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 WILDCARD_FLAG = "$"
 
@@ -33,8 +32,8 @@ WILDCARD_FLAG = "$"
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
-    This class accepts a SymPy expression as input, and provides methods for efficient simplification / rewriting of
-    the input expression.
+    This class accepts a SymPy expression (or str) as input,
+    and provides methods for efficient simplification / rewriting of the input expression.
 
     Args:
         expression: The sympy expression of interest.
@@ -121,7 +120,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         return set()
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
-        """Return a list of arguments X, such that each function_name(x) (for x in X) exists in the expression.
+        """Return a list of arguments X, such that each `function_name(x)` (for x in X) exists in the expression.
 
         Args:
             function_name: function name to return the arguments of.
@@ -158,27 +157,61 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
         return self.expression
 
-    def _substitute(self, symbol_or_expr: Expr | str, replace_with: Expr | str) -> TExpr[Expr]:
+    def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
         """Substitute a symbol or expression with another symbol or expression.
 
-        Also permits wildcard substitutions by prefacing a variable with '$'.
+        Also permits wildcard substitutions by prefacing a variable with '$'. By default, wildcard symbols are
+        considered to be nonzero.
+
+        Args:
+            symbol_or_expr: The symbol or expression we wish to substitute.
+            replace_with: The symbol or expression to replace.
+
+        Example::
+        ```python
+            rewriter = SympyExpressionRewriter("a + b")
+            rewriter.substitute("a+b", "c")
+            print(rewriter.expression) # c
+        ```
+        and for wildcard substitutions:
+        ```python
+            rewriter = SympyExpressionRewriter("log(x + 1) + log(y + 4) + log(z + 6)")
+            rewriter.substitute("log($x + $y)", "f(x, y)")
+            print(rewriter.expression) # f(1, x) + f(4, y) + f(6, z)
+        ```
+        More precise control over symbols is possible. Passing in a variable "$N" indicates
+        that this symbol should be a _number only_. Any other capital letter (or capitalised word)
+        will be flagged as _symbol only_. For example:
+        ```python
+            rewriter = SympyExpressionRewriter("log(x + 1) + log(y + 4) + log(z + 6)")
+            rewriter.substitute("log($X + $N)", "f(X, N)")
+            print(rewriter.expression) # f(x, 1) + f(y, 4) + f(z, 6)
+        ```
+        Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
         """
+
         if _has_wildcard(symbol_or_expr):
             return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
         return self._backend.substitute(self.expression, {symbol_or_expr: replace_with})
 
-    def _wildcard_substitution(self, symbol_or_expr: str, replace_with: Expr | str) -> TExpr[Expr]:
-        wildcard_dict: dict[str, Wild] = {
-            sym[1:]: Wild(sym[1:], properties=[lambda x: x != 0]) for sym in _get_wild_characters(symbol_or_expr)
-        }
-        pattern = (
-            self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", ""))
-            .replace(CustomMax, Max)
-            .subs(wildcard_dict)
+    def _wildcard_substitution(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
+        NONZERO = lambda x: x != 0  # noqa: E731
+        SYMBOL_ONLY = lambda expr: expr.is_Symbol  # noqa: E731
+        NUMBER_ONLY = lambda expr: expr.is_Number  # noqa: E731
+        wildcard_dict = {}
+        for _sym in _get_wild_characters(symbol_or_expr):
+            sym = _sym[1:]
+            if sym[0] == "N":
+                wildcard_dict[sym] = Wild(sym, properties=[NONZERO, NUMBER_ONLY])
+            elif sym[0].isupper():
+                wildcard_dict[sym] = Wild(sym, properties=[NONZERO, SYMBOL_ONLY])
+            else:
+                wildcard_dict[sym] = Wild(sym, properties=[NONZERO])
+        pattern = self._backend.substitute(
+            self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
         replacement = self._backend.substitute(
-            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")).replace(CustomMax, Max),
-            wildcard_dict,
+            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
         return _replace_subexpression(self.expression, pattern, replacement)
 
@@ -191,10 +224,6 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
     """
 
     _rewriter = SympyExpressionRewriter
-
-
-def _create_symbol_from_assumption(assume: Assumption) -> Symbol:
-    return Symbol(assume.symbol_name, **assume.symbol_properties)
 
 
 def _has_wildcard(expression: str):
