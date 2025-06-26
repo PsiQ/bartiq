@@ -17,8 +17,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass, field, replace
 from numbers import Number
-from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, TypeVar, cast
+from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, Self, TypeVar, cast
 
 from bartiq import CompiledRoutine
 from bartiq.analysis._rewriters.assumptions import Assumption
@@ -64,18 +65,26 @@ def update_linked_params(
     return _
 
 
+@dataclass
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
-    def __init__(self, expression: T | str, backend: SymbolicBackend[T]):
-        self.expression = cast(TExpr[T], backend.as_expression(expression))
-        self.original_expression = self.expression
-        self._backend = backend
+    expression: T | str
+    backend: SymbolicBackend[T]
+    assumptions: tuple[Assumption, ...] = ()
+    substitutions: tuple[Substitution, ...] = ()
+    linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
+    original_expression: T | str = ""
 
-        self.applied_assumptions: tuple[Assumption, ...] = ()
-        self.applied_substitutions: tuple[Substitution, ...] = ()
+    def __post_init__(self):
+        self.expression = cast(TExpr[T], self.backend.as_expression(self.expression))
+        if self.original_expression == "":
+            self.original_expression = self.expression
 
-        self.linked_params: dict[T, Iterable[T]] = {}
+    def _repr_latex_(self) -> str | None:
+        if hasattr(self.expression, "_repr_latex_"):
+            return self.expression._repr_latex_()
+        return None
 
     def evaluate_expression(
         self,
@@ -125,49 +134,54 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _expand(self) -> TExpr[T]:
         pass
 
-    @update_expression
     def expand(self) -> TExpr[T]:
         """Expand all brackets in the expression."""
-        return self._expand()
+        return replace(self, expression=self._expand(self.expression))
 
     @abstractmethod
     def _simplify(self) -> TExpr[T]:
         pass
 
-    @update_expression
-    def simplify(self) -> TExpr[T]:
+    def simplify(self) -> Self:
         """Run the backend `simplify' functionality, if it exists."""
-        return self._simplify()
+        return replace(self, expression=self._simplify(self.expression))
 
     @abstractmethod
     def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
         pass
 
-    @update_expression
-    def add_assumption(self, assume: str | Assumption) -> TExpr[T]:
+    def add_assumption(self, assume: str | Assumption) -> Self:
         """Add an assumption on a symbol."""
-        valid = self._add_assumption(assume=assume)
-        self.applied_assumptions += (Assumption.from_string(assume) if isinstance(assume, str) else assume,)
-        return valid
+        expr_with_assumption = self._add_assumption(assume=assume)
 
-    @update_expression
-    def reapply_all_applied_assumptions(self) -> TExpr[T]:
+        return replace(
+            self,
+            expression=expr_with_assumption,
+            assumptions=self.applied_assumptions
+            + (Assumption.from_string(assume) if isinstance(assume, str) else assume,),
+        )
+
+    def reapply_all_applied_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
+        expression = self.expression
         for assumption in self.applied_assumptions:
-            self.expression = self.add_assumption(assume=assumption)
-        return self.expression
+            expression = self._add_assumption(assume=assumption)
+        replace(self, expression=expression)
 
     def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
         self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
         return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
 
     @update_linked_params
-    @update_expression
-    def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
+    def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
         By default performs a one-to-one mapping, unless wildcard symbols are implemented.
         """
-        return self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
+        return replace(
+            self,
+            expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
+            substitutions=self.applied_substitutions + (Substitution(symbol_or_expr, replace_with),),
+        )
 
 
 class ResourceRewriter(Generic[T]):
