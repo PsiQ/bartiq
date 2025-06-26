@@ -43,6 +43,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def __init__(self, expression: Expr):
         super().__init__(expression=expression, backend=sympy_backend.with_sympy_max())
 
+    def _repr_latex_(self) -> str | None:
+        """Delegate to the expression's LaTeX representation."""
+        if hasattr(self.expression, "_repr_latex_"):
+            return self.expression._repr_latex_()
+        return None
+
     @property
     def free_symbols(self) -> set[Expr]:
         return getattr(self.expression, "free_symbols", set())
