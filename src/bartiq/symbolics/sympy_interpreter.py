@@ -13,11 +13,14 @@
 # limitations under the License.
 import operator
 import warnings
-from typing import Any
+from typing import Any, Callable
 
-from sympy import Float, Function, Heaviside, Integer, LambertW
-from sympy import Max as SympyMax
 from sympy import (
+    Float,
+    Function,
+    Heaviside,
+    Integer,
+    LambertW,
     Min,
     Mod,
     Number,
@@ -255,16 +258,17 @@ SPECIAL_FUNCS = {
     "nlz": nlz,
 }
 
-SYMPY_ONLY = {"max": SympyMax}
-"""This dictionary lists all functions in `SPECIAL_FUNCS` we overrode with custom implementations."""
-
 
 class SympyInterpreter(Interpreter):
     """An interpreter for parsing to Sympy expressions."""
 
-    def __init__(self, debug=False, built_in_sympy_only: bool = False):
+    def __init__(
+        self,
+        function_overrides: dict[str, Callable[[Any], Any]],
+        debug=False,
+    ):
         super().__init__(debug)
-        self.function_map = SPECIAL_FUNCS if not built_in_sympy_only else {**SPECIAL_FUNCS, **SYMPY_ONLY}
+        self.function_map = SPECIAL_FUNCS | function_overrides
 
     @debuggable
     def create_number(self, tokens) -> Number:
