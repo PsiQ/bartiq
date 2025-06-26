@@ -16,7 +16,10 @@ from enum import Enum
 import pytest
 
 from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis._rewriters.expression_rewriter import (
+    ExpressionRewriter,
+    Substitution,
+)
 from bartiq.symbolics.backend import SymbolicBackend
 
 
@@ -104,8 +107,22 @@ class ExpressionRewriterTests:
             [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
         ],
     )
-    def test_substitutions_basic(self, expression, expr_to_replace, replace_with, final_expression):
+    def test_basic_substitutions(self, expression, expr_to_replace, replace_with, final_expression):
 
         assert self.rewriter(expression).substitute(expr_to_replace, replace_with) == self.backend.as_expression(
             final_expression
         )
+
+    def test_substitutions_are_tracked_correctly(self):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        substitutions = (
+            ("x/n", "z"),
+            ("a*log2(z)", "A"),
+            ("Heaviside(aleph, beth)", "h"),
+            ("b*(max(0, 1+y, 2+x) + h)", "B"),
+        )
+        for _expr, _repl in substitutions:
+            rewriter.substitute(_expr, _repl)
+
+        assert rewriter.expression == self.backend.as_expression("A+B")
+        assert rewriter.applied_substitutions == tuple(Substitution(x, y) for x, y in substitutions)
