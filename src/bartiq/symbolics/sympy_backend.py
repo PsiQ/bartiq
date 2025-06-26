@@ -86,17 +86,19 @@ def identity_for_numbers(
     return _inner
 
 
-def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
+def parse_to_sympy(expression: str, debug: bool = False, built_in_sympy_only: bool = False) -> Expr:
     """Parse given mathematical expression into a sympy expression.
 
     Args:
         expression: expression to be parsed.
         debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
             for performance reasons.
+        built_in_sympy_only: flag indicating if we should disallow any custom implementations of functions,
+            and only use functions that sympy provides. Defaults to False.
     Returns:
         A Sympy expression object parsed from `expression`.
     """
-    return parse(expression, interpreter=SympyInterpreter(debug=debug))
+    return parse(expression, interpreter=SympyInterpreter(debug=debug, built_in_sympy_only=built_in_sympy_only))
 
 
 def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
@@ -140,55 +142,15 @@ def _value_of(expr: Expr) -> Number | None:
     return value
 
 
-def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]]):
-    """A wrapper to replace the custom `Max` implementation with Sympy's built-in `Max` function."""
-
-    def _inner(self: SympyBackend, value: TExpr[S]):
-        expr = sympy_backend_fn(self, value)
-        if self._use_sympy_max and isinstance(expr, Expr):
-            return expr.replace(Max, sympy.Max)
-        return expr
-
-    return _inner
-
-
 class SympyBackend:
     """A backend for parsing symbolic expressions with Sympy.
-
-    NOTE:
-        For performance reasons, this class by default uses a custom implementation of Sympy's `Max` function.
-        This may lead to unexpected behaviour, such as:
-        ```python
-            from sympy import Max, Symbol
-            a = Symbol('a')
-            sympy_expr = Max(0, a)
-
-            sympy_backend = SympyBackend()
-            sympy_backend.as_expression("max(0, a)") == sympy_expr # False
-        ```
-        This function will _not_ perform simplifications in the same way Sympy's built-in `Max` will.
-
-        To override this, and use the Sympy `Max`, a classmethod `with_sympy_max` can be called:
-        ```python
-            backend_with_sympy_max = sympy_backend.with_sympy_max()
-            backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr # True
-        ```
 
     Args:
         parse_function: A function that parses strings into Sympy expressions.
     """
 
-    _use_sympy_max: bool = False
-
     def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
         self.parse = parse_function
-
-    @classmethod
-    def with_sympy_max(cls) -> SympyBackend:
-        """Return an instance of SympyBackend that uses the built-in Sympy `Max` function."""
-        instance = SympyBackend()
-        instance._use_sympy_max = True
-        return instance
 
     @singledispatchmethod
     def _as_expression(self, value: TExpr[Expr]) -> TExpr[Expr]:
@@ -198,7 +160,6 @@ class SympyBackend:
     def _parse(self, value: str) -> TExpr[Expr]:
         return parse_to_sympy(value)
 
-    @replace_max_fn
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
@@ -306,8 +267,6 @@ class SympyBackend:
 
     def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
         try:
-            if func_name == "max" and self._use_sympy_max:
-                return sympy.Max
             return SPECIAL_FUNCS[func_name]
         except KeyError:
             return sympy.Function(func_name)
@@ -318,7 +277,7 @@ class SympyBackend:
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return Max(*set(args)) if not self._use_sympy_max else sympy.Max(*set(args))
+        return Max(*set(args))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
