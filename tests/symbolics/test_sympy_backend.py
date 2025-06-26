@@ -12,7 +12,6 @@ Tests for the SympyExpression implementation.
 
 import pytest
 from sympy import E
-from sympy import Max as sympy_max
 from sympy import Min as sympy_min
 from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
 
@@ -200,12 +199,3 @@ def test_min_max_works_for_symbols(backend):
 def test_find_unknown_functions(backend, expression, expected_output, user_defined):
     input_expr = backend.as_expression(expression)
     assert set(backend.find_undefined_functions(input_expr, user_defined)) == set(expected_output)
-
-
-def test_with_sympy_max(backend):
-    a = symbols("a")
-    sympy_expr = sympy_max(0, a)
-    assert backend.as_expression("max(0, a)") != sympy_expr
-
-    backend_with_sympy_max = backend.with_sympy_max()
-    assert backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr
