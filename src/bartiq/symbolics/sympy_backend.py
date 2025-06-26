@@ -21,7 +21,7 @@ from __future__ import annotations
 import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
 
 import sympy
 from sympy import Expr, N, Order, Symbol
@@ -82,6 +82,10 @@ def identity_for_numbers(
         return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
     return _inner
+
+
+class Parser(Protocol):
+    def __call__(self, expression: str, *args, **kwargs) -> Expr: ...  # noqa: E704
 
 
 def parse_to_sympy(expression: str, debug: bool = False, function_overrides: dict | None = None) -> Expr:
@@ -165,7 +169,7 @@ class SympyBackend:
         use_sympy_max: Flag indicating if we should use the built-in Sympy Max function. By default False.
     """
 
-    def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy, use_sympy_max: bool = False):
+    def __init__(self, parse_function: Parser = parse_to_sympy, use_sympy_max: bool = False):
         self.parse = parse_function
         self.use_sympy_max = use_sympy_max
 
@@ -184,7 +188,7 @@ class SympyBackend:
 
     @_as_expression.register
     def _parse(self, value: str) -> TExpr[Expr]:
-        return self.parse(value, function_overrides=self._functions_overrides)
+        return self.parse(value, False, self._functions_overrides)
 
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
@@ -209,7 +213,6 @@ class SympyBackend:
         """Return an iterable over free symbol names in given expression."""
         return tuple(map(str, expr.free_symbols))
 
-    @property
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over all built-in functions."""
         return list(self.function_mappings)
@@ -249,7 +252,7 @@ class SympyBackend:
             BartiqCompilationError: If the function name is a built-in function.
         """
         # Catch attempt to define special function names
-        if func_name in self.reserved_functions:
+        if func_name in self.reserved_functions():
             raise BartiqCompilationError(
                 f"Attempted to redefine the special function {func_name}; cannot define special functions."
             )
@@ -360,10 +363,10 @@ class SympyBackend:
         return [
             (
                 _func_name,
-                match[0] if (match := difflib.get_close_matches(_func_name, self.reserved_functions)) else "",
+                match[0] if (match := difflib.get_close_matches(_func_name, self.reserved_functions())) else "",
             )
             for _func_name in unknown_functions
-            if _func_name not in list(user_defined) + self.reserved_functions
+            if _func_name not in list(user_defined) + list(self.reserved_functions())
         ]
 
 
