@@ -15,12 +15,9 @@ import operator
 import warnings
 from typing import Any
 
+from sympy import Float, Function, Heaviside, Integer, LambertW
+from sympy import Max as SympyMax
 from sympy import (
-    Float,
-    Function,
-    Heaviside,
-    Integer,
-    LambertW,
     Min,
     Mod,
     Number,
@@ -258,9 +255,16 @@ SPECIAL_FUNCS = {
     "nlz": nlz,
 }
 
+SYMPY_ONLY = {"max": SympyMax}
+"""This dictionary lists all functions in `SPECIAL_FUNCS` we overrode with custom implementations."""
+
 
 class SympyInterpreter(Interpreter):
     """An interpreter for parsing to Sympy expressions."""
+
+    def __init__(self, debug=False, built_in_sympy_only: bool = False):
+        super().__init__(debug)
+        self.function_map = SPECIAL_FUNCS if not built_in_sympy_only else SPECIAL_FUNCS.update(SYMPY_ONLY)
 
     @debuggable
     def create_number(self, tokens) -> Number:
@@ -290,13 +294,10 @@ class SympyInterpreter(Interpreter):
         name, args = tokens
         if _contains_wildcard_arg(args):
             func = Function(name)
-
-        elif name.lower() in SPECIAL_FUNCS:
-            func = SPECIAL_FUNCS[name.lower()]
-
+        elif known_function := self.function_map.get(name.lower(), None):
+            func = known_function
         else:
             func = Function(name)
-
         return func(*args)
 
 
