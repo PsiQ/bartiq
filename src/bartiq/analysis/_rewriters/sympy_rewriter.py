@@ -23,6 +23,7 @@ from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
+    Substitution,
     TExpr,
 )
 
@@ -88,7 +89,20 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         Returns:
             A SymPy expression whose terms include the input symbols.
         """
-        variables = set(map(self.get_symbol, [symbols] if isinstance(symbols, str) else symbols))
+        symbols = [symbols] if isinstance(symbols, str) else symbols
+        try:
+            variables = set(map(self.get_symbol, symbols))
+        except ValueError:
+            variables = set()
+
+        variables = variables.union(
+            set(
+                map(
+                    self.get_symbol,
+                    [key for key, val in self.linked_params.items() if any(sym in val for sym in symbols)],
+                )
+            )
+        )
         return sum([term for term in self.individual_terms if not term.free_symbols.isdisjoint(variables)]).collect(
             variables
         )
@@ -192,6 +206,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
         if _has_wildcard(symbol_or_expr):
             return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
+        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
         return self._backend.substitute(self.expression, {symbol_or_expr: replace_with})
 
     def _wildcard_substitution(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
@@ -213,6 +228,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         replacement = self._backend.substitute(
             self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
+        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with, tuple(wildcard_dict.keys())),)
         return _replace_subexpression(self.expression, pattern, replacement)
 
 

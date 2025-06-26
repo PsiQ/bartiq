@@ -16,10 +16,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections import namedtuple
 from collections.abc import Callable, Iterable, Mapping
 from numbers import Number
-from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
+from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
 from bartiq.analysis._rewriters.assumptions import Assumption
@@ -30,9 +29,12 @@ P = ParamSpec("P")
 TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
 
 
-Substitution = namedtuple(
-    "Substitution", ["expression_to_replace", "replace_with", "wild_symbols"], defaults=[None, None, tuple()]
-)
+class Substitution(NamedTuple):
+    """A tuple to encapsulate the action of a subtitution."""
+
+    expression_to_replace: str
+    replace_with: str
+    wild_symbols: tuple[str] = ()
 
 
 def update_expression(
@@ -47,6 +49,21 @@ def update_expression(
     return _inner
 
 
+def update_linked_params(
+    function: callable[[TRewriter, T | str, T | str], TExpr[T]],
+) -> Callable[[TRewriter, T | str, T | str], TExpr[T]]:
+    def _(self: TRewriter, symbol_or_expr: T | str, replace_with: T | str):
+        updated_expression = function(self, symbol_or_expr, replace_with)
+        symbols_in_expr = list(map(str, self._backend.as_expression(symbol_or_expr).free_symbols))
+        symbols_in_replacement = list(map(str, self._backend.as_expression(replace_with).free_symbols))
+        if new_symbols := [x for x in symbols_in_replacement if x not in symbols_in_expr]:
+            for ns in new_symbols:
+                self.linked_params[ns] = symbols_in_expr
+        return updated_expression
+
+    return _
+
+
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
@@ -57,6 +74,8 @@ class ExpressionRewriter(ABC, Generic[T]):
 
         self.applied_assumptions: tuple[Assumption, ...] = ()
         self.applied_substitutions: tuple[Substitution, ...] = ()
+
+        self.linked_params: dict[T, Iterable[T]] = {}
 
     def evaluate_expression(
         self,
@@ -132,7 +151,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return valid
 
     @update_expression
-    def reapply_allapplied_assumptions(self) -> TExpr[T]:
+    def reapply_all_applied_assumptions(self) -> TExpr[T]:
         """Reapply all previously applied assumptions."""
         for assumption in self.applied_assumptions:
             self.expression = self.add_assumption(assume=assumption)
@@ -142,6 +161,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
         return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
 
+    @update_linked_params
     @update_expression
     def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
         """Substitute a symbol or subexpression for another symbol or subexpression.
