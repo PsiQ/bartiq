@@ -15,6 +15,7 @@
 
 from collections.abc import Iterable
 from functools import partial
+from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
@@ -45,7 +46,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression=expression,
             backend=sympy_only_backend,
         )
-        self.expression = self.expression.replace(CustomMax, Max)
+        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:
