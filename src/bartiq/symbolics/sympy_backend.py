@@ -158,7 +158,7 @@ class SympyBackend:
 
     @_as_expression.register
     def _parse(self, value: str) -> TExpr[Expr]:
-        return parse_to_sympy(value)
+        return self.parse(value)
 
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""

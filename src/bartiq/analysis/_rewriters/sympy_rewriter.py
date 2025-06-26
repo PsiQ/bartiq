@@ -27,6 +27,8 @@ from bartiq.analysis._rewriters.expression_rewriter import (
 from bartiq.symbolics.sympy_backend import SympyBackend, parse_to_sympy
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
+sympy_only_backend = SympyBackend(parse_function=partial(parse_to_sympy, built_in_sympy_only=True))
+
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
@@ -41,7 +43,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def __init__(self, expression: Expr):
         super().__init__(
             expression=expression,
-            backend=SympyBackend(parse_function=partial(parse_to_sympy, built_in_sympy_only=True)),
+            backend=sympy_only_backend,
         )
         self.expression = self.expression.replace(CustomMax, Max)
 

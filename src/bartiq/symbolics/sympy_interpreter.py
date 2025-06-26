@@ -264,7 +264,7 @@ class SympyInterpreter(Interpreter):
 
     def __init__(self, debug=False, built_in_sympy_only: bool = False):
         super().__init__(debug)
-        self.function_map = SPECIAL_FUNCS if not built_in_sympy_only else SPECIAL_FUNCS.update(SYMPY_ONLY)
+        self.function_map = SPECIAL_FUNCS if not built_in_sympy_only else {**SPECIAL_FUNCS, **SYMPY_ONLY}
 
     @debuggable
     def create_number(self, tokens) -> Number:
