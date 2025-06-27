@@ -128,7 +128,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     def reapply_all_assumptions(self) -> TExpr[T]:
         """Reapply all previously applied assumptions."""
         for assumption in self.applied_assumptions:
-            self.expression = self.assume(assumption=assumption)
+            self.expression = self.assume(assume=assumption)
         return self.expression
 
 
