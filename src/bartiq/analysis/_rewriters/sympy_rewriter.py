@@ -15,7 +15,7 @@
 
 import re
 from collections.abc import Iterable
-from numbers import NumberT
+from numbers import Number as NumberT
 from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild

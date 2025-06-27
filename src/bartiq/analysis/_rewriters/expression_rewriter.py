@@ -34,7 +34,7 @@ class Substitution(NamedTuple):
 
     expression_to_replace: str
     replace_with: str
-    wild_symbols: tuple[str] = ()
+    wild_symbols: tuple[str, ...] = ()
 
 
 def update_expression(
@@ -50,7 +50,7 @@ def update_expression(
 
 
 def update_linked_params(
-    function: callable[[TRewriter, T | str, T | str], TExpr[T]],
+    function: Callable[[TRewriter, T | str, T | str], TExpr[T]],
 ) -> Callable[[TRewriter, T | str, T | str], TExpr[T]]:
     def _(self: TRewriter, symbol_or_expr: T | str, replace_with: T | str):
         updated_expression = function(self, symbol_or_expr, replace_with)
