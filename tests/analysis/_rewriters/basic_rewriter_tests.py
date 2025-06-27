@@ -81,7 +81,7 @@ class ExpressionRewriterTests:
     def test_assumptions_are_properly_tracked(self):
         rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
-            rewriter.add_assumption(assumption)
+            rewriter.assume(assumption)
 
         assert rewriter.applied_assumptions == (
             Assumption("a", ">", 0),
