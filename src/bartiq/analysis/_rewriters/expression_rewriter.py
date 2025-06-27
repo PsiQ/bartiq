@@ -147,18 +147,20 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(self, expression=self._simplify(self.expression))
 
     @abstractmethod
-    def _add_assumption(self, assume: str | Assumption) -> TExpr[T]:
+    def _add_assumption(self, assumption: str | Assumption) -> TExpr[T]:
         pass
 
-    def add_assumption(self, assume: str | Assumption) -> Self:
-        """Add an assumption on a symbol."""
-        expr_with_assumption = self._add_assumption(assume=assume)
-
+    @update_expression
+    def add_assumption(self, assumption: str | Assumption) -> TExpr[T]:
+        """Add an assumption for a symbol."""
+        expr_with_assumption_applied = self._add_assumption(assumption=assumption)
+        self.applied_assumptions += (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,)
         return replace(
             self,
-            expression=expr_with_assumption,
+            expression=expr_with_assumption_applied,
             assumptions=self.applied_assumptions
-            + (Assumption.from_string(assume) if isinstance(assume, str) else assume,),
+            + (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,)
+            + (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,),
         )
 
     def reapply_all_applied_assumptions(self) -> Self:
@@ -167,21 +169,6 @@ class ExpressionRewriter(ABC, Generic[T]):
         for assumption in self.applied_assumptions:
             expression = self._add_assumption(assume=assumption)
         replace(self, expression=expression)
-
-    def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
-
-    @update_linked_params
-    def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> Self:
-        """Substitute a symbol or subexpression for another symbol or subexpression.
-        By default performs a one-to-one mapping, unless wildcard symbols are implemented.
-        """
-        return replace(
-            self,
-            expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
-            substitutions=self.applied_substitutions + (Substitution(symbol_or_expr, replace_with),),
-        )
 
 
 class ResourceRewriter(Generic[T]):
