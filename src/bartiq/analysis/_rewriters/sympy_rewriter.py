@@ -29,8 +29,6 @@ from bartiq.analysis._rewriters.expression_rewriter import (
 from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
-WILDCARD_FLAG = "$"
-
 
 @dataclass
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):

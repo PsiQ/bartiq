@@ -28,10 +28,10 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 
 class Instruction(str, Enum):
-    Expand = "Expand"
-    Simplify = "Simplify"
-    Assumption = "Assumption"
-    AllAssumptions = "AllAssumptions"
+    Expand = "expand"
+    Simplify = "simplify"
+    Assumption = "Allll"
+    ReapplyAllAssumptions = "reapply_all_assumptions"
 
 
 @dataclass
