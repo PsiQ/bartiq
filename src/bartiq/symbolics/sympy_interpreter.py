@@ -25,6 +25,7 @@ from sympy import (
     Mod,
     Number,
     Product,
+    Rational,
     Sum,
     Symbol,
     acos,
@@ -198,7 +199,7 @@ class Max(Function):
             return sympy_constants.NegativeInfinity
         elif len(args) == 1:
             return args[0]
-        elif all(isinstance(n, (Integer, Float)) for n in args):
+        elif all(isinstance(n, (Integer, Float, Rational)) for n in args):
             return max(args)
 
 
