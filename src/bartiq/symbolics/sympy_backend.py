@@ -21,12 +21,10 @@ from __future__ import annotations
 import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
 
 import sympy
-from sympy import Expr
-from sympy import Max as SympyMax
-from sympy import N, Order, Symbol
+from sympy import Expr, N, Order, Symbol
 from sympy.core.function import AppliedUndef
 from sympy.core.traversal import iterargs
 from typing_extensions import TypeAlias
@@ -34,14 +32,12 @@ from typing_extensions import TypeAlias
 from ..errors import BartiqCompilationError
 from .ast_parser import parse
 from .backend import ComparisonResult, Number, TExpr
-from .sympy_interpreter import SPECIAL_FUNCS, Max, SympyInterpreter
+from .sympy_interpreter import SPECIAL_FUNCS, SympyInterpreter
 from .sympy_serializer import serialize_expression
 
 NUM_DIGITS_PRECISION = 15
 # Order included here to allow for user-defined big O's
 SYMPY_USER_FUNCTION_TYPES = (AppliedUndef, Order)
-
-BUILT_IN_FUNCTIONS = list(SPECIAL_FUNCS)
 
 S: TypeAlias = Expr | Number
 
@@ -56,7 +52,7 @@ MATH_CONSTANTS = {
     "infinity": sympy.oo,
 }
 
-
+FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
 TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 
@@ -88,17 +84,23 @@ def identity_for_numbers(
     return _inner
 
 
-def parse_to_sympy(expression: str, debug: bool = False) -> Expr:
+class Parser(Protocol):
+    def __call__(self, expression: str, *args, **kwargs) -> Expr: ...  # noqa: E704
+
+
+def parse_to_sympy(expression: str, debug: bool = False, function_overrides: FunctionsMap | None = None) -> Expr:
     """Parse given mathematical expression into a sympy expression.
 
     Args:
         expression: expression to be parsed.
         debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
             for performance reasons.
+        function_overrides: a dictionary of function names we should override, and their replacement functions.
     Returns:
         A Sympy expression object parsed from `expression`.
     """
-    return parse(expression, interpreter=SympyInterpreter(debug=debug))
+
+    return parse(expression, interpreter=SympyInterpreter(debug=debug, function_overrides=function_overrides or {}))
 
 
 def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
@@ -142,55 +144,44 @@ def _value_of(expr: Expr) -> Number | None:
     return value
 
 
-def replace_max_fn(sympy_backend_fn: Callable[[SympyBackend, TExpr[S]], TExpr[S]]):
-    """A wrapper to replace the custom `Max` implementation with Sympy's built-in `Max` function."""
-
-    def _inner(self: SympyBackend, value: TExpr[S]):
-        expr = sympy_backend_fn(self, value)
-        if self._USE_SYMPY_MAX and isinstance(expr, Expr):
-            return expr.replace(Max, SympyMax)
-        return expr
-
-    return _inner
-
-
 class SympyBackend:
     """A backend for parsing symbolic expressions with Sympy.
 
     NOTE:
-        For performance reasons, this class by default uses a custom implementation of Sympy's `Max` function.
-        This may lead to unexpected behaviour, such as:
+        For performance reasons, this class uses a custom implementation of Sympy's `Max` function.
+        This may result in some unexpected behaviour:
         ```python
-            from sympy import Max, Symbol
-            a = Symbol('a')
-            sympy_expr = Max(0, a)
+            from sympy import Symbol, Max
 
-            sympy_backend = SympyBackend()
-            sympy_backend.as_expression("max(0, a)") == sympy_expr # False
-        ```
-        This function will _not_ perform simplifications in the same way Sympy's built-in `Max` will.
+            a = Symbol('a', positive=True)
+            Max(0, a)
+            >>> a
 
-        To override this, and use the Sympy `Max`, a classmethod `with_sympy_max` can be called:
-        ```python
-            backend_with_sympy_max = sympy_backend.with_sympy_max()
-            backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr # True
+            from bartiq import sympy_backend
+            sympy_backend.max(0, a)
+            >>> Max(0, a)
         ```
+        That is, it does not perform any possible simplifications.
+
+        To override this setting, reinstantiate the `SympyBackend` class with the `use_sympy_max=True` flag.
 
     Args:
         parse_function: A function that parses strings into Sympy expressions.
+        use_sympy_max: Flag indicating if we should use the built-in Sympy Max function. By default False.
     """
 
-    _USE_SYMPY_MAX: bool = False
-
-    def __init__(self, parse_function: Callable[[str], Expr] = parse_to_sympy):
+    def __init__(self, parse_function: Parser = parse_to_sympy, use_sympy_max: bool = False):
         self.parse = parse_function
+        self.use_sympy_max = use_sympy_max
 
-    @classmethod
-    def with_sympy_max(cls) -> SympyBackend:
-        """Return an instance of SympyBackend that uses the built-in Sympy `Max` function."""
-        instance = SympyBackend()
-        instance._USE_SYMPY_MAX = True
-        return instance
+    @property
+    def _functions_overrides(self) -> FunctionsMap:
+        return {"max": sympy.Max} if self.use_sympy_max else {}
+
+    @property
+    def function_mappings(self) -> FunctionsMap:
+        """A mapping from function name to callables."""
+        return SPECIAL_FUNCS | self._functions_overrides
 
     @singledispatchmethod
     def _as_expression(self, value: TExpr[Expr]) -> TExpr[Expr]:
@@ -198,9 +189,8 @@ class SympyBackend:
 
     @_as_expression.register
     def _parse(self, value: str) -> TExpr[Expr]:
-        return parse_to_sympy(value)
+        return self.parse(value, function_overrides=self._functions_overrides)
 
-    @replace_max_fn
     def as_expression(self, value: TExpr[S] | str) -> TExpr[Expr]:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
@@ -226,7 +216,7 @@ class SympyBackend:
 
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over all built-in functions."""
-        return BUILT_IN_FUNCTIONS
+        return list(self.function_mappings)
 
     @identity_for_numbers
     def value_of(self, expr: Expr) -> Number | None:
@@ -264,7 +254,7 @@ class SympyBackend:
             BartiqCompilationError: If the function name is a built-in function.
         """
         # Catch attempt to define special function names
-        if func_name in BUILT_IN_FUNCTIONS:
+        if func_name in self.reserved_functions():
             raise BartiqCompilationError(
                 f"Attempted to redefine the special function {func_name}; cannot define special functions."
             )
@@ -309,17 +299,17 @@ class SympyBackend:
 
     def func(self, func_name: str) -> Callable[..., TExpr[Expr]]:
         try:
-            return SPECIAL_FUNCS[func_name]
+            return self.function_mappings[func_name]
         except KeyError:
             return sympy.Function(func_name)
 
     def min(self, *args):
         """Returns a smallest value from given args."""
-        return sympy.Min(*args)
+        return self.function_mappings["min"](*set(args))
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return Max(*set(args))
+        return self.function_mappings["max"](*set(args))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
@@ -375,10 +365,10 @@ class SympyBackend:
         return [
             (
                 _func_name,
-                match[0] if (match := difflib.get_close_matches(_func_name, BUILT_IN_FUNCTIONS)) else "",
+                match[0] if (match := difflib.get_close_matches(_func_name, self.reserved_functions())) else "",
             )
             for _func_name in unknown_functions
-            if _func_name not in list(user_defined) + BUILT_IN_FUNCTIONS
+            if _func_name not in list(user_defined) + list(self.reserved_functions())
         ]
 
 

@@ -18,7 +18,8 @@ from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.sympy_interpreter import Max
+from bartiq.symbolics.sympy_backend import SympyBackend
+from bartiq.symbolics.sympy_interpreter import SPECIAL_FUNCS, Max
 
 
 @pytest.mark.parametrize(
@@ -202,10 +203,19 @@ def test_find_unknown_functions(backend, expression, expected_output, user_defin
     assert set(backend.find_undefined_functions(input_expr, user_defined)) == set(expected_output)
 
 
-def test_with_sympy_max(backend):
-    a = symbols("a")
-    sympy_expr = sympy_max(0, a)
-    assert backend.as_expression("max(0, a)") != sympy_expr
+def test_sympy_backend_with_sympy_max():
+    backend_with_sympy_max = SympyBackend(use_sympy_max=True)
+    # These expressions use different max fns
+    assert sympy_backend.as_expression("max(0, a)") != backend_with_sympy_max.as_expression("max(0, a)")
 
-    backend_with_sympy_max = backend.with_sympy_max()
-    assert backend_with_sympy_max.as_expression("max(0, a)") == sympy_expr
+
+def test_max_fn_simplifies_when_using_sympy():
+    a = symbols("a", positive=True)
+    assert sympy_backend.max(0, a) == Max(0, a)
+    assert SympyBackend(use_sympy_max=True).max(0, a) == a
+
+
+def test_function_mappings_property():
+    # As of June 2025, the 'max' function should be the only function overridden
+    sympy_backend_with_sympy_max = SympyBackend(use_sympy_max=True)
+    assert sympy_backend_with_sympy_max.function_mappings == SPECIAL_FUNCS | {"max": sympy_max}

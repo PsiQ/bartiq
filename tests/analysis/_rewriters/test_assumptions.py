@@ -62,7 +62,7 @@ def test_error_raised_if_invalid_string():
         ],
     ],
 )
-def test_symbol_creation_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
+def test_symbol_from_assumptions_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
     sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
     for property in properties_it_has:
         assert getattr(sym, property)

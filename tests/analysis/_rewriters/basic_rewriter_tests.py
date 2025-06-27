@@ -41,7 +41,7 @@ class CommonExpressions(str, Enum):
 
 class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
-    backend: type[SymbolicBackend]
+    backend: SymbolicBackend
 
     def assert_expression_seqs_equal(self, actual, expected):
         assert len(actual) == len(expected) and set(actual) == set(map(self.backend.as_expression, expected))

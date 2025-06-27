@@ -94,11 +94,11 @@ def _get_properties(comparator: str, reference_value: int | float) -> dict[str, 
 def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
     """Unpack an assumption into its components.
 
-    An assumption should take the form of `A ? B`.
+    An assumption should take the form of `X ? a`.
     where
-    - A is a variable
-    - ? is a comparison between A and B, one of '>', '<', '>=', '<='.
-    - B is a reference value, either another variable or a number.
+    - X is a variable
+    - ? is a comparison between X and a, one of '>', '<', '>=', '<='.
+    - 'a' is a reference value, either int or float.
 
     Args:
         assumption (str): An assumption string.
@@ -107,7 +107,7 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
         ValueError: If an unrecognised comparator is passed.
 
     Returns:
-        tuple[str, str, int | float]: A tuple of (variable name, relation, reference value)
+        tuple[str, str, int | float]: A tuple of (variable name, comparator, reference value)
     """
     split_by: str = "(" + ")|(".join(Comparators) + ")"
     parsed = tuple(x for x in re.split(split_by, assumption.replace(" ", "")) if x)
