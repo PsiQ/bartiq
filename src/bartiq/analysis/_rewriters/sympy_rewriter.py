@@ -14,16 +14,18 @@
 """A rewriter class for SymPy expressions."""
 
 from collections.abc import Iterable
+from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
-from bartiq import sympy_backend
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
     TExpr,
     update_expression,
 )
+from bartiq.symbolics.sympy_backend import SympyBackend
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
@@ -37,7 +39,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """
 
     def __init__(self, expression: Expr):
-        super().__init__(expression=expression, backend=sympy_backend)
+        super().__init__(
+            expression=expression,
+            backend=SympyBackend(use_sympy_max=True),
+        )
+        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:

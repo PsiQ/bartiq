@@ -13,7 +13,7 @@
 # limitations under the License.
 import operator
 import warnings
-from typing import Any
+from typing import Any, Callable
 
 from sympy import (
     Float,
@@ -263,6 +263,14 @@ SPECIAL_FUNCS = {
 class SympyInterpreter(Interpreter):
     """An interpreter for parsing to Sympy expressions."""
 
+    def __init__(
+        self,
+        function_overrides: dict[str, Callable[[Any], Any]],
+        debug=False,
+    ):
+        super().__init__(debug)
+        self.function_map = SPECIAL_FUNCS | function_overrides
+
     @debuggable
     def create_number(self, tokens) -> Number:
         """Return a sympy number."""
@@ -291,13 +299,10 @@ class SympyInterpreter(Interpreter):
         name, args = tokens
         if _contains_wildcard_arg(args):
             func = Function(name)
-
-        elif name.lower() in SPECIAL_FUNCS:
-            func = SPECIAL_FUNCS[name.lower()]
-
+        elif known_function := self.function_map.get(name.lower(), None):
+            func = known_function
         else:
             func = Function(name)
-
         return func(*args)
 
 

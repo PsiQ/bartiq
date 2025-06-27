@@ -438,6 +438,16 @@ def test_ntz_parametrized(value, expected, raises, match):
         assert ntz(value) == expected
 
 
+def test_fn_overrides_works_as_expected():
+    assert (
+        parse_to_sympy(
+            "min(1, a) + max(1, a) + Heaviside(b, c)",
+            function_overrides={"min": lambda *args: 1, "max": lambda *args: 1, "heaviside": lambda *args: 2},
+        )
+        == 4
+    )
+
+
 @pytest.mark.parametrize(
     "args, expected_max",
     [
