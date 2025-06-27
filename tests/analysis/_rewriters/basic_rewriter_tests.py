@@ -16,10 +16,7 @@ from enum import Enum
 import pytest
 
 from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    Substitution,
-)
+from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.symbolics.backend import SymbolicBackend
 
 
@@ -92,37 +89,3 @@ class ExpressionRewriterTests:
             Assumption("c", ">=", 0),
             Assumption("d", "<=", 10),
         )
-
-    @pytest.mark.parametrize(
-        "expression, expr_to_replace, replace_with, final_expression",
-        [
-            [CommonExpressions.TRIVIAL, "a", "b", "b"],
-            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
-            [
-                CommonExpressions.MANY_FUNCS,
-                "a*log2(x/n)",
-                "A(x)",
-                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
-            ],
-            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
-        ],
-    )
-    def test_basic_substitutions(self, expression, expr_to_replace, replace_with, final_expression):
-
-        assert self.rewriter(expression).substitute(expr_to_replace, replace_with) == self.backend.as_expression(
-            final_expression
-        )
-
-    def test_substitutions_are_tracked_correctly(self):
-        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        substitutions = (
-            ("x/n", "z"),
-            ("a*log2(z)", "A"),
-            ("Heaviside(aleph, beth)", "h"),
-            ("b*(max(0, 1+y, 2+x) + h)", "B"),
-        )
-        for _expr, _repl in substitutions:
-            rewriter.substitute(_expr, _repl)
-
-        assert rewriter.expression == self.backend.as_expression("A+B")
-        assert rewriter.applied_substitutions == tuple(Substitution(x, y) for x, y in substitutions)
