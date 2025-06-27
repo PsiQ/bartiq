@@ -58,6 +58,7 @@ from sympy import (
     sin,
     sinh,
     sqrt,
+    sympify,
     tan,
     tanh,
 )
@@ -435,3 +436,16 @@ def test_ntz_parametrized(value, expected, raises, match):
             ntz(value)
     else:
         assert ntz(value) == expected
+
+
+@pytest.mark.parametrize(
+    "args, expected_max",
+    [
+        ([sympify("2/3"), 0.5], sympify("2/3")),
+        ([sympify(3) / 2, 2], 2),
+        ([4 / sympify(5), 0], 4 / sympify(5)),
+        ([sympify("1/5"), sympify("6/7"), sympify("10/7")], sympify("10/7")),
+    ],
+)
+def test_custom_max_evaluates_if_some_inputs_are_rationals(args, expected_max):
+    assert Max(*args) == expected_max
