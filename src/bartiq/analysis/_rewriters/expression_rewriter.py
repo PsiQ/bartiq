@@ -18,51 +18,20 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
+from enum import Enum
 from numbers import Number
-from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, Self, TypeVar, cast
+from typing import Generic, Self, cast
 
 from bartiq import CompiledRoutine
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
-P = ParamSpec("P")
 
-TRewriter = TypeVar("TRewriter", bound="ExpressionRewriter[Any]")
-
-
-class Substitution(NamedTuple):
-    """A tuple to encapsulate the action of a subtitution."""
-
-    expression_to_replace: str
-    replace_with: str
-    wild_symbols: tuple[str] = ()
-
-
-def update_expression(
-    function: Callable[Concatenate[TRewriter, P], TExpr[T]],
-) -> Callable[Concatenate[TRewriter, P], TExpr[T]]:
-    """Decorator for updating the stored expression in ExpressionRewriter."""
-
-    def _inner(self: TRewriter, *args: P.args, **kwargs: P.kwargs) -> TExpr[T]:
-        self.expression = function(self, *args, **kwargs)
-        return self.expression
-
-    return _inner
-
-
-def update_linked_params(
-    function: callable[[TRewriter, T | str, T | str], TExpr[T]],
-) -> Callable[[TRewriter, T | str, T | str], TExpr[T]]:
-    def _(self: TRewriter, symbol_or_expr: T | str, replace_with: T | str):
-        updated_expression = function(self, symbol_or_expr, replace_with)
-        symbols_in_expr = list(map(str, self._backend.as_expression(symbol_or_expr).free_symbols))
-        symbols_in_replacement = list(map(str, self._backend.as_expression(replace_with).free_symbols))
-        if new_symbols := [x for x in symbols_in_replacement if x not in symbols_in_expr]:
-            for ns in new_symbols:
-                self.linked_params[ns] = symbols_in_expr
-        return updated_expression
-
-    return _
+class Instruction(str, Enum):
+    Expand = "Expand"
+    Simplify = "Simplify"
+    Assumption = "Assumption"
+    AllAssumptions = "AllAssumptions"
 
 
 @dataclass
@@ -72,9 +41,9 @@ class ExpressionRewriter(ABC, Generic[T]):
     expression: T | str
     backend: SymbolicBackend[T]
     assumptions: tuple[Assumption, ...] = ()
-    substitutions: tuple[Substitution, ...] = ()
     linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
     original_expression: T | str = ""
+    _previous: tuple[Instruction, Self] = (None, None)
 
     def __post_init__(self):
         self.expression = cast(TExpr[T], self.backend.as_expression(self.expression))
@@ -85,6 +54,23 @@ class ExpressionRewriter(ABC, Generic[T]):
         if hasattr(self.expression, "_repr_latex_"):
             return self.expression._repr_latex_()
         return None
+
+    def show_history(self) -> tuple[Instruction | None, ...]:
+        previous_instructions = []
+        current = self
+        while current is not None:
+            previous_instructions.append(current._previous[0])
+            current = current._previous[1]
+        return tuple(previous_instructions)
+
+    def revert_to(self, before: Instruction | str) -> Self:
+        current = self
+        current_instr, previous_instance = current._previous
+        if current_instr is None:
+            raise ValueError(f"No instruction '{before}' found in the history.")
+        if current_instr == before:
+            return previous_instance
+        return previous_instance.revert_to(before=before)
 
     def evaluate_expression(
         self,
@@ -134,9 +120,9 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _expand(self) -> TExpr[T]:
         pass
 
-    def expand(self) -> TExpr[T]:
+    def expand(self) -> Self:
         """Expand all brackets in the expression."""
-        return replace(self, expression=self._expand(self.expression))
+        return replace(self, expression=self._expand(), _previous=(Instruction.Expand, self))
 
     @abstractmethod
     def _simplify(self) -> TExpr[T]:
@@ -144,31 +130,28 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def simplify(self) -> Self:
         """Run the backend `simplify' functionality, if it exists."""
-        return replace(self, expression=self._simplify(self.expression))
+        return replace(self, expression=self._simplify(), _previous=(Instruction.Simplify, self))
 
     @abstractmethod
     def _add_assumption(self, assumption: str | Assumption) -> TExpr[T]:
         pass
 
-    @update_expression
-    def add_assumption(self, assumption: str | Assumption) -> TExpr[T]:
+    def add_assumption(self, assumption: str | Assumption) -> Self:
         """Add an assumption for a symbol."""
-        expr_with_assumption_applied = self._add_assumption(assumption=assumption)
-        self.applied_assumptions += (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,)
         return replace(
             self,
-            expression=expr_with_assumption_applied,
-            assumptions=self.applied_assumptions
-            + (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,)
+            expression=self._add_assumption(assumption=assumption),
+            assumptions=self.assumptions
             + (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,),
+            _previous=(Instruction.Assumption(assumption), self),
         )
 
     def reapply_all_applied_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
         expression = self.expression
-        for assumption in self.applied_assumptions:
-            expression = self._add_assumption(assume=assumption)
-        replace(self, expression=expression)
+        for assumption in self.assumptions:
+            expression = self._add_assumption(assumption=assumption)
+        replace(self, expression=expression, _previous=(Instruction.AllAssumptions, self))
 
 
 class ResourceRewriter(Generic[T]):

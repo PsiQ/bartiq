@@ -13,18 +13,17 @@
 # limitations under the License.
 """A rewriter class for SymPy expressions."""
 
-import re
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 from numbers import Number as NumberT
 from typing import cast
 
-from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
+from sympy import Add, Expr, Function, Max, Min, Symbol
 
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
-    Substitution,
     TExpr,
 )
 from bartiq.symbolics.sympy_backend import SympyBackend
@@ -33,6 +32,7 @@ from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 WILDCARD_FLAG = "$"
 
 
+@dataclass
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
@@ -43,12 +43,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         expression: The sympy expression of interest.
     """
 
-    def __init__(self, expression: Expr):
-        super().__init__(
-            expression=expression,
-            backend=SympyBackend(use_sympy_max=True),
-        )
-        if not isinstance(expression, NumberT):
+    backend: SympyBackend = field(init=False)
+
+    def __post_init__(self):
+        self.backend = SympyBackend(use_sympy_max=True)
+        super().__post_init__()
+        if not isinstance(self.expression, NumberT):
             self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     def _repr_latex_(self) -> str | None:
@@ -185,66 +185,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
         return self.expression
 
-    def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
-        """Substitute a symbol or expression with another symbol or expression.
-
-        Also permits wildcard substitutions by prefacing a variable with '$'. By default, wildcard symbols are
-        considered to be nonzero.
-
-        Args:
-            symbol_or_expr: The symbol or expression we wish to substitute.
-            replace_with: The symbol or expression to replace.
-
-        Example::
-        ```python
-            rewriter = SympyExpressionRewriter("a + b")
-            rewriter.substitute("a+b", "c")
-            print(rewriter.expression) # c
-        ```
-        and for wildcard substitutions:
-        ```python
-            rewriter = SympyExpressionRewriter("log(x + 1) + log(y + 4) + log(z + 6)")
-            rewriter.substitute("log($x + $y)", "f(x, y)")
-            print(rewriter.expression) # f(1, x) + f(4, y) + f(6, z)
-        ```
-        More precise control over symbols is possible. Passing in a variable "$N" indicates
-        that this symbol should be a _number only_. Any other capital letter (or capitalised word)
-        will be flagged as _symbol only_. For example:
-        ```python
-            rewriter = SympyExpressionRewriter("log(x + 1) + log(y + 4) + log(z + 6)")
-            rewriter.substitute("log($X + $N)", "f(X, N)")
-            print(rewriter.expression) # f(x, 1) + f(y, 4) + f(z, 6)
-        ```
-        Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
-        """
-
-        if _has_wildcard(symbol_or_expr):
-            return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self._backend.substitute(self.expression, {symbol_or_expr: replace_with})
-
-    def _wildcard_substitution(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
-        NONZERO = lambda x: x != 0  # noqa: E731
-        SYMBOL_ONLY = lambda expr: expr.is_Symbol  # noqa: E731
-        NUMBER_ONLY = lambda expr: expr.is_Number  # noqa: E731
-        wildcard_dict = {}
-        for _sym in _get_wild_characters(symbol_or_expr):
-            sym = _sym[1:]
-            if sym[0] == "N":
-                wildcard_dict[sym] = Wild(sym, properties=[NONZERO, NUMBER_ONLY])
-            elif sym[0].isupper():
-                wildcard_dict[sym] = Wild(sym, properties=[NONZERO, SYMBOL_ONLY])
-            else:
-                wildcard_dict[sym] = Wild(sym, properties=[NONZERO])
-        pattern = self._backend.substitute(
-            self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
-        )
-        replacement = self._backend.substitute(
-            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
-        )
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with, tuple(wildcard_dict.keys())),)
-        return _replace_subexpression(self.expression, pattern, replacement)
-
 
 class SympyResourceRewriter(ResourceRewriter[Expr]):
     """A class for rewriting sympy resource expressions in routines.
@@ -254,48 +194,3 @@ class SympyResourceRewriter(ResourceRewriter[Expr]):
     """
 
     _rewriter = SympyExpressionRewriter
-
-
-def _has_wildcard(expression: str):
-    return WILDCARD_FLAG in expression
-
-
-def _get_wild_characters(expression: str) -> list[str]:
-    return re.findall(r"\$[a-zA-Z_][a-zA-Z0-9_]*", expression)
-
-
-def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
-    """Recursively replace all subexpressions matching `pattern` inside `expression`
-    with `replacement`, applying the matched substitutions.
-
-    Args:
-        expression: The top-level SymPy expression to process.
-        pattern: The pattern expression to match against subexpressions.
-        replacement: The expression to replace matches with (uses substitutions).
-
-    Returns:
-        The new expression with all matching subexpressions replaced.
-    """
-    if isinstance(replacement, int | float):
-        replacement = Number(replacement)
-
-    if any(isinstance(expression, t) for t in [Symbol, Number]):
-        return expression
-
-    def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
-        return all(isinstance(x, Number) for x in values)
-
-    replaced_expr = (
-        replacement.subs(matches)
-        if (matches := expression.match(pattern)) and not _all_values_numeric(matches.values())
-        else expression
-    )
-
-    if hasattr(replaced_expr, "args") and replaced_expr.args:
-        # new_args = tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
-        # if new_args != replaced_expr.args:
-        replaced_expr = replaced_expr.__class__(
-            *tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
-        )
-
-    return replaced_expr
