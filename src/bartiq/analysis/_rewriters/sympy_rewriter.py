@@ -14,6 +14,7 @@
 """A rewriter class for SymPy expressions."""
 
 from collections.abc import Iterable
+from numbers import Number
 from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
@@ -43,7 +44,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression=expression,
             backend=SympyBackend(use_sympy_max=True),
         )
-        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
+        if not isinstance(expression, Number):
+            self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -138,11 +140,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _add_assumption(self, assume: str | Assumption) -> TExpr[Expr]:
+    def _add_assumption(self, assumption: str | Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
         if isinstance(self.expression, int | float):
             return self.expression
-        assumption = assume if isinstance(assume, Assumption) else Assumption.from_string(assume)
+        assumption = assumption if isinstance(assumption, Assumption) else Assumption.from_string(assumption)
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)

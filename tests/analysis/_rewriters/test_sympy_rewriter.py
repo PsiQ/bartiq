@@ -113,7 +113,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         rewriter = self.rewriter(expression)
         assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies, None) is None
 
-        rewriter.add_assumption(assume=assumption)
+        rewriter.add_assumption(assumption=assumption)
         assert str(rewriter.expression) == simplified_expression
         assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies)
 
