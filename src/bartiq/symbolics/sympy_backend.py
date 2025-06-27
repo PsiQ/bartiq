@@ -88,13 +88,14 @@ class Parser(Protocol):
     def __call__(self, expression: str, *args, **kwargs) -> Expr: ...  # noqa: E704
 
 
-def parse_to_sympy(expression: str, debug: bool = False, function_overrides: dict | None = None) -> Expr:
+def parse_to_sympy(expression: str, debug: bool = False, function_overrides: FunctionsMap | None = None) -> Expr:
     """Parse given mathematical expression into a sympy expression.
 
     Args:
         expression: expression to be parsed.
         debug: flag indicating if SympyInterpreter should use debug prints. Defaults to False
             for performance reasons.
+        function_overrides: a dictionary of function names we should override, and their replacement functions.
     Returns:
         A Sympy expression object parsed from `expression`.
     """
@@ -148,7 +149,7 @@ class SympyBackend:
 
     NOTE:
         For performance reasons, this class uses a custom implementation of Sympy's `Max` function.
-        This may result in some unexpected behaviour,:
+        This may result in some unexpected behaviour:
         ```python
             from sympy import Symbol, Max
 
