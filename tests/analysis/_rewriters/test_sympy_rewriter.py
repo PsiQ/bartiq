@@ -101,21 +101,21 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             assert x == expected_default_value
 
     @pytest.mark.parametrize(
-        "expression, symbol, assumption, simplified_expression, property_symbol_satisfies",
+        "expression, symbol, assumption, simplified_expression, property",
         [
             ("max(0, a)", "a", "a > 0", "a", "is_positive"),
             ("min(0, a)", "a", "a < 0", "a", "is_negative"),
         ],
     )
     def test_add_assumption_simplifies_basic_expressions(
-        self, expression, symbol, assumption, simplified_expression, property_symbol_satisfies
+        self, expression, symbol, assumption, simplified_expression, property
     ):
         rewriter = self.rewriter(expression)
-        assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies, None) is None
+        assert getattr(rewriter.get_symbol(symbol), property, None) is None
 
         rewriter.add_assumption(assumption=assumption)
         assert str(rewriter.expression) == simplified_expression
-        assert getattr(rewriter.get_symbol(symbol), property_symbol_satisfies)
+        assert getattr(rewriter.get_symbol(symbol), property)
 
     def test_more_complex_expressions_have_assumptions_applied(self):
         expr = "b*max(1 + log(2*x/5), 5) + c * d"
