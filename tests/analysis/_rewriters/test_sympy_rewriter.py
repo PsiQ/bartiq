@@ -14,8 +14,8 @@
 import pytest
 import sympy
 
-from bartiq import sympy_backend
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
+from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis._rewriters.basic_rewriter_tests import (
     CommonExpressions,
     ExpressionRewriterTests,
@@ -24,7 +24,7 @@ from tests.analysis._rewriters.basic_rewriter_tests import (
 
 class TestSympyExpressionRewriter(ExpressionRewriterTests):
     rewriter = SympyExpressionRewriter
-    backend = sympy_backend.with_sympy_max()
+    backend = SympyBackend(use_sympy_max=True)
 
     def test_simplify(self):
         expr = self.backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
