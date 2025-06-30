@@ -140,25 +140,25 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _assume(self, assume: str | Assumption) -> TExpr[Expr]:
+    def _assume(self, assumption: str | Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
         if isinstance(self.expression, int | float):
             return self.expression
-        assume = assume if isinstance(assume, Assumption) else Assumption.from_string(assume)
+        assumption = assumption if isinstance(assumption, Assumption) else Assumption.from_string(assumption)
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
-            reference_symbol = self.get_symbol(symbol_name=assume.symbol_name)
-            replacement = Symbol(assume.symbol_name, **assume.symbol_properties)
+            reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
+            replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
             self.expression = self.expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
             # If the symbol does _not_ exist, parse the assumption expression.
-            reference_symbol = self._backend.as_expression(assume.symbol_name)
+            reference_symbol = self._backend.as_expression(assumption.symbol_name)
 
         # This is a hacky way to implement assumptions that relate to nonzero values.
-        replacement_symbol = Symbol(name="__", **assume.symbol_properties)
-        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assume.value}).subs(
-            {replacement_symbol: reference_symbol - assume.value}
+        replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
+        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
+            {replacement_symbol: reference_symbol - assumption.value}
         )
         return self.expression
 
