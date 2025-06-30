@@ -38,10 +38,13 @@ class CommonExpressions(str, Enum):
 
 class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
-    backend: SymbolicBackend
 
-    def assert_expression_seqs_equal(self, actual, expected):
-        assert len(actual) == len(expected) and set(actual) == set(map(self.backend.as_expression, expected))
+    @pytest.fixture
+    def backend(self) -> SymbolicBackend:
+        raise NotImplementedError("No `backend` fixture defined.")
+
+    def assert_expression_seqs_equal(self, backend, actual, expected):
+        assert len(actual) == len(expected) and set(actual) == set(map(backend.as_expression, expected))
 
     @pytest.mark.parametrize(
         "expression, expected_individual_terms",
@@ -54,8 +57,10 @@ class ExpressionRewriterTests:
             ],
         ],
     )
-    def test_individual_terms(self, expression, expected_individual_terms):
-        self.assert_expression_seqs_equal(self.rewriter(expression).individual_terms, expected_individual_terms)
+    def test_individual_terms(self, backend, expression, expected_individual_terms):
+        self.assert_expression_seqs_equal(
+            backend, self.rewriter(expression).individual_terms, expected_individual_terms
+        )
 
     @pytest.mark.parametrize(
         "expression",
@@ -66,24 +71,24 @@ class ExpressionRewriterTests:
             CommonExpressions.NESTED_MAX,
         ],
     )
-    def test_free_symbols(self, expression):
+    def test_free_symbols(self, backend, expression):
         free_symbols_from_rewriter = self.rewriter(expression).free_symbols
-        free_symbols_from_backend = self.backend.free_symbols(self.backend.as_expression(expression))
-        self.assert_expression_seqs_equal(free_symbols_from_rewriter, free_symbols_from_backend)
+        free_symbols_from_backend = backend.free_symbols(backend.as_expression(expression))
+        self.assert_expression_seqs_equal(backend, free_symbols_from_rewriter, free_symbols_from_backend)
 
     @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
-    def test_focus(self, focus_on, expected_expression):
+    def test_focus(self, backend, focus_on, expected_expression):
 
-        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
+        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == backend.as_expression(
             expected_expression
         )
 
     def test_assumptions_are_properly_tracked(self):
         rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
-            rewriter.assume(assumption)
-
-        assert rewriter.applied_assumptions == (
+            rewriter = rewriter.assume(assumption)
+        print(rewriter.assumptions)
+        assert rewriter.assumptions == (
             Assumption("a", ">", 0),
             Assumption("b", "<", 0),
             Assumption("c", ">=", 0),
