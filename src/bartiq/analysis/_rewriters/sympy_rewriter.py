@@ -161,7 +161,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _add_assumption(self, assumption: str | Assumption) -> TExpr[Expr]:
+    def _assume(self, assumption: str | Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
         if isinstance(self.expression, int | float):
             return self.expression

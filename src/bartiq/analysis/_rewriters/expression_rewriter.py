@@ -133,14 +133,14 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(self, expression=self._simplify(), _previous=(Instruction.Simplify, self))
 
     @abstractmethod
-    def _add_assumption(self, assumption: str | Assumption) -> TExpr[T]:
+    def _assume(self, assumption: str | Assumption) -> TExpr[T]:
         pass
 
-    def add_assumption(self, assumption: str | Assumption) -> Self:
+    def assume(self, assumption: str | Assumption) -> Self:
         """Add an assumption for a symbol."""
         return replace(
             self,
-            expression=self._add_assumption(assumption=assumption),
+            expression=self._assume(assumption=assumption),
             assumptions=self.assumptions
             + (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,),
             _previous=(Instruction.Assumption(assumption), self),
@@ -150,7 +150,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Reapply all previously applied assumptions."""
         expression = self.expression
         for assumption in self.assumptions:
-            expression = self._add_assumption(assumption=assumption)
+            expression = self._assume(assumption=assumption)
         replace(self, expression=expression, _previous=(Instruction.AllAssumptions, self))
 
 
