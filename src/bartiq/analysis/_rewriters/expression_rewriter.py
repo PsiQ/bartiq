@@ -99,6 +99,8 @@ class ExpressionRewriter(ABC, Generic[T]):
             return previous_instance
         return previous_instance.revert_to(before=before)
 
+        self.applied_assumptions: tuple[Assumption, ...] = ()
+
     def evaluate_expression(
         self,
         assignments: Mapping[str, TExpr[T]],
