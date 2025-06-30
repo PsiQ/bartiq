@@ -21,6 +21,7 @@ from numbers import Number
 from typing import Any, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from bartiq import CompiledRoutine
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
@@ -47,6 +48,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         self.expression = cast(TExpr[T], backend.as_expression(expression))
         self.original_expression = self.expression
         self._backend = backend
+
+        self.applied_assumptions: tuple[Assumption, ...] = ()
 
     def evaluate_expression(
         self,
@@ -100,6 +103,33 @@ class ExpressionRewriter(ABC, Generic[T]):
     @abstractmethod
     def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
         """Return an expression containing terms that involve specific symbols."""
+
+    @abstractmethod
+    def _simplify(self) -> TExpr[T]:
+        pass
+
+    @update_expression
+    def simplify(self) -> TExpr[T]:
+        """Run the backend `simplify' functionality, if it exists."""
+        return self._simplify()
+
+    @abstractmethod
+    def _assume(self, assumption: str | Assumption) -> TExpr[T]:
+        pass
+
+    @update_expression
+    def assume(self, assumption: str | Assumption) -> TExpr[T]:
+        """Add an assumption for a symbol."""
+        expr_with_assumption_applied = self._assume(assumption=assumption)
+        self.applied_assumptions += (Assumption.from_string(assumption) if isinstance(assumption, str) else assumption,)
+        return expr_with_assumption_applied
+
+    @update_expression
+    def reapply_all_assumptions(self) -> TExpr[T]:
+        """Reapply all previously applied assumptions."""
+        for assumption in self.applied_assumptions:
+            self.expression = self.assume(assumption=assumption)
+        return self.expression
 
 
 class ResourceRewriter(Generic[T]):

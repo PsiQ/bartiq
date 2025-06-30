@@ -14,15 +14,16 @@
 """A rewriter class for SymPy expressions."""
 
 from collections.abc import Iterable
+from numbers import Number
 from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
 
+from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
     TExpr,
-    update_expression,
 )
 from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
@@ -43,7 +44,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression=expression,
             backend=SympyBackend(use_sympy_max=True),
         )
-        self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
+        if not isinstance(expression, Number):
+            self.expression = cast(Expr, self.expression).replace(CustomMax, Max)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -59,8 +61,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             return expand()
         return self.expression
 
-    @update_expression
-    def simplify(self) -> TExpr[Expr]:
+    def _simplify(self) -> TExpr[Expr]:
         """Run SymPy's `simplify` method on the expression."""
         if callable(simplify := getattr(self.expression, "simplify", None)):
             return simplify()
@@ -81,7 +82,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         try:
             return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
-            raise ValueError(f"No variable '{symbol_name}'.")
+            raise ValueError(f"No variable '{symbol_name}' in expression '{self.expression}'.")
 
     def focus(self, symbols: str | Iterable[str]) -> Expr:
         """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
@@ -103,16 +104,16 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         The returned set will include all functions at every level of the expression, i.e.
 
         All functions and arguments of the following expression:
-        ```
-        max(a, 1 - max(b, 1 - max(c, lamda)))
+        ```python
+            max(a, 1 - max(b, 1 - max(c, lamda)))
         ```
         would be returned as:
-        ```
-        {
-            Max(c, lamda),
-            Max(b, 1 - Max(c, lamda)),
-            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-        }
+        ```python
+            {
+                Max(c, lamda),
+                Max(b, 1 - Max(c, lamda)),
+                Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+            }
         ```
 
         Returns:
@@ -138,6 +139,28 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             for _func in self.all_functions_and_arguments()
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
+
+    def _assume(self, assumption: str | Assumption) -> TExpr[Expr]:
+        """Add an assumption to our expression."""
+        if isinstance(self.expression, int | float):
+            return self.expression
+        assumption = assumption if isinstance(assumption, Assumption) else Assumption.from_string(assumption)
+        try:
+            # If the Symbol exists, replace it with a Symbol that has the correct properties.
+            reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
+            replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
+            self.expression = self.expression.subs({reference_symbol: replacement})
+            reference_symbol = replacement
+        except ValueError:
+            # If the symbol does _not_ exist, parse the assumption expression.
+            reference_symbol = self._backend.as_expression(assumption.symbol_name)
+
+        # This is a hacky way to implement assumptions that relate to nonzero values.
+        replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
+        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
+            {replacement_symbol: reference_symbol - assumption.value}
+        )
+        return self.expression
 
 
 class SympyResourceRewriter(ResourceRewriter[Expr]):
