@@ -93,7 +93,10 @@ class ExpressionRewriter(ABC, Generic[T]):
         current = self
         current_instr, previous_instance = current._previous
         if current_instr is Instruction.Initial:
-            raise ValueError(f"No instruction '{before}' found in the history.")
+            if before is Instruction.Initial:
+                return current
+            else:
+                raise ValueError(f"No instruction '{before}' found in the history.")
         assert previous_instance is not None
         if current_instr == before:
             return previous_instance
@@ -166,7 +169,7 @@ class ExpressionRewriter(ABC, Generic[T]):
             _previous=(str(assumption), self),
         )
 
-    def reapply_all_applied_assumptions(self) -> Self:
+    def reapply_all_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
         expression = self.expression
         for assumption in self.assumptions:

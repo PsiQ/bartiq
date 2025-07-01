@@ -16,7 +16,10 @@ from enum import Enum
 import pytest
 
 from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis._rewriters.expression_rewriter import (
+    ExpressionRewriter,
+    Instruction,
+)
 from bartiq.symbolics.backend import SymbolicBackend
 
 
@@ -87,10 +90,36 @@ class ExpressionRewriterTests:
         rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
             rewriter = rewriter.assume(assumption)
-        print(rewriter.assumptions)
         assert rewriter.assumptions == (
             Assumption("a", ">", 0),
             Assumption("b", "<", 0),
             Assumption("c", ">=", 0),
             Assumption("d", "<=", 10),
         )
+
+    def test_show_history(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        assert updated_rewriter.show_history() == [
+            Instruction.Initial,
+            Instruction.Expand,
+            Instruction.Simplify,
+            "Assumption(beth>0)",
+        ]
+
+    def test_revert_to(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        assert updated_rewriter != init_rewriter
+        assert updated_rewriter.revert_to(Instruction.Initial) == init_rewriter
+
+    def test_revert_to_raises_an_error_if_no_instr_found(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        with pytest.raises(ValueError, match="No instruction"):
+            updated_rewriter.revert_to("Assumption(aleph>10)")
+
+    def test_reapply_all_assumptions(self):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        rewriter_1 = rewriter.assume("x>0").assume("y>0").assume("beth>0")
+        assert rewriter_1.reapply_all_assumptions()._previous == (Instruction.ReapplyAllAssumptions, rewriter_1)
