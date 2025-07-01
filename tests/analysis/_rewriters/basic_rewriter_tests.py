@@ -18,7 +18,7 @@ import pytest
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
-    Substitution,
+    Instruction,
 )
 from bartiq.symbolics.backend import SymbolicBackend
 
@@ -41,10 +41,13 @@ class CommonExpressions(str, Enum):
 
 class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
-    backend: SymbolicBackend
 
-    def assert_expression_seqs_equal(self, actual, expected):
-        assert len(actual) == len(expected) and set(actual) == set(map(self.backend.as_expression, expected))
+    @pytest.fixture
+    def backend(self) -> SymbolicBackend:
+        raise NotImplementedError("No `backend` fixture defined.")
+
+    def assert_expression_seqs_equal(self, backend, actual, expected):
+        assert len(actual) == len(expected) and set(actual) == set(map(backend.as_expression, expected))
 
     @pytest.mark.parametrize(
         "expression, expected_individual_terms",
@@ -57,8 +60,10 @@ class ExpressionRewriterTests:
             ],
         ],
     )
-    def test_individual_terms(self, expression, expected_individual_terms):
-        self.assert_expression_seqs_equal(self.rewriter(expression).individual_terms, expected_individual_terms)
+    def test_individual_terms(self, backend, expression, expected_individual_terms):
+        self.assert_expression_seqs_equal(
+            backend, self.rewriter(expression).individual_terms, expected_individual_terms
+        )
 
     @pytest.mark.parametrize(
         "expression",
@@ -69,60 +74,52 @@ class ExpressionRewriterTests:
             CommonExpressions.NESTED_MAX,
         ],
     )
-    def test_free_symbols(self, expression):
+    def test_free_symbols(self, backend, expression):
         free_symbols_from_rewriter = self.rewriter(expression).free_symbols
-        free_symbols_from_backend = self.backend.free_symbols(self.backend.as_expression(expression))
-        self.assert_expression_seqs_equal(free_symbols_from_rewriter, free_symbols_from_backend)
+        free_symbols_from_backend = backend.free_symbols(backend.as_expression(expression))
+        self.assert_expression_seqs_equal(backend, free_symbols_from_rewriter, free_symbols_from_backend)
 
     @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
-    def test_focus(self, focus_on, expected_expression):
+    def test_focus(self, backend, focus_on, expected_expression):
 
-        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
+        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == backend.as_expression(
             expected_expression
         )
 
     def test_assumptions_are_properly_tracked(self):
         rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
-            rewriter.add_assumption(assumption)
-
-        assert rewriter.applied_assumptions == (
+            rewriter = rewriter.assume(assumption)
+        assert rewriter.assumptions == (
             Assumption("a", ">", 0),
             Assumption("b", "<", 0),
             Assumption("c", ">=", 0),
             Assumption("d", "<=", 10),
         )
 
-    @pytest.mark.parametrize(
-        "expression, expr_to_replace, replace_with, final_expression",
-        [
-            [CommonExpressions.TRIVIAL, "a", "b", "b"],
-            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
-            [
-                CommonExpressions.MANY_FUNCS,
-                "a*log2(x/n)",
-                "A(x)",
-                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
-            ],
-            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
-        ],
-    )
-    def test_basic_substitutions(self, expression, expr_to_replace, replace_with, final_expression):
+    def test_show_history(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        assert updated_rewriter.show_history() == [
+            Instruction.Initial,
+            Instruction.Expand,
+            Instruction.Simplify,
+            "Assumption(beth>0)",
+        ]
 
-        assert self.rewriter(expression).substitute(expr_to_replace, replace_with) == self.backend.as_expression(
-            final_expression
-        )
+    def test_revert_to(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        assert updated_rewriter != init_rewriter
+        assert updated_rewriter.revert_to(Instruction.Initial) == init_rewriter
 
-    def test_substitutions_are_tracked_correctly(self):
+    def test_revert_to_raises_an_error_if_no_instr_found(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        with pytest.raises(ValueError, match="No instruction"):
+            updated_rewriter.revert_to("Assumption(aleph>10)")
+
+    def test_reapply_all_assumptions(self):
         rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        substitutions = (
-            ("x/n", "z"),
-            ("a*log2(z)", "A"),
-            ("Heaviside(aleph, beth)", "h"),
-            ("b*(max(0, 1+y, 2+x) + h)", "B"),
-        )
-        for _expr, _repl in substitutions:
-            rewriter.substitute(_expr, _repl)
-
-        assert rewriter.expression == self.backend.as_expression("A+B")
-        assert rewriter.applied_substitutions == tuple(Substitution(x, y) for x, y in substitutions)
+        rewriter_1 = rewriter.assume("x>0").assume("y>0").assume("beth>0")
+        assert rewriter_1.reapply_all_assumptions()._previous == (Instruction.ReapplyAllAssumptions, rewriter_1)
