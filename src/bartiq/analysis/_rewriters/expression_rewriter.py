@@ -19,9 +19,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from enum import Enum
+from typing import Generic, cast
 
-# from numbers import Number as NumberT
-from typing import Generic, Self, cast
+from typing_extensions import Self
 
 from bartiq import CompiledRoutine
 from bartiq.analysis._rewriters.assumptions import Assumption
