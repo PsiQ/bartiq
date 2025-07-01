@@ -106,11 +106,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols.
         """
         symbols = [symbols] if isinstance(symbols, str) else symbols
-        try:
-            variables = set(map(self.get_symbol, symbols))
-        except ValueError:
-            variables = set()
-
+        variables: set[Symbol] = set()
+        for sym in symbols:
+            try:
+                variables.add(self.get_symbol(sym))
+            except ValueError:
+                continue
         variables = variables.union(
             set(
                 map(
@@ -170,12 +171,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         if isinstance(self.expression, int | float):
             return self.expression
         assumption = assumption if isinstance(assumption, Assumption) else Assumption.from_string(assumption)
-        self.expression = cast(Expr, self.expression)
+        expression = cast(Expr, self.expression)
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
             replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
-            self.expression = self.expression.subs({reference_symbol: replacement})
+            expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         except ValueError:
             # If the symbol does _not_ exist, parse the assumption expression.
@@ -183,10 +184,10 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
         # This is a hacky way to implement assumptions that relate to nonzero values.
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
-        self.expression = self.expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
+        expression = expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
             {replacement_symbol: reference_symbol - assumption.value}
         )
-        return self.expression
+        return expression
 
     def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
         """Substitute a symbol or expression with another symbol or expression.
@@ -223,8 +224,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
         if _has_wildcard(symbol_or_expr):
             return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self._backend.substitute(self.expression, {symbol_or_expr: replace_with})
+        self.substitutions += (Substitution(symbol_or_expr, replace_with),)
+        return self.backend.substitute(self.expression, {symbol_or_expr: replace_with})
 
     def _wildcard_substitution(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
         NONZERO = lambda x: x != 0  # noqa: E731
@@ -239,13 +240,13 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
                 wildcard_dict[sym] = Wild(sym, properties=[NONZERO, SYMBOL_ONLY])
             else:
                 wildcard_dict[sym] = Wild(sym, properties=[NONZERO])
-        pattern = self._backend.substitute(
-            self._backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
+        pattern = self.backend.substitute(
+            self.backend.as_expression(symbol_or_expr.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
-        replacement = self._backend.substitute(
-            self._backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
+        replacement = self.backend.substitute(
+            self.backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with, tuple(wildcard_dict.keys())),)
+        self.substitutions += (Substitution(symbol_or_expr, replace_with, tuple(wildcard_dict.keys())),)
         return _replace_subexpression(self.expression, pattern, replacement)
 
 
@@ -300,8 +301,6 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
     )
 
     if hasattr(replaced_expr, "args") and replaced_expr.args:
-        # new_args = tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
-        # if new_args != replaced_expr.args:
         replaced_expr = replaced_expr.__class__(
             *tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
         )

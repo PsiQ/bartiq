@@ -59,9 +59,10 @@ class ExpressionRewriter(ABC, Generic[T]):
     expression: TExpr[T] | str
     backend: SymbolicBackend[T]
     assumptions: tuple[Assumption, ...] = ()
+    substitutions: tuple[Substitution, ...] = ()
     linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
     original_expression: TExpr[T] | str = ""
-    _previous: tuple[Instruction | str, Self | None] = (Instruction.Initial, None)
+    _previous: tuple[Instruction | Substitution | str, Self | None] = (Instruction.Initial, None)
 
     def __post_init__(self):
         self.expression = cast(T, self.backend.as_expression(self.expression))
@@ -73,13 +74,13 @@ class ExpressionRewriter(ABC, Generic[T]):
             return self.expression._repr_latex_()
         return None
 
-    def show_history(self) -> list[Instruction | str]:
+    def show_history(self) -> list[Instruction | Substitution | str]:
         """Show a chronological history of all mutating commands that have resulted in this instance of the rewriter.
 
         Returns:
             A list of chronologically ordered `Instructions`, where index 0 corresponds to initialisation.
         """
-        previous_instructions: list[Instruction | str] = []
+        previous_instructions: list[Instruction | Substitution | str] = []
         current: ExpressionRewriter[T] | None = self
         while current is not None:
             previous_instructions.append(current._previous[0])
@@ -179,19 +180,26 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def reapply_all_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
-        for assumption in self.applied_assumptions:
-            self.expression = self.add_assumption(assumption=assumption)
-        return self.expression
+        expression = self.expression
+        for assumption in self.assumptions:
+            expression = self.assume(assumption=assumption).expression
+        return replace(self, expression=expression, _previous=(Instruction.ReapplyAllAssumptions, self))
 
-    def _substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
-        self.applied_substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self._backend.substitute(self.expression, replacements={symbol_or_expr: replace_with})
+    def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[T]:
+        self.substitutions += (Substitution(symbol_or_expr, replace_with),)
+        return self.backend.substitute(
+            cast(TExpr[T], self.expression), replacements={symbol_or_expr: self.backend.as_expression(replace_with)}
+        )
 
-    def substitute(self, symbol_or_expr: T | str, replace_with: T | str) -> TExpr[T]:
+    def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
         By default performs a one-to-one mapping, unless wildcard symbols are implemented.
         """
-        return self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
+        return replace(
+            self,
+            expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
+            _previous=(Substitution(symbol_or_expr, replace_with), self),
+        )
 
 
 @dataclass

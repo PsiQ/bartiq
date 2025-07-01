@@ -14,6 +14,7 @@
 import pytest
 import sympy
 
+from bartiq.analysis._rewriters.expression_rewriter import Substitution
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
 from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis._rewriters.basic_rewriter_tests import (
@@ -94,7 +95,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             ["all_functions_and_arguments", set()],
         ],
     )
-    def test_default_return_values_when_expr_is_numeric(self, backend, method, expected_default_value):
+    def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
         rewriter = self.rewriter(2)
         if callable(x := getattr(rewriter, method)):
             assert x() == expected_default_value or 2
@@ -114,12 +115,45 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         rewriter = self.rewriter(expression)
         assert getattr(rewriter.get_symbol(symbol), property, None) is None
 
-        rewriter.assume(assumption)
+        rewriter = rewriter.assume(assumption)
         assert str(rewriter.expression) == simplified_expression
         assert getattr(rewriter.get_symbol(symbol), property)
 
     def test_more_complex_expressions_have_assumptions_applied(self, backend):
         expr = "b*max(1 + log(2*x/5), 5) + c * d"
-        rewriter = self.rewriter(expr)
-        rewriter.assume("log(2*x/5) > 4")
+        rewriter = self.rewriter(expr).assume("log(2*x/5) > 4")
         assert rewriter.expression == backend.as_expression("b*(log(2*x/5) + 1) + c*d")
+
+    @pytest.mark.parametrize(
+        "expression, expr_to_replace, replace_with, final_expression",
+        [
+            [CommonExpressions.TRIVIAL, "a", "b", "b"],
+            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
+            [
+                CommonExpressions.MANY_FUNCS,
+                "a*log2(x/n)",
+                "A(x)",
+                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
+            ],
+            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
+        ],
+    )
+    def test_basic_substitutions(self, backend, expression, expr_to_replace, replace_with, final_expression):
+
+        assert self.rewriter(expression).substitute(expr_to_replace, replace_with).expression == backend.as_expression(
+            final_expression
+        )
+
+    def test_substitutions_are_tracked_correctly(self, backend):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        substitutions = (
+            ("x/n", "z"),
+            ("a*log2(z)", "A"),
+            ("Heaviside(aleph, beth)", "h"),
+            ("b*(max(0, 1+y, 2+x) + h)", "B"),
+        )
+        for _expr, _repl in substitutions:
+            rewriter = rewriter.substitute(_expr, _repl)
+
+        assert rewriter.expression == backend.as_expression("A+B")
+        assert rewriter.substitutions == tuple(Substitution(x, y) for x, y in substitutions)
