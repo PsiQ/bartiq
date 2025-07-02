@@ -49,12 +49,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         if not isinstance(self.expression, NumberT):
             self.expression = cast(Expr, self.expression.replace(CustomMax, Max))
 
-    def _repr_latex_(self) -> str | None:
-        """Delegate to the expression's LaTeX representation."""
-        if hasattr(self.expression, "_repr_latex_"):
-            return self.expression._repr_latex_()
-        return None
-
     @property
     def free_symbols(self) -> set[Expr]:
         return getattr(self.expression, "free_symbols", set())
