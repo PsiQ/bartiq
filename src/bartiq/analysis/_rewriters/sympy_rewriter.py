@@ -19,6 +19,7 @@ from numbers import Number as NumberT
 from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Symbol
+from typing_extensions import Self
 
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
@@ -28,6 +29,8 @@ from bartiq.analysis._rewriters.expression_rewriter import (
 )
 from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
+
+_SYMPY_BACKEND = SympyBackend(use_sympy_max=True)
 
 
 @dataclass
@@ -44,10 +47,15 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     backend: SympyBackend = field(init=False)
 
     def __post_init__(self):
-        self.backend = SympyBackend(use_sympy_max=True)
+        self.backend = _SYMPY_BACKEND
         super().__post_init__()
         if not isinstance(self.expression, NumberT):
             self.expression = cast(Expr, self.expression.replace(CustomMax, Max))
+
+    @property
+    def original(self) -> Self:
+        """Return a rewriter with the original expression, and no modifications."""
+        return type(self)(expression=self._original_expression)
 
     @property
     def free_symbols(self) -> set[Expr]:
