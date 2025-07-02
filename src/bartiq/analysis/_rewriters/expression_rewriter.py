@@ -71,7 +71,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         return type(self)(expression=self.original_expression, backend=self.backend)
 
     def history(self) -> list[Instruction | str]:
-        """Show a chronological history of all mutating commands that have resulted in this instance of the rewriter.
+        """Show a chronological history of all rewriter-transforming commands that have resulted in this
+        instance of the rewriter.
 
         Returns:
             A list of chronologically ordered `Instructions`, where index 0 corresponds to initialisation.
@@ -165,10 +166,10 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def reapply_all_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
-        expression = self.expression
+        current = self
         for assumption in self.assumptions:
-            expression = self._assume(assumption=assumption)
-        return replace(self, expression=expression, _previous=(Instruction.ReapplyAllAssumptions, self))
+            current = current.assume(assumption=assumption)
+        return replace(self, expression=current.expression, _previous=(Instruction.ReapplyAllAssumptions, self))
 
 
 @dataclass
