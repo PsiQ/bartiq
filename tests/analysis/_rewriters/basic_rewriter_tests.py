@@ -15,10 +15,13 @@ from enum import Enum
 
 import pytest
 
-from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    Instruction,
+from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis._rewriters.utils import (
+    Assumption,
+    Expand,
+    Initial,
+    ReapplyAllAssumptions,
+    Simplify,
 )
 from bartiq.symbolics.backend import SymbolicBackend
 
@@ -101,10 +104,10 @@ class ExpressionRewriterTests:
         init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
         assert updated_rewriter.history() == [
-            Instruction.Initial,
-            Instruction.Expand,
-            Instruction.Simplify,
-            "Assumption(beth>0)",
+            Initial(),
+            Expand(),
+            Simplify(),
+            Assumption.from_string("beth>0"),
         ]
 
     def test_undo_previous(self):
@@ -133,4 +136,4 @@ class ExpressionRewriterTests:
     def test_reapply_all_assumptions(self):
         rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         rewriter_1 = rewriter.assume("x>0").assume("y>0").assume("beth>0")
-        assert rewriter_1.reapply_all_assumptions()._previous == (Instruction.ReapplyAllAssumptions, rewriter_1)
+        assert rewriter_1.reapply_all_assumptions()._previous == (ReapplyAllAssumptions(), rewriter_1)
