@@ -96,10 +96,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols.
         """
         symbols = [symbols] if isinstance(symbols, str) else symbols
-        try:
-            variables = set(map(self.get_symbol, symbols))
-        except ValueError:
-            variables = set()
+        variables = set()
+        for sym in symbols:
+            try:
+                variables.add(self.get_symbol(sym))
+            except ValueError:
+                continue
 
         variables = variables.union(
             set(
