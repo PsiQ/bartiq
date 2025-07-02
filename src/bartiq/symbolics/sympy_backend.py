@@ -238,6 +238,7 @@ class SympyBackend:
                 restricted_replacements.append((old_sym, new))
             except StopIteration:
                 continue
+
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
             functions_map = {}

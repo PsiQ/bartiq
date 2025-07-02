@@ -24,11 +24,14 @@ from tests.analysis._rewriters.basic_rewriter_tests import (
 
 class TestSympyExpressionRewriter(ExpressionRewriterTests):
     rewriter = SympyExpressionRewriter
-    backend = SympyBackend(use_sympy_max=True)
 
-    def test_simplify(self):
-        expr = self.backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
-        assert self.rewriter(expr).simplify() == expr.simplify()
+    @pytest.fixture()
+    def backend(self) -> SympyBackend:
+        return SympyBackend(use_sympy_max=True)
+
+    def test_simplify(self, backend):
+        expr = backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
+        assert self.rewriter(expr).simplify().expression == expr.simplify()
 
     @pytest.mark.parametrize(
         "expression, symbol_names",
@@ -62,27 +65,25 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             ],
         ],
     )
-    def test_all_functions_and_arguments(self, expression, args_and_fns):
-        self.assert_expression_seqs_equal(self.rewriter(expression).all_functions_and_arguments(), args_and_fns)
+    def test_all_functions_and_arguments(self, backend, expression, args_and_fns):
+        self.assert_expression_seqs_equal(
+            backend, self.rewriter(expression).all_functions_and_arguments(), args_and_fns
+        )
 
     @pytest.mark.parametrize(
         "function, expected_args",
         [["log2", ["x/n"]], ["max", [("0", "x+2", "y+1")]], ["Heaviside", [("aleph", "beth")]]],
     )
-    def test_list_arguments_of_function(self, function, expected_args):
+    def test_list_arguments_of_function(self, backend, function, expected_args):
         args_of_function = set(self.rewriter(CommonExpressions.MANY_FUNCS).list_arguments_of_function(function))
         assert args_of_function == set(
-            (
-                tuple(self.backend.as_expression(x) for x in ex)
-                if isinstance(ex, tuple)
-                else self.backend.as_expression(ex)
-            )
+            (tuple(backend.as_expression(x) for x in ex) if isinstance(ex, tuple) else backend.as_expression(ex))
             for ex in expected_args
         )
 
-    def test_expand(self):
-        expr = self.backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
-        assert self.rewriter(expr).expand() == expr.expand()
+    def test_expand(self, backend):
+        expr = backend.as_expression("(a + b)*c + d*(log2(x) + 5)")
+        assert self.rewriter(expr).expand().expression == expr.expand()
 
     @pytest.mark.parametrize(
         "method, expected_default_value",
@@ -93,7 +94,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             ["all_functions_and_arguments", set()],
         ],
     )
-    def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
+    def test_default_return_values_when_expr_is_numeric(self, backend, method, expected_default_value):
         rewriter = self.rewriter(2)
         if callable(x := getattr(rewriter, method)):
             assert x() == expected_default_value or 2
@@ -117,8 +118,8 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         assert str(rewriter.expression) == simplified_expression
         assert getattr(rewriter.get_symbol(symbol), property)
 
-    def test_more_complex_expressions_have_assumptions_applied(self):
+    def test_more_complex_expressions_have_assumptions_applied(self, backend):
         expr = "b*max(1 + log(2*x/5), 5) + c * d"
         rewriter = self.rewriter(expr)
         rewriter.assume("log(2*x/5) > 4")
-        assert rewriter.expression == self.backend.as_expression("b*(log(2*x/5) + 1) + c*d")
+        assert rewriter.expression == backend.as_expression("b*(log(2*x/5) + 1) + c*d")

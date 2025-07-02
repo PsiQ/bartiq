@@ -16,7 +16,10 @@ from enum import Enum
 import pytest
 
 from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis._rewriters.expression_rewriter import (
+    ExpressionRewriter,
+    Instruction,
+)
 from bartiq.symbolics.backend import SymbolicBackend
 
 
@@ -38,10 +41,13 @@ class CommonExpressions(str, Enum):
 
 class ExpressionRewriterTests:
     rewriter: type[ExpressionRewriter]
-    backend: SymbolicBackend
 
-    def assert_expression_seqs_equal(self, actual, expected):
-        assert len(actual) == len(expected) and set(actual) == set(map(self.backend.as_expression, expected))
+    @pytest.fixture
+    def backend(self) -> SymbolicBackend:
+        raise NotImplementedError("No `backend` fixture defined.")
+
+    def assert_expression_seqs_equal(self, backend, actual, expected):
+        assert len(actual) == len(expected) and set(actual) == set(map(backend.as_expression, expected))
 
     @pytest.mark.parametrize(
         "expression, expected_individual_terms",
@@ -54,8 +60,10 @@ class ExpressionRewriterTests:
             ],
         ],
     )
-    def test_individual_terms(self, expression, expected_individual_terms):
-        self.assert_expression_seqs_equal(self.rewriter(expression).individual_terms, expected_individual_terms)
+    def test_individual_terms(self, backend, expression, expected_individual_terms):
+        self.assert_expression_seqs_equal(
+            backend, self.rewriter(expression).individual_terms, expected_individual_terms
+        )
 
     @pytest.mark.parametrize(
         "expression",
@@ -66,26 +74,63 @@ class ExpressionRewriterTests:
             CommonExpressions.NESTED_MAX,
         ],
     )
-    def test_free_symbols(self, expression):
+    def test_free_symbols(self, backend, expression):
         free_symbols_from_rewriter = self.rewriter(expression).free_symbols
-        free_symbols_from_backend = self.backend.free_symbols(self.backend.as_expression(expression))
-        self.assert_expression_seqs_equal(free_symbols_from_rewriter, free_symbols_from_backend)
+        free_symbols_from_backend = backend.free_symbols(backend.as_expression(expression))
+        self.assert_expression_seqs_equal(backend, free_symbols_from_rewriter, free_symbols_from_backend)
 
     @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
-    def test_focus(self, focus_on, expected_expression):
+    def test_focus(self, backend, focus_on, expected_expression):
 
-        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == self.backend.as_expression(
+        assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == backend.as_expression(
             expected_expression
         )
 
     def test_assumptions_are_properly_tracked(self):
         rewriter = self.rewriter(CommonExpressions.SUM_AND_MUL)
         for assumption in ["a>0", "b<0", "c>=0", "d<=10"]:
-            rewriter.assume(assumption)
-
-        assert rewriter.applied_assumptions == (
+            rewriter = rewriter.assume(assumption)
+        assert rewriter.assumptions == (
             Assumption("a", ">", 0),
             Assumption("b", "<", 0),
             Assumption("c", ">=", 0),
             Assumption("d", "<=", 10),
         )
+
+    def test_history(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
+        assert updated_rewriter.history() == [
+            Instruction.Initial,
+            Instruction.Expand,
+            Instruction.Simplify,
+            "Assumption(beth>0)",
+        ]
+
+    def test_undo_previous(self):
+        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        one_step = init_rewriter.expand()
+        two_step = one_step.simplify()
+        three_step = two_step.assume("beth>0")
+        assert three_step.undo_previous() == two_step
+        assert three_step.undo_previous(2) == one_step
+        assert three_step.undo_previous(3) == init_rewriter
+        assert one_step.undo_previous() == init_rewriter
+
+    def test_original(self):
+        initial = self.rewriter(CommonExpressions.TRIVIAL)
+        assert initial.expand().simplify().assume("a>0").original == initial
+
+    def test_undo_previous_raises_error_if_arg_too_large(self):
+        with pytest.raises(ValueError, match="Attempting to undo too many operations!"):
+            self.rewriter(CommonExpressions.MANY_FUNCS).expand().simplify().assume("a > 0").undo_previous(6)
+
+    @pytest.mark.parametrize("invalid_int_arg", [0, -1])
+    def test_undo_previous_raises_error_if_invalid_integer_arg(self, invalid_int_arg):
+        with pytest.raises(ValueError, match="Can't undo fewer than one previous command."):
+            self.rewriter(CommonExpressions.TRIVIAL).expand().simplify().undo_previous(invalid_int_arg)
+
+    def test_reapply_all_assumptions(self):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        rewriter_1 = rewriter.assume("x>0").assume("y>0").assume("beth>0")
+        assert rewriter_1.reapply_all_assumptions()._previous == (Instruction.ReapplyAllAssumptions, rewriter_1)
