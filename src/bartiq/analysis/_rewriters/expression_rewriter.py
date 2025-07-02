@@ -74,64 +74,62 @@ class ExpressionRewriter(ABC, Generic[T]):
             return self.expression._repr_latex_()
         return None
 
-    def show_history(self) -> list[Instruction | Substitution | str]:
-        """Show a chronological history of all mutating commands that have resulted in this instance of the rewriter.
+    @property
+    def original(self) -> Self:
+        """Return a rewriter with the original expression, and no modifications."""
+        return type(self)(expression=self._original_expression, backend=self.backend)
+
+    def _unwrap_history(self) -> list[tuple[Instruction | str, ExpressionRewriter[T] | None]]:
+        previous = []
+        current: ExpressionRewriter[T] | None = self
+        while current is not None:
+            previous.append(current._previous)
+            current = current._previous[1]
+        return previous
+
+    def history(self) -> list[Instruction | str]:
+        """Show a chronological history of all rewriter-transforming commands that have resulted in this
+        instance of the rewriter.
 
         Returns:
             A list of chronologically ordered `Instructions`, where index 0 corresponds to initialisation.
         """
-        previous_instructions: list[Instruction | Substitution | str] = []
-        current: ExpressionRewriter[T] | None = self
-        while current is not None:
-            previous_instructions.append(current._previous[0])
-            current = current._previous[1]
-        return previous_instructions[::-1]
+        instructions, _ = zip(*self._unwrap_history())
+        return list(instructions[::-1])
 
-    def revert_to(self, before: Instruction | str) -> Self:
-        """Revert to a previous instance of the rewriter.
+    def undo_previous(self, num_operations_to_undo: int = 1) -> Self:
+        """Undo a number of previous operations.
 
-        The history of the rewriter is stored as a list of (Instruction, Previous Instance) tuples, where the
-        `Instruction` has mutated the `Previous Instance` to create the current instance. Thus, the keyword argument
-        in this method, `before`, accepts an `Instruction` argument and will return the corresponding instance
-        _prior_ to that instruction.
+        Rewinds the rewriter back to a previous instance.
 
         Args:
-            before: Rewind before the most recent application of a certain `Instruction`.
+            num_operations_to_undo: The number of previous steps to undo, by default 1.
 
+        Returns:
+            A previous instance of the rewriter.
         """
-        current = self
-        current_instr, previous_instance = current._previous
-        if current_instr is Instruction.Initial:
-            if before is Instruction.Initial:
-                return current
-            else:
-                raise ValueError(f"No instruction '{before}' found in the history.")
-        assert previous_instance is not None
-        if current_instr == before:
-            return previous_instance
-        return previous_instance.revert_to(before=before)
+        _, previous_instances = zip(*self._unwrap_history())
+        if num_operations_to_undo > (x := len(previous_instances) - 1):
+            raise ValueError(f"Attempting to undo too many operations! Only {x} transforming commands in history.")
+        if num_operations_to_undo < 1:
+            raise ValueError("Can't undo fewer than one previous command.")
+        return previous_instances[num_operations_to_undo - 1] or self.original
 
     def evaluate_expression(
         self,
         assignments: Mapping[str, TExpr[T]],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
-        original_expression: bool = False,
     ) -> TExpr[T]:
-        """Evaluate the current expression.
+        """Temporarily evaluate the expression.
 
-        Uses the 'substitute' method of the given backend.
+        This method does _not_ store the result, and employs the 'substitute' method of the given backend.
 
         Args:
             assignments: A mapping of symbols to numeric values or expressions.
             functions_map: A mapping for user-defined functions in the expressions. By default None.
-            original_expression: Flag indicating whether or not to evaluate the original, unmodified expression.
-                                By default False.
-
         """
         return self.backend.substitute(
-            cast(TExpr[T], self.original_expression if original_expression else self.expression),
-            replacements=assignments,
-            functions_map=functions_map,
+            cast(TExpr[T], self.expression), replacements=assignments, functions_map=functions_map
         )
 
     @property

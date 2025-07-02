@@ -20,6 +20,7 @@ from numbers import Number as NumberT
 from typing import cast
 
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
+from typing_extensions import Self
 
 from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
@@ -32,6 +33,7 @@ from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
 WILDCARD_FLAG = "$"
+_SYMPY_BACKEND = SympyBackend(use_sympy_max=True)
 
 
 @dataclass
@@ -48,16 +50,15 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     backend: SympyBackend = field(init=False)
 
     def __post_init__(self):
-        self.backend = SympyBackend(use_sympy_max=True)
+        self.backend = _SYMPY_BACKEND
         super().__post_init__()
         if not isinstance(self.expression, NumberT):
             self.expression = cast(Expr, self.expression.replace(CustomMax, Max))
 
-    def _repr_latex_(self) -> str | None:
-        """Delegate to the expression's LaTeX representation."""
-        if hasattr(self.expression, "_repr_latex_"):
-            return self.expression._repr_latex_()
-        return None
+    @property
+    def original(self) -> Self:
+        """Return a rewriter with the original expression, and no modifications."""
+        return type(self)(expression=self._original_expression)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -106,7 +107,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols.
         """
         symbols = [symbols] if isinstance(symbols, str) else symbols
-        variables: set[Symbol] = set()
+        variables = set()
         for sym in symbols:
             try:
                 variables.add(self.get_symbol(sym))

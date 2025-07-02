@@ -95,7 +95,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             ["all_functions_and_arguments", set()],
         ],
     )
-    def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
+    def test_default_return_values_when_expr_is_numeric(self, backend, method, expected_default_value):
         rewriter = self.rewriter(2)
         if callable(x := getattr(rewriter, method)):
             assert x() == expected_default_value or 2
