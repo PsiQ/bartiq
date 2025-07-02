@@ -97,27 +97,38 @@ class ExpressionRewriterTests:
             Assumption("d", "<=", 10),
         )
 
-    def test_show_history(self):
+    def test_history(self):
         init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
-        assert updated_rewriter.show_history() == [
+        assert updated_rewriter.history() == [
             Instruction.Initial,
             Instruction.Expand,
             Instruction.Simplify,
             "Assumption(beth>0)",
         ]
 
-    def test_revert_to(self):
+    def test_undo_previous(self):
         init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
-        assert updated_rewriter != init_rewriter
-        assert updated_rewriter.revert_to(Instruction.Initial) == init_rewriter
+        one_step = init_rewriter.expand()
+        two_step = one_step.simplify()
+        three_step = two_step.assume("beth>0")
+        assert three_step.undo_previous() == two_step
+        assert three_step.undo_previous(2) == one_step
+        assert three_step.undo_previous(3) == init_rewriter
+        assert one_step.undo_previous() == init_rewriter
 
-    def test_revert_to_raises_an_error_if_no_instr_found(self):
-        init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
-        with pytest.raises(ValueError, match="No instruction"):
-            updated_rewriter.revert_to("Assumption(aleph>10)")
+    def test_original(self):
+        initial = self.rewriter(CommonExpressions.TRIVIAL)
+        assert initial.expand().simplify().assume("a>0").original == initial
+
+    def test_undo_previous_raises_error_if_arg_too_large(self):
+        with pytest.raises(ValueError, match="Attempting to undo too many operations!"):
+            self.rewriter(CommonExpressions.MANY_FUNCS).expand().simplify().assume("a > 0").undo_previous(6)
+
+    @pytest.mark.parametrize("invalid_int_arg", [0, -1])
+    def test_undo_previous_raises_error_if_invalid_integer_arg(self, invalid_int_arg):
+        with pytest.raises(ValueError, match="Can't undo fewer than one previous command."):
+            self.rewriter(CommonExpressions.TRIVIAL).expand().simplify().undo_previous(invalid_int_arg)
 
     def test_reapply_all_assumptions(self):
         rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)

@@ -52,13 +52,13 @@ class ExpressionRewriter(ABC, Generic[T]):
     backend: SymbolicBackend[T]
     assumptions: tuple[Assumption, ...] = ()
     linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
-    original_expression: TExpr[T] | str = ""
+    _original_expression: TExpr[T] | str = ""
     _previous: tuple[Instruction | str, Self | None] = (Instruction.Initial, None)
 
     def __post_init__(self):
         self.expression = cast(T, self.backend.as_expression(self.expression))
-        if self.original_expression == "":
-            self.original_expression = self.expression
+        if self._original_expression == "":
+            self._original_expression = self.expression
 
     def _repr_latex_(self) -> str | None:
         if hasattr(self.expression, "_repr_latex_"):
@@ -68,7 +68,15 @@ class ExpressionRewriter(ABC, Generic[T]):
     @property
     def original(self) -> Self:
         """Return a rewriter with the original expression, and no modifications."""
-        return type(self)(expression=self.original_expression, backend=self.backend)
+        return type(self)(expression=self._original_expression, backend=self.backend)
+
+    def _unwrap_history(self) -> list[tuple[Instruction | str, ExpressionRewriter[T] | None]]:
+        previous = []
+        current: ExpressionRewriter[T] | None = self
+        while current is not None:
+            previous.append(current._previous)
+            current = current._previous[1]
+        return previous
 
     def history(self) -> list[Instruction | str]:
         """Show a chronological history of all rewriter-transforming commands that have resulted in this
@@ -77,12 +85,8 @@ class ExpressionRewriter(ABC, Generic[T]):
         Returns:
             A list of chronologically ordered `Instructions`, where index 0 corresponds to initialisation.
         """
-        previous_instructions: list[Instruction | str] = []
-        current: ExpressionRewriter[T] | None = self
-        while current is not None:
-            previous_instructions.append(current._previous[0])
-            current = current._previous[1]
-        return previous_instructions[::-1]
+        instructions, _ = zip(*self._unwrap_history())
+        return list(instructions[::-1])
 
     def undo_previous(self, num_operations_to_undo: int = 1) -> Self:
         """Undo a number of previous operations.
@@ -95,26 +99,25 @@ class ExpressionRewriter(ABC, Generic[T]):
         Returns:
             A previous instance of the rewriter.
         """
-        current = self
-        for _ in range(num_operations_to_undo):
-            current = current._previous[1]
-        return current
+        _, previous_instances = zip(*self._unwrap_history())
+        if num_operations_to_undo > (x := len(previous_instances) - 1):
+            raise ValueError(f"Attempting to undo too many operations! Only {x} transforming commands in history.")
+        if num_operations_to_undo < 1:
+            raise ValueError("Can't undo fewer than one previous command.")
+        return previous_instances[num_operations_to_undo - 1] or self.original
 
     def evaluate_expression(
         self,
         assignments: Mapping[str, TExpr[T]],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
     ) -> TExpr[T]:
-        """Evaluate the current expression.
+        """Temporarily evaluate the expression.
 
-        Uses the 'substitute' method of the given backend.
+        This method does _not_ store the result, and employs the 'substitute' method of the given backend.
 
         Args:
             assignments: A mapping of symbols to numeric values or expressions.
             functions_map: A mapping for user-defined functions in the expressions. By default None.
-            original_expression: Flag indicating whether or not to evaluate the original, unmodified expression.
-                                By default False.
-
         """
         return self.backend.substitute(
             cast(TExpr[T], self.expression), replacements=assignments, functions_map=functions_map
