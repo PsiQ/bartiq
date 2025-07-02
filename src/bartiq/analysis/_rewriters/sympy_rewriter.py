@@ -22,13 +22,12 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 from typing_extensions import Self
 
-from bartiq.analysis._rewriters.assumptions import Assumption
 from bartiq.analysis._rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
-    Substitution,
     TExpr,
 )
+from bartiq.analysis._rewriters.utils import Assumption
 from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 
@@ -167,11 +166,10 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _assume(self, assumption: str | Assumption) -> TExpr[Expr]:
+    def _assume(self, assumption: Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
         if isinstance(self.expression, int | float):
             return self.expression
-        assumption = assumption if isinstance(assumption, Assumption) else Assumption.from_string(assumption)
         expression = cast(Expr, self.expression)
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
@@ -222,11 +220,18 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         ```
         Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
         """
+        if isinstance(self.expression, int | float):
+            return self.expression
 
         if _has_wildcard(symbol_or_expr):
             return self._wildcard_substitution(symbol_or_expr=symbol_or_expr, replace_with=replace_with)
-        self.substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self.backend.substitute(self.expression, {symbol_or_expr: replace_with})
+
+        _symbol_or_expr = cast(Expr, self.backend.as_expression(symbol_or_expr))
+        _replace_with = self.backend.as_expression(replace_with)
+        return self.expression.subs(
+            _symbol_or_expr.subs({fs: self.get_symbol(fs.name) for fs in _symbol_or_expr.free_symbols}),
+            _replace_with,
+        )
 
     def _wildcard_substitution(self, symbol_or_expr: str, replace_with: str) -> TExpr[Expr]:
         NONZERO = lambda x: x != 0  # noqa: E731
@@ -247,7 +252,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         replacement = self.backend.substitute(
             self.backend.as_expression(replace_with.replace(f"{WILDCARD_FLAG}", "")), wildcard_dict
         )
-        self.substitutions += (Substitution(symbol_or_expr, replace_with, tuple(wildcard_dict.keys())),)
         return _replace_subexpression(self.expression, pattern, replacement)
 
 

@@ -18,56 +18,37 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
-from enum import Enum
-from typing import Generic, NamedTuple, cast
+from typing import Generic, cast
 
 from typing_extensions import Self
 
 from bartiq import CompiledRoutine
-from bartiq.analysis._rewriters.assumptions import Assumption
+from bartiq.analysis._rewriters.utils import (
+    Assumption,
+    Expand,
+    Initial,
+    Instruction,
+    ReapplyAllAssumptions,
+    Simplify,
+    Substitution,
+)
 from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
-
-
-class Substitution(NamedTuple):
-    """A tuple to encapsulate the action of a subtitution."""
-
-    expression_to_replace: str
-    replace_with: str
-    wild_symbols: tuple[str, ...] = ()
-
-
-class Instruction(str, Enum):
-    """A collection of rewriter mutating instructions."""
-
-    Initial = "initial"
-    """The initial instance of a rewriter."""
-
-    Expand = "expand"
-    """Expand all brackets in an expression."""
-
-    Simplify = "simplify"
-    """Simplify an expression."""
-
-    ReapplyAllAssumptions = "reapply_all_assumptions"
-    """Reapply all assumptions previously applied."""
 
 
 @dataclass
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
-    expression: TExpr[T] | str
+    expression: TExpr[T]
     backend: SymbolicBackend[T]
-    assumptions: tuple[Assumption, ...] = ()
-    substitutions: tuple[Substitution, ...] = ()
     linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
-    original_expression: TExpr[T] | str = ""
-    _previous: tuple[Instruction | Substitution | str, Self | None] = (Instruction.Initial, None)
+    _original_expression: TExpr[T] | None = None
+    _previous: tuple[Instruction, Self | None] = (Initial(), None)
 
     def __post_init__(self):
-        self.expression = cast(T, self.backend.as_expression(self.expression))
-        if self.original_expression == "":
-            self.original_expression = self.expression
+        self.expression = self.backend.as_expression(self.expression)
+        if self._original_expression is None:
+            self._original_expression = self.expression
 
     def _repr_latex_(self) -> str | None:
         if hasattr(self.expression, "_repr_latex_"):
@@ -75,11 +56,20 @@ class ExpressionRewriter(ABC, Generic[T]):
         return None
 
     @property
+    def assumptions(self) -> tuple[Assumption, ...]:
+        return tuple(instr for instr in self.history() if isinstance(instr, Assumption))
+
+    @property
+    def substitutions(self) -> tuple[Substitution, ...]:
+        return tuple(instr for instr in self.history() if isinstance(instr, Substitution))
+
+    @property
     def original(self) -> Self:
         """Return a rewriter with the original expression, and no modifications."""
+        assert self._original_expression is not None
         return type(self)(expression=self._original_expression, backend=self.backend)
 
-    def _unwrap_history(self) -> list[tuple[Instruction | str, ExpressionRewriter[T] | None]]:
+    def _unwrap_history(self) -> list[tuple[Instruction, ExpressionRewriter[T] | None]]:
         previous = []
         current: ExpressionRewriter[T] | None = self
         while current is not None:
@@ -87,7 +77,7 @@ class ExpressionRewriter(ABC, Generic[T]):
             current = current._previous[1]
         return previous
 
-    def history(self) -> list[Instruction | str]:
+    def history(self) -> list[Instruction]:
         """Show a chronological history of all rewriter-transforming commands that have resulted in this
         instance of the rewriter.
 
@@ -152,7 +142,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def expand(self) -> Self:
         """Expand all brackets in the expression."""
-        return replace(self, expression=self._expand(), _previous=(Instruction.Expand, self))
+        return replace(self, expression=self._expand(), _previous=(Expand(), self))
 
     @abstractmethod
     def _simplify(self) -> TExpr[T]:
@@ -160,10 +150,10 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def simplify(self) -> Self:
         """Run the backend `simplify' functionality, if it exists."""
-        return replace(self, expression=self._simplify(), _previous=(Instruction.Simplify, self))
+        return replace(self, expression=self._simplify(), _previous=(Simplify(), self))
 
     @abstractmethod
-    def _assume(self, assumption: str | Assumption) -> TExpr[T]:
+    def _assume(self, assumption: Assumption) -> TExpr[T]:
         pass
 
     def assume(self, assumption: str | Assumption) -> Self:
@@ -172,22 +162,19 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(
             self,
             expression=self._assume(assumption=assumption),
-            assumptions=self.assumptions + (assumption,),
-            _previous=(str(assumption), self),
+            _previous=(assumption, self),
         )
 
     def reapply_all_assumptions(self) -> Self:
         """Reapply all previously applied assumptions."""
-        expression = self.expression
+        current = self
         for assumption in self.assumptions:
-            expression = self.assume(assumption=assumption).expression
-        return replace(self, expression=expression, _previous=(Instruction.ReapplyAllAssumptions, self))
+            current = current.assume(assumption=assumption)
+        return replace(self, expression=current.expression, _previous=(ReapplyAllAssumptions(), self))
 
+    @abstractmethod
     def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[T]:
-        self.substitutions += (Substitution(symbol_or_expr, replace_with),)
-        return self.backend.substitute(
-            cast(TExpr[T], self.expression), replacements={symbol_or_expr: self.backend.as_expression(replace_with)}
-        )
+        pass
 
     def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
@@ -196,7 +183,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(
             self,
             expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
-            _previous=(Substitution(symbol_or_expr, replace_with), self),
+            _previous=(Substitution(symbol=symbol_or_expr, replacement=replace_with), self),
         )
 
 

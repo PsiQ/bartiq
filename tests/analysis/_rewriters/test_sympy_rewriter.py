@@ -14,8 +14,8 @@
 import pytest
 import sympy
 
-from bartiq.analysis._rewriters.expression_rewriter import Substitution
 from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
+from bartiq.analysis._rewriters.utils import Substitution
 from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis._rewriters.basic_rewriter_tests import (
     CommonExpressions,
@@ -95,7 +95,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             ["all_functions_and_arguments", set()],
         ],
     )
-    def test_default_return_values_when_expr_is_numeric(self, backend, method, expected_default_value):
+    def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
         rewriter = self.rewriter(2)
         if callable(x := getattr(rewriter, method)):
             assert x() == expected_default_value or 2
