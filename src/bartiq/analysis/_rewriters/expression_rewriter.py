@@ -29,7 +29,7 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 
 class Instruction(str, Enum):
-    """A collection of rewriter mutating instructions."""
+    """A collection of transformative operations on rewriter instances."""
 
     Initial = "initial"
     """The initial instance of a rewriter."""
@@ -65,7 +65,12 @@ class ExpressionRewriter(ABC, Generic[T]):
             return self.expression._repr_latex_()
         return None
 
-    def show_history(self) -> list[Instruction | str]:
+    @property
+    def original(self) -> Self:
+        """Return a rewriter with the original expression, and no modifications."""
+        return type(self)(expression=self.original_expression, backend=self.backend)
+
+    def history(self) -> list[Instruction | str]:
         """Show a chronological history of all mutating commands that have resulted in this instance of the rewriter.
 
         Returns:
@@ -78,35 +83,26 @@ class ExpressionRewriter(ABC, Generic[T]):
             current = current._previous[1]
         return previous_instructions[::-1]
 
-    def revert_to(self, before: Instruction | str) -> Self:
-        """Revert to a previous instance of the rewriter.
+    def undo_previous(self, num_operations_to_undo: int = 1) -> Self:
+        """Undo a number of previous operations.
 
-        The history of the rewriter is stored as a list of (Instruction, Previous Instance) tuples, where the
-        `Instruction` has mutated the `Previous Instance` to create the current instance. Thus, the keyword argument
-        in this method, `before`, accepts an `Instruction` argument and will return the corresponding instance
-        _prior_ to that instruction.
+        Rewinds the rewriter back to a previous instance.
 
         Args:
-            before: Rewind before the most recent application of a certain `Instruction`.
+            num_operations_to_undo: The number of previous steps to undo, by default 1.
 
+        Returns:
+            A previous instance of the rewriter.
         """
         current = self
-        current_instr, previous_instance = current._previous
-        if current_instr is Instruction.Initial:
-            if before is Instruction.Initial:
-                return current
-            else:
-                raise ValueError(f"No instruction '{before}' found in the history.")
-        assert previous_instance is not None
-        if current_instr == before:
-            return previous_instance
-        return previous_instance.revert_to(before=before)
+        for _ in range(num_operations_to_undo):
+            current = current._previous[1]
+        return current
 
     def evaluate_expression(
         self,
         assignments: Mapping[str, TExpr[T]],
         functions_map: Mapping[str, Callable[[TExpr[T]], TExpr[T]]] | None = None,
-        original_expression: bool = False,
     ) -> TExpr[T]:
         """Evaluate the current expression.
 
@@ -120,9 +116,7 @@ class ExpressionRewriter(ABC, Generic[T]):
 
         """
         return self.backend.substitute(
-            cast(TExpr[T], self.original_expression if original_expression else self.expression),
-            replacements=assignments,
-            functions_map=functions_map,
+            cast(TExpr[T], self.expression), replacements=assignments, functions_map=functions_map
         )
 
     @property
