@@ -137,9 +137,7 @@ class ExpressionRewriter(ABC, Generic[T]):
             assignments: A mapping of symbols to numeric values or expressions.
             functions_map: A mapping for user-defined functions in the expressions. By default None.
         """
-        return self.backend.substitute(
-            cast(TExpr[T], self.expression), replacements=assignments, functions_map=functions_map
-        )
+        return self.backend.substitute(self.expression, replacements=assignments, functions_map=functions_map)
 
     @property
     @abstractmethod
@@ -156,24 +154,21 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return an expression containing terms that involve specific symbols."""
 
     @abstractmethod
-    def _expand(self) -> TExpr[T]:
-        pass
+    def _expand(self) -> TExpr[T]: ...
 
     def expand(self) -> Self:
         """Expand all brackets in the expression."""
         return replace(self, expression=self._expand(), _previous=(Expand(), self))
 
     @abstractmethod
-    def _simplify(self) -> TExpr[T]:
-        pass
+    def _simplify(self) -> TExpr[T]: ...
 
     def simplify(self) -> Self:
         """Run the backend `simplify' functionality, if it exists."""
         return replace(self, expression=self._simplify(), _previous=(Simplify(), self))
 
     @abstractmethod
-    def _assume(self, assumption: Assumption) -> TExpr[T]:
-        pass
+    def _assume(self, assumption: Assumption) -> TExpr[T]: ...
 
     def assume(self, assumption: str | Assumption) -> Self:
         """Add an assumption for a symbol."""
@@ -192,8 +187,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(self, expression=current.expression, _previous=(ReapplyAllAssumptions(), self))
 
     @abstractmethod
-    def _substitute(self, substitution: Substitution) -> TExpr[T]:
-        pass
+    def _substitute(self, substitution: Substitution) -> TExpr[T]: ...
 
     def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
