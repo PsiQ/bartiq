@@ -23,7 +23,6 @@ from typing_extensions import Self
 from bartiq.analysis.rewriters.expression_rewriter import (
     ExpressionRewriter,
     ResourceRewriter,
-    TExpr,
 )
 from bartiq.analysis.rewriters.utils import (
     Assumption,
@@ -66,13 +65,13 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def individual_terms(self) -> Iterable[Expr]:
         return Add.make_args(self.expression)
 
-    def _expand(self) -> TExpr[Expr]:
+    def _expand(self) -> Expr:
         """Expand all brackets in the expression."""
         if callable(expand := getattr(self.expression, "expand", None)):
             return expand()
         return self.expression
 
-    def _simplify(self) -> TExpr[Expr]:
+    def _simplify(self) -> Expr:
         """Run SymPy's `simplify` method on the expression."""
         if callable(simplify := getattr(self.expression, "simplify", None)):
             return simplify()
@@ -104,7 +103,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         Returns:
             A SymPy expression whose terms include the input symbols. If none are found, returns None.
         """
-        symbols = [symbols] if isinstance(symbols, str) else symbols
+        symbols = [symbols] if isinstance(symbols, str) else list(symbols)
         symbols += _unwrap_linked_parameters(self.linked_params, symbols)
         variables = set()
         for sym in symbols:
@@ -159,7 +158,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             if _func.__class__.__name__.lower() == function_name.lower()
         ]
 
-    def _assume(self, assumption: Assumption) -> TExpr[Expr]:
+    def _assume(self, assumption: Assumption) -> Expr:
         """Add an assumption to our expression."""
         expression = self.expression
         try:
@@ -179,7 +178,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
         return expression
 
-    def _substitute(self, substitution: Substitution) -> TExpr[Expr]:
+    def _substitute(self, substitution: Substitution) -> Expr:
         """Substitute a symbol or expression with another symbol or expression.
 
         Also permits wildcard substitutions by prefacing a variable with '$'.
@@ -220,7 +219,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             _symbol_or_expr.subs({fs: self.get_symbol(fs.name) for fs in _symbol_or_expr.free_symbols}), _replacement
         )
 
-    def _wildcard_substitution(self, substitution: Substitution) -> TExpr[Expr]:
+    def _wildcard_substitution(self, substitution: Substitution) -> Expr:
         """Wildcard substitution in Sympy.
 
         This performs recursive pattern matching on the expression at every level of the expression tree."""

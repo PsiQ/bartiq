@@ -39,10 +39,10 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
-    expression: TExpr[T]
+    expression: T
     backend: SymbolicBackend[T]
     linked_params: dict[str, Iterable[str]] = field(default_factory=dict)
-    _original_expression: TExpr[T] | None = None
+    _original_expression: T | None = None
     _previous: tuple[Instruction, Self | None] = (Initial(), None)
 
     def __post_init__(self):
@@ -150,25 +150,25 @@ class ExpressionRewriter(ABC, Generic[T]):
         """Return the expression as an iterable of individual terms."""
 
     @abstractmethod
-    def focus(self, symbols: str | Iterable[str]) -> TExpr[T]:
+    def focus(self, symbols: str | Iterable[str]) -> T:
         """Return an expression containing terms that involve specific symbols."""
 
     @abstractmethod
-    def _expand(self) -> TExpr[T]: ...
+    def _expand(self) -> T: ...
 
     def expand(self) -> Self:
         """Expand all brackets in the expression."""
         return replace(self, expression=self._expand(), _previous=(Expand(), self))
 
     @abstractmethod
-    def _simplify(self) -> TExpr[T]: ...
+    def _simplify(self) -> T: ...
 
     def simplify(self) -> Self:
         """Run the backend `simplify' functionality, if it exists."""
         return replace(self, expression=self._simplify(), _previous=(Simplify(), self))
 
     @abstractmethod
-    def _assume(self, assumption: Assumption) -> TExpr[T]: ...
+    def _assume(self, assumption: Assumption) -> T: ...
 
     def assume(self, assumption: str | Assumption) -> Self:
         """Add an assumption for a symbol."""
@@ -187,7 +187,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(self, expression=current.expression, _previous=(ReapplyAllAssumptions(), self))
 
     @abstractmethod
-    def _substitute(self, substitution: Substitution) -> TExpr[T]: ...
+    def _substitute(self, substitution: Substitution) -> T: ...
 
     def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.

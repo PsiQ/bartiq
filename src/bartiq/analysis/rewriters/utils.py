@@ -18,7 +18,6 @@ import re
 from ast import literal_eval
 from dataclasses import dataclass, field
 from enum import Enum
-from numbers import Number
 from typing import Iterable
 
 from typing_extensions import Self
@@ -172,7 +171,7 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
     symbol_name, comparator, value = parsed
     try:
-        if isinstance(parsed_value := literal_eval(value), Number):
+        if isinstance(parsed_value := literal_eval(value), int | float):
             value = parsed_value
         else:
             raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed_value)}.")
