@@ -15,8 +15,8 @@ from enum import Enum
 
 import pytest
 
-from bartiq.analysis._rewriters.expression_rewriter import ExpressionRewriter
-from bartiq.analysis._rewriters.utils import (
+from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis.rewriters.utils import (
     Assumption,
     Expand,
     Initial,

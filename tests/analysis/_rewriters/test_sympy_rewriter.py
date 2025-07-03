@@ -14,10 +14,10 @@
 import pytest
 import sympy
 
-from bartiq.analysis._rewriters.sympy_rewriter import SympyExpressionRewriter
-from bartiq.analysis._rewriters.utils import Substitution
+from bartiq.analysis.rewriters.sympy_rewriter import SympyExpressionRewriter
+from bartiq.analysis.rewriters.utils import Substitution
 from bartiq.symbolics.sympy_backend import SympyBackend
-from tests.analysis._rewriters.basic_rewriter_tests import (
+from tests.analysis.rewriters.basic_rewriter_tests import (
     CommonExpressions,
     ExpressionRewriterTests,
 )

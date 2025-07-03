@@ -14,7 +14,7 @@
 import pytest
 from sympy import Symbol
 
-from bartiq.analysis._rewriters.utils import Assumption, Comparators
+from bartiq.analysis.rewriters.utils import Assumption, Comparators
 
 
 @pytest.mark.parametrize(
