@@ -172,6 +172,13 @@ class ExpressionRewriter(ABC, Generic[T]):
             current = current.assume(assumption=assumption)
         return replace(self, expression=current.expression, _previous=(ReapplyAllAssumptions(), self))
 
+    def _update_linked_parameters(self, symbol_or_expr: str, replace_with: str):
+        symbols_in_expr = list(map(str, self.backend.as_expression(symbol_or_expr).free_symbols))
+        symbols_in_replacement = list(map(str, self.backend.as_expression(replace_with).free_symbols))
+        if new_symbols := [x for x in symbols_in_replacement if x not in symbols_in_expr]:
+            return {ns: symbols_in_expr for ns in new_symbols}
+        return {}
+
     @abstractmethod
     def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[T]:
         pass
@@ -183,6 +190,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(
             self,
             expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
+            linked_params=self.linked_params | self._update_linked_parameters(symbol_or_expr, replace_with),
             _previous=(Substitution(symbol=symbol_or_expr, replacement=replace_with), self),
         )
 
