@@ -18,8 +18,13 @@ import re
 from ast import literal_eval
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Iterable
 
 from typing_extensions import Self
+
+from bartiq.symbolics.backend import SymbolicBackend
+
+WILDCARD_FLAG = "$"
 
 
 class Comparators(str, Enum):
@@ -84,8 +89,30 @@ class Assumption(Instruction):
 class Substitution(Instruction):
     """Substitute a symbol with an expression."""
 
-    symbol: str
+    symbol_or_expr: str
     replacement: str
+    backend: SymbolicBackend
+    wild: list[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        object.__setattr__(self, "wild", _get_wild_characters(self.symbol_or_expr))
+
+    def _get_linked_parameters(self) -> dict[str, Iterable[str]]:
+        if self.wild:
+            raise NotImplementedError("Unable to derive connections between wild characters and expression symbols.")
+
+        def free_symbols_in_expr(expr: str) -> Iterable[str]:
+            return self.backend.free_symbols(self.backend.as_expression(expr))
+
+        return {
+            x: y
+            for x in free_symbols_in_expr(self.replacement)
+            if x not in (y := free_symbols_in_expr(self.symbol_or_expr))
+        }
+
+
+def _get_wild_characters(expression: str) -> list[str]:
+    return re.findall(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", expression)
 
 
 def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
@@ -158,3 +185,27 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
         else:
             raise exc
     return symbol_name, comparator, value
+
+
+def _unwrap_linked_parameters(
+    parameter_connection_reference: dict[str, Iterable[str]],
+    variables_to_track: Iterable[str],
+    linked: list[str] | None = None,
+) -> list[str]:
+    """Given a parameter connection reference dictionary (which parameters have been substituted for which),
+    and a sequence of variables to track, find all relevant.
+
+    Args:
+        parameter_connection_reference (dict[str, Iterable[str]]): _description_
+        variables_to_focus_on (Iterable[str]): _description_
+        linked (list[str] | None, optional): _description_. Defaults to None.
+
+    Returns:
+        list[str]: _description_
+    """
+    linked = linked or []
+    for _new, _old in parameter_connection_reference.items():
+        if any(x in _old for x in variables_to_track):
+            linked.append(_new)
+            linked = _unwrap_linked_parameters(parameter_connection_reference, [_new], linked)
+    return linked
