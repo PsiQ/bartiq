@@ -91,12 +91,44 @@ class TestAssumption:
         for property in properties_should_be_none:
             assert getattr(sym, property) is None
 
+    def test_assumption_raises_error_for_invalid_value_in_str(self):
+        with pytest.raises(ValueError, match="Invalid entry for `value` field."):
+            Assumption.from_string(r"x>{'a':1}")
+
 
 def test_wildcard_symbol_didnt_change():
     assert WILDCARD_FLAG == "$"
 
 
 class TestSubstitutions:
-    @pytest.mark.parametrize("symbol, replace_with, expected_wild_chars", [("$x", "y", ["x"])])
+    @pytest.mark.parametrize(
+        "symbol, replace_with, expected_wild_chars",
+        [
+            ("$x", "y", ["x"]),
+            ("$x + $y + $Z", "", ["x", "y", "Z"]),
+            ("max($x, y) + log2($z + f) - Heaviside($F, l)", "", ["x", "z", "F"]),
+        ],
+    )
     def test_wild_characters_are_defined_correctly(self, symbol, replace_with, expected_wild_chars, backend):
         assert Substitution(symbol, replace_with, backend).wild == expected_wild_chars
+
+    def test_error_raised_if_accessing_linked_parameters_when_wild_characters(self, backend):
+        with pytest.raises(NotImplementedError, match="Unable to derive connections between wild characters"):
+            Substitution("$x", "x", backend)._get_linked_parameters()
+
+    @pytest.mark.parametrize(
+        "symbol, replacement, linked_params",
+        [
+            ("x", "y", {"y": ("x",)}),
+            ("max(a, b, c)", "X(b, c)", {}),
+            ("max(a, b, c)", "g(x, y)", {"x": ("a", "b", "c"), "y": ("a", "b", "c")}),
+        ],
+    )
+    def test_get_linked_parameters(self, symbol, replacement, linked_params, backend):
+        compare_dicts(Substitution(symbol, replacement, backend)._get_linked_parameters(), linked_params)
+
+
+def compare_dicts(dict1, dict2):
+    assert dict1.keys() == dict2.keys()
+    for key in dict1.keys():
+        assert set(dict1[key]) == set(dict2[key])

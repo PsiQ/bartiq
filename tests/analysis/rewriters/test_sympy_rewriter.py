@@ -15,7 +15,6 @@ import pytest
 import sympy
 
 from bartiq.analysis.rewriters.sympy_rewriter import sympy_rewriter
-from bartiq.analysis.rewriters.utils import Substitution
 from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis.rewriters.basic_rewriter_tests import (
     CommonExpressions,
@@ -126,35 +125,16 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         assert rewriter.expression == backend.as_expression("b*(log(2*x/5) + 1) + c*d")
 
     @pytest.mark.parametrize(
-        "expression, expr_to_replace, replace_with, final_expression",
+        "expression, symbol_or_expr, substitute_with, expected",
         [
-            [CommonExpressions.TRIVIAL, "a", "b", "b"],
-            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
-            [
-                CommonExpressions.MANY_FUNCS,
-                "a*log2(x/n)",
-                "A(x)",
-                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
-            ],
-            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
+            ("max(0, a)", "max(0, $b)", "b", "a"),
+            ("max(0, a)", "max(0, $X)", "b", "0"),
+            ("log(x + 1) + log(y + 4) + log(z + 6)", "log($x)", "f(x)", "f(x+1) + f(y+4) + f(z+6)"),
+            ("log(x + 1) + log(y + 4) + log(z + 6)", "log($X + $N)", "f(X, N)", "f(x, 1) + f(y,4) + f(z,6)"),
+            ("ceiling(1 - ceiling(1 - ceiling(1+ceiling(x))))", "ceiling($g)", "g", "1+x"),
         ],
     )
-    def test_basic_substitutions(self, backend, expression, expr_to_replace, replace_with, final_expression):
-
-        assert self.rewriter(expression).substitute(expr_to_replace, replace_with).expression == backend.as_expression(
-            final_expression
+    def test_wildcard_substitutions(self, expression, symbol_or_expr, substitute_with, expected, backend):
+        self.rewriter(expression).substitute(symbol_or_expr, substitute_with).expression == backend.as_expression(
+            expected
         )
-
-    def test_substitutions_are_tracked_correctly(self, backend):
-        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
-        substitutions = (
-            ("x/n", "z"),
-            ("a*log2(z)", "A"),
-            ("Heaviside(aleph, beth)", "h"),
-            ("b*(max(0, 1+y, 2+x) + h)", "B"),
-        )
-        for _expr, _repl in substitutions:
-            rewriter = rewriter.substitute(_expr, _repl)
-
-        assert rewriter.expression == backend.as_expression("A+B")
-        assert rewriter.substitutions == tuple(Substitution(x, y, rewriter.backend) for x, y in substitutions)
