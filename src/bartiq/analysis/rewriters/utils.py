@@ -18,6 +18,7 @@ import re
 from ast import literal_eval
 from dataclasses import dataclass, field
 from enum import Enum
+from numbers import Number
 from typing import Iterable
 
 from typing_extensions import Self
@@ -171,7 +172,7 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
         raise ValueError(f"Invalid assumption! Could not parse the following input: {assumption}")
     symbol_name, comparator, value = parsed
     try:
-        if isinstance(parsed_value := literal_eval(value), int | float):
+        if isinstance(parsed_value := literal_eval(value), Number):
             value = parsed_value
         else:
             raise ValueError(f"Invalid entry for `value` field. Expected `int | float`, got {type(parsed_value)}.")
@@ -193,15 +194,15 @@ def _unwrap_linked_parameters(
     linked: list[str] | None = None,
 ) -> list[str]:
     """Given a parameter connection reference dictionary (which parameters have been substituted for which),
-    and a sequence of variables to track, find all relevant.
+    and a sequence of variables to track, find all relevant linked parameters.
 
     Args:
-        parameter_connection_reference (dict[str, Iterable[str]]): _description_
-        variables_to_focus_on (Iterable[str]): _description_
-        linked (list[str] | None, optional): _description_. Defaults to None.
+        parameter_connection_reference: All substitutions that have occurred.
+        variables_to_track : Which variables we are interested in.
+        linked: A list of linked parameters. Defaults to None.
 
     Returns:
-        list[str]: _description_
+        A list of symbol names, each of which will be transitively related to a variable in variables_to_track.
     """
     linked = linked or []
     for _new, _old in parameter_connection_reference.items():
