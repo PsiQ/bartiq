@@ -14,77 +14,89 @@
 import pytest
 from sympy import Symbol
 
-from bartiq.analysis.rewriters.utils import Assumption, Comparators
-
-
-@pytest.mark.parametrize(
-    "string, expected_attributes",
-    [
-        ["a>0", ("a", Comparators.GREATER_THAN, 0)],
-        ["ceiling(log(a + y) / 4) <= 55", ("ceiling(log(a+y)/4)", Comparators.LESS_THAN_OR_EQUAL_TO, 55)],
-    ],
+from bartiq.analysis.rewriters.utils import (
+    WILDCARD_FLAG,
+    Assumption,
+    Comparators,
+    Substitution,
 )
-def test_from_string(string, expected_attributes):
-    from_str = Assumption.from_string(string)
-    name, comparator, val = expected_attributes
-    assert from_str.symbol_name == name
-    assert from_str.comparator == comparator
-    assert from_str.value == val
 
 
-def test_error_raised_if_symbol_on_both_sides_of_comparator():
-    with pytest.raises(NotImplementedError, match="Assumption tries to draw a comparison between two variables"):
-        Assumption.from_string("X<=Y")
-
-
-def test_error_raised_if_invalid_string():
-    with pytest.raises(ValueError, match="Invalid assumption!"):
-        Assumption.from_string("Y&4")
-
-
-@pytest.mark.parametrize(
-    "assumption, properties_it_has, properties_it_doesnt",
-    [
+class TestAssumption:
+    @pytest.mark.parametrize(
+        "string, expected_attributes",
         [
-            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
-            ["is_positive"],
-            ["is_negative"],
+            ["a>0", ("a", Comparators.GREATER_THAN, 0)],
+            ["ceiling(log(a + y) / 4) <= 55", ("ceiling(log(a+y)/4)", Comparators.LESS_THAN_OR_EQUAL_TO, 55)],
         ],
-        [
-            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
-            ["is_positive"],
-            ["is_negative"],
-        ],
-        [
-            Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=0),
-            ["is_negative"],
-            ["is_positive"],
-        ],
-    ],
-)
-def test_symbol_from_assumptions_has_correct_properties(assumption, properties_it_has, properties_it_doesnt):
-    sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
-    for property in properties_it_has:
-        assert getattr(sym, property)
+    )
+    def test_from_string(self, string, expected_attributes):
+        from_str = Assumption.from_string(string)
+        name, comparator, val = expected_attributes
+        assert from_str.symbol_name == name
+        assert from_str.comparator == comparator
+        assert from_str.value == val
 
-    for property in properties_it_doesnt:
-        assert not getattr(sym, property)
+    def test_error_raised_if_symbol_on_both_sides_of_comparator(self):
+        with pytest.raises(NotImplementedError, match="Assumption tries to draw a comparison between two variables"):
+            Assumption.from_string("X<=Y")
+
+    def test_error_raised_if_invalid_string(self):
+        with pytest.raises(ValueError, match="Invalid assumption!"):
+            Assumption.from_string("Y&4")
+
+    @pytest.mark.parametrize(
+        "assumption, properties_it_has, properties_it_doesnt",
+        [
+            [
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
+                ["is_positive"],
+                ["is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
+                ["is_positive"],
+                ["is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=0),
+                ["is_negative"],
+                ["is_positive"],
+            ],
+        ],
+    )
+    def test_symbol_from_assumptions_has_correct_properties(self, assumption, properties_it_has, properties_it_doesnt):
+        sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
+        for property in properties_it_has:
+            assert getattr(sym, property)
+
+        for property in properties_it_doesnt:
+            assert not getattr(sym, property)
+
+    @pytest.mark.parametrize(
+        "assumption, properties_should_be_none",
+        [
+            [
+                Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=10),
+                ["is_positive", "is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=-10),
+                ["is_positive", "is_negative"],
+            ],
+        ],
+    )
+    def test_unknowable_properties_are_none(self, assumption, properties_should_be_none):
+        sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
+        for property in properties_should_be_none:
+            assert getattr(sym, property) is None
 
 
-@pytest.mark.parametrize(
-    "assumption, properties_should_be_none",
-    [
-        [
-            Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=10),
-            ["is_positive", "is_negative"],
-        ],
-        [
-            Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=-10),
-            ["is_positive", "is_negative"],
-        ],
-    ],
-)
-def test_unknowable_properties_are_none(assumption, properties_should_be_none):
-    sym = Symbol(assumption.symbol_name, **assumption.symbol_properties)
-    for property in properties_should_be_none:
-        assert getattr(sym, property) is None
+def test_wildcard_symbol_didnt_change():
+    assert WILDCARD_FLAG == "$"
+
+
+class TestSubstitutions:
+    @pytest.mark.parametrize("symbol, replace_with, expected_wild_chars", [("$x", "y", ["x"])])
+    def test_wild_characters_are_defined_correctly(self, symbol, replace_with, expected_wild_chars, backend):
+        assert Substitution(symbol, replace_with, backend).wild == expected_wild_chars

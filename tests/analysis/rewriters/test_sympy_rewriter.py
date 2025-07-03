@@ -14,7 +14,7 @@
 import pytest
 import sympy
 
-from bartiq.analysis.rewriters.sympy_rewriter import SympyExpressionRewriter
+from bartiq.analysis.rewriters.sympy_rewriter import sympy_rewriter
 from bartiq.analysis.rewriters.utils import Substitution
 from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis.rewriters.basic_rewriter_tests import (
@@ -24,7 +24,8 @@ from tests.analysis.rewriters.basic_rewriter_tests import (
 
 
 class TestSympyExpressionRewriter(ExpressionRewriterTests):
-    rewriter = SympyExpressionRewriter
+
+    rewriter = staticmethod(sympy_rewriter)
 
     @pytest.fixture()
     def backend(self) -> SympyBackend:
@@ -96,7 +97,7 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         ],
     )
     def test_default_return_values_when_expr_is_numeric(self, method, expected_default_value):
-        rewriter = self.rewriter(2)
+        rewriter = self.rewriter("a").substitute("a", 2)
         if callable(x := getattr(rewriter, method)):
             assert x() == expected_default_value or 2
         else:
@@ -156,4 +157,4 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             rewriter = rewriter.substitute(_expr, _repl)
 
         assert rewriter.expression == backend.as_expression("A+B")
-        assert rewriter.substitutions == tuple(Substitution(x, y) for x, y in substitutions)
+        assert rewriter.substitutions == tuple(Substitution(x, y, rewriter.backend) for x, y in substitutions)

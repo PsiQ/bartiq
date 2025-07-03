@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Callable
 from enum import Enum
+from typing import ClassVar
 
 import pytest
 
-from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter, T
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Expand,
@@ -43,7 +45,8 @@ class CommonExpressions(str, Enum):
 
 
 class ExpressionRewriterTests:
-    rewriter: type[ExpressionRewriter]
+
+    rewriter: ClassVar[Callable[[T | str], ExpressionRewriter]] = None
 
     @pytest.fixture
     def backend(self) -> SymbolicBackend:
