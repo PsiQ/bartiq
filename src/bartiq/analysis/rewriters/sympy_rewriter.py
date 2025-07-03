@@ -161,9 +161,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def _assume(self, assumption: Assumption) -> TExpr[Expr]:
         """Add an assumption to our expression."""
-        if isinstance(self.expression, int | float):
-            return self.expression
-        expression = cast(Expr, self.expression)
+        expression = self.expression
         try:
             # If the Symbol exists, replace it with a Symbol that has the correct properties.
             reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
@@ -184,12 +182,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def _substitute(self, substitution: Substitution) -> TExpr[Expr]:
         """Substitute a symbol or expression with another symbol or expression.
 
-        Also permits wildcard substitutions by prefacing a variable with '$'. By default, wildcard symbols are
-        considered to be nonzero.
+        Also permits wildcard substitutions by prefacing a variable with '$'.
+        Wildcard symbols are considered to be nonzero.
 
         Args:
-            symbol_or_expr: The symbol or expression we wish to substitute.
-            replace_with: The symbol or expression to replace.
+            substitution: A substitution instruction.
 
         Example::
         ```python
@@ -213,8 +210,6 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         ```
         Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
         """
-        if isinstance(self.expression, int | float):
-            return self.expression
 
         if substitution.wild:
             return self._wildcard_substitution(substitution)
@@ -276,8 +271,6 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
     Returns:
         The new expression with all matching subexpressions replaced.
     """
-    if isinstance(replacement, int | float):
-        replacement = Number(replacement)
 
     if any(isinstance(expression, t) for t in [Symbol, Number]):
         return expression
