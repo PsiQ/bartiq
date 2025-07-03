@@ -41,12 +41,11 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     expression: TExpr[T]
     backend: SymbolicBackend[T]
-    linked_params: dict[T, Iterable[T]] = field(default_factory=dict)
+    linked_params: dict[str, Iterable[str]] = field(default_factory=dict)
     _original_expression: TExpr[T] | None = None
     _previous: tuple[Instruction, Self | None] = (Initial(), None)
 
     def __post_init__(self):
-        self.expression = self.backend.as_expression(self.expression)
         if self._original_expression is None:
             self._original_expression = self.expression
 
@@ -70,6 +69,26 @@ class ExpressionRewriter(ABC, Generic[T]):
         return type(self)(expression=self._original_expression, backend=self.backend)
 
     def _unwrap_history(self) -> list[tuple[Instruction, ExpressionRewriter[T] | None]]:
+        """Unwrap the history of the rewriter into a list of previous (instruction, rewriter) tuples.
+
+        The history is ordered backwards in time; the first element in each tuple (an instruction)
+        was applied to the second element (a rewriter) to result in the rewriter in the _previous_ tuple:
+        ```python
+            self.unwrap_history()
+            >>> [
+            >>> (instruction_n-1, rewriter_n-1),
+            >>> (instruction_n-2, rewriter_n-2),
+            >>> ...,
+            >>> (instruction_0, rewriter_0),
+            >>> (Initial, None)
+            >>> ]
+        ```
+        That is, `instruction_j` applied to `rewriter_j` results in `rewriter_j+1`,
+        `instruction_j+1` applied to `rewriter_j+1` results in `rewriter_j+2`, and so on.
+
+        Returns:
+            A list of instructions and rewriters they have been applied to.
+        """
         previous = []
         current: ExpressionRewriter[T] | None = self
         while current is not None:
@@ -172,26 +191,26 @@ class ExpressionRewriter(ABC, Generic[T]):
             current = current.assume(assumption=assumption)
         return replace(self, expression=current.expression, _previous=(ReapplyAllAssumptions(), self))
 
-    def _update_linked_parameters(self, symbol_or_expr: str, replace_with: str):
-        symbols_in_expr = list(map(str, self.backend.as_expression(symbol_or_expr).free_symbols))
-        symbols_in_replacement = list(map(str, self.backend.as_expression(replace_with).free_symbols))
-        if new_symbols := [x for x in symbols_in_replacement if x not in symbols_in_expr]:
-            return {ns: symbols_in_expr for ns in new_symbols}
-        return {}
-
     @abstractmethod
-    def _substitute(self, symbol_or_expr: str, replace_with: str) -> TExpr[T]:
+    def _substitute(self, substitution: Substitution) -> TExpr[T]:
         pass
 
     def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
         By default performs a one-to-one mapping, unless wildcard symbols are implemented.
         """
+        substitution: Substitution = Substitution(
+            symbol_or_expr=symbol_or_expr, replacement=replace_with, backend=self.backend
+        )
         return replace(
             self,
-            expression=self._substitute(symbol_or_expr=symbol_or_expr, replace_with=replace_with),
-            linked_params=self.linked_params | self._update_linked_parameters(symbol_or_expr, replace_with),
-            _previous=(Substitution(symbol=symbol_or_expr, replacement=replace_with), self),
+            expression=self._substitute(substitution=substitution),
+            linked_params=(
+                self.linked_params | substitution._get_linked_parameters()
+                if not substitution.wild
+                else self.linked_params
+            ),
+            _previous=(substitution, self),
         )
 
 
