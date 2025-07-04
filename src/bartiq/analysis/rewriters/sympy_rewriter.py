@@ -50,12 +50,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __post_init__(self):
         self.backend = _SYMPY_BACKEND
-        super().__post_init__()
 
     @property
     def original(self) -> Self:
         """Return a rewriter with the original expression, and no modifications."""
-        return type(self)(expression=self._original_expression)
+        return type(self)(expression=self._original_expression, _original_expression=self._original_expression)
 
     @property
     def free_symbols(self) -> set[Expr]:
@@ -67,15 +66,11 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def _expand(self) -> Expr:
         """Expand all brackets in the expression."""
-        if callable(expand := getattr(self.expression, "expand", None)):
-            return expand()
-        return self.expression
+        return self.expression.expand()
 
     def _simplify(self) -> Expr:
         """Run SymPy's `simplify` method on the expression."""
-        if callable(simplify := getattr(self.expression, "simplify", None)):
-            return simplify()
-        return self.expression
+        return self.expression.simplify()
 
     def get_symbol(self, symbol_name: str) -> Symbol:
         """Get the SymPy Symbol object, given the Symbol's name.
@@ -138,9 +133,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A set of unique functions that exist in the expression.
 
         """
-        if callable(atoms := getattr(self.expression, "atoms", None)):
-            return atoms(Function, Max, Min)
-        return set()
+        return self.expression.atoms(Function, Max, Min)
 
     def list_arguments_of_function(self, function_name: str) -> list[tuple[Expr, ...] | Expr]:
         """Return a list of arguments X, such that each `function_name(x)` (for x in X) exists in the expression.
@@ -223,9 +216,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """Wildcard substitution in Sympy.
 
         This performs recursive pattern matching on the expression at every level of the expression tree."""
-        NONZERO = lambda x: x != 0  # noqa: E731
-        SYMBOL_ONLY = lambda expr: expr.is_Symbol  # noqa: E731
-        NUMBER_ONLY = lambda expr: expr.is_Number  # noqa: E731
+        NONZERO = lambda x: x != 0
+        SYMBOL_ONLY = lambda expr: expr.is_Symbol
+        NUMBER_ONLY = lambda expr: expr.is_Number
 
         def parse_and_sub_wild(expr: str) -> Expr:
             return self.backend.substitute(self.backend.as_expression(expr.replace("$", "")), wildcard_dict)
@@ -240,7 +233,10 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
                 wildcard_dict[sym] = Wild(sym, properties=[NONZERO])
         pattern = parse_and_sub_wild(substitution.symbol_or_expr)
         replacement = parse_and_sub_wild(substitution.replacement)
-        return _replace_subexpression(self.expression, pattern, replacement)
+
+        return _replace_subexpression(
+            self.expression, pattern, Number(replacement) if isinstance(replacement, (int, float)) else replacement
+        )
 
 
 @dataclass
@@ -271,7 +267,7 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
         The new expression with all matching subexpressions replaced.
     """
 
-    if any(isinstance(expression, t) for t in [Symbol, Number]):
+    if isinstance(expression, (Symbol, Number)):
         return expression
 
     def _all_values_numeric(values: Iterable[Expr | Number]) -> bool:
@@ -283,9 +279,9 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
         else expression
     )
 
-    if hasattr(replaced_expr, "args") and replaced_expr.args:
+    if args := getattr(replaced_expr, "args", None):
         replaced_expr = replaced_expr.__class__(
-            *tuple(_replace_subexpression(arg, pattern, replacement) for arg in replaced_expr.args)
+            *tuple(_replace_subexpression(arg, pattern, replacement) for arg in args)
         )
 
     return replaced_expr
@@ -295,8 +291,12 @@ def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
     """Initialize a Sympy rewriter instance."""
     match expression:
         case str():
-            return SympyExpressionRewriter(_SYMPY_BACKEND.as_expression(expression))
+            return SympyExpressionRewriter(
+                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
+            )
         case Expr():
-            return SympyExpressionRewriter(expression.replace(CustomMax, Max))
+            return SympyExpressionRewriter(
+                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
+            )
         case _:
             raise ValueError(f"Invalid input type: {type(expression)}. Must be `str` or `sympy.Expr`.")

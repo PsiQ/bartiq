@@ -127,17 +127,18 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     @pytest.mark.parametrize(
         "expression, symbol_or_expr, substitute_with, expected",
         [
-            ("max(0, a)", "max(0, $b)", "b", "a"),
-            ("max(0, a)", "max(0, $X)", "b", "0"),
+            ("max(0, a) + max(0, b) + max(0, c)", "max(0, $b)", "b", "a + b + c"),
+            ("max(0, a) + max(0, b) + max(0, c)", "max(0, $X)", "0", "0"),
             ("log(x + 1) + log(y + 4) + log(z + 6)", "log($x)", "f(x)", "f(x+1) + f(y+4) + f(z+6)"),
             ("log(x + 1) + log(y + 4) + log(z + 6)", "log($X + $N)", "f(X, N)", "f(x, 1) + f(y,4) + f(z,6)"),
             ("ceiling(1 - ceiling(1 - ceiling(1+ceiling(x))))", "ceiling($g)", "g", "1+x"),
         ],
     )
     def test_wildcard_substitutions(self, expression, symbol_or_expr, substitute_with, expected, backend):
-        self.rewriter(expression).substitute(symbol_or_expr, substitute_with).expression == backend.as_expression(
-            expected
-        )
+
+        assert self.rewriter(expression).substitute(
+            symbol_or_expr, substitute_with
+        ).expression == backend.as_expression(expected)
 
     def test_focus_includes_linked_parameters(self, backend):
         rewriter = (
