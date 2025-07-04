@@ -92,7 +92,7 @@ class Substitution(Instruction):
     symbol_or_expr: str
     replacement: str
     backend: SymbolicBackend
-    wild: tuple[str, ...] = field(default_factory=list)
+    wild: tuple[str, ...] = ()
 
     def __post_init__(self):
         object.__setattr__(self, "wild", _get_wild_characters(self.symbol_or_expr))
