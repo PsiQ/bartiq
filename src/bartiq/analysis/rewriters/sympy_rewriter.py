@@ -183,13 +183,13 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         Example::
         ```python
             rewriter = SympyExpressionRewriter(a + b)
-            rewriter.substitute("a+b", "c")
+            rewriter = rewriter.substitute("a+b", "c")
             print(rewriter.expression) # c
         ```
         and for wildcard substitutions:
         ```python
             rewriter = SympyExpressionRewriter(log(x + 1) + log(y + 4) + log(z + 6))
-            rewriter.substitute("log($x + $y)", "f(x, y)")
+            rewriter = rewriter.substitute("log($x + $y)", "f(x, y)")
             print(rewriter.expression) # f(1, x) + f(4, y) + f(6, z)
         ```
         More precise control over symbols is possible. Passing in a variable "$N" indicates
@@ -197,7 +197,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         will be flagged as _symbol only_. For example:
         ```python
             rewriter = SympyExpressionRewriter(log(x + 1) + log(y + 4) + log(z + 6))
-            rewriter.substitute("log($X + $N)", "f(X, N)")
+            rewriter = rewriter.substitute("log($X + $N)", "f(X, N)")
             print(rewriter.expression) # f(x, 1) + f(y, 4) + f(z, 6)
         ```
         Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
