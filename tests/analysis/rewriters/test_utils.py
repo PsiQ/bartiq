@@ -104,9 +104,9 @@ class TestSubstitutions:
     @pytest.mark.parametrize(
         "symbol, replace_with, expected_wild_chars",
         [
-            ("$x", "y", ["x"]),
-            ("$x + $y + $Z", "", ["x", "y", "Z"]),
-            ("max($x, y) + log2($z + f) - Heaviside($F, l)", "", ["x", "z", "F"]),
+            ("$x", "y", ("x",)),
+            ("$x + $y + $Z", "", ("x", "y", "Z")),
+            ("max($x, y) + log2($z + f) - Heaviside($F, l)", "", ("x", "z", "F")),
         ],
     )
     def test_wild_characters_are_defined_correctly(self, symbol, replace_with, expected_wild_chars, backend):

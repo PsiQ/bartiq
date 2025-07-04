@@ -92,7 +92,7 @@ class Substitution(Instruction):
     symbol_or_expr: str
     replacement: str
     backend: SymbolicBackend
-    wild: list[str] = field(default_factory=list)
+    wild: tuple[str, ...] = field(default_factory=list)
 
     def __post_init__(self):
         object.__setattr__(self, "wild", _get_wild_characters(self.symbol_or_expr))
@@ -111,8 +111,8 @@ class Substitution(Instruction):
         }
 
 
-def _get_wild_characters(expression: str) -> list[str]:
-    return re.findall(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", expression)
+def _get_wild_characters(expression: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", expression))
 
 
 def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
