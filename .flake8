@@ -26,6 +26,9 @@ ignore =
     # Docstrings for public modules and packages
     D100,
     D104,
+    # Ignore multiple statements on one line
+    E704,
 per-file-ignores =
     tests/*:D100,D101,D102,D103,D104
     __init__.py:F401
+    src/bartiq/analysis/rewriters/sympy_rewriter.py:E731

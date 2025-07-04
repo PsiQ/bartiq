@@ -16,10 +16,15 @@ from __future__ import annotations
 
 import re
 from ast import literal_eval
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
+from typing import Iterable
 
 from typing_extensions import Self
+
+from bartiq.symbolics.backend import SymbolicBackend
+
+WILDCARD_FLAG = "$"
 
 
 class Comparators(str, Enum):
@@ -31,22 +36,41 @@ class Comparators(str, Enum):
     LESS_THAN = "<"
 
 
-@dataclass
-class Assumption:
-    """A simple class for storing information about symbol assumptions."""
+class Instruction:
+    """Base class for all rewriter-transforming instructions."""
+
+
+@dataclass(frozen=True)
+class Initial(Instruction):
+    """Special marker for the initial instance."""
+
+
+@dataclass(frozen=True)
+class Simplify(Instruction):
+    """Represents a simplify command."""
+
+
+@dataclass(frozen=True)
+class Expand(Instruction):
+    """Represents an expand command."""
+
+
+@dataclass(frozen=True)
+class ReapplyAllAssumptions(Instruction):
+    """Represents a command that reapplies all assumptions."""
+
+
+@dataclass(frozen=True)
+class Assumption(Instruction):
+    """Add a single assumption."""
 
     symbol_name: str
     comparator: Comparators | str
     value: int | float
+    symbol_properties: dict[str, bool | None] = field(init=False)
 
-    def __post_init__(self) -> None:
-        self.symbol_properties: dict[str, bool | None] = _get_properties(self.comparator, self.value)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.symbol_name}{self.comparator}{self.value})"
-
-    def __hash__(self):
-        return hash(str(self))
+    def __post_init__(self):
+        object.__setattr__(self, "symbol_properties", _get_properties(self.comparator, self.value))
 
     @classmethod
     def from_string(cls, assumption_string: str) -> Self:
@@ -61,12 +85,47 @@ class Assumption:
         return cls(*_unpack_assumption(assumption_string))
 
 
+@dataclass(frozen=True)
+class Substitution(Instruction):
+    """Substitute a symbol with an expression."""
+
+    symbol_or_expr: str
+    replacement: str
+    backend: SymbolicBackend
+    wild: tuple[str, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "wild", _get_wild_characters(self.symbol_or_expr))
+
+    def _get_linked_parameters(self) -> dict[str, Iterable[str]]:
+        if self.wild:
+            raise NotImplementedError("Unable to derive connections between wild characters and expression symbols.")
+
+        def free_symbols_in_expr(expr: str) -> Iterable[str]:
+            return self.backend.free_symbols(self.backend.as_expression(expr))
+
+        return {
+            x: y
+            for x in free_symbols_in_expr(self.replacement)
+            if x not in (y := free_symbols_in_expr(self.symbol_or_expr))
+        }
+
+
+def _get_wild_characters(expression: str) -> tuple[str, ...]:
+    return tuple(re.findall(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", expression))
+
+
 def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
-    At present this only detects positivity/negativity.
-
-    If the properties are unknowable due to lack of information, they are None.
+    At present this only detects positivity/negativity. The two are calculated independently,
+    and so you may see some strange outcomes:
+    ```python
+    _get_properties(">", 1)
+    >>> {positive: True, negative: None}
+    ```
+    To keep the logic clean, anything unknowable defaults to None. When parsing the symbols in Sympy,
+    our only backend at time of writing (July 2025), these fields are filled automatically.
 
     Args:
         comparator: Comparator in the assumption.
@@ -85,10 +144,7 @@ def _get_properties(comparator: str, reference_value: int | float) -> dict[str, 
     value_positive: bool = reference_value >= 0
     value_negative: bool = reference_value <= 0 or (not value_positive)
 
-    return {
-        "positive": ((gt or gte) and value_positive) or None,
-        "negative": ((lt or lte) and value_negative) or None,
-    }
+    return {"positive": ((gt or gte) and value_positive) or None, "negative": ((lt or lte) and value_negative) or None}
 
 
 def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
@@ -129,3 +185,27 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
         else:
             raise exc
     return symbol_name, comparator, value
+
+
+def _unwrap_linked_parameters(
+    parameter_connection_reference: dict[str, Iterable[str]],
+    variables_to_track: Iterable[str],
+    linked: list[str] | None = None,
+) -> list[str]:
+    """Given a parameter connection reference dictionary (which parameters have been substituted for which),
+    and a sequence of variables to track, find all relevant linked parameters.
+
+    Args:
+        parameter_connection_reference: All substitutions that have occurred.
+        variables_to_track : Which variables we are interested in.
+        linked: A list of linked parameters. Defaults to None.
+
+    Returns:
+        A list of symbol names, each of which will be transitively related to a variable in variables_to_track.
+    """
+    linked = linked or []
+    for _new, _old in parameter_connection_reference.items():
+        if any(x in _old for x in variables_to_track):
+            linked.append(_new)
+            linked = _unwrap_linked_parameters(parameter_connection_reference, [_new], linked)
+    return linked
