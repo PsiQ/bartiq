@@ -40,14 +40,10 @@ class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions."""
 
     expression: T
+    _original_expression: T
     backend: SymbolicBackend[T]
     linked_params: dict[str, Iterable[str]] = field(default_factory=dict)
-    _original_expression: T | None = None
     _previous: tuple[Instruction, Self | None] = (Initial(), None)
-
-    def __post_init__(self):
-        if self._original_expression is None:
-            self._original_expression = self.expression
 
     def _repr_latex_(self) -> str | None:
         if hasattr(self.expression, "_repr_latex_"):
@@ -65,8 +61,9 @@ class ExpressionRewriter(ABC, Generic[T]):
     @property
     def original(self) -> Self:
         """Return a rewriter with the original expression, and no modifications."""
-        assert self._original_expression is not None
-        return type(self)(expression=self._original_expression, backend=self.backend)
+        return type(self)(
+            expression=self._original_expression, _original_expression=self._original_expression, backend=self.backend
+        )
 
     def _unwrap_history(self) -> list[tuple[Instruction, ExpressionRewriter[T] | None]]:
         """Unwrap the history of the rewriter into a list of previous (instruction, rewriter) tuples.
@@ -74,7 +71,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         The history is ordered backwards in time; the first element in each tuple (an instruction)
         was applied to the second element (a rewriter) to result in the rewriter in the _previous_ tuple:
         ```python
-            self.unwrap_history()
+            self._unwrap_history()
             >>> [
             >>> (instruction_n-1, rewriter_n-1),
             >>> (instruction_n-2, rewriter_n-2),
