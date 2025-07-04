@@ -138,3 +138,9 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         self.rewriter(expression).substitute(symbol_or_expr, substitute_with).expression == backend.as_expression(
             expected
         )
+
+    def test_focus_includes_linked_parameters(self, backend):
+        rewriter = (
+            self.rewriter(CommonExpressions.TRIVIAL).substitute("a", "b").substitute("b", "c").substitute("c", "d")
+        )
+        assert rewriter.focus("a") == rewriter.expression
