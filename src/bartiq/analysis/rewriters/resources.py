@@ -111,7 +111,9 @@ class ResourceRewriter(Generic[T]):
                     | {
                         self.resource: replace(
                             routine.resources[self.resource],
-                            value=_update_expression(routine.resources[self.resource].value, self.rewriter.history()),
+                            value=_update_expression(
+                                self.rewriter_factory, routine.resources[self.resource].value, self.rewriter.history()
+                            ),
                         )
                     },
                 )
