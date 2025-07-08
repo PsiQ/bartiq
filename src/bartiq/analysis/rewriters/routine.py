@@ -144,13 +144,7 @@ def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction
         case Assumption():
             return rewriter.assume(instruction)
         case Substitution():
-            try:
-                return rewriter.substitute(instruction.symbol_or_expr, instruction.replacement)
-            except ValueError as exc:
-                if "No variable" in exc.args[0]:
-                    return rewriter
-                else:
-                    raise exc
+            return rewriter.substitute(instruction.symbol_or_expr, instruction.replacement)
         case ReapplyAllAssumptions():
             return rewriter.reapply_all_assumptions()
         case _:
