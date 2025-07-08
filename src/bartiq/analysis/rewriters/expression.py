@@ -18,11 +18,10 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
-from typing import Generic, cast
+from typing import Generic
 
 from typing_extensions import Self
 
-from bartiq import CompiledRoutine
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Expand,
@@ -203,30 +202,3 @@ class ExpressionRewriter(ABC, Generic[T]):
             ),
             _previous=(substitution, self),
         )
-
-
-@dataclass
-class ResourceRewriter(Generic[T]):
-    """A class for rewriting resource expressions of routines.
-
-    By default, this class only acts on the top level resource. In the future, the ability to propagate
-    a list of instructions through resources in a routine hierarchy will be made available.
-
-    Args:
-        routine: a CompiledRoutine object with symbolic resources.
-        resource: the resource in the routine we wish to apply rewriting rules to.
-    """
-
-    routine: CompiledRoutine
-    resource: str
-    _rewriter: ExpressionRewriter[T]
-
-    def __post_init__(self):
-        if self.resource not in self.routine.resources:
-            raise ValueError(f"Routine {self.routine.name} has no resource {self.resource}.")
-        self.top_level_expression = cast(T | str, self.routine.resources[self.resource].value)
-
-        self.rewriter = self._rewriter(self.top_level_expression)
-
-    def __getattr__(self, name: str):
-        return getattr(self.rewriter, name)

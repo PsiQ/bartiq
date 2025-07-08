@@ -20,10 +20,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 from typing_extensions import Self
 
-from bartiq.analysis.rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    ResourceRewriter,
-)
+from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Substitution,
@@ -239,19 +236,21 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
 
 
-@dataclass
-class SympyResourceRewriter(ResourceRewriter[Expr]):
-    """A class for rewriting sympy resource expressions in routines.
-
-    By default, this class only acts on the top level resource. In the future, the ability to propagate
-    a list of instructions through resources in a routine hierarchy will be made available.
-    """
-
-    _rewriter: SympyExpressionRewriter = field(init=False)
-
-    def __post_init__(self):
-        self._rewriter = SympyExpressionRewriter
-        return super().__post_init__()
+def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
+    """Initialize a Sympy rewriter instance."""
+    match expression:
+        case str():
+            return SympyExpressionRewriter(
+                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
+            )
+        case Expr():
+            return SympyExpressionRewriter(
+                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
+            )
+        case _:
+            raise ValueError(
+                f"Invalid input type: {type(expression)} for expression {expression}. Must be `str` or `sympy.Expr`."
+            )
 
 
 def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
@@ -285,18 +284,3 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
         )
 
     return replaced_expr
-
-
-def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
-    """Initialize a Sympy rewriter instance."""
-    match expression:
-        case str():
-            return SympyExpressionRewriter(
-                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
-            )
-        case Expr():
-            return SympyExpressionRewriter(
-                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
-            )
-        case _:
-            raise ValueError(f"Invalid input type: {type(expression)}. Must be `str` or `sympy.Expr`.")
