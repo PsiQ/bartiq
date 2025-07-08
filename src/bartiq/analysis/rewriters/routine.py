@@ -19,8 +19,6 @@ from copy import deepcopy
 from dataclasses import dataclass, replace
 from typing import Generic, Protocol
 
-from sympy import Number
-
 from bartiq import CompiledRoutine
 from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
@@ -105,7 +103,7 @@ class ResourceRewriter(Generic[T]):
             for _name, child_routine in routine.children.items():
                 routine.children[_name] = _traverse_routine(child_routine)
             if self.resource in routine.resources and not isinstance(
-                routine.resource_values[self.resource], (int | float | Number)
+                routine.resource_values[self.resource], (int | float)
             ):
                 return replace(
                     routine,
