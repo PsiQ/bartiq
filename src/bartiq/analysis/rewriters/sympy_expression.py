@@ -190,7 +190,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             rewriter = rewriter.substitute("log($X + $N)", "f(X, N)")
             print(rewriter.expression) # f(x, 1) + f(y, 4) + f(z, 6)
         ```
-        Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
+        Any other symbol will match _anything_ except zero values.
         """
 
         if substitution.wild:
