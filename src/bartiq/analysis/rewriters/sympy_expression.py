@@ -196,7 +196,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         _symbol_or_expr = cast(Expr, self.backend.as_expression(substitution.symbol_or_expr))
         _replacement = self.backend.as_expression(substitution.replacement)
         return self.expression.subs(
-            _symbol_or_expr.subs({fs: self.get_symbol(fs.name) for fs in _symbol_or_expr.free_symbols}), _replacement
+            _symbol_or_expr.subs({fs: sym for fs in _symbol_or_expr.free_symbols if (sym := self.get_symbol(fs.name))}),
+            _replacement,
         )
 
     def _wildcard_substitution(self, substitution: Substitution) -> Expr:
