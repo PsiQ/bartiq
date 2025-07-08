@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from typing import Protocol
+from typing import Generic, Protocol, cast
 
 from bartiq import CompiledRoutine
 from bartiq.analysis.rewriters.expression import ExpressionRewriter
@@ -34,14 +34,14 @@ from bartiq.analysis.rewriters.utils import (
 from bartiq.symbolics.backend import T
 
 
-class ExpressionRewriterFactory(Protocol):
+class ExpressionRewriterFactory(Protocol[T]):
     """A protocol for generating expression rewriters."""
 
     def __call__(self, expression: str | T) -> ExpressionRewriter[T]: ...
 
 
 @dataclass
-class ResourceRewriter:
+class ResourceRewriter(Generic[T]):
     """A class for rewriting resource expressions of routines.
 
     By default, this class only acts on the top level resource. In order to propagate instructions through
@@ -60,7 +60,7 @@ class ResourceRewriter:
 
     routine: CompiledRoutine
     resource: str
-    rewriter_factory: ExpressionRewriterFactory = sympy_rewriter
+    rewriter_factory: ExpressionRewriterFactory[T] = sympy_rewriter
 
     def __post_init__(self):
         self.rewriter = self.rewriter_factory(self.routine.resources[self.resource].value)
@@ -112,7 +112,9 @@ class ResourceRewriter:
                         self.resource: replace(
                             routine.resources[self.resource],
                             value=_update_expression(
-                                self.rewriter_factory, routine.resources[self.resource].value, self.rewriter.history()
+                                self.rewriter_factory,
+                                cast(T, routine.resources[self.resource].value),
+                                self.rewriter.history(),
                             ),
                         )
                     },
@@ -154,7 +156,7 @@ def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction
 
 
 def _update_expression(
-    rewriter_factory: ExpressionRewriterFactory, expression: T, instructions: Iterable[Instruction]
+    rewriter_factory: ExpressionRewriterFactory[T], expression: T, instructions: Iterable[Instruction]
 ) -> T:
     """Update an expression given a list of rewriting instructions.
 
