@@ -17,7 +17,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass, replace
-from typing import Generic, Protocol
+from typing import Protocol
 
 from bartiq import CompiledRoutine
 from bartiq.analysis.rewriters.expression import ExpressionRewriter
@@ -41,7 +41,7 @@ class ExpressionRewriterFactory(Protocol):
 
 
 @dataclass
-class ResourceRewriter(Generic[T]):
+class ResourceRewriter:
     """A class for rewriting resource expressions of routines.
 
     By default, this class only acts on the top level resource. In order to propagate instructions through
