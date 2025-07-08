@@ -51,10 +51,12 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @property
     def assumptions(self) -> tuple[Assumption, ...]:
+        """Return all assumptions applied to this instance, in the order they were applied."""
         return tuple(instr for instr in self.history() if isinstance(instr, Assumption))
 
     @property
     def substitutions(self) -> tuple[Substitution, ...]:
+        """Return all substitutions applied to this instance, in the order they were applied."""
         return tuple(instr for instr in self.history() if isinstance(instr, Substitution))
 
     @property
@@ -67,8 +69,8 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _unwrap_history(self) -> list[tuple[Instruction, ExpressionRewriter[T] | None]]:
         """Unwrap the history of the rewriter into a list of previous (instruction, rewriter) tuples.
 
-        The history is ordered backwards in time; the first element in each tuple (an instruction)
-        was applied to the second element (a rewriter) to result in the rewriter in the _previous_ tuple:
+        The history is ordered backwards in time such that the first element corresponds to the most recent instruction
+        applied, and the previous rewriter instance:
         ```python
             self._unwrap_history()
             >>> [
