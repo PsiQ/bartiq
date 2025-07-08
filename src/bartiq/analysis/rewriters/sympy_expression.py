@@ -20,7 +20,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 from typing_extensions import Self
 
-from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter
+from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Substitution,
@@ -69,22 +69,21 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """Run SymPy's `simplify` method on the expression."""
         return self.expression.simplify()
 
-    def get_symbol(self, symbol_name: str) -> Symbol:
+    def get_symbol(self, symbol_name: str) -> Symbol | None:
         """Get the SymPy Symbol object, given the Symbol's name.
+
+        If the symbol does not exist in the expression, return None.
 
         Args:
             symbol_name: Name of the symbol.
 
         Returns:
-            A SymPy Symbol object.
-
-        Raises:
-            ValueError: If no Symbol with the input name is in the expression.
+            A SymPy Symbol object, or None.
         """
         try:
             return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
-            raise ValueError(f"No variable '{symbol_name}' in expression '{self.expression}'.")
+            return None
 
     def focus(self, symbols: str | Iterable[str]) -> Expr | None:
         """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
@@ -97,12 +96,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """
         symbols = [symbols] if isinstance(symbols, str) else list(symbols)
         symbols += _unwrap_linked_parameters(self.linked_params, symbols)
-        variables = set()
-        for sym in symbols:
-            try:
-                variables.add(self.get_symbol(sym))
-            except ValueError:
-                continue
+
+        variables = set(x for sym in symbols if (x := self.get_symbol(sym)))
 
         if terms_found := [term for term in self.individual_terms if not term.free_symbols.isdisjoint(variables)]:
             return sum(terms_found).collect(variables)
@@ -151,14 +146,12 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def _assume(self, assumption: Assumption) -> Expr:
         """Add an assumption to our expression."""
         expression = self.expression
-        try:
-            # If the Symbol exists, replace it with a Symbol that has the correct properties.
-            reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
+
+        if reference_symbol := self.get_symbol(symbol_name=assumption.symbol_name):
             replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
             expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
-        except ValueError:
-            # If the symbol does _not_ exist, parse the assumption expression.
+        else:
             reference_symbol = self.backend.as_expression(assumption.symbol_name)
 
         # This is a hacky way to implement assumptions that relate to nonzero values.
