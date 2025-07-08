@@ -36,11 +36,8 @@ _SYMPY_BACKEND = SympyBackend(use_sympy_max=True)
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
-    This class accepts a SymPy expression (or str) as input,
-    and provides methods for efficient simplification / rewriting of the input expression.
-
-    Args:
-        expression: The sympy expression of interest.
+    This class accepts a SymPy expression as input, and provides methods for efficient
+    simplification / rewriting of the input expression.
     """
 
     backend: SympyBackend = field(init=False)
@@ -154,8 +151,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         else:
             reference_symbol = self.backend.as_expression(assumption.symbol_name)
 
-        # This is a hacky way to implement assumptions that relate to nonzero values.
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
+        # This is a hacky way to implement assumptions that relate to nonzero values.
         expression = expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
             {replacement_symbol: reference_symbol - assumption.value}
         )
