@@ -148,7 +148,14 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     @abstractmethod
     def focus(self, symbols: str | Iterable[str]) -> T:
-        """Return an expression containing terms that involve specific symbols."""
+        """Return an expression containing terms that involve specific symbols.
+
+        Args:
+            symbols: The symbols to focus on.
+
+        Returns:
+            Subexpression of the overall expression, such that each term contains at least one of the input symbols.
+        """
 
     @abstractmethod
     def _expand(self) -> T: ...
@@ -168,7 +175,12 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _assume(self, assumption: Assumption) -> T: ...
 
     def assume(self, assumption: str | Assumption) -> Self:
-        """Add an assumption for a symbol."""
+        """Add an assumption for a symbol.
+
+        Args:
+            assumption: Either `str` in the form `X > a` where `X` is a symbol or subexpression, and `a` is a scalar
+                value; or `Assumption` dataclass. Valid comparators are `>`, `<`, `>=`, `<=`.
+        """
         assumption = Assumption.from_string(assumption) if isinstance(assumption, str) else assumption
         return replace(
             self,
@@ -186,21 +198,19 @@ class ExpressionRewriter(ABC, Generic[T]):
     @abstractmethod
     def _substitute(self, substitution: Substitution) -> T: ...
 
-    def substitute(self, symbol_or_expr: str, replace_with: str) -> Self:
+    def substitute(self, expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
-        By default performs a one-to-one mapping, unless wildcard symbols are implemented.
+        By default performs a one-to-one mapping, unless wildcard symbols are present in `replace_with`.
+
+        Args:
+            expr: The (sub)expression to substitute.
+            replace_with: The replacement (sub)expression to substitute in.
         """
-        substitution: Substitution = Substitution(
-            symbol_or_expr=symbol_or_expr, replacement=replace_with, backend=self.backend
-        )
+        substitution: Substitution = Substitution(expr=expr, replacement=replace_with, backend=self.backend)
         return replace(
             self,
             expression=self._substitute(substitution=substitution),
-            linked_params=(
-                self.linked_params | substitution._get_linked_parameters()
-                if not substitution.wild
-                else self.linked_params
-            ),
+            linked_params=self.linked_params | substitution.linked_params,
             _previous=(substitution, self),
         )
 
