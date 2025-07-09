@@ -105,8 +105,8 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     @pytest.mark.parametrize(
         "expression, symbol, assumption, simplified_expression, property",
         [
-            ("max(0, a)", "a", "a > 0", "a", "is_positive"),
-            ("min(0, a)", "a", "a < 0", "a", "is_negative"),
+            ("max(0, a)", "a", "a > 0", "a", "is_nonnegative"),
+            ("min(0, a)", "a", "a < 0", "a", "is_nonpositive"),
         ],
     )
     def test_add_assumption_simplifies_basic_expressions(
