@@ -409,33 +409,56 @@ def test_sympy_interpreter_raises_on_xor_operator():
 
 
 @pytest.mark.parametrize(
-    "value,expected,raises,match",
+    "value,expected",
     [
-        (0, 0, None, None),
-        (1, 0, None, None),
-        (2, 1, None, None),
-        (4, 2, None, None),
-        (8, 3, None, None),
-        (16, 4, None, None),
-        (Integer(0), 0, None, None),
-        (Integer(1), 0, None, None),
-        (Integer(2), 1, None, None),
-        (Integer(4), 2, None, None),
-        (Integer(8), 3, None, None),
-        (Integer(16), 4, None, None),
-        (1.5, None, TypeError, r"ntz requires integer argument; found 1\.5+"),
-        (10.0, None, TypeError, r"ntz requires integer argument; found 10\.0+"),
-        (Symbol("x"), ntz(Symbol("x")), None, None),
-        (-1, None, ValueError, "ntz requires non-negative integer; found -1"),
-        (Integer(-5), None, ValueError, "ntz requires non-negative integer; found -5"),
+        (0, -1),
+        (1, 0),
+        (2, 1),
+        (4, 2),
+        (8, 3),
+        (16, 4),
+        (Integer(0), -1),
+        (Integer(1), 0),
+        (Integer(2), 1),
+        (Integer(4), 2),
+        (Integer(8), 3),
+        (Integer(16), 4),
+        (Symbol("x"), ntz(Symbol("x"))),
     ],
 )
-def test_ntz_parametrized(value, expected, raises, match):
-    if raises:
-        with pytest.raises(raises, match=match):
-            ntz(value)
-    else:
-        assert ntz(value) == expected
+def test_ntz_parametrized(value, expected):
+    assert ntz(value) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "match"),
+    [
+        (1.5, r"ntz requires integer argument; found 1\.5+"),
+        (10.0, r"ntz requires integer argument; found 10\.0+"),
+    ],
+)
+def test_ntz_raises_type_error_for_floating_point_input(value, match):
+    with pytest.raises(TypeError, match=match):
+        _ = ntz(value)
+
+
+@pytest.mark.parametrize(("value", "expected"), [(0, -1), (1, 0), (16, 4)])
+def test_substituting_values_into_symbolic_ntz_gives_correct_numeric_results(value, expected):
+    expr = ntz(x)
+
+    assert expr.subs({x: value}) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "match"),
+    [
+        (-1, "ntz requires non-negative integer; found -1"),
+        (Integer(-5), "ntz requires non-negative integer; found -5"),
+    ],
+)
+def test_ntz_raises_value_error_for_negative_integers(value, match):
+    with pytest.raises(ValueError, match=match):
+        _ = ntz(value)
 
 
 def test_fn_overrides_works_as_expected():
