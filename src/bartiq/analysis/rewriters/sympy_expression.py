@@ -193,7 +193,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         if substitution.wild:
             return self._wildcard_substitution(substitution)
 
-        _symbol_or_expr = cast(Expr, self.backend.as_expression(substitution.symbol_or_expr))
+        _symbol_or_expr = cast(Expr, self.backend.as_expression(substitution.expr))
         _replacement = self.backend.as_expression(substitution.replacement)
         return self.expression.subs(
             _symbol_or_expr.subs({fs: sym for fs in _symbol_or_expr.free_symbols if (sym := self.get_symbol(fs.name))}),
@@ -219,7 +219,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
                 wildcard_dict[sym] = Wild(sym, properties=[NONZERO, SYMBOL_ONLY])
             else:
                 wildcard_dict[sym] = Wild(sym, properties=[NONZERO])
-        pattern = parse_and_sub_wild(substitution.symbol_or_expr)
+        pattern = parse_and_sub_wild(substitution.expr)
         replacement = parse_and_sub_wild(substitution.replacement)
 
         return _replace_subexpression(

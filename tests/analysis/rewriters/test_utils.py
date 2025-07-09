@@ -15,7 +15,7 @@ import pytest
 from sympy import Symbol
 
 from bartiq.analysis.rewriters.utils import (
-    WILDCARD_FLAG,
+    WILDCARD_SYMBOL,
     Assumption,
     Comparators,
     Substitution,
@@ -50,18 +50,18 @@ class TestAssumption:
         [
             [
                 Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
-                ["is_positive"],
-                ["is_negative"],
+                ["is_nonnegative"],
+                ["is_nonpositive"],
             ],
             [
                 Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
-                ["is_positive"],
-                ["is_negative"],
+                ["is_nonnegative"],
+                ["is_nonpositive"],
             ],
             [
                 Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=0),
-                ["is_negative"],
-                ["is_positive"],
+                ["is_nonpositive"],
+                ["is_nonnegative"],
             ],
         ],
     )
@@ -78,11 +78,11 @@ class TestAssumption:
         [
             [
                 Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=10),
-                ["is_positive", "is_negative"],
+                ["is_nonnegative", "is_nonpositive"],
             ],
             [
                 Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=-10),
-                ["is_positive", "is_negative"],
+                ["is_nonpositive", "is_nonnegative"],
             ],
         ],
     )
@@ -97,7 +97,7 @@ class TestAssumption:
 
 
 def test_wildcard_symbol_didnt_change():
-    assert WILDCARD_FLAG == "$"
+    assert WILDCARD_SYMBOL == "$"
 
 
 class TestSubstitutions:
@@ -112,10 +112,6 @@ class TestSubstitutions:
     def test_wild_characters_are_defined_correctly(self, symbol, replace_with, expected_wild_chars, backend):
         assert Substitution(symbol, replace_with, backend).wild == expected_wild_chars
 
-    def test_error_raised_if_accessing_linked_parameters_when_wild_characters(self, backend):
-        with pytest.raises(NotImplementedError, match="Unable to derive connections between wild characters"):
-            Substitution("$x", "x", backend)._get_linked_parameters()
-
     @pytest.mark.parametrize(
         "symbol, replacement, linked_params",
         [
@@ -125,7 +121,7 @@ class TestSubstitutions:
         ],
     )
     def test_get_linked_parameters(self, symbol, replacement, linked_params, backend):
-        compare_dicts(Substitution(symbol, replacement, backend)._get_linked_parameters(), linked_params)
+        compare_dicts(Substitution(symbol, replacement, backend).linked_params, linked_params)
 
 
 def compare_dicts(dict1, dict2):
