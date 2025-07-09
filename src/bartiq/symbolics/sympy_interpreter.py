@@ -163,8 +163,6 @@ class ntz(Function):
             n = int(n)
             if n < 0:
                 raise ValueError(f"ntz requires non-negative integer; found {n}")
-            if n == 0:
-                return 0
             return (n & -n).bit_length() - 1
 
 
