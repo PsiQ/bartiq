@@ -147,11 +147,12 @@ class multiplicity(Function):
 class ntz(Function):
     @classmethod
     def eval(cls, n):
-        """
-        Returns the number of trailing zeros in the binary representation of n.
+        """Returns the number of trailing zeros in the binary representation of n.
+
         Only defined for non-negative integers.
-        Returns 0 for input 0.
+        For n = 0 returns -1.
         For symbolic input, returns unevaluated ntz(n).
+
         Raises:
             TypeError: If input is not an integer (when numeric).
             ValueError: If input is a negative integer.
