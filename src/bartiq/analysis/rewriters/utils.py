@@ -24,7 +24,7 @@ from typing_extensions import Self
 
 from bartiq.symbolics.backend import SymbolicBackend
 
-WILDCARD_FLAG = "$"
+WILDCARD_SYMBOL = "$"
 
 
 class Comparators(str, Enum):
@@ -62,7 +62,16 @@ class ReapplyAllAssumptions(Instruction):
 
 @dataclass(frozen=True)
 class Assumption(Instruction):
-    """Add a single assumption."""
+    """An instruction dataclass to capture when an assumption is made.
+
+    Args:
+        symbol_name: The name of the symbol that the assumption pertains to. Can also be parseable expressions.
+        comparator: The comparator: one of ">", "<", ">=", "<=".
+        value: The reference value to compare the input symbol to.
+
+    Attributes:
+        symbol_properties: A dictionary of properties (positivity, negativity) that can be derived from the assumption.
+    """
 
     symbol_name: str
     comparator: Comparators | str
@@ -87,39 +96,47 @@ class Assumption(Instruction):
 
 @dataclass(frozen=True)
 class Substitution(Instruction):
-    """Substitute a symbol with an expression."""
+    """An instruction dataclass to capture when an expression is replaced by another.
 
-    symbol_or_expr: str
+    Args:
+        expr: The (sub)expression to replace.
+        replacement: A replacement subexpression.
+        backend: The backend to parse the expressions through.
+        wild: A tuple of symbols that have been marked as "wild", i.e. they match anything.
+    """
+
+    expr: str
     replacement: str
     backend: SymbolicBackend
-    wild: tuple[str, ...] = ()
+    wild: tuple[str, ...] = field(default_factory=tuple, init=False)
+    linked_params: dict[str, Iterable[str]] = field(default_factory=dict, init=False)
 
     def __post_init__(self):
-        object.__setattr__(self, "wild", _get_wild_characters(self.symbol_or_expr))
+        object.__setattr__(self, "wild", _get_wild_characters(self.expr))
+        object.__setattr__(self, "linked_params", _get_linked_parameters(self) if not self.wild else {})
 
-    def _get_linked_parameters(self) -> dict[str, Iterable[str]]:
-        if self.wild:
-            raise NotImplementedError("Unable to derive connections between wild characters and expression symbols.")
 
-        def free_symbols_in_expr(expr: str) -> Iterable[str]:
-            return self.backend.free_symbols(self.backend.as_expression(expr))
+def _get_linked_parameters(substitution: Substitution) -> dict[str, Iterable[str]]:
+    def free_symbols_in_expr(expr: str) -> Iterable[str]:
+        return substitution.backend.free_symbols(substitution.backend.as_expression(expr))
 
-        return {
-            x: y
-            for x in free_symbols_in_expr(self.replacement)
-            if x not in (y := free_symbols_in_expr(self.symbol_or_expr))
-        }
+    return {
+        x: y
+        for x in free_symbols_in_expr(substitution.replacement)
+        if x not in (y := free_symbols_in_expr(substitution.expr))
+    }
 
 
 def _get_wild_characters(expression: str) -> tuple[str, ...]:
-    return tuple(re.findall(r"\$([a-zA-Z_][a-zA-Z0-9_]*)", expression))
+    """Return all symbols prefixed with the WILDCARD_SYMBOL in an expression."""
+    return tuple(re.findall(rf"\{WILDCARD_SYMBOL}([a-zA-Z_][a-zA-Z0-9_]*)", expression))
 
 
 def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
-    At present this only detects positivity/negativity. The two are calculated independently,
-    and so you may see some strange outcomes:
+    At present this only detects positivity/negativity of the symbol or expression the inputs pertain to.
+    The two properties are calculated independently, and so you may see some strange outcomes:
     ```python
     _get_properties(">", 1)
     >>> {positive: True, negative: None}
@@ -144,7 +161,10 @@ def _get_properties(comparator: str, reference_value: int | float) -> dict[str, 
     value_positive: bool = reference_value >= 0
     value_negative: bool = reference_value <= 0 or (not value_positive)
 
-    return {"positive": ((gt or gte) and value_positive) or None, "negative": ((lt or lte) and value_negative) or None}
+    return {
+        "nonnegative": ((gt or gte) and value_positive) or None,
+        "nonpositive": ((lt or lte) and value_negative) or None,
+    }
 
 
 def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
@@ -209,3 +229,8 @@ def _unwrap_linked_parameters(
             linked.append(_new)
             linked = _unwrap_linked_parameters(parameter_connection_reference, [_new], linked)
     return linked
+
+
+if __name__ == "__main__":
+    a = "$x"
+    print(_get_wild_characters(a))

@@ -15,7 +15,7 @@ import pytest
 from sympy import Symbol
 
 from bartiq.analysis.rewriters.utils import (
-    WILDCARD_FLAG,
+    WILDCARD_SYMBOL,
     Assumption,
     Comparators,
     Substitution,
@@ -97,7 +97,7 @@ class TestAssumption:
 
 
 def test_wildcard_symbol_didnt_change():
-    assert WILDCARD_FLAG == "$"
+    assert WILDCARD_SYMBOL == "$"
 
 
 class TestSubstitutions:
