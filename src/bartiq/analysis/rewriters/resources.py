@@ -148,7 +148,7 @@ def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction
         case Assumption():
             return rewriter.assume(instruction)
         case Substitution():
-            return rewriter.substitute(instruction.symbol_or_expr, instruction.replacement)
+            return rewriter.substitute(instruction.expr, instruction.replacement)
         case ReapplyAllAssumptions():
             return rewriter.reapply_all_assumptions()
         case _:
