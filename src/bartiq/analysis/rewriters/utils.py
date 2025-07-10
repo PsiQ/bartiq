@@ -229,8 +229,3 @@ def _unwrap_linked_parameters(
             linked.append(_new)
             linked = _unwrap_linked_parameters(parameter_connection_reference, [_new], linked)
     return linked
-
-
-if __name__ == "__main__":
-    a = "$x"
-    print(_get_wild_characters(a))
