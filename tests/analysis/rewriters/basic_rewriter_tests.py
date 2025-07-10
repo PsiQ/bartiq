@@ -17,7 +17,7 @@ from typing import ClassVar
 
 import pytest
 
-from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter, T
+from bartiq.analysis.rewriters.expression import ExpressionRewriter, T
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Expand,
