@@ -161,7 +161,7 @@ def _get_assumption_properties(comparator: str, reference_value: int | float) ->
     To keep the logic clean, anything unknowable defaults to None.
 
     When parsing the symbols in Sympy, our only backend at time of writing (July 2025),
-    `None` fields are filled.
+    `None` fields are filled automatically.
 
     Args:
         comparator: Comparator in the assumption.
