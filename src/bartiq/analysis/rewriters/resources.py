@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Routine rewriters allow you to rewrite expressions across entire routines."""
+"""Resource rewriters allow you to rewrite expressions across entire routines."""
 from __future__ import annotations
 
 from collections.abc import Iterable

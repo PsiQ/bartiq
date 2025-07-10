@@ -3,18 +3,25 @@ from bartiq.analysis.rewriters.resources import ResourceRewriter
 from bartiq.analysis.rewriters.sympy_expression import _SYMPY_BACKEND
 from bartiq.compilation import CompilationFlags
 
-
-def routine(name: str):
-    return {"name": name, "resources": [{"name": "dummy", "type": "additive", "value": f"max(0, {name})"}]}
-
-
-b = routine("b")
-c = routine("c")
-a = {"name": "a", "children": [b, c]}
-y = routine("y")
-z = routine("z")
-x = {"name": "x", "children": [y, z]}
-root = {"name": "root", "children": [a, x]}
+root = {
+    "name": "root",
+    "children": [
+        {
+            "name": "a",
+            "children": [
+                {"name": "b", "resources": [{"name": "dummy", "type": "additive", "value": "max(0, b)"}]},
+                {"name": "c", "resources": [{"name": "dummy", "type": "additive", "value": "max(0, c)"}]},
+            ],
+        },
+        {
+            "name": "x",
+            "children": [
+                {"name": "y", "resources": [{"name": "dummy", "type": "additive", "value": "max(0, y)"}]},
+                {"name": "z", "resources": [{"name": "dummy", "type": "additive", "value": "max(0, z)"}]},
+            ],
+        },
+    ],
+}
 compiled = compile_routine(
     Routine.from_qref(root, _SYMPY_BACKEND), compilation_flags=CompilationFlags.EXPAND_RESOURCES
 ).routine
