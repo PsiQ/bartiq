@@ -70,7 +70,8 @@ class Assumption(Instruction):
         value: The reference value to compare the input symbol to.
 
     Attributes:
-        symbol_properties: A dictionary of properties (positivity, negativity) that can be derived from the assumption.
+        symbol_properties: A dictionary of properties (non-negativity, non-positivity)
+            that can be derived from the assumption.
     """
 
     symbol_name: str
@@ -79,7 +80,7 @@ class Assumption(Instruction):
     symbol_properties: dict[str, bool | None] = field(init=False)
 
     def __post_init__(self):
-        object.__setattr__(self, "symbol_properties", _get_properties(self.comparator, self.value))
+        object.__setattr__(self, "symbol_properties", _get_assumption_properties(self.comparator, self.value))
 
     @classmethod
     def from_string(cls, assumption_string: str) -> Self:
@@ -117,6 +118,22 @@ class Substitution(Instruction):
 
 
 def _get_linked_parameters(substitution: Substitution) -> dict[str, Iterable[str]]:
+    """Given a substitution object, determine if we can derive a link between parameters.
+
+    Example::
+    ```python
+        substitution = Substitution("a", "b")
+        _get_linked_parameters(substitution)
+        >>> { "b": ("a",) }
+    ```
+    Similarly,
+    ```python
+        substitution = Substitution("a*(b + c)", "a*X")
+        _get_linked_parameters(substitution)
+        >>> { "X": ("b", "c")}
+    ```
+    """
+
     def free_symbols_in_expr(expr: str) -> Iterable[str]:
         return substitution.backend.free_symbols(substitution.backend.as_expression(expr))
 
@@ -132,17 +149,19 @@ def _get_wild_characters(expression: str) -> tuple[str, ...]:
     return tuple(re.findall(rf"\{WILDCARD_SYMBOL}([a-zA-Z_][a-zA-Z0-9_]*)", expression))
 
 
-def _get_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
+def _get_assumption_properties(comparator: str, reference_value: int | float) -> dict[str, bool | None]:
     """Derive properties of an assumption.
 
-    At present this only detects positivity/negativity of the symbol or expression the inputs pertain to.
-    The two properties are calculated independently, and so you may see some strange outcomes:
-    ```python
-    _get_properties(">", 1)
-    >>> {positive: True, negative: None}
-    ```
-    To keep the logic clean, anything unknowable defaults to None. When parsing the symbols in Sympy,
-    our only backend at time of writing (July 2025), these fields are filled automatically.
+    The properties derived are:
+     - positivity: strictly greater than zero | greater than or equal to a positive value,
+     - nonnegativity: greater than or equal to zero | positive,
+     - negativity: strictly less than zero | less than or equal to zero,
+     - nonpositivity: less than or equal to zero | negative.
+
+    To keep the logic clean, anything unknowable defaults to None.
+
+    When parsing the symbols in Sympy, our only backend at time of writing (July 2025),
+    `None` fields are filled.
 
     Args:
         comparator: Comparator in the assumption.
@@ -158,12 +177,17 @@ def _get_properties(comparator: str, reference_value: int | float) -> dict[str, 
     lt: bool = comparator == Comparators.LESS_THAN
     lte: bool = comparator == Comparators.LESS_THAN_OR_EQUAL_TO
 
-    value_positive: bool = reference_value >= 0
-    value_negative: bool = reference_value <= 0 or (not value_positive)
+    is_positive = ((gt or gte) and reference_value > 0) or (gt and reference_value == 0)
+    is_negative = ((lt or lte) and reference_value < 0) or (lt and reference_value == 0)
+
+    is_nonnegative = is_positive or (gte and reference_value == 0)
+    is_nonpositive = is_negative or (lte and reference_value == 0)
 
     return {
-        "nonnegative": ((gt or gte) and value_positive) or None,
-        "nonpositive": ((lt or lte) and value_negative) or None,
+        "positive": is_positive or None,
+        "negative": is_negative or None,
+        "nonnegative": is_nonnegative or None,
+        "nonpositive": is_nonpositive or None,
     }
 
 
