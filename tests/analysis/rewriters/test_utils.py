@@ -49,19 +49,34 @@ class TestAssumption:
         "assumption, properties_it_has, properties_it_doesnt",
         [
             [
-                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=0),
                 ["is_nonnegative"],
-                ["is_nonpositive"],
+                ["is_nonpositive", "is_negative", "is_positive"],
             ],
             [
-                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=5),
-                ["is_nonnegative"],
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN_OR_EQUAL_TO, value=1),
+                ["is_nonnegative", "is_positive"],
+                ["is_nonpositive", "is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=0),
+                ["is_nonnegative", "is_positive"],
+                ["is_nonpositive", "is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.LESS_THAN_OR_EQUAL_TO, value=0),
                 ["is_nonpositive"],
+                ["is_nonnegative", "is_positive", "is_negative"],
+            ],
+            [
+                Assumption(symbol_name="X", comparator=Comparators.LESS_THAN_OR_EQUAL_TO, value=-1),
+                ["is_nonpositive", "is_negative"],
+                ["is_nonnegative", "is_positive"],
             ],
             [
                 Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=0),
-                ["is_nonpositive"],
-                ["is_nonnegative"],
+                ["is_nonpositive", "is_negative"],
+                ["is_nonnegative", "is_positive"],
             ],
         ],
     )
@@ -78,11 +93,11 @@ class TestAssumption:
         [
             [
                 Assumption(symbol_name="X", comparator=Comparators.LESS_THAN, value=10),
-                ["is_nonnegative", "is_nonpositive"],
+                ["is_nonnegative", "is_nonpositive", "is_positive", "is_negative"],
             ],
             [
                 Assumption(symbol_name="X", comparator=Comparators.GREATER_THAN, value=-10),
-                ["is_nonpositive", "is_nonnegative"],
+                ["is_nonpositive", "is_nonnegative", "is_negative", "is_positive"],
             ],
         ],
     )
