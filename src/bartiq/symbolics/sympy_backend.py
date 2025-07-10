@@ -85,7 +85,7 @@ def identity_for_numbers(
 
 
 class Parser(Protocol):
-    def __call__(self, expression: str, *args, **kwargs) -> Expr: ...  # noqa: E704
+    def __call__(self, expression: str, *args, **kwargs) -> Expr: ...
 
 
 def parse_to_sympy(expression: str, debug: bool = False, function_overrides: FunctionsMap | None = None) -> Expr:

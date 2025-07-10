@@ -11,14 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Callable
 from enum import Enum
+from typing import ClassVar
 
 import pytest
 
-from bartiq.analysis._rewriters.assumptions import Assumption
-from bartiq.analysis._rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    Instruction,
+from bartiq.analysis.rewriters.expression_rewriter import ExpressionRewriter, T
+from bartiq.analysis.rewriters.utils import (
+    Assumption,
+    Expand,
+    Initial,
+    ReapplyAllAssumptions,
+    Simplify,
+    Substitution,
 )
 from bartiq.symbolics.backend import SymbolicBackend
 
@@ -40,7 +46,8 @@ class CommonExpressions(str, Enum):
 
 
 class ExpressionRewriterTests:
-    rewriter: type[ExpressionRewriter]
+
+    rewriter: ClassVar[Callable[[T | str], ExpressionRewriter]] = None
 
     @pytest.fixture
     def backend(self) -> SymbolicBackend:
@@ -79,7 +86,9 @@ class ExpressionRewriterTests:
         free_symbols_from_backend = backend.free_symbols(backend.as_expression(expression))
         self.assert_expression_seqs_equal(backend, free_symbols_from_rewriter, free_symbols_from_backend)
 
-    @pytest.mark.parametrize("focus_on, expected_expression", [["a", "a*(b+1)"], ["c", "c*(d+1)"]])
+    @pytest.mark.parametrize(
+        "focus_on, expected_expression", [[["a", "Xi"], "a*(b+1)"], ["c", "c*(d+1)"], ["Xi", None]]
+    )
     def test_focus(self, backend, focus_on, expected_expression):
 
         assert self.rewriter(CommonExpressions.SUM_AND_MUL).focus(focus_on) == backend.as_expression(
@@ -101,10 +110,10 @@ class ExpressionRewriterTests:
         init_rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         updated_rewriter = init_rewriter.expand().simplify().assume("beth>0")
         assert updated_rewriter.history() == [
-            Instruction.Initial,
-            Instruction.Expand,
-            Instruction.Simplify,
-            "Assumption(beth>0)",
+            Initial(),
+            Expand(),
+            Simplify(),
+            Assumption.from_string("beth>0"),
         ]
 
     def test_undo_previous(self):
@@ -133,4 +142,43 @@ class ExpressionRewriterTests:
     def test_reapply_all_assumptions(self):
         rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
         rewriter_1 = rewriter.assume("x>0").assume("y>0").assume("beth>0")
-        assert rewriter_1.reapply_all_assumptions()._previous == (Instruction.ReapplyAllAssumptions, rewriter_1)
+        assert rewriter_1.reapply_all_assumptions()._previous == (ReapplyAllAssumptions(), rewriter_1)
+
+    @pytest.mark.parametrize(
+        "expression, expr_to_replace, replace_with, final_expression",
+        [
+            [CommonExpressions.TRIVIAL, "a", "b", "b"],
+            [CommonExpressions.SUM_AND_MUL, "a + b", "X", "X + c + d + c*d + a*b"],
+            [
+                CommonExpressions.MANY_FUNCS,
+                "a*log2(x/n)",
+                "A(x)",
+                "A(x) + b*(max(0, 1+y, 2+x) + Heaviside(aleph, beth))",
+            ],
+            [CommonExpressions.NESTED_MAX, "max(b, 1 - max(c, lamda))", "1-lamda", "max(a, lamda)"],
+        ],
+    )
+    def test_basic_substitutions(self, backend, expression, expr_to_replace, replace_with, final_expression):
+
+        assert self.rewriter(expression).substitute(expr_to_replace, replace_with).expression == backend.as_expression(
+            final_expression
+        )
+
+    def test_substitutions_are_tracked_correctly(self, backend):
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        substitutions = (
+            ("x/n", "z"),
+            ("a*log2(z)", "A"),
+            ("Heaviside(aleph, beth)", "h"),
+            ("b*(max(0, 1+y, 2+x) + h)", "B"),
+        )
+        for _expr, _repl in substitutions:
+            rewriter = rewriter.substitute(_expr, _repl)
+
+        assert rewriter.expression == backend.as_expression("A+B")
+        assert rewriter.substitutions == tuple(Substitution(x, y, rewriter.backend) for x, y in substitutions)
+
+    def test_evaluate_expression(self):
+        self.rewriter(CommonExpressions.MANY_FUNCS).evaluate_expression(
+            {"a": 1, "b": 1, "x": 2, "y": 3, "beth": 13, "aleph": 13, "n": 4}
+        ) == 4
