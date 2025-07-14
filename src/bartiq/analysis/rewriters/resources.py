@@ -15,7 +15,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from copy import deepcopy
 from dataclasses import dataclass, replace
 from typing import Generic, Protocol, cast
 
@@ -31,7 +30,8 @@ from bartiq.analysis.rewriters.utils import (
     Simplify,
     Substitution,
 )
-from bartiq.symbolics.backend import T
+from bartiq.symbolics.backend import SymbolicBackend, T
+from bartiq.transform import postorder_transform
 
 
 class ExpressionRewriterFactory(Protocol[T]):
@@ -95,13 +95,11 @@ class ResourceRewriter(Generic[T]):
         Returns:
             A new CompiledRoutine object.
         """
-        routine = deepcopy(self.routine)
 
-        def _traverse_routine(routine: CompiledRoutine) -> CompiledRoutine:
+        @postorder_transform
+        def _traverse_routine(routine: CompiledRoutine, backend: SymbolicBackend) -> CompiledRoutine:
             """Recursively traverse the routine, replacing resource values
             starting from the lowest level of children."""
-            for _name, child_routine in routine.children.items():
-                routine.children[_name] = _traverse_routine(child_routine)
             if self.resource in routine.resources and not isinstance(
                 routine.resource_values[self.resource], (int | float)
             ):
@@ -122,7 +120,7 @@ class ResourceRewriter(Generic[T]):
 
             return routine
 
-        return _traverse_routine(routine=routine)
+        return _traverse_routine(self.routine, self.rewriter.backend)
 
 
 def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction) -> ExpressionRewriter[T]:
