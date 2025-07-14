@@ -14,7 +14,7 @@
 import pytest
 import sympy
 
-from bartiq.analysis.rewriters.sympy_rewriter import sympy_rewriter
+from bartiq.analysis.rewriters import sympy_rewriter
 from bartiq.symbolics.sympy_backend import SympyBackend
 from tests.analysis.rewriters.basic_rewriter_tests import (
     CommonExpressions,
@@ -49,11 +49,9 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         for name in symbol_names:
             assert self.rewriter(expression).get_symbol(name) == sympy.Symbol(name)
 
-    def test_get_symbol_raises_error_if_no_symbol_exists(self):
+    def test_get_symbol_returns_none_if_no_symbol_exists(self):
         sym = "foo"
-
-        with pytest.raises(ValueError, match=f"No variable '{sym}'."):
-            self.rewriter(CommonExpressions.MANY_FUNCS).get_symbol(sym)
+        assert self.rewriter(CommonExpressions.MANY_FUNCS).get_symbol(sym) is None
 
     @pytest.mark.parametrize(
         "expression, args_and_fns",

@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Rewriters can be used to modify, or simplify, the form of symbolic expressions."""
-from bartiq.analysis.rewriters.sympy_rewriter import sympy_rewriter
+from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
 
 __all__ = ["sympy_rewriter"]

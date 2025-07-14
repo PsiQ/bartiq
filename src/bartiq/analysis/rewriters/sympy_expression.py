@@ -20,10 +20,7 @@ from typing import cast
 from sympy import Add, Expr, Function, Max, Min, Number, Symbol, Wild
 from typing_extensions import Self
 
-from bartiq.analysis.rewriters.expression_rewriter import (
-    ExpressionRewriter,
-    ResourceRewriter,
-)
+from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Substitution,
@@ -39,11 +36,8 @@ _SYMPY_BACKEND = SympyBackend(use_sympy_max=True)
 class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     """Rewrite SymPy expressions.
 
-    This class accepts a SymPy expression (or str) as input,
-    and provides methods for efficient simplification / rewriting of the input expression.
-
-    Args:
-        expression: The sympy expression of interest.
+    This class accepts a SymPy expression as input, and provides methods for efficient
+    simplification / rewriting of the input expression.
     """
 
     backend: SympyBackend = field(init=False)
@@ -72,22 +66,21 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """Run SymPy's `simplify` method on the expression."""
         return self.expression.simplify()
 
-    def get_symbol(self, symbol_name: str) -> Symbol:
+    def get_symbol(self, symbol_name: str) -> Symbol | None:
         """Get the SymPy Symbol object, given the Symbol's name.
+
+        If the symbol does not exist in the expression, return None.
 
         Args:
             symbol_name: Name of the symbol.
 
         Returns:
-            A SymPy Symbol object.
-
-        Raises:
-            ValueError: If no Symbol with the input name is in the expression.
+            A SymPy Symbol object, or None.
         """
         try:
             return next(sym for sym in self.free_symbols if sym.name == symbol_name)
         except StopIteration:
-            raise ValueError(f"No variable '{symbol_name}' in expression '{self.expression}'.")
+            return None
 
     def focus(self, symbols: str | Iterable[str]) -> Expr | None:
         """Focus on specific symbol(s), by only showing terms in the expression that include the input symbols.
@@ -100,12 +93,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         """
         symbols = [symbols] if isinstance(symbols, str) else list(symbols)
         symbols += _unwrap_linked_parameters(self.linked_params, symbols)
-        variables = set()
-        for sym in symbols:
-            try:
-                variables.add(self.get_symbol(sym))
-            except ValueError:
-                continue
+
+        variables = set(x for sym in symbols if (x := self.get_symbol(sym)))
 
         if terms_found := [term for term in self.individual_terms if not term.free_symbols.isdisjoint(variables)]:
             return sum(terms_found).collect(variables)
@@ -154,18 +143,16 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
     def _assume(self, assumption: Assumption) -> Expr:
         """Add an assumption to our expression."""
         expression = self.expression
-        try:
-            # If the Symbol exists, replace it with a Symbol that has the correct properties.
-            reference_symbol = self.get_symbol(symbol_name=assumption.symbol_name)
+
+        if reference_symbol := self.get_symbol(symbol_name=assumption.symbol_name):
             replacement = Symbol(assumption.symbol_name, **assumption.symbol_properties)
             expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
-        except ValueError:
-            # If the symbol does _not_ exist, parse the assumption expression.
+        else:
             reference_symbol = self.backend.as_expression(assumption.symbol_name)
 
-        # This is a hacky way to implement assumptions that relate to nonzero values.
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
+        # This is a hacky way to implement assumptions that relate to nonzero values.
         expression = expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
             {replacement_symbol: reference_symbol - assumption.value}
         )
@@ -200,7 +187,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             rewriter = rewriter.substitute("log($X + $N)", "f(X, N)")
             print(rewriter.expression) # f(x, 1) + f(y, 4) + f(z, 6)
         ```
-        Any other symbol, capitalised or otherwise, will match _anything_ except zero values.
+        Any other symbol will match _anything_ except zero values.
         """
 
         if substitution.wild:
@@ -209,7 +196,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         _symbol_or_expr = cast(Expr, self.backend.as_expression(substitution.expr))
         _replacement = self.backend.as_expression(substitution.replacement)
         return self.expression.subs(
-            _symbol_or_expr.subs({fs: self.get_symbol(fs.name) for fs in _symbol_or_expr.free_symbols}), _replacement
+            _symbol_or_expr.subs({fs: sym for fs in _symbol_or_expr.free_symbols if (sym := self.get_symbol(fs.name))}),
+            _replacement,
         )
 
     def _wildcard_substitution(self, substitution: Substitution) -> Expr:
@@ -239,19 +227,21 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
         )
 
 
-@dataclass
-class SympyResourceRewriter(ResourceRewriter[Expr]):
-    """A class for rewriting sympy resource expressions in routines.
-
-    By default, this class only acts on the top level resource. In the future, the ability to propagate
-    a list of instructions through resources in a routine hierarchy will be made available.
-    """
-
-    _rewriter: SympyExpressionRewriter = field(init=False)
-
-    def __post_init__(self):
-        self._rewriter = SympyExpressionRewriter
-        return super().__post_init__()
+def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
+    """Initialize a Sympy rewriter instance."""
+    match expression:
+        case str():
+            return SympyExpressionRewriter(
+                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
+            )
+        case Expr():
+            return SympyExpressionRewriter(
+                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
+            )
+        case _:
+            raise ValueError(
+                f"Invalid input type: {type(expression)} for expression {expression}. Must be `str` or `sympy.Expr`."
+            )
 
 
 def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
@@ -285,18 +275,3 @@ def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -
         )
 
     return replaced_expr
-
-
-def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
-    """Initialize a Sympy rewriter instance."""
-    match expression:
-        case str():
-            return SympyExpressionRewriter(
-                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
-            )
-        case Expr():
-            return SympyExpressionRewriter(
-                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
-            )
-        case _:
-            raise ValueError(f"Invalid input type: {type(expression)}. Must be `str` or `sympy.Expr`.")
