@@ -44,10 +44,26 @@ class ExpressionRewriterFactory(Protocol[T]):
 class ResourceRewriter(Generic[T]):
     """A class for rewriting resource expressions of routines.
 
-    By default, this class only acts on the top level resource. In order to propagate instructions through
-    every level of the routine, the method `apply_to_whole_routine` can be called which will return a new
-    `CompiledRoutine` object, where the relevant resource in every child (at every level) has the current instructions
-    on the rewriter instance applied to its expression.
+    It accepts a CompiledRoutine object, a resource name, and an optional rewriter factory function which defaults
+    to `sympy_rewriter`.
+
+    Once instantiated this class creates a `rewriter` attribute using the top level expression of `resource` in the
+    routine. The same methods that can be called on a rewriter can be called on this class.
+
+    When calling methods on an `ExpressionRewriter` class, a new instance is returned. As the `rewriter` is an attribute
+    in this class, calling methods will return a new instance _within this dataclass_. That is, the `rewriter` attribute
+    (and therefore `self`) are updated in-place. Take care when chaining methods together.
+
+    In order to propagate instructions through every level of the routine, the method
+    `apply_to_whole_routine` can be called which will return a new `CompiledRoutine` object,
+    where the relevant resource in every child (at every level) has the current instructions on the rewriter
+    instance applied to its resource expression.
+
+    Note that this _only_ affects `Resources` in the routine. Any substitutions made will not be propagated onto
+    symbolic definitions of Ports, for example.
+
+    Finally, there is a method `from_history` that accepts a list of rewriter `Instructions` and will apply each in turn
+    to the given resource expression.
 
     Args:
         routine: a CompiledRoutine.
@@ -121,6 +137,32 @@ class ResourceRewriter(Generic[T]):
             return routine
 
         return _traverse_routine(self.routine, self.rewriter.backend)
+
+    @classmethod
+    def from_history(
+        cls,
+        routine: CompiledRoutine,
+        resource: str,
+        history: list[Instruction],
+        rewriter_factory: ExpressionRewriterFactory[T] = sympy_rewriter,
+    ) -> ResourceRewriter:
+        """Generate a new ResourceRewriter from a history of instructions.
+
+        Args:
+            routine: A compiled routine object.
+            resource: A resource name.
+            history: A list of rewriter `Instructions` to apply.
+            rewriter_factory: Optional rewriter factory function. Defaults to sympy_rewriter.
+
+        Returns:
+            A ResourceRewriter object, with the history applied to the input resource expression.
+        """
+        resource_rewriter = cls(routine, resource, rewriter_factory)
+        rewriter = resource_rewriter.rewriter
+        for instruction in history:
+            rewriter = _apply_instruction(rewriter=rewriter, instruction=instruction)
+        resource_rewriter.rewriter = rewriter
+        return resource_rewriter
 
 
 def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction) -> ExpressionRewriter[T]:
