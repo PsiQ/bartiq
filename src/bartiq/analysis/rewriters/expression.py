@@ -201,7 +201,10 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def substitute(self, expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
-        By default performs a one-to-one mapping, unless wildcard symbols are present in `replace_with`.
+
+        By default performs a one-to-one mapping. If a symbol in `expr` is prefaced with `$`, it is flagged as
+        a _wild_ symbol. Wild symbols match anything except zero values. These allow for global pattern substitutions,
+        rather than one-to-one substitutions.
 
         Args:
             expr: The (sub)expression to substitute.
