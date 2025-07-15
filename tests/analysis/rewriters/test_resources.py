@@ -69,7 +69,7 @@ def test_resource_rewriter_does_not_change_routine_expr(compiled):
     # Why `str` here? Because the symbols in the actual expression have assumptions on them!
     assert str(resource_rewriter.expression) == "A + b + c"
 
-    assert resource_rewriter.routine.resource_values["dummy"] == _SYMPY_BACKEND.as_expression(
+    assert resource_rewriter.routine.resource_values["dummy_a"] == _SYMPY_BACKEND.as_expression(
         "Max(0, b) + Max(0, c) + Max(0, y) + Max(0, z)"
     )
 
