@@ -114,7 +114,8 @@ class Substitution(Instruction):
                 sub = Substitution(expr="a+b", replacement="c", backend=sympy_backend)
                 sub.linked_symbols # {"c": ("a", "b")}
             ```
-            If any symbols are 'wild', linked_symbols is an empty dictionary.
+            If any symbols are 'wild', linked_symbols is an empty dictionary as this corresponds to a many-to-many
+            substitution.
     """
 
     expr: str
