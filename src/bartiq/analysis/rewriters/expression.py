@@ -38,13 +38,13 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 class ExpressionRewriter(ABC, Generic[T]):
     """An abstract base class for rewriting expressions.
 
-    Args:
+    Attributes:
         expression: The expression of interest.
         _original_expression: Private attribute to store the original expression with no modifications.
             On initialisation, should be set to equal self.expression.
         backend: Which symbolic backend to use.
-        linked_symbols: A dictionary of symbols that are linked, i.e. which have been substituted for which. Helps
-            with tracking substitutions.
+        linked_symbols: A dictionary of symbols that have been substituted in place of others. Helpful for tracking
+            substitutions.
         _previous: The tuple of the most recent `Instruction` applied and the rewriter instance it was applied to.
             By default (Initial(), None).
 

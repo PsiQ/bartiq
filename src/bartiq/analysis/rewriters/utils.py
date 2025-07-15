@@ -82,7 +82,7 @@ class Assumption(Instruction):
     def symbol_properties(self) -> dict[str, bool | None]:
         """A dictionary of properties (positive, negative, non-positive, non-negative).
 
-        If None, the truthiness of the property could not be determined."""
+        If `None`, the boolean value of the property could not be determined."""
         return _get_assumption_properties(self.comparator, self.value)
 
     @classmethod
@@ -114,7 +114,7 @@ class Substitution(Instruction):
                 sub = Substitution(expr="a+b", replacement="c", backend=sympy_backend)
                 sub.linked_symbols # {"c": ("a", "b")}
             ```
-            If any symbols are 'wild', linked_symbols is an empty dictionary as this corresponds to a many-to-many
+            If any symbols are 'wild', `linked_symbols` is an empty dictionary as this corresponds to a many-to-many
             substitution.
     """
 
