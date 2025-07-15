@@ -226,6 +226,6 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(
             self,
             expression=self._substitute(substitution=substitution),
-            linked_params=self.linked_params | substitution.linked_symbols,
+            linked_symbols=self.linked_symbols | substitution.linked_symbols,
             _previous=(substitution, self),
         )

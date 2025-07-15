@@ -128,15 +128,15 @@ class TestSubstitutions:
         assert Substitution(symbol, replace_with, backend).wild == expected_wild_chars
 
     @pytest.mark.parametrize(
-        "symbol, replacement, linked_params",
+        "symbol, replacement, linked_symbols",
         [
             ("x", "y", {"y": ("x",)}),
             ("max(a, b, c)", "X(b, c)", {}),
             ("max(a, b, c)", "g(x, y)", {"x": ("a", "b", "c"), "y": ("a", "b", "c")}),
         ],
     )
-    def test_get_linked_parameters(self, symbol, replacement, linked_params, backend):
-        compare_dicts(Substitution(symbol, replacement, backend).linked_params, linked_params)
+    def test_get_linked_symbols(self, symbol, replacement, linked_symbols, backend):
+        compare_dicts(Substitution(symbol, replacement, backend).linked_symbols, linked_symbols)
 
 
 def compare_dicts(dict1, dict2):
