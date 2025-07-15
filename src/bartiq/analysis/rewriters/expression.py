@@ -36,12 +36,24 @@ from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 @dataclass
 class ExpressionRewriter(ABC, Generic[T]):
-    """An abstract base class for rewriting expressions."""
+    """An abstract base class for rewriting expressions.
+
+    Attributes:
+        expression: The expression of interest.
+        _original_expression: Private attribute to store the original expression with no modifications.
+            On initialisation, should be set to equal self.expression.
+        backend: Which symbolic backend to use.
+        linked_symbols: A dictionary of symbols that have been substituted in place of others. Helpful for tracking
+            substitutions.
+        _previous: The tuple of the most recent `Instruction` applied and the rewriter instance it was applied to.
+            By default (Initial(), None).
+
+    """
 
     expression: T
     _original_expression: T
     backend: SymbolicBackend[T]
-    linked_params: dict[str, Iterable[str]] = field(default_factory=dict)
+    linked_symbols: dict[str, Iterable[str]] = field(default_factory=dict)
     _previous: tuple[Instruction, Self | None] = (Initial(), None)
 
     def _repr_latex_(self) -> str | None:
@@ -169,7 +181,7 @@ class ExpressionRewriter(ABC, Generic[T]):
     def _simplify(self) -> T: ...
 
     def simplify(self) -> Self:
-        """Run the backend `simplify' functionality, if it exists."""
+        """Run the backend `simplify' functionality."""
         return replace(self, expression=self._simplify(), _previous=(Simplify(), self))
 
     @abstractmethod
@@ -201,7 +213,10 @@ class ExpressionRewriter(ABC, Generic[T]):
 
     def substitute(self, expr: str, replace_with: str) -> Self:
         """Substitute a symbol or subexpression for another symbol or subexpression.
-        By default performs a one-to-one mapping, unless wildcard symbols are present in `replace_with`.
+
+        By default performs a one-to-one mapping. If a symbol in `expr` is prefaced with `$`, it is flagged as
+        a _wild_ symbol. Wild symbols match anything except zero values. These allow for global pattern substitutions,
+        rather than one-to-one substitutions.
 
         Args:
             expr: The (sub)expression to substitute.
@@ -211,6 +226,6 @@ class ExpressionRewriter(ABC, Generic[T]):
         return replace(
             self,
             expression=self._substitute(substitution=substitution),
-            linked_params=self.linked_params | substitution.linked_params,
+            linked_symbols=self.linked_symbols | substitution.linked_symbols,
             _previous=(substitution, self),
         )

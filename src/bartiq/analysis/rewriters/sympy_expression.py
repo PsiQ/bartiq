@@ -24,7 +24,7 @@ from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.utils import (
     Assumption,
     Substitution,
-    _unwrap_linked_parameters,
+    _unwrap_linked_symbols,
 )
 from bartiq.symbolics.sympy_backend import SympyBackend
 from bartiq.symbolics.sympy_interpreter import Max as CustomMax
@@ -92,7 +92,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             A SymPy expression whose terms include the input symbols. If none are found, returns None.
         """
         symbols = [symbols] if isinstance(symbols, str) else list(symbols)
-        symbols += _unwrap_linked_parameters(self.linked_params, symbols)
+        symbols += _unwrap_linked_symbols(self.linked_symbols, symbols)
 
         variables = set(x for sym in symbols if (x := self.get_symbol(sym)))
 
