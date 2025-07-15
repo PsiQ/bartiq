@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 from ast import literal_eval
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
 
@@ -77,10 +77,13 @@ class Assumption(Instruction):
     symbol_name: str
     comparator: Comparators | str
     value: int | float
-    symbol_properties: dict[str, bool | None] = field(init=False)
 
-    def __post_init__(self):
-        object.__setattr__(self, "symbol_properties", _get_assumption_properties(self.comparator, self.value))
+    @property
+    def symbol_properties(self) -> dict[str, bool | None]:
+        """A dictionary of properties (positive, negative, non-positive, non-negative).
+
+        If None, the truthiness of the property could not be determined."""
+        return _get_assumption_properties(self.comparator, self.value)
 
     @classmethod
     def from_string(cls, assumption_string: str) -> Self:
@@ -103,33 +106,55 @@ class Substitution(Instruction):
         expr: The (sub)expression to replace.
         replacement: A replacement subexpression.
         backend: The backend to parse the expressions through.
-        wild: A tuple of symbols that have been marked as "wild", i.e. they match anything.
+
+    Attributes:
+        wild: A tuple of symbols that have been flagged as 'wild' in the expr.
+        linked_symbols: A dictionary of which symbols have been replaced with which, e.g.
+            ```python
+                sub = Substitution(expr="a+b", replacement="c", backend=sympy_backend)
+                sub.linked_symbols # {"c": ("a", "b")}
+            ```
+            If any symbols are 'wild', linked_symbols is an empty dictionary.
     """
 
     expr: str
     replacement: str
     backend: SymbolicBackend
-    wild: tuple[str, ...] = field(default_factory=tuple, init=False)
-    linked_params: dict[str, Iterable[str]] = field(default_factory=dict, init=False)
 
-    def __post_init__(self):
-        object.__setattr__(self, "wild", _get_wild_characters(self.expr))
-        object.__setattr__(self, "linked_params", _get_linked_parameters(self) if not self.wild else {})
+    @property
+    def wild(self) -> tuple[str, ...]:
+        """Return a tuple of all symbols in self.expr that have been marked as wild.
+
+        Returns:
+            A tuple of symbols.
+        """
+        return _get_wild_characters(self.expr)
+
+    @property
+    def linked_symbols(self) -> dict[str, Iterable[str]]:
+        """Get a dictionary of which symbols have been replaced with which in this substitution.
+
+        Empty if any symbols are wild.
+
+        Returns:
+            A dictionary of {symbol_in_replacement: (symbol_in_expr, ...)}
+        """
+        return _get_linked_symbols(self) if not self.wild else {}
 
 
-def _get_linked_parameters(substitution: Substitution) -> dict[str, Iterable[str]]:
-    """Given a substitution object, determine if we can derive a link between parameters.
+def _get_linked_symbols(substitution: Substitution) -> dict[str, Iterable[str]]:
+    """Given a substitution object, determine if we can derive a link between symbols.
 
     Example::
     ```python
         substitution = Substitution("a", "b")
-        _get_linked_parameters(substitution)
+        _get_linked_symbols(substitution)
         >>> { "b": ("a",) }
     ```
     Similarly,
     ```python
         substitution = Substitution("a*(b + c)", "a*X")
-        _get_linked_parameters(substitution)
+        _get_linked_symbols(substitution)
         >>> { "X": ("b", "c")}
     ```
     """
@@ -231,25 +256,25 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
     return symbol_name, comparator, value
 
 
-def _unwrap_linked_parameters(
-    parameter_connection_reference: dict[str, Iterable[str]],
-    variables_to_track: Iterable[str],
+def _unwrap_linked_symbols(
+    symbol_connection_reference: dict[str, Iterable[str]],
+    symbols_to_track: Iterable[str],
     linked: list[str] | None = None,
 ) -> list[str]:
-    """Given a parameter connection reference dictionary (which parameters have been substituted for which),
-    and a sequence of variables to track, find all relevant linked parameters.
+    """Given a symbol connection reference dictionary (which symbols have been substituted for which),
+    and a sequence of variables to track, find all relevant linked symbols.
 
     Args:
-        parameter_connection_reference: All substitutions that have occurred.
-        variables_to_track : Which variables we are interested in.
-        linked: A list of linked parameters. Defaults to None.
+        symbol_connection_reference: All substitutions that have occurred.
+        symbols_to_track : Which variables we are interested in.
+        linked: A list of linked symbols. Defaults to None.
 
     Returns:
-        A list of symbol names, each of which will be transitively related to a variable in variables_to_track.
+        A list of symbol names, each of which will be transitively related to a symbol in symbols_to_track.
     """
     linked = linked or []
-    for _new, _old in parameter_connection_reference.items():
-        if any(x in _old for x in variables_to_track):
+    for _new, _old in symbol_connection_reference.items():
+        if any(x in _old for x in symbols_to_track):
             linked.append(_new)
-            linked = _unwrap_linked_parameters(parameter_connection_reference, [_new], linked)
+            linked = _unwrap_linked_symbols(symbol_connection_reference, [_new], linked)
     return linked
