@@ -19,7 +19,6 @@ from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Literal, cast
 
-from IPython.display import display
 from qref import SchemaV1
 from qref.functools import AnyQrefType, ensure_routine
 from qref.schema_v1 import ParamLinkV1, PortV1, ResourceV1, RoutineV1
@@ -286,9 +285,6 @@ class Contributions:
         except KeyError as exc:
             valid_names = "\n\t".join(list(self.compiled_routine.children.keys()))
             raise ValueError(f"Valid child routine names are: \n\t{valid_names}") from exc
-
-    def _ipython_display_(self):
-        display(self.resource_contributions)
 
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
