@@ -1,5 +1,3 @@
-# latex_expr_dict.py
-
 import re
 from dataclasses import dataclass, field, replace
 
@@ -71,8 +69,8 @@ class LatexExprDict:
         items = list(self.expr_dict.items())
 
         for i, (key, val) in enumerate(items):
-            key_latex = escape_latex(key)
-            val_latex = wrap_latex_expr(val)
+            key_latex = escape_latex(str(key))
+            val_latex = wrap_latex_expr(sp.Number(val) if isinstance(val, (int | float)) else val)
 
             lines.append(rf"\text{{{key_latex}}} & {val_latex} \\")
 
