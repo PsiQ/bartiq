@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Literal, cast
@@ -256,35 +256,6 @@ class CompiledRoutine(BaseRoutine[T]):
 
         """
         return SchemaV1(version="v1", program=_routine_to_qref_program(self, backend))
-
-
-def child_contributions(compiled_routine: CompiledRoutine) -> dict[str, float]:
-    return {
-        resource: {"total": total}
-        | {
-            child_name: val
-            for child_name, child_rout in compiled_routine.children.items()
-            if resource in child_rout.resource_values and (val := child_rout.resource_values[resource]) != 0
-        }
-        for resource, total in compiled_routine.resource_values.items()
-        if total != 0
-    }
-
-
-@dataclass
-class Contributions:
-    compiled_routine: CompiledRoutine
-
-    @property
-    def resource_contributions(self):
-        return child_contributions(self.compiled_routine)
-
-    def step_into(self, child: str):
-        try:
-            return replace(self, compiled_routine=self.compiled_routine.children[child])
-        except KeyError as exc:
-            valid_names = "\n\t".join(list(self.compiled_routine.children.keys()))
-            raise ValueError(f"Valid child routine names are: \n\t{valid_names}") from exc
 
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
