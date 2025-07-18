@@ -305,19 +305,27 @@ class SympyBackend:
 
     def min(self, *args):
         """Returns a smallest value from given args."""
-        return self.value_of(self.function_mappings["min"](*set(args)))
+        if value := self.value_of(expr := self.function_mappings["min"](*set(args))):
+            return value
+        return expr
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return self.value_of(self.function_mappings["max"](*set(args)))
+        if value := self.value_of(expr := self.function_mappings["max"](*set(args))):
+            return value
+        return expr
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
-        return self.value_of(sympy.Add(*args))
+        if value := self.value_of(expr := sympy.Add(*args)):
+            return value
+        return expr
 
     def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return product of all args."""
-        return self.value_of(sympy.Mul(*args))
+        if value := self.value_of(expr := sympy.Mul(*args)):
+            return value
+        return expr
 
     def sequence_sum(
         self,
@@ -327,7 +335,9 @@ class SympyBackend:
         end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a sum of terms expressed using `iterator_symbol`."""
-        return sympy.Sum(term, (iterator_symbol, start, end))
+        if value := self.value_of(expr := sympy.Sum(term, (iterator_symbol, start, end))):
+            return value
+        return expr
 
     def sequence_prod(
         self,
@@ -337,7 +347,9 @@ class SympyBackend:
         end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
-        return sympy.Product(term, (iterator_symbol, start, end))
+        if value := self.value_of(expr := sympy.Product(term, (iterator_symbol, start, end))):
+            return value
+        return expr
 
     def find_undefined_functions(
         self, expr: TExpr[Expr], user_defined: Iterable[str] = ()
