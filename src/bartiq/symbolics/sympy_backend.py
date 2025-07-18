@@ -305,19 +305,19 @@ class SympyBackend:
 
     def min(self, *args):
         """Returns a smallest value from given args."""
-        return self.function_mappings["min"](*set(args))
+        return self.value_of(self.function_mappings["min"](*set(args)))
 
     def max(self, *args):
         """Returns a biggest value from given args."""
-        return self.function_mappings["max"](*set(args))
+        return self.value_of(self.function_mappings["max"](*set(args)))
 
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
-        return sympy.Add(*args)
+        return self.value_of(sympy.Add(*args))
 
     def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return product of all args."""
-        return sympy.Mul(*args)
+        return self.value_of(sympy.Mul(*args))
 
     def sequence_sum(
         self,
