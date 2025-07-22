@@ -2,7 +2,6 @@ import re
 from dataclasses import dataclass, field, replace
 
 import sympy as sp
-from IPython.display import display
 
 from bartiq import CompiledRoutine
 from bartiq.symbolics.backend import T, TExpr
@@ -80,33 +79,10 @@ class LatexExprDict:
             elif i < len(items) - 1:
                 # Insert a blank line between other rows
                 lines.append(r"& \phantom{.} \\")
+                lines.append(r"\hdashline")
+                lines.append(r"& \phantom{.} \\")
         lines.append(r"\end{array}")
         return "$$\n" + "\n".join(lines) + "\n$$"
-
-    def show(self):
-        """Explicitly render in notebook (optional)"""
-        display(self)
-
-    def update(self, key: str, expr: TExpr[T]):
-        self.expr_dict[key] = expr
-
-    def __getitem__(self, key):
-        return self.expr_dict[key]
-
-    def __setitem__(self, key, value):
-        self.expr_dict[key] = value
-
-    def __delitem__(self, key):
-        del self.expr_dict[key]
-
-    def __iter__(self):
-        return iter(self.expr_dict)
-
-    def __len__(self):
-        return len(self.expr_dict)
-
-    def __contains__(self, key):
-        return key in self.expr_dict
 
 
 @dataclass
