@@ -31,11 +31,12 @@ nav:
       - tutorials/01_basic_example.ipynb
       - tutorials/02_alias_sampling_basic.ipynb
       - tutorials/03_advanced_examples.ipynb
-  # - Concepts:
+  - Concepts:
+    - concepts/compilation.md
+    - concepts/rewriters.md
   - Unitary Hack:
       - unitary_hack/blogpost.md
       - unitary_hack/issues.md
-  - concepts/compilation.md
   - troubleshooting.md
   - limitations.md
   - reference.md
@@ -80,6 +81,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
+  - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
