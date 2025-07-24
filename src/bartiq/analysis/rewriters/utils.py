@@ -259,7 +259,8 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
             raise NotImplementedError(
                 "Assumption tries to draw a comparison between two variables:"
                 f" {symbol_name}, {value}.\n"
-                "At present, this is not possible."
+                "At present, this is not possible. Please see the SymPy documentation: "
+                "https://docs.sympy.org/latest/guides/assumptions.html#relations-between-different-symbols"
             )
         else:
             raise exc
@@ -288,3 +289,7 @@ def _unwrap_linked_symbols(
             linked.append(_new)
             linked = _unwrap_linked_symbols(symbol_connection_reference, [_new], linked)
     return linked
+
+
+if __name__ == "__main__":
+    Assumption.from_string("X>Y")
