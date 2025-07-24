@@ -9,11 +9,12 @@ The `sympy_rewriter` operates on a single expression, however we also provide a 
 ```python
 from bartiq.analysis import ResourceRewriter
 ```
-Here we will give an overview of the functionality currently implemented in these objects, with example usage.
+Here we will give an overview of the functionality currently implemented in these objects, with example usage. This document is intended for advanced users seeking to understand in-depth the logic behind rewriter functionality, either for development or debugging purposes. We will soon have a more usage-oriented tutorial. 
 
 ## Motivation
 
-As quantum algorithms increase in complexity their symbolic resource expressions similarly become more complex. For a state of the art algorithm like double factorization (find a link to put here) the resource expressions can be almost impossible to parse, due to the sheer number of terms and symbols. Making complex expressions more palatable is a primary motivation for rewriters; gaining insights into closed-form expressions for important resource quantities is vital for fault-tolerant quantum algorithm optimization and design.
+As quantum algorithms increase in complexity their symbolic resource expressions similarly become more complex. For a state of the art algorithm like double factorization the resource expressions can be almost impossible to parse, due to the sheer number of terms and symbols. For example, see Fig.~16 in [*Even more eﬃcient quantum computations of chemistry
+through tensor hypercontraction*](https://arxiv.org/pdf/2011.03494), and Eq. C39 for the associated Toffoli cost of this circuit. Making complex expressions more palatable is a primary motivation for rewriters; gaining insights into closed-form expressions for important resource quantities is vital for fault-tolerant quantum algorithm optimization and design.
 
 ## Overview 
 
@@ -61,7 +62,7 @@ An `Instruction` is an action that marks a change to an expression. The followin
 The primary purpose of `Instructions` is to track the history of an expression, and the user may only ever interact with these objects via the `history()` method. Of these classes, only `Assumption` and `Substitution` require special logic; the others have no methods or attributes implemented. We explore `Assumption` and `Substitution` in more detail below.
 
 !!! note "Why not just an `Enum`?"  
-    Originally the `Instructions` were implemented as an `Enum`! However, because `Assumptions` and `Substitutions` required special logic it was challenging to enforce strict typing across both an `Enum` and other dataclasses. Creating an empty class `Instruction` that everything else subclassed from is a cleaner implementation.
+    Originally the `Instructions` were implemented as an `Enum`! However, because `Assumptions` and `Substitutions` required special logic it was challenging to enforce strict typing across both an `Enum` and other dataclasses. Creating an empty class `Instruction`, with other classes inheriting from it, resulted in a cleaner implementation.
 
 
 #### Assumptions
@@ -87,12 +88,12 @@ sympy_rewriter("max(0, X)").assume("X > 0")
 
 Given an input assumption to a `sympy_rewriter`, the symbol is updated with the relevant SymPy [predicates](https://docs.sympy.org/latest/guides/assumptions.html#predicates). For some symbol `X` the predicates we support are:
 
-- positive: `X > a > 0` or `X > 0`,
+- positive: `X > 0`,
 - nonnegative: `X >= 0` or `positive`,
-- negative: `X < a < 0` or `X < 0`,
+- negative: `X < 0`,
 - nonpositive: `X<=0` or `negative`,
 
-where `a` is some real number. From these SymPy is able to deduce other predicates. We do not implement predicates that declare if a symbol belongs to a particular number group, i.e. `integer`, `complex`, etc. We found that these kinds of assumptions did little to help simplify expressions. Similarly we do not have support for symbols being declared as infinitely large; if there is a valuable use case for these then they are easily added.
+From these SymPy is able to deduce other predicates. We do not implement predicates that declare if a symbol belongs to a particular number group, i.e. `integer`, `complex`, etc. We found that these kinds of assumptions did little to help simplify expressions. Similarly we do not have support for symbols being declared as infinitely large; if there is a valuable use case for these they could be easily added.
 
 
 There is unfortunately [no way to input assumptions between different symbols](https://docs.sympy.org/latest/guides/assumptions.html#relations-between-different-symbols). Similarly SymPy does not implement predicates that specify a relationship between a symbol and some nonzero value, i.e. `X > 5`. However, for this latter point, we have implemented a workaround. 
@@ -204,15 +205,43 @@ sympy_rewriter(
 
 ##### Caveats
 Here we collect some caveats for wildcard substitutions.
+<details><summary>Matching zero arguments</summary>
+As mentioned we assume that wildcard symbols are _nonzero_. This is to prevent perfectly valid, but perhaps unwanted, interactions. For example:
+```python
+from sympy.abc import x
+from sympy import Wild
+a = Wild('a') # Can match to zero values
+b = Wild('b') # Can match to zero values
+expr = x
+expr.match(a + b)
+>>> {_a: x, _b: 0}
+```
+While this is correct, if our goal is to <em>only</em> match expressions that are an explicit sum of other expressions, zero-valued <code>Wild</code> symbols can lead to false positives.
+<br>
+Excluding zero-values from wildcard substitutions in rewriters helps prevent these kinds of events, but it can also introduce other pitfalls:
+```python
+rewriter = sympy_rewriter("max(0, a) + max(1, b) + max(4, c) + max(5, d)")
+```
+If we know that our variables <code>a</code>, <code>b</code>, <code>c</code> and <code>d</code> are all large real values, we can just get rid of the <code>max</code> functions with a wildcard subtitution:
+```python
+rewriter.substitute("max($x, $y)", "y")
+>>> max(0, a) + b + c + d
+```
+Ah - because wild symbols cannot be zero, we did not remove the <code>max(0, a)</code> term. To match to zero, you must provide it explicitly:
+```python
+rewriter.substitute("max($x, $y)", "y").substitute("max(0, $x)", "x")
+>>> a + b + c + d
+```
+</details>
 
 <details><summary>Ordering of function arguments</summary>
 Wildcard substitutions can be extremely powerful but, due to a difference between how SymPy stores expressions internally versus how it displays them, can have some unexpected outcomes. Take for instance the above example:
 ```python
-    rewriter = sympy_rewriter("log(x + 2) + log(y + 4)")
-    rewriter
-    >>> log(x + 2) + log(y + 4)
-    rewriter.substitute("log($x + $y)", "f(x, y)")
-    >>> f(2, x) + f(4, y)
+rewriter = sympy_rewriter("log(x + 2) + log(y + 4)")
+rewriter
+>>> log(x + 2) + log(y + 4)
+rewriter.substitute("log($x + $y)", "f(x, y)")
+>>> f(2, x) + f(4, y)
 ```
 Because the expression is displayed with symbols preceding numbers in the `log` arguments, we intutively expect the matching pattern to follow this convention. Instead, it flips their order: this is due to how SymPy prioritises objects in its engine. For more complex arguments it can be difficult to infer in what order SymPy is storing them.
 </details>
@@ -286,7 +315,7 @@ It is also possible to instantiate a `ResourceRewriter` from a given history, wi
 and returns an instance of `ResourceRewriter` with the history loaded in. 
 
 ## Implementation details
-Below we list some of the most important attributes, properties and methods. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
+Below we list some of the most important attributes, properties and methods of rewriters. These can be called directly on `sympy_rewriter` instances, or on `ResourceRewriter` instances. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
 
 There are broadly two kinds of methods: those that implement an `Instruction`, and thus modify the expression, and those that display information about the expression or update it temporarily. Methods that are typehinted to return `Self` return a new rewriter instance, and thus implement an `Instruction`.
 
