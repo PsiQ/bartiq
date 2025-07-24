@@ -8,6 +8,11 @@
 
 ::: bartiq.analysis
 
+## bartiq.analysis.rewriters
+
+::: bartiq.analysis.rewriters.expression
+::: bartiq.analysis.rewriters.sympy_expression
+
 ## bartiq.compilation
 
 ::: bartiq.compilation
