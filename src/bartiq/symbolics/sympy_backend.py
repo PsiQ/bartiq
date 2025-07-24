@@ -57,6 +57,15 @@ ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
 TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 
 
+def to_number(func):
+    """Map the output of a function to a numeric value of possible."""
+
+    def inner(backend: SympyBackend, *args, **kwargs):
+        return backend.value_of(func(backend, *args, **kwargs))
+
+    return inner
+
+
 def empty_for_numbers(
     func: ExprTransformer[P, Iterable[T]],
 ) -> TExprTransformer[P, Iterable[T]]:
@@ -122,8 +131,8 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 
 @lru_cache
-def _value_of(expr: Expr) -> Number | None:
-    """Compute a numerical value of an expression, return None if it's not possible.
+def _value_of(expr: Expr) -> Number:
+    """Compute a numerical value of an expression; returns the expression if this is not possible.
 
     Raises:
         TypeError: If the expression cannot be rounded.
@@ -132,7 +141,7 @@ def _value_of(expr: Expr) -> Number | None:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
     except TypeError as e:
         if str(e) == "Cannot round symbolic expression":
-            return None
+            return expr
         else:
             raise e
 
@@ -207,7 +216,7 @@ class SympyBackend:
 
     @identity_for_numbers
     def as_native(self, expr: Expr) -> str | int | float:
-        return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
+        return value if isinstance((value := self.value_of(expr)), (int, float)) else self.serialize(expr)
 
     @empty_for_numbers
     def free_symbols(self, expr: Expr) -> Iterable[str]:
@@ -219,10 +228,11 @@ class SympyBackend:
         return list(self.function_mappings)
 
     @identity_for_numbers
-    def value_of(self, expr: Expr) -> Number | None:
-        """Compute a numerical value of an expression, return None if it's not possible."""
+    def value_of(self, expr: Expr) -> Number | Expr:
+        """Compute a numerical value of an expression; acts as the identity if this is not possible."""
         return _value_of(expr)
 
+    @to_number
     @identity_for_numbers
     def substitute(
         self,
@@ -244,7 +254,7 @@ class SympyBackend:
             functions_map = {}
         for func_name, func in functions_map.items():
             expr = self._define_function(expr, func_name, func)
-        return value if (value := self.value_of(expr)) is not None else expr
+        return expr
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
@@ -303,30 +313,27 @@ class SympyBackend:
         except KeyError:
             return sympy.Function(func_name)
 
+    @to_number
     def min(self, *args):
         """Returns a smallest value from given args."""
-        if value := self.value_of(expr := self.function_mappings["min"](*set(args))):
-            return value
-        return expr
+        return self.function_mappings["min"](*set(args))
 
+    @to_number
     def max(self, *args):
         """Returns a biggest value from given args."""
-        if value := self.value_of(expr := self.function_mappings["max"](*set(args))):
-            return value
-        return expr
+        return self.function_mappings["max"](*set(args))
 
+    @to_number
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
-        if value := self.value_of(expr := sympy.Add(*args)):
-            return value
-        return expr
+        return sympy.Add(*args)
 
+    @to_number
     def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return product of all args."""
-        if value := self.value_of(expr := sympy.Mul(*args)):
-            return value
-        return expr
+        return sympy.Mul(*args)
 
+    @to_number
     def sequence_sum(
         self,
         term: TExpr[Expr],
@@ -335,10 +342,9 @@ class SympyBackend:
         end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a sum of terms expressed using `iterator_symbol`."""
-        if value := self.value_of(expr := sympy.Sum(term, (iterator_symbol, start, end))):
-            return value
-        return expr
+        return sympy.Sum(term, (iterator_symbol, start, end))
 
+    @to_number
     def sequence_prod(
         self,
         term: TExpr[Expr],
@@ -347,9 +353,7 @@ class SympyBackend:
         end: TExpr[Expr],
     ) -> TExpr[Expr]:
         """Express a product of terms expressed using `iterator_symbol`."""
-        if value := self.value_of(expr := sympy.Product(term, (iterator_symbol, start, end))):
-            return value
-        return expr
+        return sympy.Product(term, (iterator_symbol, start, end))
 
     def find_undefined_functions(
         self, expr: TExpr[Expr], user_defined: Iterable[str] = ()
