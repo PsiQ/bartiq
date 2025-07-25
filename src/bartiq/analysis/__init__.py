@@ -14,4 +14,4 @@
 """The bartiq analysis module provides methods to manipulate symbolic expressions."""
 from bartiq.analysis.rewriters import rewrite_routine_resources, sympy_rewriter
 
-__all__ = ["sympy_rewriter", "ResourceRewriter"]
+__all__ = ["sympy_rewriter", "rewrite_routine_resources"]
