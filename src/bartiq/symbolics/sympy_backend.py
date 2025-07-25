@@ -63,7 +63,7 @@ def evaluate_if_possible(func: CanReturnNumber) -> CanReturnNumber:
 
     @wraps(func)
     def inner(backend: SympyBackend, *args, **kwargs) -> TExpr[Expr]:
-        return backend.value_of(func(backend, *args, **kwargs))
+        return backend.cast_to_numeric(func(backend, *args, **kwargs))
 
     return inner
 
@@ -135,7 +135,7 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 
 @lru_cache
-def _value_of(expr: Expr) -> TExpr[Expr]:
+def _cast_to_numeric(expr: Expr) -> TExpr[Expr]:
     """Compute a numerical value of an expression; returns the expression if this is not possible.
 
     Raises:
@@ -220,7 +220,7 @@ class SympyBackend:
 
     @identity_for_numbers
     def as_native(self, expr: Expr) -> str | int | float:
-        return value if isinstance((value := self.value_of(expr)), (int, float)) else self.serialize(expr)
+        return value if isinstance((value := self.cast_to_numeric(expr)), (int, float)) else self.serialize(expr)
 
     @empty_for_numbers
     def free_symbols(self, expr: Expr) -> Iterable[str]:
@@ -232,9 +232,9 @@ class SympyBackend:
         return list(self.function_mappings)
 
     @identity_for_numbers
-    def value_of(self, expr: Expr) -> Number | Expr:
+    def cast_to_numeric(self, expr: Expr) -> Number | Expr:
         """Compute a numerical value of an expression; acts as the identity if this is not possible."""
-        return _value_of(expr)
+        return _cast_to_numeric(expr)
 
     @evaluate_if_possible
     @identity_for_numbers
