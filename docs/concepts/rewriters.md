@@ -290,27 +290,7 @@ expr.match(Max(X + Y, f(c)))
 ```
 As we rely on this SymPy level code when implementing substitutions through rewriters, it is important to keep these kinds of ineractions in mind.
 </details>
-<!-- 
-## ResourceRewriter
 
-The `ResourceRewriter` class allows you to use a rewriter across an entire `bartiq` `CompiledRoutine` for a specific resource. Where the `sympy_rewriter` accepts only a single expression, `ResourceRewriter` accepts three inputs:
-
-- `routine: CompiledRoutine`
-- `resource: str`
-- `rewriter_factory: ExpressionRewriterFactory = sympy_rewriter`
-
-The `ResourceRewriter` is backend-independent and inherits functionality from a given rewriter factory method, which defaults to `sympy_rewriter`. Upon instantiation, the `rewriter_factory` input is used to create a `.rewriter` attribute on the expression of the given resource at the top level of the routine. Attribute, property and method calls are then forwarded to the `.rewriter` attribute such that `ResourceRewriter` instances can be used in the same way as a rewriter instance. The caveat is that while rewriters are immutable, such that transformative methods return a new instance, the `ResourceRewriter` is not immutable and the `.rewriter` attribute is updated after each method call. In short, an instance of `ResourceRewriter` will be updated **in-place** whereas an instance of `sympy_rewriter` will not. 
-
-When using a `ResourceRewriter`, changes to the expression are not propagated throughout the entire routine. A method `apply_to_whole_routine()` can be called that inspects the history of the rewriter, and applies those changes to every `resource` expression at every level of the routine. This method returns a new routine instead of updating the existing one. 
-
-It is also possible to instantiate a `ResourceRewriter` from a given history, with `.from_history()`. This class method accepts as inputs:
-
-- `routine: CompiledRoutine`
-- `resource: str`
-- `history: list[Instruction]`
-- `rewriter_factory: ExpressionRewriterFactory = sympy_rewriter`
-
-and returns an instance of `ResourceRewriter` with the history loaded in.  -->
 
 ## Implementation details
 Below we list some of the most important attributes, properties and methods of rewriters. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
