@@ -16,12 +16,13 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import replace
-from typing import Protocol, cast
+from typing import Protocol
 
 from bartiq import CompiledRoutine
 from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
 from bartiq.analysis.rewriters.utils import Instruction
+from bartiq.compilation._common import Resource
 from bartiq.symbolics.backend import T
 
 
@@ -31,7 +32,9 @@ class ExpressionRewriterFactory(Protocol[T]):
     def __call__(self, expression: str | T) -> ExpressionRewriter[T]: ...
 
 
-def rewrite_routine_resources(
+def rewrite_routine_resources[
+    T
+](
     routine: CompiledRoutine,
     resources: str | Iterable[str],
     instructions: list[Instruction],
@@ -49,23 +52,27 @@ def rewrite_routine_resources(
         A new CompiledRoutine object.
     """
 
-    def _traverse_routine(routine: CompiledRoutine, resource: str) -> CompiledRoutine:
+    def _traverse_routine(routine: CompiledRoutine, resource_to_rewrite: str) -> CompiledRoutine:
         """Recursively traverse the routine, replacing resource values
         starting from the lowest level of children."""
-        for child_routine in routine.children.values():
-            return _traverse_routine(child_routine, resource)
-        if resource in routine.resources and not isinstance(routine.resource_values[resource], (int | float)):
+
+        new_children_dict: dict[str, CompiledRoutine] = {
+            child_name: _traverse_routine(child_routine, resource_to_rewrite)
+            for child_name, child_routine in routine.children.items()
+        }
+        if resource_to_rewrite in routine.resources and not isinstance(
+            routine.resource_values[resource_to_rewrite], (int | float)
+        ):
+            new_resource_dict: dict[str, Resource] = {
+                resource_to_rewrite: replace(
+                    routine.resources[resource_to_rewrite],
+                    value=rewriter_factory(routine.resources[resource_to_rewrite].value)
+                    .with_instructions(instructions)
+                    .expression,
+                )
+            }
             return replace(
-                routine,
-                resources=routine.resources
-                | {
-                    resource: replace(
-                        routine.resources[resource],
-                        value=rewriter_factory(cast(T, routine.resources[resource].value)).with_instruction_set(
-                            instructions
-                        ),
-                    )
-                },
+                routine, children=routine.children | new_children_dict, resources=routine.resources | new_resource_dict
             )
 
         return routine

@@ -1,9 +1,14 @@
 import pytest
 
 from bartiq import Routine, compile_routine
-from bartiq.analysis.rewriters.resources import ResourceRewriter
-from bartiq.analysis.rewriters.sympy_expression import _SYMPY_BACKEND
+from bartiq.analysis.rewriters.routine_rewriter import rewrite_routine_resources
+from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
 from bartiq.compilation import CompilationFlags
+
+
+def from_str_to_str(backend, expr: str):
+    """Remove assumptions from symbols and ensure string matching works"""
+    return str(backend.as_expression(expr))
 
 
 @pytest.fixture(scope="function")
@@ -54,48 +59,44 @@ def root():
 
 
 @pytest.fixture(scope="function")
-def compiled(root):
+def compiled(root, backend):
     return compile_routine(
-        Routine.from_qref(root, _SYMPY_BACKEND), compilation_flags=CompilationFlags.EXPAND_RESOURCES
+        Routine.from_qref(root, backend), compilation_flags=CompilationFlags.EXPAND_RESOURCES
     ).routine
 
 
-def test_resource_rewriter_does_not_change_routine_expr(compiled):
-    resource_rewriter = ResourceRewriter(routine=compiled, resource="dummy_a")
-    resource_rewriter.assume("b>0").assume("y>0").assume("z>0").assume("c>0").simplify().expand().substitute(
-        "y + z", "A"
+def test_rewrite_routine_resources(compiled, backend):
+    resources = ["dummy_a", "dummy_b"]
+    rewriter = sympy_rewriter(compiled.resource_values["dummy_a"])
+    rewriter = (
+        rewriter.assume("b>0")
+        .assume("y>0")
+        .assume("z>10")
+        .assume("c>5")
+        .simplify()
+        .expand()
+        .substitute("y + z", "A")
+        .substitute("ceiling($x)", "x")
     )
-
-    # Why `str` here? Because the symbols in the actual expression have assumptions on them!
-    assert str(resource_rewriter.expression) == "A + b + c"
-
-    assert resource_rewriter.routine.resource_values["dummy_a"] == _SYMPY_BACKEND.as_expression(
-        "Max(0, b) + Max(0, c) + Max(0, y) + Max(0, z)"
-    )
-
-
-def test_apply_to_whole_routine(compiled):
-    resource = "dummy_a"
-    resource_rewriter = ResourceRewriter(routine=compiled, resource=resource)
-    resource_rewriter.assume("b>0").assume("y>0").assume("z>0").assume("c>0").simplify().expand().substitute(
-        "y + z", "A"
-    )
-    new_routine = resource_rewriter.apply_to_whole_routine()
-
-    # Test that the routine attribute has not been modified in-place
-    assert resource_rewriter.routine.resource_values[resource] == compiled.resource_values[resource]
+    new_routine = rewrite_routine_resources(compiled, resources, rewriter.history(), sympy_rewriter)
 
     # Test that the new routine top-level resource is the same as the rewriter attribute expression
-    assert str(new_routine.resource_values[resource]) == str(resource_rewriter.expression)
+    print(rewriter.expression)
+    print(compiled.resource_values)
+    print(new_routine.resource_values)
+    assert new_routine.resource_values["dummy_a"] == rewriter.expression
 
     # Test that the history has percolated through the children correctly.
-    assert str(new_routine.children["a"].children["b"].resource_values[resource]) == "b"
-    assert str(new_routine.children["x"].children["z"].resource_values[resource]) == "z"
+    # Dummy A resource
+    assert str(new_routine.children["a"].children["b"].resource_values["dummy_a"]) == from_str_to_str(backend, "b")
+    assert str(new_routine.children["x"].children["z"].resource_values["dummy_a"]) == from_str_to_str(backend, "z")
 
+    assert str(new_routine.children["a"].resource_values["dummy_a"]) == from_str_to_str(backend, "b+c")
+    assert str(new_routine.children["x"].resource_values["dummy_a"]) == from_str_to_str(backend, "A")
 
-def test_from_history(compiled):
-    resource_rewriter_a = ResourceRewriter(routine=compiled, resource="dummy_a")
-    history = resource_rewriter_a.assume("b > 0").assume("c>2").assume("y>0").assume("z>0").history()
-    assert str(ResourceRewriter.from_history(routine=compiled, resource="dummy_b", history=history).expression) == str(
-        _SYMPY_BACKEND.as_expression("log(b+1) + ceiling(y) + 3")
-    )
+    # Dummy B resource
+    assert str(new_routine.children["a"].children["c"].resource_values["dummy_b"]) == from_str_to_str(backend, "2")
+    assert str(new_routine.children["x"].children["z"].resource_values["dummy_b"]) == from_str_to_str(backend, "1")
+
+    assert str(new_routine.children["a"].resource_values["dummy_b"]) == from_str_to_str(backend, "log(b+1)+2")
+    assert str(new_routine.children["x"].resource_values["dummy_b"]) == from_str_to_str(backend, "y+1")
