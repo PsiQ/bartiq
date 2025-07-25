@@ -291,6 +291,32 @@ expr.match(Max(X + Y, f(c)))
 As we rely on this SymPy level code when implementing substitutions through rewriters, it is important to keep these kinds of ineractions in mind.
 </details>
 
+## Applying instructions to `bartiq` `CompiledRoutines`
+
+While `sympy_rewriter` acts only on a single expression, we have made it easy to transfer those modifications onto a `CompiledRoutine` object. The function `rewrite_routine_resources` is exposed at the top level of `bartiq.analysis`:
+```python
+from bartiq.analysis import rewrite_routine_resources
+```
+This function requires multiple arguments:
+- `routine: CompiledRoutine` 
+    
+    A `CompiledRoutine` we want to apply rewriter `Instructions` to.
+
+- `resources: str | Iterable[str]`
+
+    Resource(s) expressions we wish to rewrite.
+
+- `instructions: list[Instruction]`
+
+    A list of rewriter instructions to apply. Can be retrieved from any rewriter instance by calling the `.history()` method.
+
+- `rewriter_factory: ExpressionRewriterFactory = sympy_rewriter`
+
+    A factory method that accepts a string (or backend-appropriate expression type) and returns a rewriter instance. By default `sympy_rewriter`.
+
+This function returns a new `CompiledRoutine` object, rather than modifying the input. 
+
+
 
 ## Implementation details
 Below we list some of the most important attributes, properties and methods of rewriters. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
@@ -530,43 +556,4 @@ While the base class enforces some functionality, SymPy allows us to extend this
     >>>     (b, max(c, d)),
     >>>     (c, d),
     >>> ]
-    ```
-
-### ResourceRewriter Methods
-
-The `ResourceRewriter` class has only two methods, and inherits the others from the input `rewriter_factory`. 
-
-- `apply_to_whole_routine() -> CompiledRoutine`
-
-    Apply all previously applied instructions onto every relevant resource expression at every level of the routine hierarchy. 
-
-    The following code snippets describes a potential workflow for this method. A `CompiledRoutine` object is loaded into the `ResourceRewriter`, and we specify that we wish to rewrite the `active_volume` resource. We call methods on the instance (recall `ResourceRewriters` are updated in place) and return a new routine from `.apply_to_whole_routine()`. In this `CompiledRoutine` object, the `active_volume` expression of every subroutine has had `.simplify()` applied to it.
-
-    ```python
-    routine: CompiledRoutine = CompiledRoutine(...)
-    av_resource_rewriter = ResourceRewriter(
-        routine=routine, 
-        resource="active_volume"
-    )
-    av_resource_rewriter.simplify()
-    new_routine: CompiledRoutine = resource_rewriter.apply_to_whole_routine()
-    ```
-
-- `from_history(routine: CompiledRoutine, resource: str, history: list[Instruction], rewriter_factory: ExpressionRewriterFactory = sympy_rewriter) -> ResourceRewriter`
-
-    This `classmethod` is able to instantiate a `ResourceRewriter` class from a given list of instructions. Using the above example:
-
-    ```python
-    routine: CompiledRoutine = CompiledRoutine(...)
-    av_resource_rewriter = ResourceRewriter(
-        routine=routine, 
-        resource="active_volume"
-    )
-    av_resource_rewriter.simplify()
-    qubit_highwater_resource_rewriter = ResourceRewriter.from_history(
-        routine=routine, 
-        resource="qubit_highwater", 
-        history=av_resource_rewriter.history()
-    )
-
     ```
