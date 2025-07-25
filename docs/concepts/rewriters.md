@@ -291,6 +291,32 @@ expr.match(Max(X + Y, f(c)))
 As we rely on this SymPy level code when implementing substitutions through rewriters, it is important to keep these kinds of ineractions in mind.
 </details>
 
+## Applying instructions to `bartiq` `CompiledRoutines`
+
+While `sympy_rewriter` acts only on a single expression, we have made it easy to transfer those modifications onto a `CompiledRoutine` object. The function `rewrite_routine_resources` is exposed at the top level of `bartiq.analysis`:
+```python
+from bartiq.analysis import rewrite_routine_resources
+```
+This function requires multiple arguments:
+- `routine: CompiledRoutine` 
+    
+    A `CompiledRoutine` we want to apply rewriter `Instructions` to.
+
+- `resources: str | Iterable[str]`
+
+    Resource(s) expressions we wish to rewrite.
+
+- `instructions: list[Instruction]`
+
+    A list of rewriter instructions to apply. Can be retrieved from any rewriter instance by calling the `.history()` method.
+
+- `rewriter_factory: ExpressionRewriterFactory = sympy_rewriter`
+
+    A factory method that accepts a string (or backend-appropriate expression type) and returns a rewriter instance. By default `sympy_rewriter`.
+
+This function returns a new `CompiledRoutine` object, rather than modifying the input. 
+
+
 
 ## Implementation details
 Below we list some of the most important attributes, properties and methods of rewriters. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
