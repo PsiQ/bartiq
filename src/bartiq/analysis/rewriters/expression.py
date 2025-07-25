@@ -146,6 +146,9 @@ class ExpressionRewriter(ABC, Generic[T]):
         Args:
             assignments: A mapping of symbols to numeric values or expressions.
             functions_map: A mapping for user-defined functions in the expressions. By default None.
+
+        Returns:
+            The expression with the evaluations applied.
         """
         return self.backend.substitute(self.expression, replacements=assignments, functions_map=functions_map)
 

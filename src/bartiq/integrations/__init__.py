@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""The integrations submodule permits LaTeX pretty-printing, and implements Jupyter notebook widgets."""
 from .latex import routine_to_latex
 
 __all__ = ["routine_to_latex"]
