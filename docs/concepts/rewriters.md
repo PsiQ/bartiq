@@ -5,16 +5,14 @@
 ```python
 from bartiq.analysis import sympy_rewriter
 ```
-The `sympy_rewriter` operates on a single expression, however we also provide a class object to operate on `bartiq` `CompiledRoutine` objects:
-```python
-from bartiq.analysis import ResourceRewriter
-```
-Here we will give an overview of the functionality currently implemented in these objects, with example usage. This document is intended for advanced users seeking to understand in-depth the logic behind rewriter functionality, either for development or debugging purposes. We will soon have a more usage-oriented tutorial. 
+Here we will give an overview of the rewriting functionality currently implemented, with example usage. This document is intended for advanced users seeking to understand in-depth the logic behind rewriters, either for development or debugging purposes. We will soon have a more usage-oriented tutorial. 
 
 ## Motivation
 
-As quantum algorithms increase in complexity their symbolic resource expressions similarly become more complex. For a state of the art algorithm like double factorization the resource expressions can be almost impossible to parse, due to the sheer number of terms and symbols. For example, see Fig.~16 in [*Even more eﬃcient quantum computations of chemistry
-through tensor hypercontraction*](https://arxiv.org/pdf/2011.03494), and Eq. C39 for the associated Toffoli cost of this circuit. Making complex expressions more palatable is a primary motivation for rewriters; gaining insights into closed-form expressions for important resource quantities is vital for fault-tolerant quantum algorithm optimization and design.
+As quantum algorithms increase in complexity their symbolic resource expressions similarly become more complex. For a state of the art algorithm like double factorization the resource expressions can be almost impossible to parse, due to the sheer number of terms and symbols. For example, see Fig. 16 in [*Even more eﬃcient quantum computations of chemistry
+through tensor hypercontraction*](https://arxiv.org/pdf/2011.03494), and Eq. C39 for the associated Toffoli cost of this circuit. 
+
+Making complex expressions more palatable is a primary motivation for rewriters; gaining insights into closed-form expressions for important resource quantities is vital for fault-tolerant quantum algorithm optimization and design.
 
 ## Overview 
 
@@ -30,7 +28,7 @@ would return a $\LaTeX$ (technically $KaTeX$) expression $a + b$. This, combined
 
 
 ## Concepts
-In designing the rewriter framework we implemented a number of different utility classes. A typical user should not need to interact with these objects, but we describe them here for completeness.
+In designing the rewriter framework we implemented a number of different utility classes. A typical user should not need to interact with these objects directly, but we describe them here for completeness.
 
 #### Instructions
 An `Instruction` is an action that marks a change to an expression. The following `Instructions` are implemented:
@@ -107,14 +105,14 @@ If an assumption like `X > 5` is passed, the following logic occurs:
 
 The SymPy symbolic engine attempts to simplify the expression at each stage of this process. The drawback is that these kinds of assumptions _do not persist_. Because SymPy lacks the logic to define the relative value of a symbol beyond (non-)positivity/negativity, after this process the symbol `X` will only be defined with predicates from that restricted set. As a result, it can occasionally be useful to reapply all previously applied assumptions in order to repeat the steps lined out above. This can be achieved with the `reapply_all_assumptions()` method. 
 
-Finally, an assumption can also be applied to an expression with the same logic as above; a dummy symbol is created with the relevant predicates and replaces every instance of the expression. 
+Finally, an assumption can also be applied to an expression with the same logic as above; a dummy symbol is created with the relevant predicates and (temporarily) replaces every instance of the expression. 
 ```python
 sympy_rewriter(
     "max(0, log(x)) + max(1, log(x)) + max(2, log(x))"
 ).assume("log(x) > 2")
 >>> 3*log(x)
 ```
-However the symbol `x` does _not_ inherit the predicates that are defined on `log(x)`. 
+However any symbols within the expression (`x` in this example) _will not_ inherit the predicates that were derived for the expression and associated dummy symbol. 
 
 
 #### Substitutions
@@ -206,7 +204,7 @@ sympy_rewriter(
 ##### Caveats
 Here we collect some caveats for wildcard substitutions.
 <details><summary>Matching zero arguments</summary>
-As mentioned we assume that wildcard symbols are _nonzero_. This is to prevent perfectly valid, but perhaps unwanted, interactions. For example:
+As mentioned we assume that wildcard symbols are <em>nonzero</em>. This is to prevent perfectly valid, but perhaps unwanted, interactions. For example:
 ```python
 from sympy.abc import x
 from sympy import Wild
@@ -227,7 +225,7 @@ If we know that our variables <code>a</code>, <code>b</code>, <code>c</code> and
 rewriter.substitute("max($x, $y)", "y")
 >>> max(0, a) + b + c + d
 ```
-Ah - because wild symbols cannot be zero, we did not remove the <code>max(0, a)</code> term. To match to zero, you must provide it explicitly:
+Because wild symbols cannot be zero, we did not remove the <code>max(0, a)</code> term. To match to zero, you must provide it explicitly:
 ```python
 rewriter.substitute("max($x, $y)", "y").substitute("max(0, $x)", "x")
 >>> a + b + c + d
@@ -235,7 +233,7 @@ rewriter.substitute("max($x, $y)", "y").substitute("max(0, $x)", "x")
 </details>
 
 <details><summary>Ordering of function arguments</summary>
-Wildcard substitutions can be extremely powerful but, due to a difference between how SymPy stores expressions internally versus how it displays them, can have some unexpected outcomes. Take for instance the above example:
+Wildcard substitutions can be extremely powerful but, due to a difference between how SymPy stores expressions internally versus how it displays them, can have some unexpected outcomes. Take for instance the following example:
 ```python
 rewriter = sympy_rewriter("log(x + 2) + log(y + 4)")
 rewriter
@@ -263,22 +261,22 @@ When attempting to find patterns with <code>Wild</code> symbols, we use the <cod
 <u>Case 1: Wildcard substitution works as expected</u>
 ```python
 expr = Max(a + b, c)
-expr.match(Min(X, c))
+expr.match(Max(X, c))
 >>> {X: a + b}
 ```
 
 <u>Case 2: Wildcard substitution does not work as expected</u>
 ```python
 expr = Max(a + b, f(c))
-expr.match(Min(X, f(c)))
+expr.match(Max(X, f(c)))
 >>> None
 ```
-The only change is now we are trying to match <code>f(c)</code> instead of just <code>c</code>. We intuitively expect this to work, as we are accessing the SymPy objects directly. Naively, we can be tempted to conclude that is is related to the function <code>f</code>.
-
+The only change is now we are trying to match <code>f(c)</code> instead of just <code>c</code>. We intuitively expect this to work, as we are accessing the SymPy objects directly. Naively, we can be tempted to conclude that this change in behaviour is related to the function <code>f</code>.
+<br>
 <u>Case 3: Wildcard substitution works again</u>
 ```python
 expr = Max(a, f(c))
-expr.match(Min(X, f(c)))
+expr.match(Max(X, f(c)))
 >>> {X: a}
 ```
 If we remove <code>+ b</code> from the first argument, the matching works again!
@@ -287,12 +285,12 @@ If we remove <code>+ b</code> from the first argument, the matching works again!
 To avoid this unexpected behaviour, it is encouraged to be as explicit as possible and provide more <code>Wild</code> symbols rather than fewer:
 ```python
 expr = Max(a + b, f(c))
-expr.match(Min(X + Y, f(c)))
+expr.match(Max(X + Y, f(c)))
 >>> {X: a, Y: b}
 ```
 As we rely on this SymPy level code when implementing substitutions through rewriters, it is important to keep these kinds of ineractions in mind.
 </details>
-
+<!-- 
 ## ResourceRewriter
 
 The `ResourceRewriter` class allows you to use a rewriter across an entire `bartiq` `CompiledRoutine` for a specific resource. Where the `sympy_rewriter` accepts only a single expression, `ResourceRewriter` accepts three inputs:
@@ -312,10 +310,10 @@ It is also possible to instantiate a `ResourceRewriter` from a given history, wi
 - `history: list[Instruction]`
 - `rewriter_factory: ExpressionRewriterFactory = sympy_rewriter`
 
-and returns an instance of `ResourceRewriter` with the history loaded in. 
+and returns an instance of `ResourceRewriter` with the history loaded in.  -->
 
 ## Implementation details
-Below we list some of the most important attributes, properties and methods of rewriters. These can be called directly on `sympy_rewriter` instances, or on `ResourceRewriter` instances. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
+Below we list some of the most important attributes, properties and methods of rewriters. In what follows, the typehint `T` is used to indicate that the type is backend-dependent expression type. For instance in the `sympy_backend`, `T = sympy.Expr`. 
 
 There are broadly two kinds of methods: those that implement an `Instruction`, and thus modify the expression, and those that display information about the expression or update it temporarily. Methods that are typehinted to return `Self` return a new rewriter instance, and thus implement an `Instruction`.
 
