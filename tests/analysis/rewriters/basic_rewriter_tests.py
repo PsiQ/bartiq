@@ -22,6 +22,7 @@ from bartiq.analysis.rewriters.utils import (
     Assumption,
     Expand,
     Initial,
+    Instruction,
     ReapplyAllAssumptions,
     Simplify,
     Substitution,
@@ -182,3 +183,22 @@ class ExpressionRewriterTests:
         self.rewriter(CommonExpressions.MANY_FUNCS).evaluate_expression(
             {"a": 1, "b": 1, "x": 2, "y": 3, "beth": 13, "aleph": 13, "n": 4}
         ) == 4
+
+    def test_with_instructions(self, backend):
+
+        instructions: list[Instruction] = [
+            Initial(),
+            Expand(),
+            Simplify(),
+            Assumption.from_string("y > 0"),
+            Assumption.from_string("x > 0"),
+            Substitution("a*log2(x/n)", "Xi", backend),
+        ]
+        rewriter = self.rewriter(CommonExpressions.MANY_FUNCS)
+        updated = rewriter.with_instructions(instructions)
+
+        # Cast to str because of the assumptions
+        assert backend.as_expression(str(updated.expression)) == backend.as_expression(
+            "Xi + b*max(y+1, x + 2) + b*Heaviside(aleph, beth)"
+        )
+        assert updated.history() == instructions
