@@ -18,7 +18,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
-from typing import Generic
+from typing import Generic, TypeVar
 
 from typing_extensions import Self
 
@@ -107,7 +107,7 @@ class ExpressionRewriter(ABC, Generic[T]):
         return previous
 
     def history(self) -> list[Instruction]:
-        """Show a chronological history of all rewriter-transforming commands that have resulted in this
+        """Show a chronological history of all Instructions that have resulted in this
         instance of the rewriter.
 
         Returns:
@@ -242,7 +242,10 @@ class ExpressionRewriter(ABC, Generic[T]):
         return rewriter
 
 
-def _apply_instruction(rewriter: ExpressionRewriter[T], instruction: Instruction) -> ExpressionRewriter[T]:
+ExpressionRewriterT = TypeVar("ExpressionRewriterT", bound="ExpressionRewriter")
+
+
+def _apply_instruction(rewriter: ExpressionRewriterT, instruction: Instruction) -> ExpressionRewriterT:
     """Helper function to apply instructions to a rewriter instance.
 
     Args:
