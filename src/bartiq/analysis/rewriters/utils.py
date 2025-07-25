@@ -289,7 +289,3 @@ def _unwrap_linked_symbols(
             linked.append(_new)
             linked = _unwrap_linked_symbols(symbol_connection_reference, [_new], linked)
     return linked
-
-
-if __name__ == "__main__":
-    Assumption.from_string("X>Y")
