@@ -244,7 +244,7 @@ def test_add_circuit_volume_simple(backend):
     )
     out = add_circuit_volume(routine, backend=backend)
     assert "circuit_volume" in out.resources
-    assert backend.value_of(out.resources["circuit_volume"].value) == 15
+    assert backend.cast_to_numeric(out.resources["circuit_volume"].value) == 15
 
 
 def test_add_circuit_volume_with_children(backend):
@@ -281,9 +281,9 @@ def test_add_circuit_volume_with_children(backend):
     )
     out = add_circuit_volume(parent, backend=backend)
     assert "circuit_volume" in out.resources
-    assert backend.value_of(out.resources["circuit_volume"].value) == 15
+    assert backend.cast_to_numeric(out.resources["circuit_volume"].value) == 15
     assert "circuit_volume" in out.children["child"].resources
-    assert backend.value_of(out.children["child"].resources["circuit_volume"].value) == 8
+    assert backend.cast_to_numeric(out.children["child"].resources["circuit_volume"].value) == 8
 
     # Test with custom resource names
     child2 = CompiledRoutine(
@@ -303,4 +303,4 @@ def test_add_circuit_volume_with_children(backend):
         child2, name_of_aggregated_t="custom_t", name_of_qubit_highwater="custom_highwater", backend=backend
     )
     assert "circuit_volume" in out2.resources
-    assert backend.value_of(out2.resources["circuit_volume"].value) == 14
+    assert backend.cast_to_numeric(out2.resources["circuit_volume"].value) == 14

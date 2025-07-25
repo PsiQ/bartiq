@@ -296,7 +296,7 @@ def minimize(
             x = x[0]
 
         substituted_expr = backend.substitute(expression, {param: x})
-        result = backend.value_of(substituted_expr)
+        result = backend.cast_to_numeric(substituted_expr)
         return float(result)
 
     if optimizer == "gradient_descent":
