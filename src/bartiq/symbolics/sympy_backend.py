@@ -22,6 +22,7 @@ import difflib
 from collections.abc import Iterable, Mapping
 from functools import lru_cache, singledispatchmethod, wraps
 from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
+from warnings import warn
 
 import sympy
 from sympy import Expr, N, Order, Symbol
@@ -214,6 +215,12 @@ class SympyBackend:
         Note:
             This method is deprecated. The SympyBackend now returns native numberic types whenever possible.
         """
+        warn(
+            "The value_of method is deprecated. The SympyBackend now returns native numbers from all relevant "
+            "functions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return _attempt_numeric_evaluation(value)
 
     @identity_for_numbers
