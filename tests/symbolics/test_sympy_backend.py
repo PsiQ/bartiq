@@ -70,7 +70,7 @@ def test_parse_constant(expression_str, expected):
 def test_value_of_returns_expr_if_numerical_evaluation_is_not_possible():
     expr = sympy_backend.as_expression("log2(N)")
 
-    assert sympy_backend.cast_to_numeric(expr) == expr
+    assert sympy_backend.value_of(expr) == expr
 
 
 def test_attempt_to_define_builtin_function_fails():

@@ -58,12 +58,12 @@ TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
 CanReturnNumber = Callable[Concatenate["SympyBackend", P], TExpr[Expr]]
 
 
-def evaluate_if_possible(func: CanReturnNumber) -> CanReturnNumber:
+def attempts_evaluation(func: CanReturnNumber) -> CanReturnNumber:
     """Map the output of a function to a numeric value of possible."""
 
     @wraps(func)
     def inner(backend: SympyBackend, *args, **kwargs) -> TExpr[Expr]:
-        return backend.cast_to_numeric(func(backend, *args, **kwargs))
+        return _attempt_numeric_evaluation(func(backend, *args, **kwargs))
 
     return inner
 
@@ -135,8 +135,8 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 
 @lru_cache
-def _cast_to_numeric(expr: Expr) -> TExpr[Expr]:
-    """Compute a numerical value of an expression; returns the expression if this is not possible.
+def _attempt_numeric_evaluation(expr: Expr) -> TExpr[Expr]:
+    """If an expression represents a number, return its native version; otherwise act as identity.
 
     Raises:
         TypeError: If the expression cannot be rounded.
@@ -208,6 +208,14 @@ class SympyBackend:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
+    def value_of(self, value: TExpr[Expr]) -> TExpr[Expr]:
+        """Given an expression, return its value as native number; otherwise acts as identity.
+
+        Note:
+            This method is deprecated. The SympyBackend now returns native numberic types whenever possible.
+        """
+        return _attempt_numeric_evaluation(value)
+
     @identity_for_numbers
     def parse_constant(self, expr: Expr) -> TExpr[Expr]:
         """Parse the expression, replacing known constants while ignoring case."""
@@ -220,7 +228,7 @@ class SympyBackend:
 
     @identity_for_numbers
     def as_native(self, expr: Expr) -> str | int | float:
-        return value if isinstance((value := self.cast_to_numeric(expr)), (int, float)) else self.serialize(expr)
+        return value if isinstance((value := _attempt_numeric_evaluation(expr)), (int, float)) else self.serialize(expr)
 
     @empty_for_numbers
     def free_symbols(self, expr: Expr) -> Iterable[str]:
@@ -232,12 +240,12 @@ class SympyBackend:
         return list(self.function_mappings)
 
     @identity_for_numbers
-    def cast_to_numeric(self, expr: Expr) -> Number | Expr:
+    def ensure_native_number(self, expr: Expr) -> Number | Expr:
         """Compute a numerical value of an expression; acts as the identity if this is not possible."""
-        return _cast_to_numeric(expr)
+        return _attempt_numeric_evaluation(expr)
 
-    @evaluate_if_possible
     @identity_for_numbers
+    @attempts_evaluation
     def substitute(
         self,
         expr: Expr,
@@ -317,27 +325,27 @@ class SympyBackend:
         except KeyError:
             return sympy.Function(func_name)
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def min(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Returns a smallest value from given args."""
         return self.function_mappings["min"](*set(args))
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def max(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Returns a biggest value from given args."""
         return self.function_mappings["max"](*set(args))
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
         return sympy.Add(*args)
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return product of all args."""
         return sympy.Mul(*args)
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def sequence_sum(
         self,
         term: TExpr[Expr],
@@ -348,7 +356,7 @@ class SympyBackend:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
-    @evaluate_if_possible
+    @attempts_evaluation
     def sequence_prod(
         self,
         term: TExpr[Expr],
