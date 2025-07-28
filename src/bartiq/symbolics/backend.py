@@ -89,9 +89,6 @@ class SymbolicBackend(Protocol[T]):
     def reserved_functions(self) -> Iterable[str]:
         """Return an iterable over reserved functions."""
 
-    def cast_to_numeric(self, expr: TExpr[T], /) -> TExpr[T]:
-        """Compute a numerical value of an expression; acts as the identity if this is not possible."""
-
     def substitute(
         self,
         expr: TExpr[T],
