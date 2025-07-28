@@ -107,15 +107,15 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
         All functions and arguments of the following expression:
         ```python
-            max(a, 1 - max(b, 1 - max(c, lamda)))
+        max(a, 1 - max(b, 1 - max(c, lamda)))
         ```
         would be returned as:
         ```python
-            {
-                Max(c, lamda),
-                Max(b, 1 - Max(c, lamda)),
-                Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-            }
+        {
+            Max(c, lamda),
+            Max(b, 1 - Max(c, lamda)),
+            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+        }
         ```
 
         Returns:
@@ -131,8 +131,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             function_name: function name to return the arguments of.
 
         Returns:
-            A list of arguments of the input function. If the function takes multiple arguments,
-            they are returned as a tuple in the order they appear.
+            A list of arguments of the input function.
+                    If the function takes multiple arguments, they are returned as a tuple in the order they appear.
         """
         return [
             tuple(_arg for _arg in _func.args if (_arg or _arg == 0)) if len(_func.args) > 1 else _func.args[0]
@@ -228,7 +228,14 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
 
 def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
-    """Initialize a Sympy rewriter instance."""
+    """Initialize a Sympy rewriter instance.
+
+    Args:
+        expression: An expression to rewrite, either str or sympy.Expr.
+
+    Returns:
+        An instance of the SympyExpressionRewriter.
+    """
     match expression:
         case str():
             return SympyExpressionRewriter(
