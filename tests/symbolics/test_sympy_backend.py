@@ -225,3 +225,21 @@ def test_function_mappings_property():
     # As of June 2025, the 'max' function should be the only function overridden
     sympy_backend_with_sympy_max = SympyBackend(use_sympy_max=True)
     assert sympy_backend_with_sympy_max.function_mappings == SPECIAL_FUNCS | {"max": sympy_max}
+
+
+def test_sum_returns_native_number_if_possible():
+    a, b, c = symbols("a, b, c")
+
+    result = sympy_backend.sum(a, b, c, 2.0, -a, -b, -c)
+
+    assert result == 2
+    assert isinstance(result, (int, float))
+
+
+def test_prod_returns_native_number_if_possible():
+    a, b, c = symbols("a, b, c")
+
+    result = sympy_backend.prod(a * b, c / b, 1 / a, 2 / c)
+
+    assert result == 2
+    assert isinstance(result, (int, float))
