@@ -26,6 +26,8 @@ sympy_rewriter("a + b")
 ```
 would return a $\LaTeX$ (technically $KaTeX$) expression $a + b$. This, combined with method chaining, means the effect of different methods can be seen immediately.
 
+Beyond individual expression manipulation, `bartiq` also provides functionality to apply rewriter transformations to resources within compiled routines. This allows for systematic simplification of resource expressions across entire quantum algorithms. See [Applying Rewriters to Routines](#applying-rewriters-to-routines) for details.
+
 
 ## Concepts
 In designing the rewriter framework we implemented a number of different utility classes. A typical user should not need to interact with these objects directly, but we describe them here for completeness.
@@ -488,6 +490,29 @@ There are broadly two kinds of methods: those that implement an `Instruction`, a
     >>> x
     ```
 
+- `with_instructions(instructions: Sequence[Instruction]) -> Self` {#with_instructions}
+
+    Apply a sequence of instructions to the rewriter in order. This method provides an alternative to method chaining by allowing you to apply multiple operations programmatically.
+
+    ```python
+    from bartiq.analysis.rewriters.utils import Expand, Simplify, Assumption, Substitution
+    
+    instructions = [
+        Expand(),
+        Simplify(),
+        Assumption.from_string("x > 0"),
+        Substitution("a", "b", backend)
+    ]
+    sympy_rewriter("(a + 1) * max(x, 0)").with_instructions(instructions)
+    >>> (b + 1)*x
+    ```
+
+    This is equivalent to chaining the methods:
+    ```python
+    sympy_rewriter("(a + 1) * max(x, 0)").expand().simplify().assume("x > 0").substitute("a", "b")
+    >>> (b + 1)*x
+    ```
+
 
 ### SymPy Specific Methods
 While the base class enforces some functionality, SymPy allows us to extend this and implement other helpful methods. The following methods are specific to the SymPy rewriter class.
@@ -531,3 +556,58 @@ While the base class enforces some functionality, SymPy allows us to extend this
     >>>     (c, d),
     >>> ]
     ```
+
+## Applying Rewriters to Routines
+
+Beyond manipulating individual expressions, `bartiq` provides functionality to apply rewriter instructions to resources within [`CompiledRoutine`][bartiq.CompiledRoutine] objects. This allows you to systematically simplify resource expressions across entire quantum algorithms.
+
+### `rewrite_routine_resources`
+
+The `rewrite_routine_resources` function applies a sequence of rewriter instructions to specific resources in a [`CompiledRoutine`][bartiq.CompiledRoutine]. This function recursively traverses the routine hierarchy and applies the same transformations to the specified resources at every level.
+
+```python
+from bartiq.analysis.rewriters.routine_rewriter import rewrite_routine_resources
+from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
+from bartiq import compile_routine
+```
+
+**Function signature:**
+```python
+rewrite_routine_resources(
+    routine: CompiledRoutine,
+    resources: str | Iterable[str],
+    instructions: list[Instruction],
+    rewriter_factory: ExpressionRewriterFactory = sympy_rewriter,
+) -> CompiledRoutine
+```
+
+**Example usage:**
+```python
+# Assume we have a compiled routine with complex resource expressions
+compiled_routine = compile_routine(my_routine).routine
+
+# Create a rewriter with the transformations we want to apply
+example_rewriter = sympy_rewriter(compiled_routine.resource_values["toffoli_count"])
+transformations = (
+    example_rewriter
+    .assume("n > 100")
+    .assume("eps < 0.01")
+    .simplify()
+    .substitute("log2(1/eps)", "precision_bits")
+    .history()
+)
+
+# Apply these transformations to all "toffoli_count" resources in the routine
+simplified_routine = rewrite_routine_resources(
+    compiled_routine,
+    resources="toffoli_count",
+    instructions=transformations
+)
+
+# Or apply to multiple resources at once
+simplified_routine = rewrite_routine_resources(
+    compiled_routine,
+    resources=["toffoli_count", "t_count", "qubit_count"],
+    instructions=transformations
+)
+```
