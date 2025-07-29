@@ -13,6 +13,6 @@
 # limitations under the License.
 """The bartiq analysis module provides methods to manipulate symbolic expressions."""
 from bartiq.analysis.optimization import BigO, minimize
-from bartiq.analysis.rewriters import ResourceRewriter, sympy_rewriter
+from bartiq.analysis.rewriters import sympy_rewriter
 
-__all__ = ["BigO", "sympy_rewriter", "ResourceRewriter"]
+__all__ = ["BigO", "sympy_rewriter"]
