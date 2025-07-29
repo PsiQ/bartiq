@@ -1277,9 +1277,9 @@ program:
             ports:
             - direction: output
               name: out_0
-              size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+              size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
             repetition: null
             resources: []
             type: qubits_alloc
@@ -1305,9 +1305,9 @@ program:
               value: 57*ceiling(log2(R + 1)) - 60
             - name: gidney_lelbows
               type: additive
-              value: ((ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(nlz(Mod(R
+              value: ((ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(ntz(Mod(R
                 + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
             type: intrinsic_cost
           connections:
@@ -1385,17 +1385,17 @@ program:
           ports:
           - direction: input
             name: in_0
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
           - direction: output
             name: out_0
             size: '1'
           - direction: output
             name: out_remainder
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
           repetition: null
           resources: []
           type: split
@@ -1482,14 +1482,14 @@ program:
             size: '1'
           - direction: input
             name: in_remainder
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
           - direction: output
             name: out_0
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
           repetition: null
           resources: []
           type: merge
@@ -1516,9 +1516,9 @@ program:
               value: 57*ceiling(log2(R + 1)) - 60
             - name: gidney_relbows
               type: additive
-              value: ((ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(nlz(Mod(R
+              value: ((ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(ntz(Mod(R
                 + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
             type: intrinsic_cost
           - children: []
@@ -1538,9 +1538,9 @@ program:
             ports:
             - direction: input
               name: in_0
-              size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+              size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
             repetition: null
             resources: []
             type: qubits_alloc
@@ -1682,10 +1682,10 @@ program:
             size: ceiling(log2(R + 1))
           - direction: output
             name: out_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: output
             name: out_remainder
-            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - nlz(R + 1))
+            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - ntz(R + 1))
           repetition: null
           resources: []
           type: split
@@ -1706,12 +1706,12 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           repetition: null
           resources:
           - name: active_volume
             type: additive
-            value: 3*ceiling(log2(R + 1)) - 3*nlz(R + 1)
+            value: 3*ceiling(log2(R + 1)) - 3*ntz(R + 1)
           - name: gidney_lelbows
             type: additive
             value: '0'
@@ -1766,7 +1766,7 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: through
             name: thru_1
             size: '1'
@@ -1774,20 +1774,20 @@ program:
           resources:
           - name: active_volume
             type: additive
-            value: 47*Heaviside(ceiling(log2(R + 1)) - nlz(R + 1) - 1.5, 0) + 49*ceiling(log2(R
-              + 1)) - 49*nlz(R + 1) - 49*Min(2, ceiling(log2(R + 1)) - nlz(R + 1))
+            value: 47*Heaviside(ceiling(log2(R + 1)) - ntz(R + 1) - 1.5, 0) + 49*ceiling(log2(R
+              + 1)) - 49*ntz(R + 1) - 49*Min(2, ceiling(log2(R + 1)) - ntz(R + 1))
           - name: gidney_lelbows
             type: additive
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: gidney_relbows
             type: additive
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: local_ancillae
             type: qubits
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: measurements
             type: additive
             value: '0'
@@ -1817,7 +1817,7 @@ program:
             value: '0'
           - name: toffs
             type: additive
-            value: Heaviside(ceiling(log2(R + 1)) - nlz(R + 1) - 1.5, 0)
+            value: Heaviside(ceiling(log2(R + 1)) - ntz(R + 1) - 1.5, 0)
           type: z
         - children: []
           connections: []
@@ -1836,12 +1836,12 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           repetition: null
           resources:
           - name: active_volume
             type: additive
-            value: 3*ceiling(log2(R + 1)) - 3*nlz(R + 1)
+            value: 3*ceiling(log2(R + 1)) - 3*ntz(R + 1)
           - name: gidney_lelbows
             type: additive
             value: '0'
@@ -1896,10 +1896,10 @@ program:
           ports:
           - direction: input
             name: in_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: input
             name: in_remainder
-            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - nlz(R + 1))
+            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - ntz(R + 1))
           - direction: output
             name: out_0
             size: ceiling(log2(R + 1))
@@ -63681,10 +63681,10 @@ program:
             size: ceiling(log2(R + 1))
           - direction: output
             name: out_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: output
             name: out_remainder
-            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - nlz(R + 1))
+            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - ntz(R + 1))
           repetition: null
           resources: []
           type: split
@@ -63705,12 +63705,12 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           repetition: null
           resources:
           - name: active_volume
             type: additive
-            value: 3*ceiling(log2(R + 1)) - 3*nlz(R + 1)
+            value: 3*ceiling(log2(R + 1)) - 3*ntz(R + 1)
           - name: gidney_lelbows
             type: additive
             value: '0'
@@ -63765,7 +63765,7 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: through
             name: thru_1
             size: '1'
@@ -63773,20 +63773,20 @@ program:
           resources:
           - name: active_volume
             type: additive
-            value: 47*Heaviside(ceiling(log2(R + 1)) - nlz(R + 1) - 1.5, 0) + 49*ceiling(log2(R
-              + 1)) - 49*nlz(R + 1) - 49*Min(2, ceiling(log2(R + 1)) - nlz(R + 1))
+            value: 47*Heaviside(ceiling(log2(R + 1)) - ntz(R + 1) - 1.5, 0) + 49*ceiling(log2(R
+              + 1)) - 49*ntz(R + 1) - 49*Min(2, ceiling(log2(R + 1)) - ntz(R + 1))
           - name: gidney_lelbows
             type: additive
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: gidney_relbows
             type: additive
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: local_ancillae
             type: qubits
-            value: ceiling(log2(R + 1)) - nlz(R + 1) - Min(2, ceiling(log2(R + 1))
-              - nlz(R + 1))
+            value: ceiling(log2(R + 1)) - ntz(R + 1) - Min(2, ceiling(log2(R + 1))
+              - ntz(R + 1))
           - name: measurements
             type: additive
             value: '0'
@@ -63816,7 +63816,7 @@ program:
             value: '0'
           - name: toffs
             type: additive
-            value: Heaviside(ceiling(log2(R + 1)) - nlz(R + 1) - 1.5, 0)
+            value: Heaviside(ceiling(log2(R + 1)) - ntz(R + 1) - 1.5, 0)
           type: z
         - children: []
           connections: []
@@ -63835,12 +63835,12 @@ program:
           ports:
           - direction: through
             name: thru_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           repetition: null
           resources:
           - name: active_volume
             type: additive
-            value: 3*ceiling(log2(R + 1)) - 3*nlz(R + 1)
+            value: 3*ceiling(log2(R + 1)) - 3*ntz(R + 1)
           - name: gidney_lelbows
             type: additive
             value: '0'
@@ -63895,10 +63895,10 @@ program:
           ports:
           - direction: input
             name: in_0
-            size: ceiling(log2(R + 1)) - nlz(R + 1)
+            size: ceiling(log2(R + 1)) - ntz(R + 1)
           - direction: input
             name: in_remainder
-            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - nlz(R + 1))
+            size: ceiling(log2(R + 1))-(ceiling(log2(R + 1)) - ntz(R + 1))
           - direction: output
             name: out_0
             size: ceiling(log2(R + 1))
@@ -63983,9 +63983,9 @@ program:
             ports:
             - direction: output
               name: out_0
-              size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+              size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
             repetition: null
             resources: []
             type: qubits_alloc
@@ -64011,9 +64011,9 @@ program:
               value: 57*ceiling(log2(R + 1)) - 60
             - name: gidney_lelbows
               type: additive
-              value: ((ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(nlz(Mod(R
+              value: ((ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(ntz(Mod(R
                 + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
             type: intrinsic_cost
           connections:
@@ -64091,17 +64091,17 @@ program:
           ports:
           - direction: input
             name: in_0
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
           - direction: output
             name: out_0
             size: '1'
           - direction: output
             name: out_remainder
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
           repetition: null
           resources: []
           type: split
@@ -64188,14 +64188,14 @@ program:
             size: '1'
           - direction: input
             name: in_remainder
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)-(1)
           - direction: output
             name: out_0
-            size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-              - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
-              Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+            size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+              - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0) +
+              Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
           repetition: null
           resources: []
           type: merge
@@ -64222,9 +64222,9 @@ program:
               value: 57*ceiling(log2(R + 1)) - 60
             - name: gidney_relbows
               type: additive
-              value: ((ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(nlz(Mod(R
+              value: ((ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0))*Heaviside(ntz(Mod(R
                 + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
             type: intrinsic_cost
           - children: []
@@ -64244,9 +64244,9 @@ program:
             ports:
             - direction: input
               name: in_0
-              size: (ceiling(log2(R + 1)) - nlz(Mod(R + 1, 2**ceiling(log2(R + 1))))
-                - 1)*Heaviside(nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
-                + Heaviside(-nlz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
+              size: (ceiling(log2(R + 1)) - ntz(Mod(R + 1, 2**ceiling(log2(R + 1))))
+                - 1)*Heaviside(ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) + 0.5, 0)
+                + Heaviside(-ntz(Mod(R + 1, 2**ceiling(log2(R + 1)))) - 0.5, 0)
             repetition: null
             resources: []
             type: qubits_alloc
