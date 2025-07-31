@@ -31,7 +31,7 @@ from bartiq.transform import postorder_transform
 class ExpressionRewriterFactory(Protocol[T]):
     """A protocol for generating expression rewriters."""
 
-    def __call__(self, expression: str | T) -> ExpressionRewriter[T]:
+    def __call__(self, expression: int | float | T) -> ExpressionRewriter[T]:
         """Create an expression rewriter for the given expression."""
         ...
 
