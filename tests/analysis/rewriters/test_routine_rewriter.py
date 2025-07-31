@@ -6,11 +6,6 @@ from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
 from bartiq.compilation import CompilationFlags
 
 
-def from_str_to_str(backend, expr: str):
-    """Remove assumptions from symbols and ensure string matching works"""
-    return str(backend.as_expression(expr))
-
-
 @pytest.fixture(scope="function")
 def root():
     return {
@@ -83,12 +78,12 @@ def test_rewrite_routine_resources(compiled, backend):
     # Test that the new routine top-level resource is the same as the rewriter attribute expression
     assert new_routine.resource_values["dummy_a"] == rewriter.expression
 
-resources = {
+    resources = {
         "a": (a := new_routine.children["a"]).resource_values,
         "x": (x := new_routine.children["x"]).resource_values,
         "ab": a.children["b"].resource_values,
         "ac": a.children["c"].resource_values,
-        "xz": x.children["z"].resource_values
+        "xz": x.children["z"].resource_values,
     }
 
     def assert_matches_text(actual, expected):

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Here we provide functionality to allow you to apply rewriters to CompiledRoutine resource expressions"""
+"""Here we provide functionality to allow you to apply rewriters to CompiledRoutine resource expressions."""
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -23,21 +23,61 @@ from bartiq.analysis.rewriters.expression import ExpressionRewriter
 from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
 from bartiq.analysis.rewriters.utils import Instruction
 from bartiq.compilation._common import Resource
-from bartiq.symbolics.backend import T
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T
+from bartiq.transform import postorder_transform
 
 
 class ExpressionRewriterFactory(Protocol[T]):
     """A protocol for generating expression rewriters."""
 
-    def __call__(self, expression: str | T) -> ExpressionRewriter[T]: ...
+    def __call__(self, expression: str | T) -> ExpressionRewriter[T]:
+        """Create an expression rewriter for the given expression."""
+        ...
+
+
+@postorder_transform
+def _rewrite_routine_resources_single(
+    routine: CompiledRoutine[T],
+    backend: SymbolicBackend[T],  # Only needed to ensure compatibility with @postorder_transform
+    resources: Iterable[str],
+    instructions: list[Instruction],
+    rewriter_factory: ExpressionRewriterFactory[T],
+) -> CompiledRoutine[T]:
+    """Internal function that applies rewriting to a single routine node.
+
+    This function is decorated with @postorder_transform so it will be applied
+    to all nodes in the routine hierarchy in postorder fashion.
+    """
+
+    # Check if we need to rewrite any resources in this routine
+    resources_to_rewrite = resources & routine.resources.keys()
+    if not resources_to_rewrite:
+        return routine
+
+    new_resource_dict: dict[str, Resource] = {}
+    for resource_name in resources_to_rewrite:
+        # Only rewrite if the resource value is not a simple numeric value
+        if not isinstance(routine.resource_values[resource_name], (int, float)):
+            new_resource_dict[resource_name] = replace(
+                routine.resources[resource_name],
+                value=rewriter_factory(routine.resources[resource_name].value)
+                .with_instructions(instructions)
+                .expression,
+            )
+
+    if new_resource_dict:
+        return replace(routine, resources=routine.resources | new_resource_dict)
+
+    return routine
 
 
 def rewrite_routine_resources(
-    routine: CompiledRoutine,
+    routine: CompiledRoutine[T],
     resources: str | Iterable[str],
     instructions: list[Instruction],
-    rewriter_factory: ExpressionRewriterFactory = sympy_rewriter,
-) -> CompiledRoutine:
+    rewriter_factory: ExpressionRewriterFactory[T] = sympy_rewriter,
+) -> CompiledRoutine[T]:
     """Rewrite the resources of a CompiledRoutine object with a given list of instructions.
 
     Args:
@@ -49,35 +89,9 @@ def rewrite_routine_resources(
     Returns:
         A new CompiledRoutine object.
     """
-
-    def _traverse_routine(routine: CompiledRoutine, resource_to_rewrite: str) -> CompiledRoutine:
-        """Recursively traverse the routine, replacing resource values
-        starting from the lowest level of children."""
-
-        new_children_dict: dict[str, CompiledRoutine] = {
-            child_name: _traverse_routine(child_routine, resource_to_rewrite)
-            for child_name, child_routine in routine.children.items()
-        }
-        if resource_to_rewrite in routine.resources and not isinstance(
-            routine.resource_values[resource_to_rewrite], (int | float)
-        ):
-            new_resource_dict: dict[str, Resource] = {
-                resource_to_rewrite: replace(
-                    routine.resources[resource_to_rewrite],
-                    value=rewriter_factory(routine.resources[resource_to_rewrite].value)
-                    .with_instructions(instructions)
-                    .expression,
-                )
-            }
-            return replace(
-                routine, children=routine.children | new_children_dict, resources=routine.resources | new_resource_dict
-            )
-
-        return routine
-
+    # Convert resources to a set for efficient lookup
     if isinstance(resources, str):
-        return _traverse_routine(routine, resources)
+        resources = [resources]
 
-    for resource in resources:
-        routine = _traverse_routine(routine, resource)
-    return routine
+    # Use the postorder transform function with all resources at once
+    return _rewrite_routine_resources_single(routine, sympy_backend, resources, instructions, rewriter_factory)
