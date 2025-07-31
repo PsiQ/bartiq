@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.14.0](https://github.com/PsiQ/bartiq/compare/v0.13.1...v0.14.0) (2025-07-31)
+
+
+### Features
+
+* add Assumptions to rewriters ([#232](https://github.com/PsiQ/bartiq/issues/232)) ([39b253c](https://github.com/PsiQ/bartiq/commit/39b253cce18c1e752d0136da09dbeeaaaf7aeab1))
+* add methods to apply rewriter instructions to resources in routines ([#239](https://github.com/PsiQ/bartiq/issues/239)) ([e54a94a](https://github.com/PsiQ/bartiq/commit/e54a94af56de7cb3fb7c9838d8e542e8a2aa15ea))
+* add rewrite_routine_resources ([#246](https://github.com/PsiQ/bartiq/issues/246)) ([f55a8ea](https://github.com/PsiQ/bartiq/commit/f55a8ead0c09dcb1e184cceaba2af8e248e0d447))
+* add substitutions to rewriters ([#238](https://github.com/PsiQ/bartiq/issues/238)) ([3a65c93](https://github.com/PsiQ/bartiq/commit/3a65c93bee9e14d7612ec00f6be91d44241e1e5b))
+* added ExpressionRewriter class and SympyExpressionRewriter subclass ([#205](https://github.com/PsiQ/bartiq/issues/205)) ([74ed648](https://github.com/PsiQ/bartiq/commit/74ed648ddfb24002766340a45135192156791bee))
+* added treemap visualisation class ([#216](https://github.com/PsiQ/bartiq/issues/216)) ([3bd44aa](https://github.com/PsiQ/bartiq/commit/3bd44aaf1a6a0582fa762336ad57df3041226a13))
+* **routine:** add dfs and bfs descendant search methods with tests ([#213](https://github.com/PsiQ/bartiq/issues/213)) ([8affd4d](https://github.com/PsiQ/bartiq/commit/8affd4d1fc403e4ec9c32c60b6177af24db617fb))
+* **symbolics:** improve nlz and round error handling for non-integer and non-SymPy object input ([#212](https://github.com/PsiQ/bartiq/issues/212)) ([131834c](https://github.com/PsiQ/bartiq/commit/131834c0806926417a87b65cf5da154464760aab))
+* **tests:** code cov with cov change comp ([#221](https://github.com/PsiQ/bartiq/issues/221)) ([0c450f7](https://github.com/PsiQ/bartiq/commit/0c450f7fad84b7a74cd1f4ffb97ad04d138dd209))
+* **transform:** add add_circuit_volume function to compute circuit v… ([#211](https://github.com/PsiQ/bartiq/issues/211)) ([a3d9da4](https://github.com/PsiQ/bartiq/commit/a3d9da4b21ffdc5bf1cb10a9e567f1585e54ad98))
+
+
+### Bug Fixes
+
+* avoid SymPy ``LatexPrinter`` modifiers to change subscripted parameter symbols ([#208](https://github.com/PsiQ/bartiq/issues/208)) ([57095ed](https://github.com/PsiQ/bartiq/commit/57095ed8794cec40a2c71e4af066e13f55515f94))
+* Ensure outputs from backend methods are numeric python types if possible ([#243](https://github.com/PsiQ/bartiq/issues/243)) ([3fe7db7](https://github.com/PsiQ/bartiq/commit/3fe7db793f5e9340d5b2beee00fb2597cc3adc17))
+* make custom max correctly evaluate when numeric arguments are rationals ([#236](https://github.com/PsiQ/bartiq/issues/236)) ([281508a](https://github.com/PsiQ/bartiq/commit/281508a83389b86324b56b547585bfa417b0b035))
+* make ntz(0) = -1 ([#240](https://github.com/PsiQ/bartiq/issues/240)) ([45d04b9](https://github.com/PsiQ/bartiq/commit/45d04b9206a59134d674a9804671acffe95a0fe5))
+* support coverage report generation for forked branches ([#231](https://github.com/PsiQ/bartiq/issues/231)) ([ac09917](https://github.com/PsiQ/bartiq/commit/ac0991746c65dd8069b4f2761652804fabc83571))
+* tests failing due to uninstalled extras ([#230](https://github.com/PsiQ/bartiq/issues/230)) ([dfdcbc2](https://github.com/PsiQ/bartiq/commit/dfdcbc22e589a22606aaf7825e29be34ccdaa414))
+
+
+### Documentation
+
+* improve the API docs ([#209](https://github.com/PsiQ/bartiq/issues/209)) ([b0273a3](https://github.com/PsiQ/bartiq/commit/b0273a39ca8e8b67eb006f7e1e89a70f2ba87af6))
+
 ## [0.13.1](https://github.com/PsiQ/bartiq/compare/v0.13.0...v0.13.1) (2025-05-27)
 
 
