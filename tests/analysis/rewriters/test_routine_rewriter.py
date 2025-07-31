@@ -81,22 +81,30 @@ def test_rewrite_routine_resources(compiled, backend):
     new_routine = rewrite_routine_resources(compiled, resources, rewriter.history(), sympy_rewriter)
 
     # Test that the new routine top-level resource is the same as the rewriter attribute expression
-    print(rewriter.expression)
-    print(compiled.resource_values)
-    print(new_routine.resource_values)
     assert new_routine.resource_values["dummy_a"] == rewriter.expression
+
+resources = {
+        "a": (a := new_routine.children["a"]).resource_values,
+        "x": (x := new_routine.children["x"]).resource_values,
+        "ab": a.children["b"].resource_values,
+        "ac": a.children["c"].resource_values,
+        "xz": x.children["z"].resource_values
+    }
+
+    def assert_matches_text(actual, expected):
+        assert backend.serialize(actual) == backend.serialize(backend.as_expression(expected))
 
     # Test that the history has percolated through the children correctly.
     # Dummy A resource
-    assert str(new_routine.children["a"].children["b"].resource_values["dummy_a"]) == from_str_to_str(backend, "b")
-    assert str(new_routine.children["x"].children["z"].resource_values["dummy_a"]) == from_str_to_str(backend, "z")
+    assert_matches_text(resources["ab"]["dummy_a"], "b")
+    assert_matches_text(resources["xz"]["dummy_a"], "z")
 
-    assert str(new_routine.children["a"].resource_values["dummy_a"]) == from_str_to_str(backend, "b+c")
-    assert str(new_routine.children["x"].resource_values["dummy_a"]) == from_str_to_str(backend, "A")
+    assert_matches_text(resources["a"]["dummy_a"], "b+c")
+    assert_matches_text(resources["x"]["dummy_a"], "A")
 
     # Dummy B resource
-    assert str(new_routine.children["a"].children["c"].resource_values["dummy_b"]) == from_str_to_str(backend, "2")
-    assert str(new_routine.children["x"].children["z"].resource_values["dummy_b"]) == from_str_to_str(backend, "1")
+    assert resources["ac"]["dummy_b"] == 2
+    assert resources["xz"]["dummy_b"] == 1
 
-    assert str(new_routine.children["a"].resource_values["dummy_b"]) == from_str_to_str(backend, "log(b+1)+2")
-    assert str(new_routine.children["x"].resource_values["dummy_b"]) == from_str_to_str(backend, "y+1")
+    assert_matches_text(resources["a"]["dummy_b"], "log(b+1)+2")
+    assert_matches_text(resources["x"]["dummy_b"], "y+1")

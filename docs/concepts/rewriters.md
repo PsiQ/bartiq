@@ -492,7 +492,7 @@ There are broadly two kinds of methods: those that implement an `Instruction`, a
 
 - `with_instructions(instructions: Sequence[Instruction]) -> Self` {#with_instructions}
 
-    Apply a sequence of instructions to the rewriter in order. This method provides an alternative to method chaining by allowing you to apply multiple operations programmatically.
+    Apply a sequence of instructions to the rewriter in order. This method provides an alternative to method chaining by allowing you to apply multiple operations with a single method call.
 
     ```python
     from bartiq.analysis.rewriters.utils import Expand, Simplify, Assumption, Substitution
