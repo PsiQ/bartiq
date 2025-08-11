@@ -23,6 +23,7 @@ from bartiq.analysis.rewriters.utils import (
     Substitution,
 )
 from bartiq.symbolics.sympy_backend import SympyBackend
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 from tests.analysis.rewriters.basic_rewriter_tests import (
     CommonExpressions,
     ExpressionRewriterTests,
@@ -36,6 +37,17 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     @pytest.fixture()
     def backend(self) -> SympyBackend:
         return SympyBackend(use_sympy_max=True)
+
+    def test_custom_max_function_is_correctly_replaced(self):
+        a, b = sympy.symbols("a,b")
+        expr = CustomMax(a, b)
+        cast_expr = self.rewriter(expr).expression
+        assert expr.__class__.__module__.startswith("bartiq")
+        assert cast_expr.__class__.__module__.startswith("sympy")
+
+    @pytest.mark.parametrize("input", [sympy.sympify("max(a, b, c)"), "max(a, b, c)", 0, 1.1])
+    def test_rewriter_accepts_all_input_types(self, input):
+        assert self.rewriter(input)
 
     def test_simplify(self, backend):
         expr = backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
