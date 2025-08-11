@@ -44,6 +44,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __post_init__(self):
         self.backend = _SYMPY_BACKEND
+        if isinstance(self.expression, (int, float)):
+            self.expression = Number(self.expression)
 
     @property
     def original(self) -> Self:

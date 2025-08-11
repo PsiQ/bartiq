@@ -45,6 +45,10 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         assert expr.__class__.__module__.startswith("bartiq")
         assert cast_expr.__class__.__module__.startswith("sympy")
 
+    @pytest.mark.parametrize("input", [sympy.sympify("max(a, b, c)"), "max(a, b, c)", 0, 1.1])
+    def test_rewriter_accepts_all_input_types(self, input):
+        assert self.rewriter(input)
+
     def test_simplify(self, backend):
         expr = backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
         assert self.rewriter(expr).simplify().expression == expr.simplify()
