@@ -236,19 +236,12 @@ def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
     Returns:
         An instance of the SympyExpressionRewriter.
     """
-    match expression:
-        case str():
-            return SympyExpressionRewriter(
-                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
-            )
-        case Expr():
-            return SympyExpressionRewriter(
-                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
-            )
-        case _:
-            raise ValueError(
-                f"Invalid input type: {type(expression)} for expression {expression}. Must be `str` or `sympy.Expr`."
-            )
+    if isinstance(expression, Expr):
+        expression = expression.replace(CustomMax, Max)
+
+    return SympyExpressionRewriter(
+        expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
+    )
 
 
 def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:
