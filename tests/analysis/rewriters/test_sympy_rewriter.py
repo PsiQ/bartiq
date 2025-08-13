@@ -136,6 +136,10 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         assert str(rewriter.expression) == simplified_expression
         assert getattr(rewriter.get_symbol(symbol), property)
 
+    def test_add_assumption_properly_replaces_symbols_with_assumptions(self, backend):
+        rewriter = self.rewriter("max(0, a+b)").assume("a>0")
+        assert str(rewriter.assume("a+b>0").expression) == str(backend.as_expression("a + b"))
+
     def test_more_complex_expressions_have_assumptions_applied(self, backend):
         expr = "b*max(1 + log(2*x/5), 5) + c * d"
         rewriter = self.rewriter(expr).assume("log(2*x/5) > 4")
