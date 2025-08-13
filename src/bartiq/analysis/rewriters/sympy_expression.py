@@ -151,7 +151,7 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         else:
-            reference_symbol = (expr := self.backend.as_expression(assumption.symbol_name)).subs(
+            reference_symbol = (expr := cast(Expr, self.backend.as_expression(assumption.symbol_name))).subs(
                 {fs: sym for fs in expr.free_symbols if (sym := self.get_symbol(fs.name))}
             )
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
