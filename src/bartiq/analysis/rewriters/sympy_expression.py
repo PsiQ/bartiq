@@ -149,8 +149,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         else:
-            reference_symbol = self.backend.as_expression(assumption.symbol_name)
-
+            reference_symbol = (expr := self.backend.as_expression(assumption.symbol_name)).subs(
+                {fs: sym for fs in expr.free_symbols if (sym := self.get_symbol(fs.name))}
+            )
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
         # This is a hacky way to implement assumptions that relate to nonzero values.
         expression = expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
