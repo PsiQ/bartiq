@@ -20,8 +20,9 @@ from __future__ import annotations
 
 import difflib
 from collections.abc import Iterable, Mapping
-from functools import lru_cache, singledispatchmethod
+from functools import lru_cache, singledispatchmethod, wraps
 from typing import Callable, Concatenate, ParamSpec, Protocol, TypeVar
+from warnings import warn
 
 import sympy
 from sympy import Expr, N, Order, Symbol
@@ -55,11 +56,23 @@ MATH_CONSTANTS = {
 FunctionsMap = dict[str, Callable[[TExpr[T]], TExpr[T]]]
 ExprTransformer = Callable[Concatenate["SympyBackend", Expr, P], T]
 TExprTransformer = Callable[Concatenate["SympyBackend", TExpr[Expr], P], T]
+CanReturnNumber = Callable[Concatenate["SympyBackend", P], TExpr[Expr]]
+
+
+def attempts_evaluation(func: CanReturnNumber) -> CanReturnNumber:
+    """Map the output of a function to a numeric value of possible."""
+
+    @wraps(func)
+    def inner(backend: SympyBackend, *args, **kwargs) -> TExpr[Expr]:
+        return _attempt_numeric_evaluation(func(backend, *args, **kwargs))
+
+    return inner
 
 
 def empty_for_numbers(
     func: ExprTransformer[P, Iterable[T]],
 ) -> TExprTransformer[P, Iterable[T]]:
+    @wraps(func)
     def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> Iterable[T]:  # type: ignore
         return () if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
@@ -78,6 +91,7 @@ def identity_for_numbers(
         in an obscure bug: https://github.com/PsiQ/bartiq/issues/143
     """
 
+    @wraps(func)
     def _inner(backend: SympyBackend, expr: TExpr[S], *args: P.args, **kwargs: P.kwargs) -> T | Number:
         return expr if isinstance(expr, Number) else func(backend, expr, *args, **kwargs)
 
@@ -122,8 +136,8 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
 
 
 @lru_cache
-def _value_of(expr: Expr) -> Number | None:
-    """Compute a numerical value of an expression, return None if it's not possible.
+def _attempt_numeric_evaluation(expr: Expr) -> TExpr[Expr]:
+    """If an expression represents a number, return its native version; otherwise act as identity.
 
     Raises:
         TypeError: If the expression cannot be rounded.
@@ -132,7 +146,7 @@ def _value_of(expr: Expr) -> Number | None:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
     except TypeError as e:
         if str(e) == "Cannot round symbolic expression":
-            return None
+            return expr
         else:
             raise e
 
@@ -195,6 +209,20 @@ class SympyBackend:
         """Convert numerical or textual value into an expression."""
         return self._as_expression(value)
 
+    def value_of(self, value: TExpr[Expr]) -> TExpr[Expr]:
+        """Given an expression, return its value as native number; otherwise acts as identity.
+
+        Note:
+            This method is deprecated. The SympyBackend now returns native numberic types whenever possible.
+        """
+        warn(
+            "The value_of method is deprecated. The SympyBackend now returns native numbers from all relevant "
+            "functions",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return _attempt_numeric_evaluation(value)
+
     @identity_for_numbers
     def parse_constant(self, expr: Expr) -> TExpr[Expr]:
         """Parse the expression, replacing known constants while ignoring case."""
@@ -207,7 +235,7 @@ class SympyBackend:
 
     @identity_for_numbers
     def as_native(self, expr: Expr) -> str | int | float:
-        return value if (value := self.value_of(expr)) is not None else self.serialize(expr)
+        return value if isinstance((value := _attempt_numeric_evaluation(expr)), (int, float)) else self.serialize(expr)
 
     @empty_for_numbers
     def free_symbols(self, expr: Expr) -> Iterable[str]:
@@ -219,11 +247,12 @@ class SympyBackend:
         return list(self.function_mappings)
 
     @identity_for_numbers
-    def value_of(self, expr: Expr) -> Number | None:
-        """Compute a numerical value of an expression, return None if it's not possible."""
-        return _value_of(expr)
+    def ensure_native_number(self, expr: Expr) -> Number | Expr:
+        """Compute a numerical value of an expression; acts as the identity if this is not possible."""
+        return _attempt_numeric_evaluation(expr)
 
     @identity_for_numbers
+    @attempts_evaluation
     def substitute(
         self,
         expr: Expr,
@@ -244,7 +273,7 @@ class SympyBackend:
             functions_map = {}
         for func_name, func in functions_map.items():
             expr = self._define_function(expr, func_name, func)
-        return value if (value := self.value_of(expr)) is not None else expr
+        return expr
 
     @identity_for_numbers
     def _define_function(self, expr: Expr, func_name: str, function: Callable) -> TExpr[Expr]:
@@ -265,7 +294,7 @@ class SympyBackend:
             lambda match: sympy_func(*match.args),
         )
 
-    def is_constant_int(self, expr: TExpr[Expr]):
+    def is_constant_int(self, expr: TExpr[Expr]) -> bool:
         """Return True if a given expression represents a constant int and False otherwise."""
         try:
             _ = int(str(expr))
@@ -303,22 +332,27 @@ class SympyBackend:
         except KeyError:
             return sympy.Function(func_name)
 
-    def min(self, *args):
+    @attempts_evaluation
+    def min(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Returns a smallest value from given args."""
         return self.function_mappings["min"](*set(args))
 
-    def max(self, *args):
+    @attempts_evaluation
+    def max(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Returns a biggest value from given args."""
         return self.function_mappings["max"](*set(args))
 
+    @attempts_evaluation
     def sum(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return sum of all args."""
         return sympy.Add(*args)
 
+    @attempts_evaluation
     def prod(self, *args: TExpr[Expr]) -> TExpr[Expr]:
         """Return product of all args."""
         return sympy.Mul(*args)
 
+    @attempts_evaluation
     def sequence_sum(
         self,
         term: TExpr[Expr],
@@ -329,6 +363,7 @@ class SympyBackend:
         """Express a sum of terms expressed using `iterator_symbol`."""
         return sympy.Sum(term, (iterator_symbol, start, end))
 
+    @attempts_evaluation
     def sequence_prod(
         self,
         term: TExpr[Expr],

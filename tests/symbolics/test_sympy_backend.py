@@ -67,10 +67,16 @@ def test_parse_constant(expression_str, expected):
     assert expr == expected
 
 
-def test_value_of_returns_none_if_numerical_evaluation_is_not_possible():
+@pytest.mark.filterwarnings("ignore:The value_of method is deprecated.")
+def test_value_of_returns_expr_if_numerical_evaluation_is_not_possible():
     expr = sympy_backend.as_expression("log2(N)")
 
-    assert sympy_backend.value_of(expr) is None
+    assert sympy_backend.value_of(expr) == expr
+
+
+def test_value_of_raises_deprecation_warning():
+    with pytest.warns(DeprecationWarning):
+        assert sympy_backend.value_of(10)
 
 
 def test_attempt_to_define_builtin_function_fails():
@@ -219,3 +225,21 @@ def test_function_mappings_property():
     # As of June 2025, the 'max' function should be the only function overridden
     sympy_backend_with_sympy_max = SympyBackend(use_sympy_max=True)
     assert sympy_backend_with_sympy_max.function_mappings == SPECIAL_FUNCS | {"max": sympy_max}
+
+
+def test_sum_returns_native_number_if_possible():
+    a, b, c = symbols("a, b, c")
+
+    result = sympy_backend.sum(a, b, c, 2.0, -a, -b, -c)
+
+    assert result == 2
+    assert isinstance(result, (int, float))
+
+
+def test_prod_returns_native_number_if_possible():
+    a, b, c = symbols("a, b, c")
+
+    result = sympy_backend.prod(a * b, c / b, 1 / a, 2 / c)
+
+    assert result == 2
+    assert isinstance(result, (int, float))

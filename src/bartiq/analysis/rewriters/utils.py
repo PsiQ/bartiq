@@ -122,6 +122,15 @@ class Substitution(Instruction):
     replacement: str
     backend: SymbolicBackend
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"expr={repr(self.expr)}, "
+            f"replacement={repr(self.replacement)}, "
+            f"backend={repr(self.backend.__class__.__name__)}"
+            ")"
+        )
+
     @property
     def wild(self) -> tuple[str, ...]:
         """Return a tuple of all symbols in self.expr that have been marked as wild.
@@ -250,7 +259,8 @@ def _unpack_assumption(assumption: str) -> tuple[str, str, int | float]:
             raise NotImplementedError(
                 "Assumption tries to draw a comparison between two variables:"
                 f" {symbol_name}, {value}.\n"
-                "At present, this is not possible."
+                "At present, this is not possible. Please see the SymPy documentation: "
+                "https://docs.sympy.org/latest/guides/assumptions.html#relations-between-different-symbols"
             )
         else:
             raise exc

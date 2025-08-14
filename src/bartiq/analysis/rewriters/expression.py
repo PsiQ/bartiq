@@ -16,9 +16,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
-from typing import Generic
+from typing import Generic, TypeVar
 
 from typing_extensions import Self
 
@@ -146,6 +146,9 @@ class ExpressionRewriter(ABC, Generic[T]):
         Args:
             assignments: A mapping of symbols to numeric values or expressions.
             functions_map: A mapping for user-defined functions in the expressions. By default None.
+
+        Returns:
+            The expression with the evaluations applied.
         """
         return self.backend.substitute(self.expression, replacements=assignments, functions_map=functions_map)
 
@@ -229,3 +232,61 @@ class ExpressionRewriter(ABC, Generic[T]):
             linked_symbols=self.linked_symbols | substitution.linked_symbols,
             _previous=(substitution, self),
         )
+
+    def with_instructions(self, instructions: Sequence[Instruction]) -> Self:
+        """Apply a sequence of instructions.
+
+        Sequentially apply each instruction in the provided list to the
+        expression, with each instruction being applied to the result of
+        the previous one.
+
+        Args:
+            instructions: A list of Instructions to apply in order. Each
+                instruction will be applied to the result of the previous
+                instruction.
+
+        Returns:
+            A new ExpressionRewriter instance with all instructions applied.
+
+        Examples:
+            Apply expand, simplify, and an assumption:
+
+                >>> rewriter.with_instructions(
+                ...     [Expand(), Simplify(), Assumption("x>0")]
+                ... )
+
+        """
+        rewriter = self
+        for instruction in instructions:
+            rewriter = _apply_instruction(rewriter, instruction)
+        return rewriter
+
+
+ExpressionRewriterT = TypeVar("ExpressionRewriterT", bound="ExpressionRewriter")
+
+
+def _apply_instruction(rewriter: ExpressionRewriterT, instruction: Instruction) -> ExpressionRewriterT:
+    """Helper function to apply instructions to a rewriter instance.
+    Args:
+        rewriter: Rewriter to apply an instruction to.
+        instruction: Instruction to apply.
+    Raises:
+        ValueError: If an unrecognised instruction is passed.
+    Returns:
+        A new expression rewriter instance.
+    """
+    match instruction:
+        case Initial():
+            return rewriter
+        case Expand():
+            return rewriter.expand()
+        case Simplify():
+            return rewriter.simplify()
+        case Assumption():
+            return rewriter.assume(instruction)
+        case Substitution():
+            return rewriter.substitute(instruction.expr, instruction.replacement)
+        case ReapplyAllAssumptions():
+            return rewriter.reapply_all_assumptions()
+        case _:
+            raise ValueError(f"Unrecognised instruction: '{instruction}'.")

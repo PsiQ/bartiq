@@ -44,6 +44,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
     def __post_init__(self):
         self.backend = _SYMPY_BACKEND
+        if isinstance(self.expression, (int, float)):
+            self.expression = Number(self.expression)
 
     @property
     def original(self) -> Self:
@@ -107,15 +109,15 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
         All functions and arguments of the following expression:
         ```python
-            max(a, 1 - max(b, 1 - max(c, lamda)))
+        max(a, 1 - max(b, 1 - max(c, lamda)))
         ```
         would be returned as:
         ```python
-            {
-                Max(c, lamda),
-                Max(b, 1 - Max(c, lamda)),
-                Max(a, 1 - Max(b, 1 - Max(c, lamda)))
-            }
+        {
+            Max(c, lamda),
+            Max(b, 1 - Max(c, lamda)),
+            Max(a, 1 - Max(b, 1 - Max(c, lamda)))
+        }
         ```
 
         Returns:
@@ -131,8 +133,8 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             function_name: function name to return the arguments of.
 
         Returns:
-            A list of arguments of the input function. If the function takes multiple arguments,
-            they are returned as a tuple in the order they appear.
+            A list of arguments of the input function.
+                    If the function takes multiple arguments, they are returned as a tuple in the order they appear.
         """
         return [
             tuple(_arg for _arg in _func.args if (_arg or _arg == 0)) if len(_func.args) > 1 else _func.args[0]
@@ -149,8 +151,9 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
             expression = expression.subs({reference_symbol: replacement})
             reference_symbol = replacement
         else:
-            reference_symbol = self.backend.as_expression(assumption.symbol_name)
-
+            reference_symbol = (expr := cast(Expr, self.backend.as_expression(assumption.symbol_name))).subs(
+                {fs: sym for fs in expr.free_symbols if (sym := self.get_symbol(fs.name))}
+            )
         replacement_symbol = Symbol(name="__", **assumption.symbol_properties)
         # This is a hacky way to implement assumptions that relate to nonzero values.
         expression = expression.subs({reference_symbol: replacement_symbol + assumption.value}).subs(
@@ -228,20 +231,20 @@ class SympyExpressionRewriter(ExpressionRewriter[Expr]):
 
 
 def sympy_rewriter(expression: str | Expr) -> SympyExpressionRewriter:
-    """Initialize a Sympy rewriter instance."""
-    match expression:
-        case str():
-            return SympyExpressionRewriter(
-                expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
-            )
-        case Expr():
-            return SympyExpressionRewriter(
-                expression=(expr := expression.replace(CustomMax, Max)), _original_expression=expr
-            )
-        case _:
-            raise ValueError(
-                f"Invalid input type: {type(expression)} for expression {expression}. Must be `str` or `sympy.Expr`."
-            )
+    """Initialize a Sympy rewriter instance.
+
+    Args:
+        expression: An expression to rewrite, either str or sympy.Expr.
+
+    Returns:
+        An instance of the SympyExpressionRewriter.
+    """
+    if isinstance(expression, Expr):
+        expression = expression.replace(CustomMax, Max)
+
+    return SympyExpressionRewriter(
+        expression=(expr := _SYMPY_BACKEND.as_expression(expression)), _original_expression=expr
+    )
 
 
 def _replace_subexpression(expression: Expr, pattern: Expr, replacement: Expr) -> Expr:

@@ -15,7 +15,15 @@ import pytest
 import sympy
 
 from bartiq.analysis.rewriters import sympy_rewriter
+from bartiq.analysis.rewriters.utils import (
+    Assumption,
+    Expand,
+    ReapplyAllAssumptions,
+    Simplify,
+    Substitution,
+)
 from bartiq.symbolics.sympy_backend import SympyBackend
+from bartiq.symbolics.sympy_interpreter import Max as CustomMax
 from tests.analysis.rewriters.basic_rewriter_tests import (
     CommonExpressions,
     ExpressionRewriterTests,
@@ -29,6 +37,17 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
     @pytest.fixture()
     def backend(self) -> SympyBackend:
         return SympyBackend(use_sympy_max=True)
+
+    def test_custom_max_function_is_correctly_replaced(self):
+        a, b = sympy.symbols("a,b")
+        expr = CustomMax(a, b)
+        cast_expr = self.rewriter(expr).expression
+        assert expr.__class__.__module__.startswith("bartiq")
+        assert cast_expr.__class__.__module__.startswith("sympy")
+
+    @pytest.mark.parametrize("input", [sympy.sympify("max(a, b, c)"), "max(a, b, c)", 0, 1.1])
+    def test_rewriter_accepts_all_input_types(self, input):
+        assert self.rewriter(input)
 
     def test_simplify(self, backend):
         expr = backend.as_expression("(a*a + b*a)*c + d*(log2(x)**2 + log2(x))")
@@ -117,6 +136,10 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
         assert str(rewriter.expression) == simplified_expression
         assert getattr(rewriter.get_symbol(symbol), property)
 
+    def test_add_assumption_properly_replaces_symbols_with_assumptions(self, backend):
+        rewriter = self.rewriter("max(0, a+b)").assume("a>0")
+        assert str(rewriter.assume("a+b>0").expression) == str(backend.as_expression("a + b"))
+
     def test_more_complex_expressions_have_assumptions_applied(self, backend):
         expr = "b*max(1 + log(2*x/5), 5) + c * d"
         rewriter = self.rewriter(expr).assume("log(2*x/5) > 4")
@@ -143,3 +166,75 @@ class TestSympyExpressionRewriter(ExpressionRewriterTests):
             self.rewriter(CommonExpressions.TRIVIAL).substitute("a", "b").substitute("b", "c").substitute("c", "d")
         )
         assert rewriter.focus("a") == rewriter.expression
+
+
+class TestWithInstructions:
+    """Tests for the with_instructions method on sympy rewriters."""
+
+    @pytest.fixture
+    def backend(self):
+        """Backend fixture for tests."""
+        return SympyBackend()
+
+    @pytest.fixture
+    def simple_expression(self, backend):
+        """Simple expression fixture for tests."""
+        return backend.as_expression("(a + b) * c + log(d + 1)")
+
+    @pytest.fixture
+    def simple_rewriter(self, simple_expression):
+        """Simple rewriter fixture for tests."""
+        return sympy_rewriter(simple_expression)
+
+    def test_with_instructions_empty_list(self, simple_rewriter):
+        """Test that empty instruction list returns the same rewriter."""
+        result = simple_rewriter.with_instructions([])
+        assert result.expression == simple_rewriter.expression
+        assert result.history() == simple_rewriter.history()
+
+    def test_with_instructions_single_instruction(self, simple_rewriter):
+        """Test applying a single instruction via with_instructions."""
+        instructions = [Expand()]
+        result = simple_rewriter.with_instructions(instructions)
+        expected = simple_rewriter.expand()
+
+        assert result.expression == expected.expression
+        assert result.history() == expected.history()
+
+    def test_with_instructions_multiple_operations(self, simple_rewriter, backend):
+        """Test applying multiple instructions in sequence."""
+        instructions = [Expand(), Simplify(), Assumption.from_string("a>0"), Substitution("b", "2", backend)]
+        result = simple_rewriter.with_instructions(instructions)
+
+        # Should be equivalent to chaining the operations
+        expected = simple_rewriter.expand().simplify().assume("a>0").substitute("b", "2")
+
+        assert result.expression == expected.expression
+        assert result.history() == expected.history()
+
+    def test_with_instructions_preserves_state(self, simple_rewriter):
+        """Test that with_instructions preserves rewriter state correctly."""
+        # Apply some initial operations
+        initial_rewriter = simple_rewriter.assume("a>0").substitute("c", "5")
+
+        # Apply additional instructions
+        instructions = [Expand(), Simplify()]
+        result = initial_rewriter.with_instructions(instructions)
+
+        # Should maintain all previous state
+        expected = initial_rewriter.expand().simplify()
+        assert result.expression == expected.expression
+        assert result.history() == expected.history()
+        assert result.assumptions == expected.assumptions
+        assert result.substitutions == expected.substitutions
+
+    def test_with_instructions_reapply_all_assumptions(self, simple_rewriter):
+        """Test that ReapplyAllAssumptions works correctly in instruction sequence."""
+        instructions = [Assumption.from_string("a>0"), Assumption.from_string("b>0"), Expand(), ReapplyAllAssumptions()]
+        result = simple_rewriter.with_instructions(instructions)
+
+        # Verify assumptions are preserved
+        assert len(result.assumptions) >= 2
+        assumption_strings = [str(assumption) for assumption in result.assumptions]
+        assert any("a" in assumption and ">" in assumption for assumption in assumption_strings)
+        assert any("b" in assumption and ">" in assumption for assumption in assumption_strings)
