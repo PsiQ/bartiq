@@ -116,6 +116,9 @@ sympy_rewriter(
 ```
 However any symbols within the expression (`x` in this example) _will not_ inherit the predicates that were derived for the expression and associated dummy symbol. 
 
+<details><summary>TO-DO</summary>
+Hmmm
+</details>
 
 #### Substitutions
 
