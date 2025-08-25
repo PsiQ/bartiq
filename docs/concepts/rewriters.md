@@ -116,6 +116,43 @@ sympy_rewriter(
 ```
 However any symbols within the expression (`x` in this example) _will not_ inherit the predicates that were derived for the expression and associated dummy symbol. 
 
+<details><summary>Unexpected behaviours</summary>
+We rely on the SymPy engine to apply and simpify these assumptions, and we do so via the `.subs` method on SymPy expressions to substitute the aforementioned 'dummy' symbols. However, this method has some [known bugs](https://github.com/sympy/sympy/issues/19422). Consider the following SymPy code: 
+
+```python
+from sympy import Symbol
+a = Symbol("a")
+b = Symbol("b")
+c = Symbol("c")
+
+expr = a + b - 1
+expr.subs(a + b, c)
+>>> c - 1
+```
+The above code behaves as expected: the subexpression `a + b` is replaced by `c`. However, by making a minor change to the types in the expression:
+
+```python
+expr = a + b - 1.
+expr.subs(a + b, c)
+>>> a + b - 1.0
+```
+The substitution does _not_ work. For this reason, the following rewriter code has a silent failure:
+
+```python
+from bartiq.analysis import sympy_rewriter
+
+sympy_rewriter("max(0, a + b - 1.5)").assume("a + b > 1.5")
+>>> max(0, a + b - 1.5)
+```
+Whereas this works as expected:
+```python
+from bartiq.analysis import sympy_rewriter
+
+sympy_rewriter("max(0, a + b - 1)").assume("a + b > 1")
+>>> a + b - 1
+```
+In these cases, it is advisable to pass assumptions in as the _whole_ expression, i.e. `a + b - 1.5 > 0`.
+</details>
 
 #### Substitutions
 
