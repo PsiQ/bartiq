@@ -1,6 +1,8 @@
 # QCE25 tutorials
 
 Here are the notebooks for the TUT03 — Using Bartiq for Symbolic Resource Estimation of Fault-Tolerant Quantum Algorithms, taking place on Sunday August 31st 2025 at IEEE Quantum Week in Albuquerque.
+
+
 ## Installation instructions
 
 In order to run the notebooks please follow these steps:
