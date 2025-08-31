@@ -1,0 +1,27 @@
+version: v1
+program:
+  name: root
+  input_params:
+  - N
+  ports:
+  - {"name": "in_0", "size": "N", "direction": "input"}
+  - {"name": "out_0", "size": null, "direction": "output"}
+  resources:
+  - {"name": "x", "value": "a.x + b.x", "type": "additive"}
+  children:
+    - name: "a"
+      ports:
+      - {"name": "in_0", "size": "L", "direction": "input"}
+      - {"name": "out_0", "size": "2 * L", "direction": "output"}
+      resources:
+      - {"name": "x", "value": "L**2", "type": "additive"}
+    - name: "b"
+      ports:
+      - {"name": "in_0", "size": "L", "direction": "input"}
+      - {"name": "out_0", "size": "2 * L", "direction": "output"}
+      resources:
+      - {"name": "x", "value": "L ** 2", "type": "additive"}
+  connections:
+    - in_0 -> a.in_0
+    - a.out_0 -> b.in_0
+    - b.out_0 -> out_0  
