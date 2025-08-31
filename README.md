@@ -17,7 +17,6 @@ pip install bartiq
 Complete documentation for `bartiq` can be found [here](https://psiq.github.io/bartiq/).
 
 
-
 ## Quick start
 
 In `bartiq` we can express a quantum algorithm as a collection of subroutines, each of which has a respective symbolic resource cost, and compile it to get a global symbolic resource cost for the whole algorithm.
