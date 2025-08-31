@@ -58,5 +58,3 @@ print(evaluated_routine.resources["T_gates"].value)
 ```
 
 To go step by step through the process and see how you can use `bartiq` for your algorithms please take a look at our tutorials, starting with a [basic example](https://psiq.github.io/bartiq/latest/tutorials/01_basic_example/). 
-
-
