@@ -1,0 +1,204 @@
+program:
+  children:
+  - input_params:
+    - L
+    local_variables:
+      R: ceiling(log2(L))
+    name: usp
+    ports:
+    - direction: input
+      name: in
+      size: R
+    - direction: output
+      name: out
+      size: R
+    resources:
+    - name: T_gates
+      type: additive
+      value: 8*(ceiling(log2(L/(2 ** multiplicity(2,L))))-1)
+    - name: rotations
+      type: additive
+      value: '2'
+    type: null
+  - name: had
+    ports:
+    - direction: input
+      name: in
+      size: N
+    - direction: output
+      name: out
+      size: N
+    type: null
+  - input_params:
+    - L
+    - mu
+    local_variables:
+      R: ceiling(log2(L))
+    name: qrom
+    ports:
+    - direction: input
+      name: In_alt
+      size: R
+    - direction: input
+      name: In_keep
+      size: mu
+    - direction: input
+      name: In_l
+      size: R
+    - direction: output
+      name: out_alt
+      size: R
+    - direction: output
+      name: out_keep
+      size: mu
+    - direction: output
+      name: out_l
+      size: R
+    resources:
+    - name: T_gates
+      type: additive
+      value: 4*L-4
+    type: null
+  - input_params:
+    - mu
+    name: compare
+    ports:
+    - direction: input
+      name: In_flag
+      size: '1'
+    - direction: input
+      name: In_keep
+      size: mu
+    - direction: input
+      name: In_sigma
+      size: mu
+    - direction: output
+      name: out_flag
+      size: '1'
+    - direction: output
+      name: out_keep
+      size: mu
+    - direction: output
+      name: out_sigma
+      size: mu
+    resources:
+    - name: T_gates
+      type: additive
+      value: 4*mu-4
+    type: null
+  - connections:
+    - source: In_control
+      target: out_control
+    - source: In_target_0
+      target: out_target_0
+    - source: In_target_1
+      target: out_target_1
+    input_params:
+    - X
+    name: swap
+    ports:
+    - direction: input
+      name: In_control
+      size: '1'
+    - direction: input
+      name: In_target_0
+      size: X
+    - direction: input
+      name: In_target_1
+      size: X
+    - direction: output
+      name: out_control
+      size: null
+    - direction: output
+      name: out_target_0
+      size: null
+    - direction: output
+      name: out_target_1
+      size: null
+    resources:
+    - name: T_gates
+      type: additive
+      value: O(log2(X))
+    type: null
+  connections:
+  - source: In_0
+    target: usp.in
+  - source: In_1
+    target: had.in
+  - source: In_2
+    target: qrom.In_alt
+  - source: In_3
+    target: qrom.In_keep
+  - source: In_4
+    target: compare.In_flag
+  - source: compare.out_flag
+    target: swap.In_control
+  - source: compare.out_keep
+    target: temp_2
+  - source: compare.out_sigma
+    target: temp_0
+  - source: had.out
+    target: compare.In_sigma
+  - source: qrom.out_alt
+    target: swap.In_target_1
+  - source: qrom.out_keep
+    target: compare.In_keep
+  - source: qrom.out_l
+    target: swap.In_target_0
+  - source: swap.out_control
+    target: temp_3
+  - source: swap.out_target_0
+    target: out_0
+  - source: swap.out_target_1
+    target: temp_1
+  - source: usp.out
+    target: qrom.In_l
+  input_params:
+  - mu
+  - L
+  linked_params:
+  - source: L
+    targets:
+    - usp.L
+    - qrom.L
+    - swap.X
+  - source: mu
+    targets:
+    - qrom.mu
+    - compare.mu
+  local_variables:
+    R: ceiling(log2(L))
+  name: alias_sampling
+  ports:
+  - direction: input
+    name: In_0
+    size: R
+  - direction: input
+    name: In_1
+    size: mu
+  - direction: input
+    name: In_2
+    size: R
+  - direction: input
+    name: In_3
+    size: mu
+  - direction: input
+    name: In_4
+    size: '1'
+  - direction: output
+    name: out_0
+    size: null
+  - direction: output
+    name: temp_0
+    size: null
+  - direction: output
+    name: temp_1
+    size: null
+  - direction: output
+    name: temp_2
+    size: null
+  - direction: output
+    name: temp_3
+    size: null
+  type: null
+version: v1
