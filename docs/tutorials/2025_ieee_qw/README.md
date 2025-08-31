@@ -27,7 +27,7 @@ or
 
 `git clone https://github.com/PsiQ/bartiq.git` 
 
-2. Run: `pip install "bartiq[optimization, interactive]" jupyterlab ipykernel`
+2. Run: `pip install "bartiq[optimization, interactive]" jupyterlab ipykernel matplotlib`
 
 3. Navigate to this directory:
 
