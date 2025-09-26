@@ -2,6 +2,8 @@
 
 ## What is bartiq
 
+MAKING CHANGES FROM GITHUB WOWOWOWOW!
+
 Bartiq allows for the compilation and analysis of fault tolerant quantum algorithms, in order to better understand what resources they require to run on a quantum computer. Quantum resource estimation (QRE) focuses on key logical-level resources like $T$-gates, Toffolis, circuit active volume, and qubit count. In `bartiq`, quantum algorithms are expressed as a collection of subroutines, each of which can have its local resource cost expressed symbolically. The compilation engine in `bartiq` creates global resource costs from these local definitions. 
 
 ## Installation
