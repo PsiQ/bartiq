@@ -112,5 +112,5 @@ def _route_expression_to_latex(expression: TExpr[T]) -> str:
             return create_latex_expression_line_limited(chunked_latex_expression=pieces, max_length=MAX_LINE_LENGTH)
         case _:
             raise NotImplementedError(
-                f"LaTeX conversion not implemented for type '{type(expression)}'. Expression: {expression}."
+                f"LaTeX conversion not implemented for type '{type(expression)}'. Expression: '{expression}'."
             )
