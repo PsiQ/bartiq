@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from collections.abc import Iterable
 from operator import attrgetter
 
@@ -26,7 +27,7 @@ from qref.schema_v1 import (
 from sympy import latex, symbols
 from sympy.printing.latex import modifier_dict as sympy_latex_modifier_dict
 
-from ..symbolics.sympy_backend import parse_to_sympy
+from bartiq.symbolics.sympy_backend import parse_to_sympy
 
 
 def routine_to_latex(
@@ -246,3 +247,48 @@ def _get_resources_lines(resources: Iterable[ResourceV1], path: str | None = Non
             resource_path = f"{path}.{resource.name}"
         lines.append(f"&{_format_param(resource_path)} = {_latex_expression(str(resource.value))}")
     return lines
+
+
+def create_latex_expression_line_limited(chunked_latex_expression: list[str], max_length: int) -> str:
+    current_line: str = ""
+    lines: list[str] = []
+
+    for chunk in chunked_latex_expression:
+        if len(current_line) + len(chunk) > max_length:
+            lines.append(current_line)
+            current_line = ""
+        current_line += chunk + " + "
+
+    if current_line:
+        lines.append(current_line.rstrip(" +"))
+
+    if len(lines) == 1:
+        return lines[0]
+
+    return (
+        r"\begin{aligned}"
+        + r" \\".join(f"& {line}" if i == 0 else f"& \\quad {line}" for i, line in enumerate(lines))
+        + r"\end{aligned}"
+    )
+
+
+def escape_latex(text: str) -> str:
+    """
+    Escapes LaTeX special characters inside strings for use in \text{}.
+    """
+    pattern = re.compile("|".join(re.escape(k) for k in _replacements))
+    return pattern.sub(lambda m: _replacements[m.group()], text)
+
+
+_replacements = {
+    "\\": r"\textbackslash{}",
+    "_": r"\_",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
