@@ -250,6 +250,9 @@ def _get_resources_lines(resources: Iterable[ResourceV1], path: str | None = Non
 
 
 def create_latex_expression_line_limited(chunked_latex_expression: list[str], max_length: int) -> str:
+    """Given a chunked latex expression, i.e. a sequence of latex strings, construct a full latex expression
+    respecting the given maximum line length max_length.
+    """
     current_line: str = ""
     lines: list[str] = []
 
@@ -273,9 +276,7 @@ def create_latex_expression_line_limited(chunked_latex_expression: list[str], ma
 
 
 def escape_latex(text: str) -> str:
-    """
-    Escapes LaTeX special characters inside strings for use in \text{}.
-    """
+    """Escapes LaTeX special characters inside strings for use in \text{}."""
     pattern = re.compile("|".join(re.escape(k) for k in _replacements))
     return pattern.sub(lambda m: _replacements[m.group()], text)
 
