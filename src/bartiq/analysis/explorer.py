@@ -1,113 +1,116 @@
-import re
-from dataclasses import dataclass, field, replace
+from __future__ import annotations
+
+from typing import Generic
 
 import sympy as sp
 
 from bartiq import CompiledRoutine
+from bartiq.integrations.latex import (
+    _latex_expression,
+    create_latex_expression_line_limited,
+    escape_latex,
+)
 from bartiq.symbolics.backend import T, TExpr
 
 MAX_LINE_LENGTH = 160
 
 
-def escape_latex(text: str) -> str:
+class DecomposeResources(Generic[T]):
+    """A helper class for interacting with a routines hierarchy.
+
+    Designed primarily for use in interactive environments, this class provides a `_repr_latex_` method
+    that displays the total cost of a given resource and lists individual contributions from its immediate
+    children.
+
+    Args:
+        compiled_routine: The compiled routine to interact with.
+        resource: The resource cost to decompose.
+
+    Attributes:
+        total: The total resource cost for the `compiled_routine`, i.e. `compiled_routine.resource_values[resource]`.
+        decomposition: A dictionary of child: contribution entries.
     """
-    Escapes LaTeX special characters inside strings for use in \text{}.
-    """
-    replacements = {
-        "\\": r"\textbackslash{}",
-        "_": r"\_",
-        "&": r"\&",
-        "%": r"\%",
-        "$": r"\$",
-        "#": r"\#",
-        "{": r"\{",
-        "}": r"\}",
-        "~": r"\textasciitilde{}",
-        "^": r"\textasciicircum{}",
-    }
-    pattern = re.compile("|".join(re.escape(k) for k in replacements))
-    return pattern.sub(lambda m: replacements[m.group()], text)
 
+    def __init__(self, compiled_routine: CompiledRoutine, resource: str):
+        self.routine = compiled_routine
+        self.resource = resource
 
-def wrap_latex_expr(expr: sp.Basic, max_length=MAX_LINE_LENGTH) -> str:
-    """
-    Wraps a sympy expression across multiple lines with indentation
-    on continuation lines, KaTeX-safe.
-    """
-    terms = expr.as_ordered_terms()
-    pieces = [sp.latex(t) for t in terms]
+        self.total: TExpr[T]
+        self.decomposition: dict[str, TExpr[T]]
+        self.total, self.decomposition = decompose_resource(self.routine, self.resource)
 
-    current_line = ""
-    lines = []
-
-    for piece in pieces:
-        if len(current_line) + len(piece) > max_length:
-            lines.append(current_line)
-            current_line = ""
-        current_line += piece + " + "
-
-    if current_line:
-        lines.append(current_line.rstrip(" +"))
-
-    if len(lines) == 1:
-        return lines[0]
-
-    return (
-        r"\begin{aligned}"
-        + r" \\".join(f"& {line}" if i == 0 else f"& \\quad {line}" for i, line in enumerate(lines))
-        + r"\end{aligned}"
-    )
-
-
-class LatexExprDict:
-    def __init__(self, expr_dict: dict[str, sp.Basic]):
-        self.expr_dict = expr_dict
-
-    def _repr_latex_(self):
+    def _repr_latex_(self) -> str | None:
+        """A LaTeX repr."""
         lines = [r"\begin{array}{r||l}"]
-        items = list(self.expr_dict.items())
+        lines.append(rf"\text{{{'total'}}} & {_route_expression_to_latex(self.total)} \\")
+        lines.append(r" \rule{6em}{0.4pt} & \rule{" f"{MAX_LINE_LENGTH // 4}" r"em}{0.4pt} \\")
 
-        for i, (key, val) in enumerate(items):
-            key_latex = escape_latex(str(key))
-            val_latex = wrap_latex_expr(sp.Number(val) if isinstance(val, (int | float)) else val)
-
+        for child, resource_contribution in self.decomposition.items():
+            key_latex = escape_latex(str(child))
+            val_latex = _route_expression_to_latex(resource_contribution)
             lines.append(rf"\text{{{key_latex}}} & {val_latex} \\")
-
-            if i == 0:
-                # Insert a horizontal line after 'total'
-                lines.append(r" \rule{6em}{0.4pt} & \rule{" f"{MAX_LINE_LENGTH // 4}" r"em}{0.4pt} \\")
-            elif i < len(items) - 1:
-                # Insert a blank line between other rows
-                lines.append(r"& \phantom{.} \\")
-                lines.append(r"\hdashline")
-                lines.append(r"& \phantom{.} \\")
+            lines.append(r"& \phantom{.} \\")
+            lines.append(r"\hdashline")
+            lines.append(r"& \phantom{.} \\")
         lines.append(r"\end{array}")
         return "$$\n" + "\n".join(lines) + "\n$$"
 
+    def step_into(self, child: str) -> DecomposeResources:
+        """Step one layer down in the routine hierarchy, and return a new `DecomposeResources` object.
 
-@dataclass
-class Contributions:
-    compiled_routine: CompiledRoutine
-    resource: str
-    contributions: dict[str, TExpr[T]] = field(init=False)
+        Args:
+            child: The name of the child to step down into.
 
-    def __post_init__(self):
-        self.contributions = child_contributions(self.compiled_routine, self.resource)
+        Returns:
+            A new DecomposeResources object, instantiated on the child routine.
 
-    def _repr_latex_(self) -> str | None:
-        return LatexExprDict(self.contributions)._repr_latex_()
-
-    def step_into(self, child: str):
+        Raises:
+            ValueError: if an invalid child name is passed.
+        """
         try:
-            return replace(self, compiled_routine=self.compiled_routine.children[child])
+            return DecomposeResources(compiled_routine=self.routine.children[child], resource=self.resource)
         except KeyError as exc:
-            valid_names = "\n\t".join(list(self.compiled_routine.children.keys()))
+            valid_names = "\n\t".join(list(self.routine.children.keys()))
             raise ValueError(f"Valid child routine names are: \n\t{valid_names}") from exc
 
 
-def child_contributions(compiled_routine: CompiledRoutine, resource: str) -> dict[str, TExpr[T]]:
-    return {"total": compiled_routine.resource_values[resource]} | {
+def decompose_resource(compiled_routine: CompiledRoutine, resource: str) -> tuple[TExpr[T], dict[str, TExpr[T]]]:
+    """Decompose a resource of a routine into th4e contributions from immediate children.
+
+    Args:
+        compiled_routine: The bartiq CompiledRoutine to decompose resources of.
+        resource: the resource to decompose.
+
+    Returns:
+        A tuple of the total resource cost in the compiled_routine object, and a dictionary of contributions
+        from its immediate children.
+    """
+    return compiled_routine.resource_values[resource], {
         child_name: val
         for child_name, child_rout in compiled_routine.children.items()
         if resource in child_rout.resource_values and (val := child_rout.resource_values[resource]) != 0
     }
+
+
+def _route_expression_to_latex(expression: TExpr[T]) -> str:
+    """Route a given symbolic expression to a latex expression.
+
+    For SymPy this function first breaks the expression into components to obey line length, and then
+    combines it into a cohesive multi-line latex expression.
+
+    Args:
+        expression: The symbolic expression.
+
+    Returns:
+        A latex expression.
+    """
+    match expression:
+        case int() | float() | str():
+            return _latex_expression(str(expression))
+        case sp.Basic():
+            pieces = [_latex_expression(str(term)) for term in expression.as_ordered_terms()]
+            return create_latex_expression_line_limited(chunked_latex_expression=pieces, max_length=MAX_LINE_LENGTH)
+        case _:
+            raise NotImplementedError(
+                f"LaTeX conversion not implemented for type '{type(expression)}'. Expression: {expression}."
+            )
