@@ -1,68 +1,10 @@
-import pytest
-
-from bartiq import Routine, compile_routine
 from bartiq.analysis.rewriters.routine_rewriter import rewrite_routine_resources
 from bartiq.analysis.rewriters.sympy_expression import sympy_rewriter
-from bartiq.compilation import CompilationFlags
 
 
-@pytest.fixture(scope="function")
-def root():
-    return {
-        "name": "root",
-        "children": [
-            {
-                "name": "a",
-                "children": [
-                    {
-                        "name": "b",
-                        "resources": [
-                            {"name": "dummy_a", "type": "additive", "value": "max(0, b)"},
-                            {"name": "dummy_b", "type": "additive", "value": "log(1 + b)"},
-                        ],
-                    },
-                    {
-                        "name": "c",
-                        "resources": [
-                            {"name": "dummy_a", "type": "additive", "value": "max(0, c)"},
-                            {"name": "dummy_b", "type": "additive", "value": "min(2, c)"},
-                        ],
-                    },
-                ],
-            },
-            {
-                "name": "x",
-                "children": [
-                    {
-                        "name": "y",
-                        "resources": [
-                            {"name": "dummy_a", "type": "additive", "value": "max(0, y)"},
-                            {"name": "dummy_b", "type": "additive", "value": "ceiling(y)"},
-                        ],
-                    },
-                    {
-                        "name": "z",
-                        "resources": [
-                            {"name": "dummy_a", "type": "additive", "value": "max(0, z)"},
-                            {"name": "dummy_b", "type": "additive", "value": "Heaviside(z, 0.5)"},
-                        ],
-                    },
-                ],
-            },
-        ],
-    }
-
-
-@pytest.fixture(scope="function")
-def compiled(root, backend):
-    return compile_routine(
-        Routine.from_qref(root, backend), compilation_flags=CompilationFlags.EXPAND_RESOURCES
-    ).routine
-
-
-def test_rewrite_routine_resources(compiled, backend):
+def test_rewrite_routine_resources(dummy_compiled_routine, backend):
     resources = ["dummy_a", "dummy_b"]
-    rewriter = sympy_rewriter(compiled.resource_values["dummy_a"])
+    rewriter = sympy_rewriter(dummy_compiled_routine.resource_values["dummy_a"])
     rewriter = (
         rewriter.assume("b>0")
         .assume("y>0")
@@ -73,7 +15,7 @@ def test_rewrite_routine_resources(compiled, backend):
         .substitute("y + z", "A")
         .substitute("ceiling($x)", "x")
     )
-    new_routine = rewrite_routine_resources(compiled, resources, rewriter.history(), sympy_rewriter)
+    new_routine = rewrite_routine_resources(dummy_compiled_routine, resources, rewriter.history(), sympy_rewriter)
 
     # Test that the new routine top-level resource is the same as the rewriter attribute expression
     assert new_routine.resource_values["dummy_a"] == rewriter.expression
