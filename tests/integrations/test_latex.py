@@ -15,7 +15,11 @@
 import pytest
 from qref.schema_v1 import RoutineV1
 
-from bartiq.integrations.latex import routine_to_latex
+from bartiq.integrations.latex import (
+    create_latex_expression_line_limited,
+    escape_latex,
+    routine_to_latex,
+)
 
 LATEX_TEST_CASES = [
     # Null case
@@ -346,3 +350,214 @@ LATEX_TEST_CASES = [
 def test_represent_routine_in_latex(routine, kwargs, expected_latex):
     expected_string = rf"$\begin{{align}}{expected_latex}\end{{align}}$"
     assert routine_to_latex(routine, **kwargs) == expected_string
+
+
+class TestCreateLatexExpressionLineLimited:
+    """Tests for create_latex_expression_line_limited function."""
+
+    def test_single_chunk_within_limit(self):
+        """Test with a single chunk that fits within the max length."""
+        chunks = ["a_1"]
+        result = create_latex_expression_line_limited(chunks, max_length=50)
+        assert result == "a_1"
+
+    def test_multiple_chunks_single_line(self):
+        """Test with multiple chunks that all fit on one line."""
+        chunks = ["a_1", "b_2", "c_3"]
+        result = create_latex_expression_line_limited(chunks, max_length=50)
+        assert result == "a_1 + b_2 + c_3"
+
+    def test_multiple_chunks_multiple_lines(self):
+        """Test with chunks that require multiple lines."""
+        chunks = ["a_1", "b_2", "c_3"]
+        result = create_latex_expression_line_limited(chunks, max_length=10)
+        expected = r"\begin{aligned}& a_1 + b_2 + \\& \quad c_3\end{aligned}"
+        assert result == expected
+
+    def test_exact_boundary_fitting(self):
+        """Test when chunk exactly fits at the boundary."""
+        chunks = ["abc", "def"]  # Each 3 chars, plus " + " (3 chars) = 6 per chunk
+        result = create_latex_expression_line_limited(chunks, max_length=9)
+        # "abc + def" is 9 characters
+        assert result == "abc + def"
+
+    def test_exact_boundary_overflow(self):
+        """Test when chunk barely exceeds the boundary."""
+        chunks = ["abc", "def"]
+        result = create_latex_expression_line_limited(chunks, max_length=8)
+        # "abc + " is 6 chars, "def" would make it 9, exceeding 8
+        expected = r"\begin{aligned}& abc + \\& \quad def\end{aligned}"
+        assert result == expected
+
+    def test_empty_chunks_list(self):
+        """Test with empty list of chunks."""
+        chunks = []
+        with pytest.raises(ValueError, match="Must provide a list of non-zero length"):
+            create_latex_expression_line_limited(chunks, max_length=50)
+
+    def test_single_empty_chunk(self):
+        """Test with a single empty string chunk."""
+        chunks = [""]
+        result = create_latex_expression_line_limited(chunks, max_length=50)
+        assert result == ""
+
+    def test_very_long_single_chunk(self):
+        """Test with a single chunk longer than max_length."""
+        chunks = ["a" * 10]
+        result = create_latex_expression_line_limited(chunks, max_length=10)
+        # Should still add it to a line even though it exceeds max_length
+        assert result == "a" * 10
+
+    def test_three_lines(self):
+        """Test that generates exactly three lines."""
+        chunks = ["a", "b", "c", "d", "e", "f"]
+        result = create_latex_expression_line_limited(chunks, max_length=8)
+        # "a + b" = 5 chars, "c" would make 9
+        # "c + d" = 5 chars, "e" would make 9
+        # "e + f" = 5 chars
+        expected = r"\begin{aligned}& a + b + \\& \quad c + d + \\& \quad e + f\end{aligned}"
+        assert result == expected
+
+    def test_trailing_plus_removed_last_line(self):
+        """Test that trailing ' +' is removed from the last line."""
+        chunks = ["x", "y"]
+        result = create_latex_expression_line_limited(chunks, max_length=3)
+        # Each chunk on its own line
+        expected = r"\begin{aligned}& x + \\& \quad y\end{aligned}"
+        print(result)
+        print(expected)
+        assert result == expected
+        # Verify no trailing " +" in the result
+        assert not result.endswith(" +")
+
+    def test_first_line_no_quad(self):
+        """Test that first line doesn't have \\quad but subsequent lines do."""
+        chunks = ["a", "b", "c"]
+        result = create_latex_expression_line_limited(chunks, max_length=3)
+        expected = r"\begin{aligned}& a + \\& \quad b + \\& \quad c\end{aligned}"
+        assert result == expected
+        # Verify first line has "& a" not "& \quad a"
+        assert "& a" in result
+        assert "& \\quad b" in result
+        assert "& \\quad c" in result
+
+    def test_max_length_zero(self):
+        """Test edge case with max_length=0."""
+        chunks = ["a", "b"]
+        result = create_latex_expression_line_limited(chunks, max_length=0)
+        # Each chunk should go on its own line
+        expected = r"\begin{aligned}& a + \\& \quad b\end{aligned}"
+        assert result == expected
+
+    def test_max_length_negative(self):
+        """Test edge case with negative max_length."""
+        chunks = ["a", "b"]
+        result = create_latex_expression_line_limited(chunks, max_length=-1)
+        # Each chunk should go on its own line
+        expected = r"\begin{aligned}& a + \\& \quad b\end{aligned}"
+        assert result == expected
+
+    def test_complex_latex_expressions(self):
+        """Test with complex LaTeX expressions."""
+        chunks = [r"\frac{1}{2}", r"\sqrt{x}", r"\sum_{i=1}^n"]
+        result = create_latex_expression_line_limited(chunks, max_length=100)
+        assert result == r"\frac{1}{2} + \sqrt{x} + \sum_{i=1}^n"
+
+
+class TestEscapeLatex:
+    """Tests for escape_latex function."""
+
+    def test_backslash(self):
+        """Test escaping backslash."""
+        text = r"test\string"
+        result = escape_latex(text)
+        assert result == r"test\textbackslash{}string"
+
+    def test_ampersand(self):
+        """Test escaping ampersand."""
+        text = "cats & dogs"
+        result = escape_latex(text)
+        assert result == r"cats \& dogs"
+
+    def test_percent(self):
+        """Test escaping percent sign."""
+        text = "100% complete"
+        result = escape_latex(text)
+        assert result == r"100\% complete"
+
+    def test_dollar_sign(self):
+        """Test escaping dollar sign."""
+        text = "$100"
+        result = escape_latex(text)
+        assert result == r"\$100"
+
+    def test_hash(self):
+        """Test escaping hash/pound sign."""
+        text = "#tag"
+        result = escape_latex(text)
+        assert result == r"\#tag"
+
+    def test_underscore(self):
+        """Test escaping underscore."""
+        text = "variable_name"
+        result = escape_latex(text)
+        assert result == r"variable\_name"
+
+    def test_curly_braces(self):
+        """Test escaping curly braces."""
+        text = "{x}"
+        result = escape_latex(text)
+        assert result == r"\{x\}"
+
+    def test_tilde(self):
+        """Test escaping tilde."""
+        text = "~user"
+        result = escape_latex(text)
+        assert result == r"\textasciitilde{}user"
+
+    def test_caret(self):
+        """Test escaping caret."""
+        text = "x^2"
+        result = escape_latex(text)
+        assert result == r"x\textasciicircum{}2"
+
+    def test_multiple_special_characters(self):
+        """Test string with multiple different special characters."""
+        text = "$100 & 50% off #sale"
+        result = escape_latex(text)
+        assert result == r"\$100 \& 50\% off \#sale"
+
+    def test_consecutive_special_characters(self):
+        """Test consecutive special characters."""
+        text = "$$##%%"
+        result = escape_latex(text)
+        assert result == r"\$\$\#\#\%\%"
+
+    def test_empty_string(self):
+        """Test empty string."""
+        text = ""
+        result = escape_latex(text)
+        assert result == ""
+
+    def test_only_special_characters(self):
+        """Test string with only special characters."""
+        text = r"\&%$#_{}"
+        result = escape_latex(text)
+        assert result == r"\textbackslash{}\&\%\$\#\_\{\}"
+
+    def test_all_special_characters(self):
+        """Test all special characters that should be escaped."""
+        # Based on common LaTeX special characters
+        text = r"\ & % $ # _ { } ~ ^"
+        result = escape_latex(text)
+        # Verify all are escaped
+        assert "\\" in text and r"\textbackslash{}" in result
+        assert "&" in text and r"\&" in result
+        assert "%" in text and r"\%" in result
+        assert "$" in text and r"\$" in result
+        assert "#" in text and r"\#" in result
+        assert "_" in text and r"\_" in result
+        assert "{" in text and r"\{" in result
+        assert "}" in text and r"\}" in result
+        assert "~" in text and r"\textasciitilde{}" in result
+        assert "^" in text and r"\textasciicircum{}" in result
