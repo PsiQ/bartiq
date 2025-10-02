@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/PsiQ/bartiq/compare/v0.14.0...v0.14.1) (2025-08-13)
+
+
+### Bug Fixes
+
+* allow numbers to be passed into sympy_rewriter ([#249](https://github.com/PsiQ/bartiq/issues/249)) ([b828faf](https://github.com/PsiQ/bartiq/commit/b828faf64b6179f91a539f0ab4aa8b7f094cebce))
+* assumptions were not properly replacing symbols ([#251](https://github.com/PsiQ/bartiq/issues/251)) ([941fadb](https://github.com/PsiQ/bartiq/commit/941fadb0998e6e44c56a4ff4adb820cfbf63f596))
+
 ## [0.14.0](https://github.com/PsiQ/bartiq/compare/v0.13.1...v0.14.0) (2025-07-31)
 
 
