@@ -16,7 +16,7 @@ MAX_LINE_LENGTH = 160
 
 
 class DecomposeResources(Generic[T]):
-    """A helper class for interacting with a routines hierarchy.
+    """A helper class for interacting with a routine hierarchy.
 
     Designed primarily for use in interactive environments, this class provides a `_repr_latex_` method
     that displays the total cost of a given resource and lists individual contributions from its immediate
@@ -37,7 +37,7 @@ class DecomposeResources(Generic[T]):
 
         self.total: TExpr[T]
         self.decomposition: dict[str, TExpr[T]]
-        self.total, self.decomposition = decompose_resource(self.routine, self.resource)
+        self.total, self.decomposition = _decompose_resource(self.routine, self.resource)
 
     def _repr_latex_(self) -> str | None:
         """A LaTeX repr."""
@@ -74,8 +74,8 @@ class DecomposeResources(Generic[T]):
             raise ValueError(f"Valid child routine names are: \n\t{valid_names}") from exc
 
 
-def decompose_resource(compiled_routine: CompiledRoutine, resource: str) -> tuple[TExpr[T], dict[str, TExpr[T]]]:
-    """Decompose a resource of a routine into th4e contributions from immediate children.
+def _decompose_resource(compiled_routine: CompiledRoutine, resource: str) -> tuple[TExpr[T], dict[str, TExpr[T]]]:
+    """Decompose a resource of a routine into the contributions from immediate children.
 
     Args:
         compiled_routine: The bartiq CompiledRoutine to decompose resources of.
