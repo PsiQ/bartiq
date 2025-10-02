@@ -253,24 +253,32 @@ def create_latex_expression_line_limited(chunked_latex_expression: list[str], ma
     """Given a chunked latex expression, i.e. a sequence of latex strings, construct a full latex expression
     respecting the given maximum line length max_length.
     """
+    if not chunked_latex_expression:
+        raise ValueError("Must provide a list of non-zero length relating to a chunked latex expression.")
     current_line: str = ""
     lines: list[str] = []
 
-    for chunk in chunked_latex_expression:
-        if len(current_line) + len(chunk) > max_length:
+    all_nonzero_entries = [x for x in chunked_latex_expression if x]
+
+    for entry in all_nonzero_entries:
+        if not current_line:
+            current_line += entry + " + "
+            continue
+        if len(current_line) + len(entry) > max_length:
             lines.append(current_line)
             current_line = ""
-        current_line += chunk + " + "
+        current_line += entry + " + "
 
     if current_line:
         lines.append(current_line.rstrip(" +"))
 
+    if len(lines) == 0:
+        return ""
     if len(lines) == 1:
         return lines[0]
-
     return (
         r"\begin{aligned}"
-        + r" \\".join(f"& {line}" if i == 0 else f"& \\quad {line}" for i, line in enumerate(lines))
+        + r"\\".join(f"& {line}" if i == 0 else f"& \\quad {line}" for i, line in enumerate(lines))
         + r"\end{aligned}"
     )
 
