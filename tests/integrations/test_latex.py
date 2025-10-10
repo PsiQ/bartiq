@@ -389,72 +389,14 @@ def test_create_latex_expression_line_limited_empty_list_error():
         ("$$##%%", r"\$\$\#\#\%\%"),
         ("", ""),
         (r"\&%$#_{}", r"\textbackslash{}\&\%\$\#\_\{\}"),
+        ("cats & dogs", r"cats \& dogs"),
+        ("100% complete", r"100\% complete"),
+        ("$100", r"\$100"),
+        ("#tag", r"\#tag"),
+        ("variable_name", r"variable\_name"),
+        ("{x}", r"\{x\}"),
+        ("~user", r"\textasciitilde{}user"),
     ],
 )
 def test_escape_latex_parametrized(text, expected):
     assert escape_latex(text) == expected
-
-    def test_ampersand(self):
-        """Test escaping ampersand."""
-        text = "cats & dogs"
-        result = escape_latex(text)
-        assert result == r"cats \& dogs"
-
-    def test_percent(self):
-        """Test escaping percent sign."""
-        text = "100% complete"
-        result = escape_latex(text)
-        assert result == r"100\% complete"
-
-    def test_dollar_sign(self):
-        """Test escaping dollar sign."""
-        text = "$100"
-        result = escape_latex(text)
-        assert result == r"\$100"
-
-    def test_hash(self):
-        """Test escaping hash/pound sign."""
-        text = "#tag"
-        result = escape_latex(text)
-        assert result == r"\#tag"
-
-    def test_underscore(self):
-        """Test escaping underscore."""
-        text = "variable_name"
-        result = escape_latex(text)
-        assert result == r"variable\_name"
-
-    def test_curly_braces(self):
-        """Test escaping curly braces."""
-        text = "{x}"
-        result = escape_latex(text)
-        assert result == r"\{x\}"
-
-    def test_tilde(self):
-        """Test escaping tilde."""
-        text = "~user"
-        result = escape_latex(text)
-        assert result == r"\textasciitilde{}user"
-
-    def test_caret(self):
-        """Test escaping caret."""
-        text = "x^2"
-        result = escape_latex(text)
-        assert result == r"x\textasciicircum{}2"
-
-    def test_all_special_characters(self):
-        """Test all special characters that should be escaped."""
-        # Based on common LaTeX special characters
-        text = r"\ & % $ # _ { } ~ ^"
-        result = escape_latex(text)
-        # Verify all are escaped
-        assert "\\" in text and r"\textbackslash{}" in result
-        assert "&" in text and r"\&" in result
-        assert "%" in text and r"\%" in result
-        assert "$" in text and r"\$" in result
-        assert "#" in text and r"\#" in result
-        assert "_" in text and r"\_" in result
-        assert "{" in text and r"\{" in result
-        assert "}" in text and r"\}" in result
-        assert "~" in text and r"\textasciitilde{}" in result
-        assert "^" in text and r"\textasciicircum{}" in result
