@@ -25,14 +25,14 @@ class TestDecomposeResources:
         assert decompose_resources.decomposition == _decomposed(dummy_compiled_routine)
 
     @pytest.mark.parametrize("child", ["a", "x"])
-    def test_step_into(self, decompose_resources, child):
-        one_layer_down = decompose_resources.step_into(child)
+    def test_descend(self, decompose_resources, child):
+        one_layer_down = decompose_resources.descend(child)
         assert one_layer_down.routine.name == child
         assert one_layer_down.total == decompose_resources.routine.children[child].resource_values[resource]
         assert one_layer_down.decomposition == _decomposed(decompose_resources.routine.children[child])
 
-    def test_step_into_multi_layer(self, decompose_resources):
-        assert decompose_resources.step_into("a").step_into("b").routine.name == "b"
+    def test_descend_multi_layer(self, decompose_resources):
+        assert decompose_resources.descend("a").descend("b").routine.name == "b"
 
 
 def test_decompose_resource(dummy_compiled_routine):

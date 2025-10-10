@@ -55,11 +55,11 @@ class DecomposeResources(Generic[T]):
         lines.append(r"\end{array}")
         return "$$\n" + "\n".join(lines) + "\n$$"
 
-    def step_into(self, child: str) -> DecomposeResources:
-        """Step one layer down in the routine hierarchy, and return a new `DecomposeResources` object.
+    def descend(self, child: str) -> DecomposeResources:
+        """Descend one level in the routine hierarchy and return a new instance.
 
         Args:
-            child: The name of the child to step down into.
+            child: The name of the child to descend into.
 
         Returns:
             A new DecomposeResources object, instantiated on the child routine.
