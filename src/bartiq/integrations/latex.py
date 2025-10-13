@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 from collections.abc import Iterable
 from operator import attrgetter
 
@@ -26,7 +27,7 @@ from qref.schema_v1 import (
 from sympy import latex, symbols
 from sympy.printing.latex import modifier_dict as sympy_latex_modifier_dict
 
-from ..symbolics.sympy_backend import parse_to_sympy
+from bartiq.symbolics.sympy_backend import parse_to_sympy
 
 
 def routine_to_latex(
@@ -246,3 +247,57 @@ def _get_resources_lines(resources: Iterable[ResourceV1], path: str | None = Non
             resource_path = f"{path}.{resource.name}"
         lines.append(f"&{_format_param(resource_path)} = {_latex_expression(str(resource.value))}")
     return lines
+
+
+def create_latex_expression_line_limited(chunked_latex_expression: list[str], max_length: int) -> str:
+    """Given a chunked latex expression, i.e. a sequence of latex strings, construct a full latex expression
+    respecting the given maximum line length max_length.
+    """
+    if not chunked_latex_expression:
+        raise ValueError("Must provide a list of non-zero length relating to a chunked latex expression.")
+    current_line: str = ""
+    lines: list[str] = []
+
+    all_nonzero_entries = [x for x in chunked_latex_expression if x]
+
+    for entry in all_nonzero_entries:
+        if not current_line:
+            current_line += entry + " + "
+            continue
+        if len(current_line) + len(entry) > max_length:
+            lines.append(current_line)
+            current_line = ""
+        current_line += entry + " + "
+
+    if current_line:
+        lines.append(current_line.rstrip(" +"))
+
+    if len(lines) == 0:
+        return ""
+    if len(lines) == 1:
+        return lines[0]
+    return (
+        r"\begin{aligned}"
+        + r"\\".join(f"& {line}" if i == 0 else f"& \\quad {line}" for i, line in enumerate(lines))
+        + r"\end{aligned}"
+    )
+
+
+def escape_latex(text: str) -> str:
+    """Escapes LaTeX special characters inside strings for use in \text{}."""
+    pattern = re.compile("|".join(re.escape(k) for k in _replacements))
+    return pattern.sub(lambda m: _replacements[m.group()], text)
+
+
+_replacements = {
+    "\\": r"\textbackslash{}",
+    "_": r"\_",
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "{": r"\{",
+    "}": r"\}",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}

@@ -15,7 +15,11 @@
 import pytest
 from qref.schema_v1 import RoutineV1
 
-from bartiq.integrations.latex import routine_to_latex
+from bartiq.integrations.latex import (
+    create_latex_expression_line_limited,
+    escape_latex,
+    routine_to_latex,
+)
 
 LATEX_TEST_CASES = [
     # Null case
@@ -346,3 +350,53 @@ LATEX_TEST_CASES = [
 def test_represent_routine_in_latex(routine, kwargs, expected_latex):
     expected_string = rf"$\begin{{align}}{expected_latex}\end{{align}}$"
     assert routine_to_latex(routine, **kwargs) == expected_string
+
+
+@pytest.mark.parametrize(
+    "chunks,max_length,expected",
+    [
+        (["a_1"], 50, "a_1"),
+        (["a_1", "b_2", "c_3"], 50, "a_1 + b_2 + c_3"),
+        (["a_1", "b_2", "c_3"], 10, r"\begin{aligned}& a_1 + b_2 + \\& \quad c_3\end{aligned}"),
+        (["abc", "def"], 9, "abc + def"),
+        (["abc", "def"], 8, r"\begin{aligned}& abc + \\& \quad def\end{aligned}"),
+        ([""], 50, ""),
+        (["a" * 10], 10, "aaaaaaaaaa"),
+        (["a", "b", "c", "d", "e", "f"], 8, r"\begin{aligned}& a + b + \\& \quad c + d + \\& \quad e + f\end{aligned}"),
+        (["x", "y"], 3, r"\begin{aligned}& x + \\& \quad y\end{aligned}"),
+        (["a", "b", "c"], 3, r"\begin{aligned}& a + \\& \quad b + \\& \quad c\end{aligned}"),
+        (["a", "b"], 0, r"\begin{aligned}& a + \\& \quad b\end{aligned}"),
+        (["a", "b"], -1, r"\begin{aligned}& a + \\& \quad b\end{aligned}"),
+        ([r"\frac{1}{2}", r"\sqrt{x}", r"\sum_{i=1}^n"], 100, r"\frac{1}{2} + \sqrt{x} + \sum_{i=1}^n"),
+    ],
+)
+def test_create_latex_expression_line_limited(chunks, max_length, expected):
+    result = create_latex_expression_line_limited(chunks, max_length=max_length)
+    assert result == expected
+
+
+def test_create_latex_expression_line_limited_empty_list_error():
+    with pytest.raises(ValueError, match="Must provide a list of non-zero length"):
+        create_latex_expression_line_limited([], max_length=50)
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (r"test\string", r"test\textbackslash{}string"),
+        ("x^2", r"x\textasciicircum{}2"),
+        ("$100 & 50% off #sale", r"\$100 \& 50\% off \#sale"),
+        ("$$##%%", r"\$\$\#\#\%\%"),
+        ("", ""),
+        (r"\&%$#_{}", r"\textbackslash{}\&\%\$\#\_\{\}"),
+        ("cats & dogs", r"cats \& dogs"),
+        ("100% complete", r"100\% complete"),
+        ("$100", r"\$100"),
+        ("#tag", r"\#tag"),
+        ("variable_name", r"variable\_name"),
+        ("{x}", r"\{x\}"),
+        ("~user", r"\textasciitilde{}user"),
+    ],
+)
+def test_escape_latex_parametrized(text, expected):
+    assert escape_latex(text) == expected
