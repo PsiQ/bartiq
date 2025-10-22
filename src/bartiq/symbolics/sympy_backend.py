@@ -128,7 +128,7 @@ def _sympify_function(func_name: str, func: Callable) -> type[sympy.Function]:
             except Exception:
                 return None
 
-        sympy_func = type(func_name, (sympy.Function,), {"eval": classmethod(_eval_wrapper)})
+        sympy_func = type(func_name, (sympy.Function,), {"eval": classmethod(_eval_wrapper), "_imp_": func})
     else:
         sympy_func = func
 
