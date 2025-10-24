@@ -50,6 +50,7 @@ from sympy import (
     frac,
     gamma,
     im,
+    lambdify,
     log,
     prod,
     re,
@@ -482,3 +483,46 @@ def test_fn_overrides_works_as_expected():
 )
 def test_custom_max_evaluates_if_some_inputs_are_rationals(args, expected_max):
     assert Max(*args) == expected_max
+
+
+@pytest.mark.parametrize(
+    "expr, args, numeric_val",
+    [
+        ("ntz(x)", {"x": 12}, 2),
+        ("nlz(x)", {"x": 48}, 4),
+        ("ntz(x)", {"x": 3}, 0),
+        ("multiplicity(a, b)", {"a": 2, "b": 80}, 4),
+        ("multiplicity(a, b)", {"a": 2, "b": 2}, 1),
+        ("multiplicity(a, b)", {"a": 7, "b": 80}, 0),
+        ("round(x, 2)", {"x": 2.037}, 2.04),
+        ("round(x)", {"x": 3}, 3),
+        ("round(x)", {"x": 3.1234}, 3),
+        ("max(x, y, z)", {"x": 3, "y": 2, "z": 4}, 4),
+        ("max(x, y, z)", {"x": -3, "y": 2, "z": -4}, 2),
+        ("max(x)", {"x": 0}, 0),
+    ],
+)
+def test_espressions_parsed_by_the_interpreter_are_directly_lambdifiable(expr, args, numeric_val):
+    lambdified = lambdify(list(args.keys()), parse_to_sympy(expr))
+
+    assert lambdified(**args) == numeric_val
+
+
+@pytest.mark.parametrize("p, n", [(0.5, 2), (2, 3.1), (1.1, 2.3), (-1.1, 3), (2.0, 80)])
+def test_numerical_implementation_of_multiplicity_raises_when_one_of_arguments_is_not_an_integer(p, n):
+    lambdified = lambdify(("p", "n"), parse_to_sympy("multiplicity(p, n)"))
+
+    with pytest.raises(ValueError, match="Both arguments to multiplicity have to be integers."):
+        _ = lambdified(p, n)
+
+
+@pytest.mark.parametrize(
+    "n, error_cls",
+    [(-1, ValueError), (-2, ValueError), (-2.5, TypeError), (-0.5, TypeError), (0.5, TypeError), (3.1, TypeError)],
+)
+@pytest.mark.parametrize("func", ["nlz", "ntz"])
+def test_numerical_implementations_of_ntz_and_nlz_raise_if_argument_isnt_nonnegative_int(n, error_cls, func):
+    lambdified = lambdify(["n"], parse_to_sympy(f"{func}(n)"))
+
+    with pytest.raises(error_cls):
+        _ = lambdified(n)

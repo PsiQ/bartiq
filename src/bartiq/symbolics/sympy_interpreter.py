@@ -137,11 +137,22 @@ class Round(Function):
         # Boogie down
         return round(x, ndigits=ndigits)
 
+    @staticmethod
+    def _imp_(x, ndigits=None):
+        return round(x, ndigits)
+
 
 class multiplicity(Function):
     @classmethod
     def eval(cls, p, n):
         return orig_multiplicity(p, n) if isinstance(p, Integer) and isinstance(n, Integer) else None
+
+    @staticmethod
+    def _imp_(p, n):
+        if not isinstance(p, int) or not isinstance(n, int):
+            msg = f"Both arguments to multiplicity have to be integers but {p} and {n} was passed."
+            raise ValueError(msg)
+        return int(multiplicity(p, n))
 
 
 class ntz(Function):
@@ -165,6 +176,14 @@ class ntz(Function):
             if n < 0:
                 raise ValueError(f"ntz requires non-negative integer; found {n}")
             return (n & -n).bit_length() - 1
+
+    @staticmethod
+    def _imp_(n):
+        if not isinstance(n, int):
+            raise TypeError(f"ntz requires integer argument; found {n}")
+        if n < 0:
+            raise ValueError(f"ntz requires non-negative integer; found {n}")
+        return (n & -n).bit_length() - 1
 
 
 class nlz(ntz):
@@ -200,6 +219,10 @@ class Max(Function):
             return args[0]
         elif all(isinstance(n, (Integer, Float, Rational)) for n in args):
             return max(args)
+
+    @staticmethod
+    def _imp_(*args):
+        return max(args)
 
 
 SPECIAL_FUNCS = {

@@ -14,7 +14,7 @@ import pytest
 from sympy import E
 from sympy import Max as sympy_max
 from sympy import Min as sympy_min
-from sympy import cos, exp, pi, sin, sqrt, symbols, sympify
+from sympy import cos, exp, lambdify, pi, sin, sqrt, symbols, sympify
 
 from bartiq.errors import BartiqCompilationError
 from bartiq.symbolics import sympy_backend
@@ -243,3 +243,28 @@ def test_prod_returns_native_number_if_possible():
 
     assert result == 2
     assert isinstance(result, (int, float))
+
+
+def test_functions_defined_using_substitute_work_after_lambdification():
+    # The foo and bar purposefully contain conditional logic, so they don't get
+    # simply converted to arithmetic expressions - those wouldn't cuse problems
+    # with lambdify.
+    def foo(x, y):
+        if x < 0:
+            return x * y + y
+        else:
+            return x - y
+
+    def bar(x):
+        if x > 0:
+            return x**2
+        else:
+            return -(x**2)
+
+    expr = sympy_backend.substitute(
+        sympy_backend.as_expression("f(x, y) + g(y+x)"), {}, functions_map={"f": foo, "g": bar}
+    )
+
+    lambdified = lambdify(["x", "y"], expr)
+
+    assert lambdified(4, 5) == foo(4, 5) + bar(4 + 5)
