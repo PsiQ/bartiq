@@ -18,4 +18,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           release-type: python
           skip-github-release: false
-          skip-github-pull-request: true
+          skip-github-pull-request: false
