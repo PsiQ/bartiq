@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.15.0](https://github.com/PsiQ/bartiq/compare/v0.14.1...v0.15.0) (2025-10-27)
+
+
+### Features
+
+* add numerical implementation of some custom sympy functions ([#269](https://github.com/PsiQ/bartiq/issues/269)) ([51cd756](https://github.com/PsiQ/bartiq/commit/51cd75613464894ffbdd6ce56e3f51f3be838a1a))
+* added latex hierarchy explorer ([#267](https://github.com/PsiQ/bartiq/issues/267)) ([0fe83c5](https://github.com/PsiQ/bartiq/commit/0fe83c5586b710274cef8d71eb9c80e7030ae989))
+
+
+### Bug Fixes
+
+* remove some spaces ([#263](https://github.com/PsiQ/bartiq/issues/263)) ([880e697](https://github.com/PsiQ/bartiq/commit/880e6976c314f85afed3b0f9979fa91d0c2ce022))
+
+
+### Documentation
+
+* fix typo ([#264](https://github.com/PsiQ/bartiq/issues/264)) ([c4bedd6](https://github.com/PsiQ/bartiq/commit/c4bedd6f1b2617b6687ca99244de4a6b33d183cc))
+* Remove unnecessary newline ([f04eeed](https://github.com/PsiQ/bartiq/commit/f04eeedcc72b6debe851baf5ec2209641787e31b))
+
 ## [0.14.1](https://github.com/PsiQ/bartiq/compare/v0.14.0...v0.14.1) (2025-08-13)
 
 
