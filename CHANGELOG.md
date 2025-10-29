@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/PsiQ/bartiq/compare/v0.15.0...v0.15.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* Remove unnecessary and harmful _imp_ on custom Max ([#271](https://github.com/PsiQ/bartiq/issues/271)) ([6a99cbf](https://github.com/PsiQ/bartiq/commit/6a99cbfb25681c56946e3310e01b03dbe67e9d70))
+
 ## [0.15.0](https://github.com/PsiQ/bartiq/compare/v0.14.1...v0.15.0) (2025-10-27)
 
 
