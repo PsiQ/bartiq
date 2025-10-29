@@ -220,10 +220,6 @@ class Max(Function):
         elif all(isinstance(n, (Integer, Float, Rational)) for n in args):
             return max(args)
 
-    @staticmethod
-    def _imp_(*args):
-        return max(args)
-
 
 SPECIAL_FUNCS = {
     "mod": Mod,
