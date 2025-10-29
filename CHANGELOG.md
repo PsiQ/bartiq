@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2](https://github.com/PsiQ/bartiq/compare/v0.15.1...v0.15.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* allow ntz to tolerate a float if it represents an integer ([#273](https://github.com/PsiQ/bartiq/issues/273)) ([24ccfbd](https://github.com/PsiQ/bartiq/commit/24ccfbd0978fb2a9f2d6e448d3a5b99e6170ade2))
+
 ## [0.15.1](https://github.com/PsiQ/bartiq/compare/v0.15.0...v0.15.1) (2025-10-29)
 
 
