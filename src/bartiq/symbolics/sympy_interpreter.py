@@ -180,7 +180,10 @@ class ntz(Function):
     @staticmethod
     def _imp_(n):
         try:
-            n = int(n)
+            m = int(n)
+            if n != m:
+                raise TypeError()  # This is to trigger the one below
+            n = m
         except TypeError:
             raise TypeError(f"ntz requires integer argument; found {n}")
         if n < 0:
