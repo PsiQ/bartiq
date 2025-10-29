@@ -526,3 +526,10 @@ def test_numerical_implementations_of_ntz_and_nlz_raise_if_argument_isnt_nonnega
 
     with pytest.raises(error_cls):
         _ = lambdified(n)
+
+
+@pytest.mark.parametrize("n", [1.0, 2.0, 3.0])
+def test_ntz_can_be_numerically_evaluated_for_floats_representing_integers(n):
+    lambdified = lambdify(["n"], parse_to_sympy("ntz(n)"))
+
+    assert lambdified(n) == lambdified(int(n))
