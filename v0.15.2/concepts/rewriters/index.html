@@ -1,0 +1,1771 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Symbolic compilation for QRE">
+      
+      
+        <meta name="author" content="PsiQuantum Corp.">
+      
+      
+      
+        <link rel="prev" href="../compilation/">
+      
+      
+        <link rel="next" href="../../unitary_hack/blogpost/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+    
+    
+      
+        <title>Rewriters - Bartiq</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../css/timeago.css">
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../psidocs.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#rewriters" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Bartiq" class="md-header__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  <img src="../../assets/logo_white.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Bartiq
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Rewriters
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Bartiq" class="md-nav__button md-logo" aria-label="Bartiq" data-md-component="logo">
+      
+  <img src="../../assets/logo_white.png" alt="logo">
+
+    </a>
+    Bartiq
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/PsiQ/bartiq" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bartiq
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Welcome to Bartiq
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_basic_example/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Basic example
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_alias_sampling_basic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Alias Sampling
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_advanced_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Using Bartiq for Resource Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_rewriters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rewriting symbolic expressions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compilation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Compilation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Rewriters
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rewriters
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Motivation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concepts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instructions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#substitutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Substitutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Substitutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caveats
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sympy-specific-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      SymPy Specific Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applying-rewriters-to-routines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Applying Rewriters to Routines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applying Rewriters to Routines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rewrite_routine_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      rewrite_routine_resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Unitary Hack
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Unitary Hack
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../unitary_hack/blogpost/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Unitary Hack Blogpost
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../unitary_hack/issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Unitary Hack issues
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Known limitations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Motivation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Concepts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concepts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instructions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Assumptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#substitutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Substitutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Substitutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caveats
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation details
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Methods
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sympy-specific-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      SymPy Specific Methods
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applying-rewriters-to-routines" class="md-nav__link">
+    <span class="md-ellipsis">
+      Applying Rewriters to Routines
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Applying Rewriters to Routines">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rewrite_routine_resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      rewrite_routine_resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/PsiQ/bartiq/edit/main/docs/concepts/rewriters.md" title="Edit this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="rewriters">Rewriters<a class="headerlink" href="#rewriters" title="Permanent link">&para;</a></h1>
+<p><code>bartiq</code> includes a set of utilities for manipulating and simplifying symbolic expressions, known as <strong>rewriters</strong>. This functionality is contained in the <code>analysis</code> submodule, and backend-specific rewriters can be imported directly.
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">sympy_rewriter</span>
+</span></code></pre></div>
+Here we will give an overview of the rewriting functionality currently implemented, with example usage. This document is intended for advanced users seeking to understand in-depth the logic behind rewriters, either for development or debugging purposes. We will soon have a more usage-oriented tutorial. </p>
+<h2 id="motivation">Motivation<a class="headerlink" href="#motivation" title="Permanent link">&para;</a></h2>
+<p>As quantum algorithms increase in complexity their symbolic resource expressions similarly become more complex. For a state of the art algorithm like double factorization the resource expressions can be almost impossible to parse, due to the sheer number of terms and symbols. For example, see Fig. 16 in <a href="https://arxiv.org/pdf/2011.03494"><em>Even more eﬃcient quantum computations of chemistry
+through tensor hypercontraction</em></a>, and Eq. C39 for the associated Toffoli cost of this circuit. </p>
+<p>Making complex expressions more palatable is a primary motivation for rewriters; gaining insights into closed-form expressions for important resource quantities is vital for fault-tolerant quantum algorithm optimization and design.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Rewriters are structured as dataclasses with associated methods and properties. Instantiation is done through a factory method; the only required input is an expression that we wish to modify (or rewrite). The input can be provided as a string, or as the backend-specific expression type.</p>
+<p>While much of the logic is necessarily tied to a particular backend implementation, the base class enforces some core functionality. The philosophy around rewriters is that they should be <em>immutable</em>, such that methods that change an expression actually return a new instance of the rewriter class. This allows for method chaining and easy access to previous expression forms if a change was made in error.</p>
+<p>Due to the dynamic nature of expression manipulation, rewriters are designed with interactive environments in mind. Rewriters have a <code>_repr_latex_</code> method that prints the current expression, meaning the following code in a Jupyter notebook:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+would return a $\LaTeX$ (technically $KaTeX$) expression $a + b$. This, combined with method chaining, means the effect of different methods can be seen immediately.</p>
+<p>Beyond individual expression manipulation, <code>bartiq</code> also provides functionality to apply rewriter transformations to resources within compiled routines. This allows for systematic simplification of resource expressions across entire quantum algorithms. See <a href="#applying-rewriters-to-routines">Applying Rewriters to Routines</a> for details.</p>
+<h2 id="concepts">Concepts<a class="headerlink" href="#concepts" title="Permanent link">&para;</a></h2>
+<p>In designing the rewriter framework we implemented a number of different utility classes. A typical user should not need to interact with these objects directly, but we describe them here for completeness.</p>
+<h4 id="instructions">Instructions<a class="headerlink" href="#instructions" title="Permanent link">&para;</a></h4>
+<p>An <code>Instruction</code> is an action that marks a change to an expression. The following <code>Instructions</code> are implemented:</p>
+<ul>
+<li>
+<p><code>Initial</code></p>
+<p>The initial form of the rewriter instance.</p>
+</li>
+<li>
+<p><code>Simplify</code></p>
+<p>A backend-specific 'simplify' command.</p>
+</li>
+<li>
+<p><code>Expand</code></p>
+<p>Expand all brackets in the expression.</p>
+</li>
+<li>
+<p><code>Assumption</code></p>
+<p>Add an assumption onto a symbol.</p>
+</li>
+<li>
+<p><code>Substitution</code></p>
+<p>Substitute a symbol or expression for another.</p>
+</li>
+<li>
+<p><code>ReapplyAllAssumptions</code></p>
+<p>Reapply all previously applied assumptions.</p>
+</li>
+</ul>
+<p>The primary purpose of <code>Instructions</code> is to track the history of an expression, and the user may only ever interact with these objects via the <code>history()</code> method. Of these classes, only <code>Assumption</code> and <code>Substitution</code> require special logic; the others have no methods or attributes implemented. We explore <code>Assumption</code> and <code>Substitution</code> in more detail below.</p>
+<div class="admonition note">
+<p class="admonition-title">Why not just an <code>Enum</code>?</p>
+<p>Originally the <code>Instructions</code> were implemented as an <code>Enum</code>! However, because <code>Assumptions</code> and <code>Substitutions</code> required special logic it was challenging to enforce strict typing across both an <code>Enum</code> and other dataclasses. Creating an empty class <code>Instruction</code>, with other classes inheriting from it, resulted in a cleaner implementation.</p>
+</div>
+<h4 id="assumptions">Assumptions<a class="headerlink" href="#assumptions" title="Permanent link">&para;</a></h4>
+<p>Assumptions about symbols can be input to the expression, and (in the case of SymPy) the backend symbolic engine attempts to simplify the expression with this new knowledge. An assumption requires three arguments:</p>
+<ul>
+<li>
+<p><code>symbol_name: str</code></p>
+<p>The symbol to add the assumption to.</p>
+</li>
+<li>
+<p><code>comparator: Comparator | str</code></p>
+<p>The comparison to apply, one of "&gt;", "&lt;", "&gt;=", "&lt;=". </p>
+</li>
+<li>
+<p><code>value: int | float</code></p>
+<p>The reference value to compare the symbol to.</p>
+</li>
+</ul>
+<p>Alternatively an assumption can be parsed directly from a string:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;max(0, X)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;X &gt; 0&quot;</span><span class="p">)</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">X</span>
+</span></code></pre></div></p>
+<p>Given an input assumption to a <code>sympy_rewriter</code>, the symbol is updated with the relevant SymPy <a href="https://docs.sympy.org/latest/guides/assumptions.html#predicates">predicates&nbsp;⧉</a>. For some symbol <code>X</code> the predicates we support are:</p>
+<ul>
+<li>positive: <code>X &gt; 0</code>,</li>
+<li>nonnegative: <code>X &gt;= 0</code> or <code>positive</code>,</li>
+<li>negative: <code>X &lt; 0</code>,</li>
+<li>nonpositive: <code>X&lt;=0</code> or <code>negative</code>,</li>
+</ul>
+<p>From these SymPy is able to deduce other predicates. We do not implement predicates that declare if a symbol belongs to a particular number group, i.e. <code>integer</code>, <code>complex</code>, etc. We found that these kinds of assumptions did little to help simplify expressions. Similarly we do not have support for symbols being declared as infinitely large; if there is a valuable use case for these they could be easily added.</p>
+<p>There is unfortunately <a href="https://docs.sympy.org/latest/guides/assumptions.html#relations-between-different-symbols">no way to input assumptions between different symbols&nbsp;⧉</a>. Similarly SymPy does not implement predicates that specify a relationship between a symbol and some nonzero value, i.e. <code>X &gt; 5</code>. However, for this latter point, we have implemented a workaround. </p>
+<p>If an assumption like <code>X &gt; 5</code> is passed, the following logic occurs:</p>
+<ul>
+<li>Predicates are derived for <code>X</code> and applied to the symbol in the expression.</li>
+<li>A 'dummy' symbol <code>Y</code> is created with the same predicates. </li>
+<li>We replace <code>X -&gt; Y + 5</code></li>
+<li>We replace <code>Y -&gt; X - 5</code></li>
+</ul>
+<p>The SymPy symbolic engine attempts to simplify the expression at each stage of this process. The drawback is that these kinds of assumptions <em>do not persist</em>. Because SymPy lacks the logic to define the relative value of a symbol beyond (non-)positivity/negativity, after this process the symbol <code>X</code> will only be defined with predicates from that restricted set. As a result, it can occasionally be useful to reapply all previously applied assumptions in order to repeat the steps lined out above. This can be achieved with the <code>reapply_all_assumptions()</code> method. </p>
+<p>Finally, an assumption can also be applied to an expression with the same logic as above; a dummy symbol is created with the relevant predicates and (temporarily) replaces every instance of the expression. 
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="s2">&quot;max(0, log(x)) + max(1, log(x)) + max(2, log(x))&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="p">)</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;log(x) &gt; 2&quot;</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="mi">3</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span></code></pre></div>
+However any symbols within the expression (<code>x</code> in this example) <em>will not</em> inherit the predicates that were derived for the expression and associated dummy symbol. </p>
+<details><summary>Unexpected behaviours</summary>
+We rely on the SymPy engine to apply and simpify these assumptions, and we do so via the `.subs` method on SymPy expressions to substitute the aforementioned 'dummy' symbols. However, this method has some [known bugs](https://github.com/sympy/sympy/issues/19422). Consider the following SymPy code: 
+
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Symbol</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">a</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">b</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">c</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mi">1</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">expr</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">c</span> <span class="o">-</span> <span class="mi">1</span>
+</span></code></pre></div>
+The above code behaves as expected: the subexpression `a + b` is replaced by `c`. However, by making a minor change to the types in the expression:
+
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mf">1.</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">expr</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mf">1.0</span>
+</span></code></pre></div>
+The substitution does _not_ work. For this reason, the following rewriter code has a silent failure:
+
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">sympy_rewriter</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;max(0, a + b - 1.5)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;a + b &gt; 1.5&quot;</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mf">1.5</span><span class="p">)</span>
+</span></code></pre></div>
+Whereas this works as expected:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">sympy_rewriter</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;max(0, a + b - 1)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;a + b &gt; 1&quot;</span><span class="p">)</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="mi">1</span>
+</span></code></pre></div>
+In these cases, it is advisable to pass assumptions in as the _whole_ expression, i.e. `a + b - 1.5 > 0`.
+</details>
+
+<h4 id="substitutions">Substitutions<a class="headerlink" href="#substitutions" title="Permanent link">&para;</a></h4>
+<p>Substitutions are another powerful way of simplifying expressions. Rewriters support generic one-to-one substitutions: </p>
+<ul>
+<li>
+<p>symbol to symbol:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">replace_with</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>symbol to expression:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b + c&quot;</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>expression to symbol:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">c</span>
+</span></code></pre></div>
+</li>
+<li>
+<p>expression to expression:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">,</span> <span class="s2">&quot;c/d&quot;</span><span class="p">)</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">c</span><span class="o">/</span><span class="n">d</span>
+</span></code></pre></div>
+</li>
+</ul>
+<p>There are no restrictions on the kind of replacements that can be done. Substitutions can only be passed in via strings in order to unify the API interface.</p>
+<p>For <code>sympy_rewriter</code>, we also support <em>wildcard substitutions</em>. SymPy has <a href="https://docs.sympy.org/latest/modules/core.html#sympy.core.symbol.Wild"><code>Wild</code> symbols&nbsp;⧉</a> which can be used to match patterns in expressions. When using <code>.substitute</code>, a symbol prefaced with <code>$</code> will be marked as <code>Wild</code>, and will match anything that is nonzero. <code>Wild</code> symbols that are permitted to be zero can result in unusual, and often unwanted, behaviour. An example of using wildcard substitutions:</p>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;log(x + 2) + log(y + 4)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($x + $y)&quot;</span><span class="p">,</span> <span class="s2">&quot;f(x, y)&quot;</span><span class="p">)</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span></code></pre></div>
+If symbols were marked as wild in the first argument to <code>.substitute</code> and then referenced in the second argument, the corresponding matching pattern is used. If a new, or existing, symbol is referenced, it is replaced as-is. If an existing symbol is used <em>as a wild symbol</em>, the corresponding matching pattern takes precedence. 
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Replace a wild pattern with a new symbol</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;f(x) + f(y) + z&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;f($x)&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">)</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="mi">2</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="n">z</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># Replace a wild pattern with an existing symbol</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;f(x) + f(y) + z&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;f($x)&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">)</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="mi">3</span><span class="o">*</span><span class="n">z</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># Using an existing symbol as a wild symbol</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;f(x) + f(y) + z&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;f($y)&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span>
+</span></code></pre></div></p>
+<p>More precise control over wildcard substitutions is possible. Any lowercase symbol prefaced with <code>$</code> will match <em>anything</em> except $0$. An uppercase <code>N</code> will match <em>only numbers</em>. Any other uppercase letter will match <em>only symbols</em>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Match anything</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="s2">&quot;log(1 + x) + log(2 + y) + log(z) + log(t)&quot;</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($x)&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t</span> <span class="o">+</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">3</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># Match only symbols</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="s2">&quot;log(1 + x) + log(2 + y) + log(z) + log(t)&quot;</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($X)&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">)</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">t</span> <span class="o">+</span> <span class="n">z</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="c1"># Match symbols and numbers</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="s2">&quot;log(1 + x) + log(2 + y) + log(z) + log(t)&quot;</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($X + $N)&quot;</span><span class="p">,</span> <span class="s2">&quot;X/N&quot;</span><span class="p">)</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Finally, it is possible to mix-and-match wild symbols with non-wild symbols:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="s2">&quot;a*max(0, x) + b*max(0,y) + a*max(0, y)&quot;</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a*max(0, $x)&quot;</span><span class="p">,</span> <span class="s2">&quot;a*x&quot;</span><span class="p">)</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">a</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span></code></pre></div></p>
+<h5 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">&para;</a></h5>
+<p>Here we collect some caveats for wildcard substitutions.</p>
+<details><summary>Matching zero arguments</summary>
+As mentioned we assume that wildcard symbols are <em>nonzero</em>. This is to prevent perfectly valid, but perhaps unwanted, interactions. For example:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sympy.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">x</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Wild</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">a</span> <span class="o">=</span> <span class="n">Wild</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="c1"># Can match to zero values</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">b</span> <span class="o">=</span> <span class="n">Wild</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">)</span> <span class="c1"># Can match to zero values</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">x</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="n">_a</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="n">_b</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+</span></code></pre></div>
+While this is correct, if our goal is to <em>only</em> match expressions that are an explicit sum of other expressions, zero-valued <code>Wild</code> symbols can lead to false positives.
+<br>
+Excluding zero-values from wildcard substitutions in rewriters helps prevent these kinds of events, but it can also introduce other pitfalls:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;max(0, a) + max(1, b) + max(4, c) + max(5, d)&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+If we know that our variables <code>a</code>, <code>b</code>, <code>c</code> and <code>d</code> are all large real values, we can just get rid of the <code>max</code> functions with a wildcard subtitution:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;max($x, $y)&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span>
+</span></code></pre></div>
+Because wild symbols cannot be zero, we did not remove the <code>max(0, a)</code> term. To match to zero, you must provide it explicitly:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;max($x, $y)&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;max(0, $x)&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span>
+</span></code></pre></div>
+</details>
+
+<details><summary>Ordering of function arguments</summary>
+Wildcard substitutions can be extremely powerful but, due to a difference between how SymPy stores expressions internally versus how it displays them, can have some unexpected outcomes. Take for instance the following example:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;log(x + 2) + log(y + 4)&quot;</span><span class="p">)</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="n">rewriter</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">log</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($x + $y)&quot;</span><span class="p">,</span> <span class="s2">&quot;f(x, y)&quot;</span><span class="p">)</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span></code></pre></div>
+Because the expression is displayed with symbols preceding numbers in the `log` arguments, we intutively expect the matching pattern to follow this convention. Instead, it flips their order: this is due to how SymPy prioritises objects in its engine. For more complex arguments it can be difficult to infer in what order SymPy is storing them.
+</details>
+
+<details><summary>Mix and matching wild/non-wild symbols</summary>
+While mix and matching wild/non-wild symbols is possible, it may not always work as expected. Consider the following SymPy code:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Wild</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">Max</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="n">X</span> <span class="o">=</span> <span class="n">Wild</span><span class="p">(</span><span class="s2">&quot;X&quot;</span><span class="p">)</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="n">Y</span> <span class="o">=</span> <span class="n">Wild</span><span class="p">(</span><span class="s2">&quot;Y&quot;</span><span class="p">)</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="n">f</span> <span class="o">=</span> <span class="n">Function</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">)</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">symbols</span><span class="p">(</span><span class="s2">&quot;a,b,c&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+We have defined two <code>Wild</code> symbols <code>X</code> and <code>Y</code> that will match anything, as well as some symbols <code>a</code>, <code>b</code> and <code>c</code>, and a function <code>f</code>.
+
+When attempting to find patterns with <code>Wild</code> symbols, we use the <code>.match</code> method in SymPy. Consider the following interactions.
+<br>
+
+<u>Case 1: Wildcard substitution works as expected</u>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">Max</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="n">X</span><span class="p">:</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">}</span>
+</span></code></pre></div>
+
+<u>Case 2: Wildcard substitution does not work as expected</u>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">Max</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+The only change is now we are trying to match <code>f(c)</code> instead of just <code>c</code>. We intuitively expect this to work, as we are accessing the SymPy objects directly. Naively, we can be tempted to conclude that this change in behaviour is related to the function <code>f</code>.
+<br>
+<u>Case 3: Wildcard substitution works again</u>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">Max</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="n">X</span><span class="p">:</span> <span class="n">a</span><span class="p">}</span>
+</span></code></pre></div>
+If we remove <code>+ b</code> from the first argument, the matching works again!
+
+
+To avoid this unexpected behaviour, it is encouraged to be as explicit as possible and provide more <code>Wild</code> symbols rather than fewer:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">expr</span> <span class="o">=</span> <span class="n">Max</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="n">expr</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">Max</span><span class="p">(</span><span class="n">X</span> <span class="o">+</span> <span class="n">Y</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="n">X</span><span class="p">:</span> <span class="n">a</span><span class="p">,</span> <span class="n">Y</span><span class="p">:</span> <span class="n">b</span><span class="p">}</span>
+</span></code></pre></div>
+As we rely on this SymPy level code when implementing substitutions through rewriters, it is important to keep these kinds of ineractions in mind.
+</details>
+
+<h2 id="implementation-details">Implementation details<a class="headerlink" href="#implementation-details" title="Permanent link">&para;</a></h2>
+<p>Below we list some of the most important attributes, properties and methods of rewriters. In what follows, the typehint <code>T</code> is used to indicate that the type is backend-dependent expression type. For instance in the <code>sympy_backend</code>, <code>T = sympy.Expr</code>. </p>
+<p>There are broadly two kinds of methods: those that implement an <code>Instruction</code>, and thus modify the expression, and those that display information about the expression or update it temporarily. Methods that are typehinted to return <code>Self</code> return a new rewriter instance, and thus implement an <code>Instruction</code>.</p>
+<h3 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>expression: T</code></p>
+<p>The form of the current expression. This is the attribute updated by rewriting methods and displayed by the <code>_repr_latex_</code> method in Jupyter notebooks.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b + c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expression</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>linked_symbols: dict[str, Iterable[str]]</code></p>
+<p>When substituting one symbol for another, this dictionary tracks the relationships.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b + c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a + b + c&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">linked_symbols</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)}</span>
+</span></code></pre></div>
+</li>
+</ul>
+<h3 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>assumptions: tuple[Assumption, ...]</code></p>
+<p>A tuple of all assumptions that have been applied to the expression, in chronological order.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="p">(</span><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b + c&quot;</span><span class="p">)</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>            <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;a&gt;5&quot;</span><span class="p">)</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>            <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;b&lt;-1&quot;</span><span class="p">)</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>            <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;c&gt;=10&quot;</span><span class="p">))</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">assumptions</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Assumption</span><span class="p">(</span><span class="n">symbol_name</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">comparator</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Assumption</span><span class="p">(</span><span class="n">symbol_name</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">comparator</span><span class="o">=</span><span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Assumption</span><span class="p">(</span><span class="n">symbol_name</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">comparator</span><span class="o">=</span><span class="s1">&#39;&gt;=&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">)</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>substitutions: tuple[Substitution, ...]</code></p>
+<p>A tuple of all substitutions that have been applied to the expression, in chronological order.
+<div class="language-python highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="p">(</span><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">))</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="n">rewriter</span><span class="o">.</span><span class="n">substitutions</span>
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span> 
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Substitution</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;SympyBackend&#39;</span><span class="p">),</span>
+</span><span id="__span-29-8"><a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Substitution</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;SympyBackend&#39;</span><span class="p">),</span>
+</span><span id="__span-29-9"><a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Substitution</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;SympyBackend&#39;</span><span class="p">)</span>
+</span><span id="__span-29-10"><a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">)</span> 
+</span></code></pre></div></p>
+</li>
+<li>
+<p><code>original -&gt; Self</code></p>
+<p>Return the rewritter instance with the original input expression.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="n">rewriter</span> <span class="o">=</span> <span class="p">(</span><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>            <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">))</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="k">assert</span> <span class="n">rewriter</span><span class="o">.</span><span class="n">original</span> <span class="o">==</span> <span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>free_symbols -&gt; Iterable[T]</code></p>
+<p>An iterable of all free symbols (i.e. variables) in the expression.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b + c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">free_symbols</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">}</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>individual_terms -&gt; Iterable[T]</code></p>
+<p>Return the expression as an iterable of its individual terms. Ordering is not conserved.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a*b + c*d + e + f*log(1 + g)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">individual_terms</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">e</span><span class="p">,</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">a</span><span class="o">*</span><span class="n">b</span><span class="p">,</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">c</span><span class="o">*</span><span class="n">d</span><span class="p">,</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">f</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">g</span><span class="p">),</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">)</span>
+</span></code></pre></div>
+</li>
+</ul>
+<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><code>expand() -&gt; Self</code></p>
+<p>Expand all brackets in the expression.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;(a + b)*c - (d + e)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">*</span><span class="n">c</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">c</span> <span class="o">-</span> <span class="n">d</span> <span class="o">-</span> <span class="n">e</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>simplify() -&gt; Self</code></p>
+<p>Run the backend simplify functionality.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;x*sin(y)**2 + x*cos(y)**2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span>
+</span></code></pre></div>
+<p>As we are calling the SymPy method <code>.simplify</code> on the expression, we encourage the user to read the <a href="https://docs.sympy.org/latest/modules/simplify/simplify.html#sympy.simplify.simplify.simplify">documentation&nbsp;⧉</a> on this functionality.</p>
+</li>
+<li>
+<p><code>assume(assumption: str | Assumption) -&gt; Self</code></p>
+<p>Add an assumption to the expression. Assumptions can be passed as strings, i.e. <code>x &gt; 0</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;max(5, a)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;a &gt; 5&quot;</span><span class="p">)</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>substitute(expr: str, replace_with: str) -&gt; Self</code></p>
+<p>Perform a substitution. As inputs are string only, they will be parsed to the relevant backend. This permits one-to-one substitution as well as pattern matching with wildcards. </p>
+<p>One-to-one substitution:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a*b*c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;b*c&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">*</span><span class="n">y</span>
+</span></code></pre></div></p>
+<p>Wildcard substitution:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>    <span class="s2">&quot;log(x + 1) + log(y + 4) + log(z + 6)&quot;</span>
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log($x + $y)&quot;</span><span class="p">,</span> <span class="s2">&quot;f(x, y)&quot;</span><span class="p">)</span>
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">f</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><code>focus(symbols: str | Iterable[str]) -&gt; T</code></p>
+<p>Return only terms in the expression that contain the input symbols, grouped if possible. This method only hides other terms, it does not delete them.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a*b + a*c + a*d + b*e + d*c&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">focus</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span><span id="__span-38-2"><a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>evaluate_expression(assignments: dict[str, int | float | T], functions_map: dict[str, Callable]) -&gt; T | int | float</code></p>
+<p>Assign explicit values to some, or all, of the symbols in the expression. This does not store the result, explicit replacement of symbols with values must be done with <code>substitute</code>. This method calls the <code>backend.substitute</code> <a href="https://github.com/PsiQ/bartiq/blob/d653889e57c4637db7e4f08a698b08252f0cb1e1/src/bartiq/symbolics/backend.py#L95">method&nbsp;⧉</a>. </p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">evaluate_expression</span><span class="p">(</span><span class="n">assignments</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="mi">10</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>history() -&gt; list[Instruction]</code></p>
+<p>Return a list of <code>Instruction</code>s that have been applied to this rewriter instance. </p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="p">(</span><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a + b&quot;</span><span class="p">)</span>
+</span><span id="__span-40-2"><a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>    <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;a &gt; 10&quot;</span><span class="p">)</span>
+</span><span id="__span-40-3"><a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>    <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+</span><span id="__span-40-4"><a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>    <span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+</span><span id="__span-40-5"><a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>    <span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
+</span><span id="__span-40-6"><a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>    <span class="o">.</span><span class="n">history</span><span class="p">())</span>
+</span><span id="__span-40-7"><a id="__codelineno-40-7" name="__codelineno-40-7" href="#__codelineno-40-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">[</span> 
+</span><span id="__span-40-8"><a id="__codelineno-40-8" name="__codelineno-40-8" href="#__codelineno-40-8"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Initial</span><span class="p">(),</span>
+</span><span id="__span-40-9"><a id="__codelineno-40-9" name="__codelineno-40-9" href="#__codelineno-40-9"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Assumption</span><span class="p">(</span><span class="n">symbol_name</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">comparator</span><span class="o">=</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+</span><span id="__span-40-10"><a id="__codelineno-40-10" name="__codelineno-40-10" href="#__codelineno-40-10"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Substitution</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;SympyBackend&#39;</span><span class="p">),</span>
+</span><span id="__span-40-11"><a id="__codelineno-40-11" name="__codelineno-40-11" href="#__codelineno-40-11"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Expand</span><span class="p">(),</span>
+</span><span id="__span-40-12"><a id="__codelineno-40-12" name="__codelineno-40-12" href="#__codelineno-40-12"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">Simplify</span><span class="p">()</span>
+</span><span id="__span-40-13"><a id="__codelineno-40-13" name="__codelineno-40-13" href="#__codelineno-40-13"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">]</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>undo_previous(num_operations_to_undo: int = 1) -&gt; Self</code></p>
+<p>Undo a number of previous operations applied to this instance.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="p">(</span><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a>    <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a>    <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span>
+</span><span id="__span-41-4"><a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a>    <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">)</span>
+</span><span id="__span-41-5"><a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a>    <span class="o">.</span><span class="n">undo_previous</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="__span-41-6"><a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">x</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>with_instructions(instructions: Sequence[Instruction]) -&gt; Self</code> {#with_instructions}</p>
+<p>Apply a sequence of instructions to the rewriter in order. This method provides an alternative to method chaining by allowing you to apply multiple operations with a single method call.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis.rewriters.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Expand</span><span class="p">,</span> <span class="n">Simplify</span><span class="p">,</span> <span class="n">Assumption</span><span class="p">,</span> <span class="n">Substitution</span>
+</span><span id="__span-42-2"><a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>
+</span><span id="__span-42-3"><a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="n">instructions</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-42-4"><a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a>    <span class="n">Expand</span><span class="p">(),</span>
+</span><span id="__span-42-5"><a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>    <span class="n">Simplify</span><span class="p">(),</span>
+</span><span id="__span-42-6"><a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a>    <span class="n">Assumption</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="s2">&quot;x &gt; 0&quot;</span><span class="p">),</span>
+</span><span id="__span-42-7"><a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a>    <span class="n">Substitution</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
+</span><span id="__span-42-8"><a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="p">]</span>
+</span><span id="__span-42-9"><a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;(a + 1) * max(x, 0)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_instructions</span><span class="p">(</span><span class="n">instructions</span><span class="p">)</span>
+</span><span id="__span-42-10"><a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">x</span>
+</span></code></pre></div>
+<p>This is equivalent to chaining the methods:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-43-1"><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;(a + 1) * max(x, 0)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span><span class="o">.</span><span class="n">simplify</span><span class="p">()</span><span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;x &gt; 0&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">)</span>
+</span><span id="__span-43-2"><a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">(</span><span class="n">b</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">x</span>
+</span></code></pre></div></p>
+</li>
+</ul>
+<h3 id="sympy-specific-methods">SymPy Specific Methods<a class="headerlink" href="#sympy-specific-methods" title="Permanent link">&para;</a></h3>
+<p>While the base class enforces some functionality, SymPy allows us to extend this and implement other helpful methods. The following methods are specific to the SymPy rewriter class.</p>
+<ul>
+<li>
+<p><code>get_symbol(symbol_name: str) -&gt; Symbol | None</code></p>
+<p>Return a SymPy <code>Symbol</code> from <code>expression</code> given its name. If it doesn't exist, return <code>None</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-44-1"><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span><span class="s2">&quot;a*log(x + b)/d&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_symbol</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
+</span><span id="__span-44-2"><a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">d</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>all_functions_and_arguments() -&gt; set[Expr]</code></p>
+<p>Return a set of all functions and their arguments in the <code>expression</code> attribute. This includes nested functions.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-45-1"><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-45-2"><a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>    <span class="s2">&quot;a*log(x + 1) + max(b, max(c, d)) + ceiling(y/z)&quot;</span>
+</span><span id="__span-45-3"><a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a><span class="p">)</span><span class="o">.</span><span class="n">all_functions_and_arguments</span><span class="p">()</span>
+</span><span id="__span-45-4"><a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">{</span>
+</span><span id="__span-45-5"><a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">log</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-45-6"><a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="o">&gt;&gt;&gt;</span>     <span class="nb">max</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span>
+</span><span id="__span-45-7"><a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="o">&gt;&gt;&gt;</span>     <span class="nb">max</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">)),</span>
+</span><span id="__span-45-8"><a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a><span class="o">&gt;&gt;&gt;</span>     <span class="n">ceiling</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span>
+</span><span id="__span-45-9"><a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">}</span>
+</span></code></pre></div>
+</li>
+<li>
+<p><code>list_arguments_of_function(function_name: str) -&gt; list[tuple[Expr, ...] | Expr]</code></p>
+<p>Given a function name, return a list of all of its arguments in the <code>expression</code>. If the function takes multiple arguments, they are returned as a tuple in the order they appear.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-46-1"><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>    <span class="n">sympy_rewriter</span><span class="p">(</span>
+</span><span id="__span-46-2"><a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>    <span class="s2">&quot;a*log(x + 1) + max(b, max(c, d)) + ceiling(y/z)&quot;</span>
+</span><span id="__span-46-3"><a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="p">)</span><span class="o">.</span><span class="n">list_arguments_of_function</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+</span><span id="__span-46-4"><a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">[</span>
+</span><span id="__span-46-5"><a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="o">&gt;&gt;&gt;</span>     <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">)),</span>
+</span><span id="__span-46-6"><a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a><span class="o">&gt;&gt;&gt;</span>     <span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span>
+</span><span id="__span-46-7"><a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="o">&gt;&gt;&gt;</span> <span class="p">]</span>
+</span></code></pre></div>
+</li>
+</ul>
+<h2 id="applying-rewriters-to-routines">Applying Rewriters to Routines<a class="headerlink" href="#applying-rewriters-to-routines" title="Permanent link">&para;</a></h2>
+<p>Beyond manipulating individual expressions, <code>bartiq</code> provides functionality to apply rewriter instructions to resources within <a class="autorefs autorefs-internal" title="            CompiledRoutine
+
+
+  
+      dataclass
+  " href="../../reference/#bartiq.CompiledRoutine"><code>CompiledRoutine</code></a> objects. This allows you to systematically simplify resource expressions across entire quantum algorithms.</p>
+<h3 id="rewrite_routine_resources"><code>rewrite_routine_resources</code><a class="headerlink" href="#rewrite_routine_resources" title="Permanent link">&para;</a></h3>
+<p>The <code>rewrite_routine_resources</code> function applies a sequence of rewriter instructions to specific resources in a <a class="autorefs autorefs-internal" title="            CompiledRoutine
+
+
+  
+      dataclass
+  " href="../../reference/#bartiq.CompiledRoutine"><code>CompiledRoutine</code></a>. This function recursively traverses the routine hierarchy and applies the same transformations to the specified resources at every level.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-47-1"><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis.rewriters.routine_rewriter</span><span class="w"> </span><span class="kn">import</span> <span class="n">rewrite_routine_resources</span>
+</span><span id="__span-47-2"><a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq.analysis.rewriters.sympy_expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">sympy_rewriter</span>
+</span><span id="__span-47-3"><a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">bartiq</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_routine</span>
+</span></code></pre></div>
+<p><strong>Function signature:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-48-1"><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a><span class="n">rewrite_routine_resources</span><span class="p">(</span>
+</span><span id="__span-48-2"><a id="__codelineno-48-2" name="__codelineno-48-2" href="#__codelineno-48-2"></a>    <span class="n">routine</span><span class="p">:</span> <span class="n">CompiledRoutine</span><span class="p">,</span>
+</span><span id="__span-48-3"><a id="__codelineno-48-3" name="__codelineno-48-3" href="#__codelineno-48-3"></a>    <span class="n">resources</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+</span><span id="__span-48-4"><a id="__codelineno-48-4" name="__codelineno-48-4" href="#__codelineno-48-4"></a>    <span class="n">instructions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Instruction</span><span class="p">],</span>
+</span><span id="__span-48-5"><a id="__codelineno-48-5" name="__codelineno-48-5" href="#__codelineno-48-5"></a>    <span class="n">rewriter_factory</span><span class="p">:</span> <span class="n">ExpressionRewriterFactory</span> <span class="o">=</span> <span class="n">sympy_rewriter</span><span class="p">,</span>
+</span><span id="__span-48-6"><a id="__codelineno-48-6" name="__codelineno-48-6" href="#__codelineno-48-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompiledRoutine</span>
+</span></code></pre></div></p>
+<p><strong>Example usage:</strong>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-49-1"><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="c1"># Assume we have a compiled routine with complex resource expressions</span>
+</span><span id="__span-49-2"><a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a><span class="n">compiled_routine</span> <span class="o">=</span> <span class="n">compile_routine</span><span class="p">(</span><span class="n">my_routine</span><span class="p">)</span><span class="o">.</span><span class="n">routine</span>
+</span><span id="__span-49-3"><a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>
+</span><span id="__span-49-4"><a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="c1"># Create a rewriter with the transformations we want to apply</span>
+</span><span id="__span-49-5"><a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a><span class="n">example_rewriter</span> <span class="o">=</span> <span class="n">sympy_rewriter</span><span class="p">(</span><span class="n">compiled_routine</span><span class="o">.</span><span class="n">resource_values</span><span class="p">[</span><span class="s2">&quot;toffoli_count&quot;</span><span class="p">])</span>
+</span><span id="__span-49-6"><a id="__codelineno-49-6" name="__codelineno-49-6" href="#__codelineno-49-6"></a><span class="n">transformations</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-49-7"><a id="__codelineno-49-7" name="__codelineno-49-7" href="#__codelineno-49-7"></a>    <span class="n">example_rewriter</span>
+</span><span id="__span-49-8"><a id="__codelineno-49-8" name="__codelineno-49-8" href="#__codelineno-49-8"></a>    <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;n &gt; 100&quot;</span><span class="p">)</span>
+</span><span id="__span-49-9"><a id="__codelineno-49-9" name="__codelineno-49-9" href="#__codelineno-49-9"></a>    <span class="o">.</span><span class="n">assume</span><span class="p">(</span><span class="s2">&quot;eps &lt; 0.01&quot;</span><span class="p">)</span>
+</span><span id="__span-49-10"><a id="__codelineno-49-10" name="__codelineno-49-10" href="#__codelineno-49-10"></a>    <span class="o">.</span><span class="n">simplify</span><span class="p">()</span>
+</span><span id="__span-49-11"><a id="__codelineno-49-11" name="__codelineno-49-11" href="#__codelineno-49-11"></a>    <span class="o">.</span><span class="n">substitute</span><span class="p">(</span><span class="s2">&quot;log2(1/eps)&quot;</span><span class="p">,</span> <span class="s2">&quot;precision_bits&quot;</span><span class="p">)</span>
+</span><span id="__span-49-12"><a id="__codelineno-49-12" name="__codelineno-49-12" href="#__codelineno-49-12"></a>    <span class="o">.</span><span class="n">history</span><span class="p">()</span>
+</span><span id="__span-49-13"><a id="__codelineno-49-13" name="__codelineno-49-13" href="#__codelineno-49-13"></a><span class="p">)</span>
+</span><span id="__span-49-14"><a id="__codelineno-49-14" name="__codelineno-49-14" href="#__codelineno-49-14"></a>
+</span><span id="__span-49-15"><a id="__codelineno-49-15" name="__codelineno-49-15" href="#__codelineno-49-15"></a><span class="c1"># Apply these transformations to all &quot;toffoli_count&quot; resources in the routine</span>
+</span><span id="__span-49-16"><a id="__codelineno-49-16" name="__codelineno-49-16" href="#__codelineno-49-16"></a><span class="n">simplified_routine</span> <span class="o">=</span> <span class="n">rewrite_routine_resources</span><span class="p">(</span>
+</span><span id="__span-49-17"><a id="__codelineno-49-17" name="__codelineno-49-17" href="#__codelineno-49-17"></a>    <span class="n">compiled_routine</span><span class="p">,</span>
+</span><span id="__span-49-18"><a id="__codelineno-49-18" name="__codelineno-49-18" href="#__codelineno-49-18"></a>    <span class="n">resources</span><span class="o">=</span><span class="s2">&quot;toffoli_count&quot;</span><span class="p">,</span>
+</span><span id="__span-49-19"><a id="__codelineno-49-19" name="__codelineno-49-19" href="#__codelineno-49-19"></a>    <span class="n">instructions</span><span class="o">=</span><span class="n">transformations</span>
+</span><span id="__span-49-20"><a id="__codelineno-49-20" name="__codelineno-49-20" href="#__codelineno-49-20"></a><span class="p">)</span>
+</span><span id="__span-49-21"><a id="__codelineno-49-21" name="__codelineno-49-21" href="#__codelineno-49-21"></a>
+</span><span id="__span-49-22"><a id="__codelineno-49-22" name="__codelineno-49-22" href="#__codelineno-49-22"></a><span class="c1"># Or apply to multiple resources at once</span>
+</span><span id="__span-49-23"><a id="__codelineno-49-23" name="__codelineno-49-23" href="#__codelineno-49-23"></a><span class="n">simplified_routine</span> <span class="o">=</span> <span class="n">rewrite_routine_resources</span><span class="p">(</span>
+</span><span id="__span-49-24"><a id="__codelineno-49-24" name="__codelineno-49-24" href="#__codelineno-49-24"></a>    <span class="n">compiled_routine</span><span class="p">,</span>
+</span><span id="__span-49-25"><a id="__codelineno-49-25" name="__codelineno-49-25" href="#__codelineno-49-25"></a>    <span class="n">resources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;toffoli_count&quot;</span><span class="p">,</span> <span class="s2">&quot;t_count&quot;</span><span class="p">,</span> <span class="s2">&quot;qubit_count&quot;</span><span class="p">],</span>
+</span><span id="__span-49-26"><a id="__codelineno-49-26" name="__codelineno-49-26" href="#__codelineno-49-26"></a>    <span class="n">instructions</span><span class="o">=</span><span class="n">transformations</span>
+</span><span id="__span-49-27"><a id="__codelineno-49-27" name="__codelineno-49-27" href="#__codelineno-49-27"></a><span class="p">)</span>
+</span></code></pre></div></p>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 29, 2025 19:19:22 UTC"><span class="timeago" datetime="2025-10-29T19:19:22+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 29, 2025 19:19:22 UTC">2025-10-29</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="October 29, 2025 19:19:22 UTC"><span class="timeago" datetime="2025-10-29T19:19:22+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 29, 2025 19:19:22 UTC">2025-10-29</span>
+  </span>
+
+    
+    
+    
+      
+  <span class="md-source-file__fact">
+    
+      
+  <span class="md-icon" title="Contributors">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"/></svg>
+  </span>
+  <span>GitHub</span>
+
+    
+    <nav>
+      
+        <a href="https://github.com/Brendan-Reid1991" class="md-author" title="@Brendan-Reid1991">
+          
+          <img src="https://avatars.githubusercontent.com/u/53276074?v=4&size=72" alt="Brendan-Reid1991">
+        </a>
+      
+        <a href="https://github.com/web-flow" class="md-author" title="@web-flow">
+          
+          <img src="https://avatars.githubusercontent.com/u/19864447?v=4&size=72" alt="web-flow">
+        </a>
+      
+        <a href="https://github.com/mstechly" class="md-author" title="@mstechly">
+          
+          <img src="https://avatars.githubusercontent.com/u/7314136?v=4&size=72" alt="mstechly">
+        </a>
+      
+      
+      
+    </nav>
+  </span>
+
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2023-2024 PsiQuantum Corp.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      
+        <script src="../../js/timeago.min.js"></script>
+      
+        <script src="../../js/timeago_mkdocs_material.js"></script>
+      
+        <script src="../../javascript/config.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../../js/open_in_new_tab.js"></script>
+      
+    
+  </body>
+</html>
