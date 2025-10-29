@@ -1,0 +1,99 @@
+{
+    "version": "v1",
+    "program": {
+        "name": "my_algorithm",
+        "type": null,
+        "ports": [
+            {
+                "name": "in",
+                "direction": "input",
+                "size": "N"
+            },
+            {
+                "name": "out",
+                "direction": "output",
+                "size": null
+            }
+        ],
+        "children": [
+            {
+                "name": "a",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in",
+                        "direction": "input",
+                        "size": "N_a"
+                    },
+                    {
+                        "name": "out",
+                        "direction": "output",
+                        "size": "N_a"
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "2*N_a"
+                    }
+                ],
+                "input_params": [
+                    "N_a"
+                ]
+            },
+            {
+                "name": "b",
+                "type": null,
+                "ports": [
+                    {
+                        "name": "in",
+                        "direction": "input",
+                        "size": "N_b"
+                    },
+                    {
+                        "name": "out",
+                        "direction": "output",
+                        "size": "N_b"
+                    }
+                ],
+                "resources": [
+                    {
+                        "name": "T_gates",
+                        "type": "additive",
+                        "value": "N_b*ceiling(log2(N_b))"
+                    }
+                ],
+                "input_params": [
+                    "N_b"
+                ]
+            }
+        ],
+        "connections": [
+            {
+                "source": "in",
+                "target": "a.in"
+            },
+            {
+                "source": "a.out",
+                "target": "b.in"
+            },
+            {
+                "source": "b.out",
+                "target": "out"
+            }
+        ],
+        "input_params" : [
+            "N"
+        ],
+        "linked_params": [
+            {
+                "source": "N",
+                "targets": [
+                    "a.N_a",
+                    "b.N_b"
+                ]
+            }
+        ]
+    }
+}
