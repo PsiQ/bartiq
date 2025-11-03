@@ -260,13 +260,10 @@ class SympyBackend:
         replacements: Mapping[str, TExpr[Expr]],
         functions_map: Mapping[str, Callable[[TExpr[Expr]], TExpr[Expr]]] | None = None,
     ) -> TExpr[Expr]:
-        restricted_replacements = []
-        for old, new in replacements.items():
-            try:
-                old_sym = next(sym for sym in expr.free_symbols if sym.name == old)
-                restricted_replacements.append((old_sym, new))
-            except StopIteration:
-                continue
+        existing_symbols = {sym.name: sym for sym in expr.free_symbols}
+        restricted_replacements = [
+            (existing_symbols[old], new) for old, new in replacements.items() if old in existing_symbols
+        ]
 
         expr = expr.subs(restricted_replacements)
         if functions_map is None:
