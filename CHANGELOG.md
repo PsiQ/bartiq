@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/PsiQ/bartiq/compare/v0.15.2...v0.15.3) (2025-11-03)
+
+
+### Bug Fixes
+
+* fix performance regression ([#275](https://github.com/PsiQ/bartiq/issues/275)) ([ac65b80](https://github.com/PsiQ/bartiq/commit/ac65b80178dada93b3f9a4179da7f95406317eba))
+
 ## [0.15.2](https://github.com/PsiQ/bartiq/compare/v0.15.1...v0.15.2) (2025-10-29)
 
 
