@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Literal, cast
@@ -105,6 +105,8 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     resources: dict[str, Resource[T]]
     repetition: Repetition[T] | None
     connections: dict[Endpoint, Endpoint]
+    first_pass_resources: dict[str, Resource[T]]
+    is_first_pass_only: bool = False
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -118,6 +120,8 @@ class BaseRoutine(Generic[T]):
     repetition: Repetition[T] | None = None
     constraints: Iterable[Constraint[T]] = ()
     children_order: tuple[str, ...] = ()
+    first_pass_resources: dict[str, Resource[T]] = field(default_factory=dict)
+    first_pass_only: bool = False
 
     def __post_init__(self):
         if len(self.children_order) != len(self.children) or set(self.children_order) != set(self.children):
@@ -260,16 +264,25 @@ class CompiledRoutine(BaseRoutine[T]):
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
     program = ensure_routine(qref_obj)
+    first_pass_only = program.meta.get("first_pass_only", False)
     return {
         "name": program.name,
         "type": program.type,
         "ports": {port.name: _port_from_qref(port, backend) for port in program.ports},
         "input_params": program.input_params,
-        "resources": {resource.name: _resource_from_qref(resource, backend) for resource in program.resources},
+        "resources": (
+            resources := {resource.name: _resource_from_qref(resource, backend) for resource in program.resources}
+        ),
         "repetition": repetition_from_qref(program.repetition, backend),
         "connections": {
             _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
         },
+        "first_pass_resources": (
+            {}
+            if not first_pass_only
+            else {name: resource for name, resource in resources.items() if resource.type == ResourceType.Additive}
+        ),
+        "first_pass_only": first_pass_only,
     }
 
 
