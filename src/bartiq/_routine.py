@@ -120,7 +120,6 @@ class BaseRoutine(Generic[T]):
     repetition: Repetition[T] | None = None
     constraints: Iterable[Constraint[T]] = ()
     children_order: tuple[str, ...] = ()
-    first_pass_resources: dict[str, Resource[T]] = field(default_factory=dict)
     first_pass_only: bool = False
 
     def __post_init__(self):
@@ -232,6 +231,7 @@ class Routine(BaseRoutine[T]):
 @dataclass(frozen=True, kw_only=True)
 class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
+    first_pass_resources: dict[str, Resource[T]] = field(default_factory=dict)
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
@@ -277,11 +277,6 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "connections": {
             _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
         },
-        "first_pass_resources": (
-            {}
-            if not first_pass_only
-            else {name: resource for name, resource in resources.items() if resource.type == ResourceType.Additive}
-        ),
         "first_pass_only": first_pass_only,
     }
 
@@ -346,6 +341,8 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         if isinstance(routine, Routine)
         else {}
     )
+    if routine.first_pass_only:
+        kwargs["meta"] = {"first_pass_only": True}
 
     return RoutineV1(
         name=routine.name,
