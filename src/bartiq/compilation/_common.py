@@ -17,7 +17,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from typing import Callable
 
-from .._routine import Constraint, CompiledRoutine, ConstraintStatus, Port, Resource
+from .._routine import CompiledRoutine, Constraint, ConstraintStatus, Port, Resource
 from ..repetitions import Repetition
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T, TExpr
 

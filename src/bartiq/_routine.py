@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Literal, cast
@@ -243,10 +243,25 @@ class CompiledRoutine(BaseRoutine[T]):
         using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
+        other_data = _common_routine_dict_from_qref(qref_obj, backend)
+
+        usual_resources = {}
+        first_pass_resources = {}
+
+        for resource in other_data["resources"].values():
+            if resource.name.startswith("__fp__"):
+                new_name = resource.name.replace("__fp__", "", 1)
+                first_pass_resources[new_name] = replace(resource, name=new_name)
+            else:
+                usual_resources[resource.name] = resource
+
+        other_data["resources"] = usual_resources
+        other_data["first_pass_resources"] = first_pass_resources
+
         return CompiledRoutine[T](
             children=children,
             children_order=tuple(children),
-            **_common_routine_dict_from_qref(qref_obj, backend),
+            **other_data,
         )
 
     def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
@@ -341,8 +356,16 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         if isinstance(routine, Routine)
         else {}
     )
+    resources = [_resource_to_qref(resource, backend) for resource in routine.resources.values()]
+
     if routine.first_pass_only:
         kwargs["meta"] = {"first_pass_only": True}
+
+    if isinstance(routine, CompiledRoutine):
+        resources += [
+            _resource_to_qref(replace(resource, name=f"__fp__{resource.name}"), backend)
+            for resource in routine.first_pass_resources.values()
+        ]
 
     return RoutineV1(
         name=routine.name,
@@ -350,12 +373,12 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         input_params=routine.input_params,
         children=[_routine_to_qref_program(child, backend) for child in routine.children.values()],
         ports=[_port_to_qref(port, backend) for port in routine.ports.values()],
-        resources=[_resource_to_qref(resource, backend) for resource in routine.resources.values()],
         connections=[
             {"source": _endpoint_to_qref(source), "target": _endpoint_to_qref(target)}
             for source, target in routine.connections.items()
         ],
         repetition=repetition_to_qref(routine.repetition, backend),
+        resources=resources,
         **kwargs,
     )
 

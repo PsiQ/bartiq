@@ -45,10 +45,22 @@
         - name: y
           value: N + 1
           type: multiplicative
+        - name: __fp__x
+          value: N
+          type: additive
+        - name: __fp__y
+          value: N + 1
+          type: multiplicative
       children:
         - input_params: ["N"]
           name: a
           resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
             - name: x
               type: additive
               value: N
@@ -111,6 +123,12 @@
           type: constant
           multiplier: 1
       resources:
+        - name: __fp__x
+          value: N
+          type: additive
+        - name: __fp__y
+          value: N + 1
+          type: multiplicative
         - name: x
           value: N
           type: additive
@@ -121,6 +139,12 @@
         - input_params: ["N"]
           name: a
           resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
             - name: x
               type: additive
               value: N
@@ -234,6 +258,12 @@
               size: M
           connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0", "in_1 -> b.thru_0", "b.thru_0 -> out_1"]
           resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
             - name: x
               type: additive
               value: M + N
@@ -244,6 +274,12 @@
           - name: a
             input_params: ["N"]
             resources:
+              - name: __fp__x
+                type: additive
+                value: N
+              - name: __fp__y
+                type: multiplicative
+                value: N + 1
               - name: x
                 type: additive
                 value: N
@@ -270,6 +306,12 @@
               size: M
               direction: through
       resources:
+        - name: __fp__x
+          type: additive
+          value: N
+        - name: __fp__y
+          type: multiplicative
+          value: N + 1
         - name: x
           type: additive
           value: M*R + N
@@ -363,6 +405,12 @@
               size: "N"
           connections: ["a.out_0 -> b.thru_0", "b.thru_0 -> out_0"]
           resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
             - name: x
               type: additive
               value: 4*N
@@ -373,6 +421,12 @@
           - name: a
             input_params: ["N"]
             resources:
+              - name: __fp__x
+                type: additive
+                value: N
+              - name: __fp__y
+                type: multiplicative
+                value: N + 1
               - name: x
                 type: additive
                 value: N
@@ -403,6 +457,12 @@
           direction: output
           size: N
       resources:
+        - name: __fp__x
+          type: additive
+          value: N
+        - name: __fp__y
+          type: multiplicative
+          value: N + 1
         - name: x
           type: additive
           value: 3*N*R + N

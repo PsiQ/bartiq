@@ -302,10 +302,7 @@ def _collect_first_pass_resources(routines: Iterable[CompiledRoutine[T]], backen
     resources_to_collect = set(
         (name, resource.type) for routine in routines for name, resource in routine.first_pass_resources.items()
     )
-    op_map = {
-        ResourceType.additive: operator.add,
-        ResourceType.multiplicative: operator.mul
-    }
+    op_map = {ResourceType.additive: operator.add, ResourceType.multiplicative: operator.mul}
 
     if len(set(n for n, _ in resources_to_collect)) != len(resources_to_collect):
         msg = "The same resources is defined in multiple children with different type."
