@@ -16,7 +16,7 @@ import pytest
 import sympy
 from qref.schema_v1 import RoutineV1
 
-from bartiq import Routine
+from bartiq import CompiledRoutine, Routine
 from bartiq.transform import add_aggregated_resources, add_circuit_volume
 
 ccry_gate = {
@@ -209,7 +209,7 @@ def _generate_test(subroutine, input_params, linked_params):
     ],
 )
 def test_add_aggregated_resources(aggregation_dict, input_qref, remove_decomposed, expected_output, backend):
-    routine = Routine.from_qref(RoutineV1(**input_qref), backend)
+    routine = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
     result = add_aggregated_resources(routine, aggregation_dict, remove_decomposed=remove_decomposed)
     _compare_routines(result, Routine.from_qref(RoutineV1(**expected_output), backend))
 
