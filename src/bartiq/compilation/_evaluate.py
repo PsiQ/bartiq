@@ -22,6 +22,7 @@ from bartiq._routine import CompiledRoutine, routine_to_qref
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
+    collect_children_variables,
     evaluate_constraints,
     evaluate_ports,
     evaluate_repetition,
@@ -110,16 +111,13 @@ def _evaluate_internal(
         for name, child in compiled_routine.children.items()
     }
 
-    child_substitutions: dict[str, TExpr] = {
-        f"{cname}.{rname}": resource.value
-        for cname, child in updated_children.items()
-        for rname, resource in child.resources.items()
-    }
+    children_variables: dict[str, TExpr] = collect_children_variables(updated_children)
+
     return replace(
         compiled_routine,
         input_params=sorted(set(compiled_routine.input_params).difference(inputs)),
         ports=evaluate_ports(compiled_routine.ports, inputs, backend, functions_map),
-        resources=evaluate_resources(compiled_routine.resources, inputs | child_substitutions, backend, functions_map),
+        resources=evaluate_resources(compiled_routine.resources, inputs | children_variables, backend, functions_map),
         constraints=new_constraints,
         repetition=evaluate_repetition(compiled_routine.repetition, inputs, backend, functions_map),
         children=updated_children,

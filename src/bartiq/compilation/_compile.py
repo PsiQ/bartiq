@@ -42,6 +42,7 @@ from bartiq._routine import (
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
+    collect_children_variables,
     evaluate_constraints,
     evaluate_ports,
     evaluate_resources,
@@ -348,12 +349,7 @@ def _compile(
         )
 
     if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
-        children_variables = {
-            f"{cname}.{rname}": resource.value
-            for cname, child in compiled_children.items()
-            for rname, resource in child.resources.items()
-        }
-        parameter_map[None] = {**parameter_map[None], **children_variables}
+        parameter_map[None] = {**parameter_map[None], **collect_children_variables(compiled_children)}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
     repetition = routine.repetition
