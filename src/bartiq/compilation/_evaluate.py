@@ -121,4 +121,7 @@ def _evaluate_internal(
         constraints=new_constraints,
         repetition=evaluate_repetition(compiled_routine.repetition, inputs, backend, functions_map),
         children=updated_children,
+        first_pass_resources=evaluate_resources(
+            compiled_routine.first_pass_resources, inputs | children_variables, backend, functions_map
+        ),
     )
