@@ -122,7 +122,7 @@ def _collect_resource_variables(children: CompiledRoutine[T]) -> dict[str, TExpr
 
 def _collect_first_pass_resource_variables(children: CompiledRoutine[T]) -> dict[str, TExpr[T]]:
     return {
-        f"{cname}.fp.{rname}": resource.value
+        f"{cname}.__fp__{rname}": resource.value
         for cname, child in children.items()
         for rname, resource in child.first_pass_resources.items()
     }

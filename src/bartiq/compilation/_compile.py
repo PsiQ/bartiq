@@ -268,7 +268,7 @@ def _process_repeated_resources(
     new_resources = {}
     for resource in child_resources.values():
         replacement_value = backend.as_expression(f"{children[0].name}.{resource.name}")
-        first_pass_value_stub = backend.as_expression(f"{children[0].name}.fp.{resource.name}")
+        first_pass_value_stub = backend.as_expression(f"{children[0].name}.__fp__{resource.name}")
         use_default_first_pass_value = resource.name not in children[0].first_pass_resources
         if resource.type == ResourceType.additive:
             first_pass_value = 0 if use_default_first_pass_value else first_pass_value_stub
@@ -314,7 +314,7 @@ def _collect_first_pass_resources(routines: Iterable[CompiledRoutine[T]], backen
             value=reduce(
                 op_map[rtype],
                 [
-                    backend.as_expression(f"{routine.name}.fp.{name}")
+                    backend.as_expression(f"{routine.name}.__fp__{name}")
                     for routine in routines
                     if name in routine.first_pass_resources
                 ],
@@ -450,7 +450,7 @@ def _introduce_placeholder_resources(
             for name, res in compiled_routine.resources.items()
         },
         first_pass_resources={
-            name: replace(res, value=backend.as_expression(f"{compiled_routine.name}.fp.{name}"))
+            name: replace(res, value=backend.as_expression(f"{compiled_routine.name}.__fp__{name}"))
             for name, res in compiled_routine.first_pass_resources.items()
         },
     )
