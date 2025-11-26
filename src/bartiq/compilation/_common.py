@@ -112,7 +112,7 @@ def evaluate_constraints(
     )
 
 
-def _collect_resource_variables(children: CompiledRoutine[T]) -> dict[str, TExpr[T]]:
+def _collect_resource_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
     return {
         f"{cname}.{rname}": resource.value
         for cname, child in children.items()
@@ -120,7 +120,7 @@ def _collect_resource_variables(children: CompiledRoutine[T]) -> dict[str, TExpr
     }
 
 
-def _collect_first_pass_resource_variables(children: CompiledRoutine[T]) -> dict[str, TExpr[T]]:
+def _collect_first_pass_resource_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
     return {
         f"{cname}.__fp__{rname}": resource.value
         for cname, child in children.items()
@@ -128,5 +128,5 @@ def _collect_first_pass_resource_variables(children: CompiledRoutine[T]) -> dict
     }
 
 
-def collect_children_variables(children: CompiledRoutine[T]) -> dict[str, TExpr[T]]:
+def collect_children_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
     return _collect_resource_variables(children) | _collect_first_pass_resource_variables(children)

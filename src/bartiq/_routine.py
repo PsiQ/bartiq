@@ -105,8 +105,7 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     resources: dict[str, Resource[T]]
     repetition: Repetition[T] | None
     connections: dict[Endpoint, Endpoint]
-    first_pass_resources: dict[str, Resource[T]]
-    is_first_pass_only: bool = False
+    first_pass_only: bool
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -256,12 +255,9 @@ class CompiledRoutine(BaseRoutine[T]):
                 usual_resources[resource.name] = resource
 
         other_data["resources"] = usual_resources
-        other_data["first_pass_resources"] = first_pass_resources
 
         return CompiledRoutine[T](
-            children=children,
-            children_order=tuple(children),
-            **other_data,
+            children=children, children_order=tuple(children), first_pass_resources=first_pass_resources, **other_data
         )
 
     def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
