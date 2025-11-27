@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/PsiQ/bartiq/compare/v0.15.3...v0.16.0) (2025-11-27)
+
+
+### Features
+
+* add support for first-pass resources ([#277](https://github.com/PsiQ/bartiq/issues/277)) ([a68a74e](https://github.com/PsiQ/bartiq/commit/a68a74e81794cc29489463c9c2b0bc8dedc72ce1))
+
 ## [0.15.3](https://github.com/PsiQ/bartiq/compare/v0.15.2...v0.15.3) (2025-11-03)
 
 
