@@ -244,7 +244,7 @@ class CompiledRoutine(BaseRoutine[T]):
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
         other_data = _common_routine_dict_from_qref(qref_obj, backend)
 
-        usual_resources = {}
+        regular_resources = {}
         first_pass_resources = {}
 
         for resource in other_data["resources"].values():
@@ -252,9 +252,9 @@ class CompiledRoutine(BaseRoutine[T]):
                 new_name = resource.name.replace("__fp__", "", 1)
                 first_pass_resources[new_name] = replace(resource, name=new_name)
             else:
-                usual_resources[resource.name] = resource
+                regular_resources[resource.name] = resource
 
-        other_data["resources"] = usual_resources
+        other_data["resources"] = regular_resources
 
         return CompiledRoutine[T](
             children=children, children_order=tuple(children), first_pass_resources=first_pass_resources, **other_data
