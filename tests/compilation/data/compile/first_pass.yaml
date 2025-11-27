@@ -1,0 +1,474 @@
+# Simple repeated first pass routine: constant repetition count
+- - program:
+      name: root
+      repetition:
+        count: 5
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          resources:
+            - name: x
+              type: additive
+              value: N
+            - name: y
+              type: multiplicative
+              value: N + 1
+          ports:
+          - name: thru_0
+            size: N
+            direction: through
+          meta:
+            first_pass_only: true
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          size: N
+          direction: output
+      connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0"]
+    version: v1
+  - program:
+      name: root
+      input_params: ["N"]
+      repetition:
+        count: 5
+        sequence:
+          type: constant
+          multiplier: 1
+      resources:
+        - name: x
+          value: N
+          type: additive
+        - name: y
+          value: N + 1
+          type: multiplicative
+        - name: __fp__x
+          value: N
+          type: additive
+        - name: __fp__y
+          value: N + 1
+          type: multiplicative
+      children:
+        - input_params: ["N"]
+          name: a
+          resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
+            - name: x
+              type: additive
+              value: N
+            - name: y
+              type: multiplicative
+              value: N + 1
+          ports:
+          - name: thru_0
+            size: N
+            direction: through
+          meta:
+            first_pass_only: true
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          size: N
+          direction: output
+      connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0"]
+    version: v1
+# Simple repeated first pass routine: symbolic repetition count
+- - program:
+      name: root
+      repetition:
+        count: N ** 2
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          resources:
+            - name: x
+              type: additive
+              value: N
+            - name: y
+              type: multiplicative
+              value: N + 1
+          ports:
+          - name: thru_0
+            size: N
+            direction: through
+          meta:
+            first_pass_only: true
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          size: N
+          direction: output
+      connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0"]
+    version: v1
+  - program:
+      name: root
+      input_params: ["N"]
+      repetition:
+        count: N ** 2
+        sequence:
+          type: constant
+          multiplier: 1
+      resources:
+        - name: __fp__x
+          value: N
+          type: additive
+        - name: __fp__y
+          value: N + 1
+          type: multiplicative
+        - name: x
+          value: N
+          type: additive
+        - name: y
+          value: N + 1
+          type: multiplicative
+      children:
+        - input_params: ["N"]
+          name: a
+          resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
+            - name: x
+              type: additive
+              value: N
+            - name: y
+              type: multiplicative
+              value: N + 1
+          ports:
+          - name: thru_0
+            size: N
+            direction: through
+          meta:
+            first_pass_only: true
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          size: N
+          direction: output
+      connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0"]
+    version: v1
+# Repeated routine with two parallel children, one of them first pass
+- - program:
+      name: root
+      repetition:
+        count: R
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          ports:
+            - name: in_0
+              direction: input
+              size: K
+            - name: in_1
+              direction: input
+              size: L
+            - name: out_0
+              direction: output
+              size: null
+            - name: out_1
+              direction: output
+              size: null
+          connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0", "in_1 -> b.thru_0", "b.thru_0 -> out_1"]
+          children:
+          - name: a
+            resources:
+              - name: x
+                type: additive
+                value: N
+              - name: y
+                type: multiplicative
+                value: N + 1
+            ports:
+            - name: thru_0
+              size: N
+              direction: through
+            meta:
+              first_pass_only: true
+          - name: b
+            resources:
+              - name: x
+                type: additive
+                value: N
+              - name: y
+                type: multiplicative
+                value: N + 1
+            ports:
+            - name: thru_0
+              size: N
+              direction: through
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          direction: output
+          size: null
+        - name: in_1
+          size: M
+          direction: input
+        - name: out_1
+          direction: output
+          size: null
+      connections: ["in_0 -> a.in_0", "a.out_0 -> out_0", "in_1 -> a.in_1", "a.out_1 -> out_1"]
+    version: v1
+  - program:
+      name: root
+      input_params: ["M", "N"]
+      repetition:
+        count: R
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          input_params: ["M", "N"]
+          ports:
+            - name: in_0
+              direction: input
+              size: N
+            - name: in_1
+              direction: input
+              size: M
+            - name: out_0
+              direction: output
+              size: N
+            - name: out_1
+              direction: output
+              size: M
+          connections: ["in_0 -> a.thru_0", "a.thru_0 -> out_0", "in_1 -> b.thru_0", "b.thru_0 -> out_1"]
+          resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
+            - name: x
+              type: additive
+              value: M + N
+            - name: y
+              type: multiplicative
+              value: (M + 1)*(N + 1)
+          children:
+          - name: a
+            input_params: ["N"]
+            resources:
+              - name: __fp__x
+                type: additive
+                value: N
+              - name: __fp__y
+                type: multiplicative
+                value: N + 1
+              - name: x
+                type: additive
+                value: N
+              - name: y
+                type: multiplicative
+                value: N + 1
+            ports:
+            - name: thru_0
+              size: N
+              direction: through
+            meta:
+              first_pass_only: true
+          - name: b
+            input_params: ["M"]
+            resources:
+              - name: x
+                type: additive
+                value: M
+              - name: y
+                type: multiplicative
+                value: M + 1
+            ports:
+            - name: thru_0
+              size: M
+              direction: through
+      resources:
+        - name: __fp__x
+          type: additive
+          value: N
+        - name: __fp__y
+          type: multiplicative
+          value: N + 1
+        - name: x
+          type: additive
+          value: M*R + N
+        - name: y
+          type: multiplicative
+          value: (M + 1) ** R*(N + 1)
+      ports:
+        - name: in_0
+          size: N
+          direction: input
+        - name: out_0
+          direction: output
+          size: N
+        - name: in_1
+          size: M
+          direction: input
+        - name: out_1
+          direction: output
+          size: M
+      connections: ["in_0 -> a.in_0", "a.out_0 -> out_0", "in_1 -> a.in_1", "a.out_1 -> out_1"]
+    version: v1
+# Repeated routine with two children, one of them is alloc-like
+- - program:
+      name: root
+      linked_params:
+        - source: "N"
+          targets: ["a.N"]
+      repetition:
+        count: R
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          ports:
+            - name: out_0
+              direction: output
+              size: null
+          connections: ["a.out_0 -> b.thru_0", "b.thru_0 -> out_0"]
+          linked_params:
+            - source: "N"
+              targets: ["a.P"]
+          children:
+          - name: a
+            input_params: ["P"]
+            resources:
+              - name: x
+                type: additive
+                value: N
+              - name: y
+                type: multiplicative
+                value: N + 1
+            ports:
+            - name: out_0
+              size: N
+              direction: output
+            meta:
+              first_pass_only: true
+          - name: b
+            resources:
+              - name: x
+                type: additive
+                value: 3 * N
+              - name: y
+                type: multiplicative
+                value: 2 * N
+            ports:
+            - name: thru_0
+              size: N
+              direction: through
+      ports:
+        - name: out_0
+          direction: output
+          size: null
+      connections: ["a.out_0 -> out_0"]
+    version: v1
+  - program:
+      input_params: ["N"]
+      name: root
+      repetition:
+        count: R
+        sequence:
+          type: constant
+          multiplier: 1
+      children:
+        - name: a
+          input_params: ["N"]
+          ports:
+            - name: out_0
+              direction: output
+              size: "N"
+          connections: ["a.out_0 -> b.thru_0", "b.thru_0 -> out_0"]
+          resources:
+            - name: __fp__x
+              type: additive
+              value: N
+            - name: __fp__y
+              type: multiplicative
+              value: N + 1
+            - name: x
+              type: additive
+              value: 4*N
+            - name: y
+              type: multiplicative
+              value: 2*N*(N + 1)
+          children:
+          - name: a
+            input_params: ["N"]
+            resources:
+              - name: __fp__x
+                type: additive
+                value: N
+              - name: __fp__y
+                type: multiplicative
+                value: N + 1
+              - name: x
+                type: additive
+                value: N
+              - name: y
+                type: multiplicative
+                value: N + 1
+            ports:
+            - name: out_0
+              size: N
+              direction: output
+            meta:
+              first_pass_only: true
+          - name: b
+            input_params: ["N"]
+            resources:
+              - name: x
+                type: additive
+                value: 3*N
+              - name: y
+                type: multiplicative
+                value: 2*N
+            ports:
+            - name: thru_0
+              size: N
+              direction: through
+      ports:
+        - name: out_0
+          direction: output
+          size: N
+      resources:
+        - name: __fp__x
+          type: additive
+          value: N
+        - name: __fp__y
+          type: multiplicative
+          value: N + 1
+        - name: x
+          type: additive
+          value: 3*N*R + N
+        - name: y
+          type: multiplicative
+          value: (2*N) ** R*(N + 1)
+
+      connections: ["a.out_0 -> out_0"]
+    version: v1

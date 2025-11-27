@@ -15,12 +15,14 @@ from __future__ import annotations
 
 import ast
 import inspect
+import operator
 import os
 import warnings
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from enum import Flag, auto
+from functools import reduce
 from graphlib import TopologicalSorter
 from typing import Generic, Protocol
 
@@ -42,6 +44,7 @@ from bartiq._routine import (
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
+    collect_children_variables,
     evaluate_constraints,
     evaluate_ports,
     evaluate_resources,
@@ -265,10 +268,14 @@ def _process_repeated_resources(
     new_resources = {}
     for resource in child_resources.values():
         replacement_value = backend.as_expression(f"{children[0].name}.{resource.name}")
+        first_pass_value_stub = backend.as_expression(f"{children[0].name}.__fp__{resource.name}")
+        use_default_first_pass_value = resource.name not in children[0].first_pass_resources
         if resource.type == ResourceType.additive:
-            new_value = repetition.sequence_sum(replacement_value, backend)
+            first_pass_value = 0 if use_default_first_pass_value else first_pass_value_stub
+            new_value = repetition.sequence_sum(replacement_value - first_pass_value, backend) + first_pass_value
         elif resource.type == ResourceType.multiplicative:
-            new_value = repetition.sequence_prod(replacement_value, backend)
+            first_pass_value = 1 if use_default_first_pass_value else first_pass_value_stub
+            new_value = repetition.sequence_prod(replacement_value / first_pass_value, backend) * first_pass_value
         elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
             # NOTE: Actually this could also be `new_value = resource.value`.
             # The reason it's not, is that in such case local_ancillae are counted twice
@@ -289,6 +296,32 @@ def _process_repeated_resources(
         new_resource = replace(resource, value=new_value)
         new_resources[resource.name] = new_resource
     return new_resources
+
+
+def _collect_first_pass_resources(routines: Iterable[CompiledRoutine[T]], backend: SymbolicBackend[T]):
+    resources_to_collect = set(
+        (name, resource.type) for routine in routines for name, resource in routine.first_pass_resources.items()
+    )
+    op_map = {ResourceType.additive: operator.add, ResourceType.multiplicative: operator.mul}
+
+    if len(set(n for n, _ in resources_to_collect)) != len(resources_to_collect):
+        msg = "The same resources is defined in multiple children with different type."
+        raise ValueError(msg)
+    return {
+        name: Resource(
+            name=name,
+            type=rtype,
+            value=reduce(
+                op_map[rtype],
+                [
+                    backend.as_expression(f"{routine.name}.__fp__{name}")
+                    for routine in routines
+                    if name in routine.first_pass_resources
+                ],
+            ),
+        )
+        for name, rtype in resources_to_collect
+    }
 
 
 def _compile(
@@ -348,14 +381,12 @@ def _compile(
         )
 
     if CompilationFlags.EXPAND_RESOURCES in compilation_flags:
-        children_variables = {
-            f"{cname}.{rname}": resource.value
-            for cname, child in compiled_children.items()
-            for rname, resource in child.resources.items()
-        }
-        parameter_map[None] = {**parameter_map[None], **children_variables}
+        parameter_map[None] = {**parameter_map[None], **collect_children_variables(compiled_children)}
 
     resources = {**routine.resources, **_generate_arithmetic_resources(routine.resources, compiled_children, backend)}
+    first_pass_resources = (
+        resources if routine.first_pass_only else _collect_first_pass_resources(compiled_children.values(), backend)
+    )
     repetition = routine.repetition
 
     if routine.repetition is not None:
@@ -378,6 +409,7 @@ def _compile(
     )
 
     new_resources = evaluate_resources(resources, parameter_map[None], backend)
+    new_first_pass_resources = evaluate_resources(first_pass_resources, parameter_map[None], backend)
 
     compiled_routine = CompiledRoutine[T](
         name=routine.name,
@@ -390,6 +422,8 @@ def _compile(
         connections=routine.connections,
         repetition=repetition,
         children_order=routine.children_order,
+        first_pass_resources=new_first_pass_resources,
+        first_pass_only=routine.first_pass_only,
     )
 
     tmp_routine = (
@@ -414,6 +448,10 @@ def _introduce_placeholder_resources(
         resources={
             name: replace(res, value=backend.as_expression(f"{compiled_routine.name}.{name}"))
             for name, res in compiled_routine.resources.items()
+        },
+        first_pass_resources={
+            name: replace(res, value=backend.as_expression(f"{compiled_routine.name}.__fp__{name}"))
+            for name, res in compiled_routine.first_pass_resources.items()
         },
     )
 

@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from enum import Enum, auto
 from graphlib import TopologicalSorter
 from typing import Generic, Literal, cast
@@ -105,6 +105,7 @@ class _CommonRoutineParams(TypedDict, Generic[T]):
     resources: dict[str, Resource[T]]
     repetition: Repetition[T] | None
     connections: dict[Endpoint, Endpoint]
+    first_pass_only: bool
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -118,6 +119,7 @@ class BaseRoutine(Generic[T]):
     repetition: Repetition[T] | None = None
     constraints: Iterable[Constraint[T]] = ()
     children_order: tuple[str, ...] = ()
+    first_pass_only: bool = False
 
     def __post_init__(self):
         if len(self.children_order) != len(self.children) or set(self.children_order) != set(self.children):
@@ -228,6 +230,7 @@ class Routine(BaseRoutine[T]):
 @dataclass(frozen=True, kw_only=True)
 class CompiledRoutine(BaseRoutine[T]):
     input_params: Iterable[str]
+    first_pass_resources: dict[str, Resource[T]] = field(default_factory=dict)
 
     def filter_ports(self, directions: Iterable[str]) -> dict[str, Port[T]]:
         """Returns all the ports with given directions"""
@@ -239,10 +242,22 @@ class CompiledRoutine(BaseRoutine[T]):
         using specified backend for parsing expressions."""
         program = ensure_routine(qref_obj)
         children = {child.name: cls.from_qref(child, backend) for child in program.children}
+        other_data = _common_routine_dict_from_qref(qref_obj, backend)
+
+        regular_resources = {}
+        first_pass_resources = {}
+
+        for resource in other_data["resources"].values():
+            if resource.name.startswith("__fp__"):
+                new_name = resource.name.replace("__fp__", "", 1)
+                first_pass_resources[new_name] = replace(resource, name=new_name)
+            else:
+                regular_resources[resource.name] = resource
+
+        other_data["resources"] = regular_resources
+
         return CompiledRoutine[T](
-            children=children,
-            children_order=tuple(children),
-            **_common_routine_dict_from_qref(qref_obj, backend),
+            children=children, children_order=tuple(children), first_pass_resources=first_pass_resources, **other_data
         )
 
     def to_qref(self, backend: SymbolicBackend[T]) -> SchemaV1:
@@ -260,6 +275,7 @@ class CompiledRoutine(BaseRoutine[T]):
 
 def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBackend[T]) -> _CommonRoutineParams[T]:
     program = ensure_routine(qref_obj)
+    first_pass_only = program.meta.get("first_pass_only", False)
     return {
         "name": program.name,
         "type": program.type,
@@ -270,6 +286,7 @@ def _common_routine_dict_from_qref(qref_obj: AnyQrefType, backend: SymbolicBacke
         "connections": {
             _endpoint_from_qref(conn.source): _endpoint_from_qref(conn.target) for conn in program.connections
         },
+        "first_pass_only": first_pass_only,
     }
 
 
@@ -333,6 +350,16 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         if isinstance(routine, Routine)
         else {}
     )
+    resources = [_resource_to_qref(resource, backend) for resource in routine.resources.values()]
+
+    if routine.first_pass_only:
+        kwargs["meta"] = {"first_pass_only": True}
+
+    if isinstance(routine, CompiledRoutine):
+        resources += [
+            _resource_to_qref(replace(resource, name=f"__fp__{resource.name}"), backend)
+            for resource in routine.first_pass_resources.values()
+        ]
 
     return RoutineV1(
         name=routine.name,
@@ -340,12 +367,12 @@ def _routine_to_qref_program(routine: Routine[T] | CompiledRoutine[T], backend: 
         input_params=routine.input_params,
         children=[_routine_to_qref_program(child, backend) for child in routine.children.values()],
         ports=[_port_to_qref(port, backend) for port in routine.ports.values()],
-        resources=[_resource_to_qref(resource, backend) for resource in routine.resources.values()],
         connections=[
             {"source": _endpoint_to_qref(source), "target": _endpoint_to_qref(target)}
             for source, target in routine.connections.items()
         ],
         repetition=repetition_to_qref(routine.repetition, backend),
+        resources=resources,
         **kwargs,
     )
 

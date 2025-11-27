@@ -17,7 +17,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from typing import Callable
 
-from .._routine import Constraint, ConstraintStatus, Port, Resource
+from .._routine import CompiledRoutine, Constraint, ConstraintStatus, Port, Resource
 from ..repetitions import Repetition
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T, TExpr
 
@@ -110,3 +110,23 @@ def evaluate_constraints(
         if (new_constraint := _evaluate_constraint(constraint, inputs, backend, custom_funcs)).status
         != ConstraintStatus.satisfied
     )
+
+
+def _collect_resource_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
+    return {
+        f"{cname}.{rname}": resource.value
+        for cname, child in children.items()
+        for rname, resource in child.resources.items()
+    }
+
+
+def _collect_first_pass_resource_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
+    return {
+        f"{cname}.__fp__{rname}": resource.value
+        for cname, child in children.items()
+        for rname, resource in child.first_pass_resources.items()
+    }
+
+
+def collect_children_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
+    return _collect_resource_variables(children) | _collect_first_pass_resource_variables(children)
