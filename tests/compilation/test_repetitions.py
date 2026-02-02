@@ -369,3 +369,28 @@ def test_error_raised_when_mismatch_between_parent_and_child_resource_names_and_
         match="Routine with repetition should have resource names like `child_name.resource_name.*",
     ):
         compile_routine(routine, compilation_flags=CompilationFlags.SKIP_VERIFICATION)
+
+
+def test_evaluate_repetitions_with_custom_function():
+    routine = SchemaV1(
+        program={
+            "name": "root",
+            "input_params": ["n"],
+            "children": [
+                {
+                    "name": "child",
+                    "resources": [
+                        {"name": "T", "type": "additive", "value": "n"},
+                    ],
+                }
+            ],
+            "repetition": {"count": "my_fun(n)", "sequence": {"type": "constant", "multiplier": "1"}},
+        },
+        version="v1",
+    )
+
+    compiled_routine = compile_routine(routine).routine
+    assignments = {"n": 10}
+    functions_map = {"my_fun": lambda x: x**2}
+    evaluated_routine = evaluate(compiled_routine, assignments, functions_map=functions_map).routine
+    assert evaluated_routine.repetition.count == 100

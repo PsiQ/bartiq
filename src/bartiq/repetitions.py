@@ -203,7 +203,7 @@ class Repetition(Generic[T]):
     def substitute_symbols(
         self, inputs: dict[str, TExpr[T]], backend: SymbolicBackend[T], functions_map=None
     ) -> Repetition[T]:
-        new_count = backend.substitute(self.count, inputs)
+        new_count = backend.substitute(self.count, inputs, functions_map=functions_map)
         new_sequence = self.sequence.substitute_symbols(inputs, backend, functions_map)
         return replace(self, count=new_count, sequence=new_sequence)
 
