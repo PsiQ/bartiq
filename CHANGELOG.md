@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/PsiQ/bartiq/compare/v0.16.0...v0.16.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* correctly handle custom functions in repetition count ([#280](https://github.com/PsiQ/bartiq/issues/280)) ([ebcb40f](https://github.com/PsiQ/bartiq/commit/ebcb40f3dc982773e24e624aa45c9783ccbebae3))
+
 ## [0.16.0](https://github.com/PsiQ/bartiq/compare/v0.15.3...v0.16.0) (2025-11-27)
 
 
