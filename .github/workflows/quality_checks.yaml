@@ -37,6 +37,7 @@ jobs:
           poetry install
       - name: Run unit tests
         run: poetry run pytest
+
   run_all_tests:
     # All extras are installed and all tests executed.
     runs-on: ubuntu-latest
@@ -59,6 +60,17 @@ jobs:
         run: >
           poetry run pytest
           --json-report --json-report-file=pytest_report.json --json-report-omit collectors log streams
+          --cov src --cov-report term --cov-report html
+      - name: Upload reports
+        if: always()  # upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-reports
+          path: |
+            htmlcov/
+            pytest-report.json
+          if-no-files-found: error
+          retention-days: 14
 
   run_quality_checks:
     runs-on: ubuntu-latest
@@ -78,7 +90,19 @@ jobs:
           pre-commit install --hook-type commit-msg
           pre-commit run -a
       - name: Run mypy
-        run: MYPYPATH=src poetry run mypy --install-types --non-interactive src
+        run: >
+          MYPYPATH=src poetry run mypy src
+          --install-types --non-interactive
+          --html-report mypy-report
+      - name: Upload reports
+        if: always()  # upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-report
+          path: |
+            mypy-report/
+          if-no-files-found: error
+          retention-days: 14
 
   test_docs_are_building:
     runs-on: ubuntu-latest
