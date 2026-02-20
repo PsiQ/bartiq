@@ -56,7 +56,9 @@ jobs:
           python -m pip install --upgrade pip poetry
           poetry install -E optimization -E interactive
       - name: Run unit tests
-        run: poetry run pytest
+        run: >
+          poetry run pytest
+          --json-report --json-report-file=pytest_report.json --json-report-omit collectors log streams
 
   run_quality_checks:
     runs-on: ubuntu-latest
