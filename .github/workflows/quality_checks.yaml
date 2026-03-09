@@ -37,12 +37,14 @@ jobs:
           poetry install
       - name: Run unit tests
         run: poetry run pytest
+
   run_all_tests:
     # All extras are installed and all tests executed.
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -55,8 +57,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip poetry
           poetry install -E optimization -E interactive
-      - name: Run unit tests
-        run: poetry run pytest
+      - name: Run unit tests (no coverage)
+        if: matrix.python-version != '3.11'
+        run: >
+          poetry run pytest
+      - name: Run unit tests with coverage (3.11 only)
+        if: matrix.python-version == '3.11'
+        # NOTE: --timeout=0 used to disable all timeouts
+        run: >
+          poetry run pytest
+          -p no:timeout
+          --json-report --json-report-file=pytest_report.json --json-report-omit collectors log streams
+          --cov src --cov-report term --cov-report html
+      - name: Upload reports (3.11 only)
+        if: always() && matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-reports-${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            pytest_report.json
+          if-no-files-found: error
+          retention-days: 14
 
   run_quality_checks:
     runs-on: ubuntu-latest
@@ -76,7 +98,19 @@ jobs:
           pre-commit install --hook-type commit-msg
           pre-commit run -a
       - name: Run mypy
-        run: MYPYPATH=src poetry run mypy --install-types --non-interactive src
+        run: >
+          MYPYPATH=src poetry run mypy src
+          --install-types --non-interactive
+          --html-report mypy-report/html
+      - name: Upload reports
+        if: always()  # upload even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: mypy-report
+          path: |
+            mypy-report/
+          if-no-files-found: error
+          retention-days: 14
 
   test_docs_are_building:
     runs-on: ubuntu-latest
