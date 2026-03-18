@@ -76,9 +76,3 @@ target-version = ['py310']
 [[tool.mypy.overrides]]
 module = ["ipywidgets.*", "ipytree.*", "sympy.*", "plotly.*"]
 ignore_missing_imports = true
-
-
-[tool.pytest.ini_options]
-markers = [
-    "timeout: marks tests as having a timeout (deselect with '-m \"no:timeout\"')",
-]
