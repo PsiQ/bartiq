@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
 
 import pytest
@@ -234,7 +235,7 @@ N_CHILDREN = 1000
 # mess up the parser because of the recursion limit.
 # Also note: these strings are specific to sympy.
 @pytest.mark.order(-1)
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(0 if os.getenv("BARTIQ_TEST_NOTIMEOUT", "0") != "0" else 30)
 @pytest.mark.parametrize(
     "compilation_flags, expected_t_count, expected_foo",
     [
