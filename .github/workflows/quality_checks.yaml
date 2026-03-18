@@ -67,7 +67,6 @@ jobs:
           poetry run pytest
       - name: Run unit tests with coverage (3.11 only)
         if: matrix.python-version == '3.11'
-        # NOTE: --timeout=0 used to disable all timeouts
         run: >
           poetry run pytest
           -p no:timeout
