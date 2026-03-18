@@ -502,6 +502,7 @@ def test_custom_max_evaluates_if_some_inputs_are_rationals(args, expected_max):
         ("max(x)", {"x": 0}, 0),
     ],
 )
+@pytest.mark.filterwarnings(r"ignore:nlz is deprecated:DeprecationWarning")
 def test_espressions_parsed_by_the_interpreter_are_directly_lambdifiable(expr, args, numeric_val):
     lambdified = lambdify(list(args.keys()), parse_to_sympy(expr))
 
@@ -521,6 +522,7 @@ def test_numerical_implementation_of_multiplicity_raises_when_one_of_arguments_i
     [(-1, ValueError), (-2, ValueError), (-2.5, TypeError), (-0.5, TypeError), (0.5, TypeError), (3.1, TypeError)],
 )
 @pytest.mark.parametrize("func", ["nlz", "ntz"])
+@pytest.mark.filterwarnings(r"ignore:nlz is deprecated:DeprecationWarning")
 def test_numerical_implementations_of_ntz_and_nlz_raise_if_argument_isnt_nonnegative_int(n, error_cls, func):
     lambdified = lambdify(["n"], parse_to_sympy(f"{func}(n)"))
 
