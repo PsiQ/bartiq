@@ -9,6 +9,7 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/logo_white.png
   palette:
     primary: custom
@@ -100,3 +101,5 @@ extra_javascript:
 extra:
   version:
     provider: mike
+  # Default branch for "Open in Colab" GitHub URLs (keep aligned with the branch that hosts these docs).
+  colab_branch: main
