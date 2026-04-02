@@ -15,8 +15,39 @@
  */
 
 :root {
-    --md-primary-fg-color: #000000;
-    --md-accent-fg-color: #7030A0;
+  --md-primary-fg-color: #000000;
+  --md-accent-fg-color: #7030A0;
+}
+
+/* Open in Colab (top-right on .ipynb pages only; no header GitHub repo link) */
+a.bartiq-open-collab-btn {
+  border: none;
+  background: #7030a0;
+  box-sizing: border-box;
+  color: #fff !important;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-inline: 0;
+  padding: 0.45rem 0.5rem;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.md-header__source .bartiq-open-collab-btn--source {
+  align-self: center;
+}
+
+a.bartiq-open-collab-btn:hover,
+a.bartiq-open-collab-btn:visited {
+  color: #fff !important;
+}
+
+a.bartiq-open-collab-btn:hover {
+  filter: brightness(1.08);
 }
 
 .md-typeset a {
