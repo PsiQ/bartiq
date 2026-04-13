@@ -75,7 +75,7 @@ def test_value_of_returns_expr_if_numerical_evaluation_is_not_possible():
 
 
 def test_value_of_raises_deprecation_warning():
-    with pytest.warns(DeprecationWarning):
+    with pytest.warns(FutureWarning):
         assert sympy_backend.value_of(10)
 
 

@@ -218,7 +218,7 @@ class SympyBackend:
         warn(
             "The value_of method is deprecated. The SympyBackend now returns native numbers from all relevant "
             "functions",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return _attempt_numeric_evaluation(value)

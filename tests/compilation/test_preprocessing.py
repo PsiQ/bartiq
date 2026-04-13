@@ -1,8 +1,10 @@
+import warnings
+
 import pytest
 from qref.schema_v1 import RoutineV1
 
 from bartiq._routine import Routine, routine_to_qref
-from bartiq.compilation.preprocessing import PreprocessingStage, propagate_linked_params
+from bartiq.compilation.preprocessing import PreprocessingStage, propagate_child_resources, propagate_linked_params
 
 
 def _apply_stage(qref_obj: RoutineV1, stage: PreprocessingStage, backend) -> RoutineV1:
@@ -128,3 +130,16 @@ def test_precompile_propagates_linked_params(input_dict, expected_linked_params,
             routine = routine.children[part]
 
         assert routine.linked_params == linked_params
+
+
+def test_precompile_propagate_child_resources_emits_future_warning_with_caller_stacklevel(backend):
+    input_routine = Routine.from_qref(RoutineV1(name="root", type="dummy"), backend)
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        propagate_child_resources(input_routine, backend)
+
+    assert len(caught) == 1
+    warning = caught[0]
+    assert warning.category is FutureWarning
+    assert warning.filename == __file__

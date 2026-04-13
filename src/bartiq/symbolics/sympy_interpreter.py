@@ -197,7 +197,7 @@ class nlz(ntz):
     def __new__(cls, n, *args, **kwargs):
         warnings.warn(
             "nlz is deprecated and will be removed in a future release; use ntz instead",
-            DeprecationWarning,
+            FutureWarning,
             stacklevel=2,
         )
         return super().__new__(cls, n, *args, **kwargs)
