@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """The compilation submodule contains routine compilation functionality."""
-from ._compile import CompilationFlags, CompilationResult, compile_routine
+from ._compile import CompilationFlags, CompilationResult, DerivedResources, compile_routine
 from ._evaluate import EvaluationResult, evaluate
 
-__all__ = ["compile_routine", "CompilationResult", "evaluate", "EvaluationResult", "CompilationFlags"]
+__all__ = ["compile_routine", "CompilationResult", "DerivedResources", "evaluate", "EvaluationResult", "CompilationFlags"]
