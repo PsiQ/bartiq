@@ -112,18 +112,18 @@ def add_derived_resources(
     """
     if not derived_resources:
         return routine
-    return _add_derived_resources_postorder(routine, backend, tuple(derived_resources))
-
-
-@postorder_transform
-def _add_derived_resources_postorder(
-    routine: CompiledRoutine[T],
-    backend: SymbolicBackend[T],
-    derived_resources: tuple["DerivedResources[T]", ...],
-) -> CompiledRoutine[T]:
     from .compilation._compile import _add_derived_resources
 
-    return _add_derived_resources(routine, backend, derived_resources)
+    derived_resources = tuple(derived_resources)
+
+    @postorder_transform
+    def _apply(
+        subroutine: CompiledRoutine[T],
+        subroutine_backend: SymbolicBackend[T],
+    ) -> CompiledRoutine[T]:
+        return _add_derived_resources(subroutine, subroutine_backend, derived_resources)
+
+    return _apply(routine, backend)
 
 
 def add_aggregated_resources(

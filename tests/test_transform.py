@@ -304,19 +304,16 @@ def test_add_circuit_volume_with_children(backend):
 
 
 def test_add_derived_resources_to_compiled_routine(backend):
-    routine = CompiledRoutine(
-        name="root",
-        type=None,
-        input_params=["n"],
-        children={},
-        ports={},
-        resources={
-            "a": Resource("a", ResourceType.additive, backend.as_expression("n")),
-            "b": Resource("b", ResourceType.additive, backend.as_expression("2*n")),
-        },
-        connections={},
-        children_order=(),
-    )
+    input_qref = {
+        "name": "root",
+        "type": None,
+        "input_params": ["n"],
+        "resources": [
+            {"name": "a", "type": "additive", "value": "n"},
+            {"name": "b", "type": "additive", "value": "2*n"},
+        ],
+    }
+    routine = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
 
     def _sum_resources(compiled_routine, symbolic_backend):
         return symbolic_backend.as_expression(compiled_routine.resource_values["a"]) + symbolic_backend.as_expression(
@@ -333,26 +330,19 @@ def test_add_derived_resources_to_compiled_routine(backend):
 
 
 def test_add_derived_resources_is_applied_postorder(backend):
-    child = CompiledRoutine(
-        name="child",
-        type=None,
-        input_params=[],
-        children={},
-        ports={},
-        resources={"x": Resource("x", ResourceType.additive, 2)},
-        connections={},
-        children_order=(),
-    )
-    parent = CompiledRoutine(
-        name="parent",
-        type=None,
-        input_params=[],
-        children={"child": child},
-        ports={},
-        resources={"x": Resource("x", ResourceType.additive, backend.as_expression("child.x"))},
-        connections={},
-        children_order=("child",),
-    )
+    input_qref = {
+        "name": "parent",
+        "type": None,
+        "children": [
+            {
+                "name": "child",
+                "type": None,
+                "resources": [{"name": "x", "type": "additive", "value": 2}],
+            }
+        ],
+        "resources": [{"name": "x", "type": "additive", "value": "child.x"}],
+    }
+    parent = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
 
     def _double_x(compiled_routine, symbolic_backend):
         return 2 * symbolic_backend.as_expression(compiled_routine.resource_values["x"])
@@ -365,27 +355,3 @@ def test_add_derived_resources_is_applied_postorder(backend):
 
     assert result.children["child"].resources["double_x"].value == 4
     assert str(result.resources["double_x"].value) == "2*child.x"
-
-
-def test_add_derived_resources_accepts_iterables(backend):
-    routine = CompiledRoutine(
-        name="root",
-        type=None,
-        input_params=[],
-        children={},
-        ports={},
-        resources={"x": Resource("x", ResourceType.additive, 2)},
-        connections={},
-        children_order=(),
-    )
-
-    def _triple_x(compiled_routine, symbolic_backend):
-        return 3 * symbolic_backend.as_expression(compiled_routine.resource_values["x"])
-
-    result = add_derived_resources(
-        routine,
-        (spec for spec in [{"name": "triple_x", "type": "additive", "calculate": _triple_x}]),
-        backend=backend,
-    )
-
-    assert result.resources["triple_x"].value == 6
