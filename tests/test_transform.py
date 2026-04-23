@@ -16,8 +16,12 @@ import pytest
 import sympy
 from qref.schema_v1 import RoutineV1
 
-from bartiq import CompiledRoutine, Routine
-from bartiq.transform import add_aggregated_resources, add_circuit_volume
+from bartiq import CompiledRoutine, Resource, ResourceType, Routine
+from bartiq.transform import (
+    add_aggregated_resources,
+    add_circuit_volume,
+    add_derived_resources,
+)
 
 ccry_gate = {
     "name": "ccry_gate",
@@ -248,9 +252,6 @@ def test_add_circuit_volume_simple(backend):
 
 
 def test_add_circuit_volume_with_children(backend):
-    from bartiq import CompiledRoutine, Resource, ResourceType
-    from bartiq.transform import add_circuit_volume
-
     # Create a child routine with required resources
     child = CompiledRoutine(
         name="child",
@@ -304,3 +305,57 @@ def test_add_circuit_volume_with_children(backend):
     )
     assert "circuit_volume" in out2.resources
     assert out2.resources["circuit_volume"].value == 14
+
+
+def test_add_derived_resources_to_compiled_routine(backend):
+    input_qref = {
+        "name": "root",
+        "type": None,
+        "input_params": ["n"],
+        "resources": [
+            {"name": "a", "type": "additive", "value": "n"},
+            {"name": "b", "type": "additive", "value": "2*n"},
+        ],
+    }
+    routine = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
+
+    def _sum_resources(compiled_routine, symbolic_backend):
+        return symbolic_backend.as_expression(compiled_routine.resource_values["a"]) + symbolic_backend.as_expression(
+            compiled_routine.resource_values["b"]
+        )
+
+    result = add_derived_resources(
+        routine,
+        [{"name": "c", "type": "additive", "calculate": _sum_resources}],
+        backend=backend,
+    )
+
+    assert str(result.resources["c"].value) == "3*n"
+
+
+def test_add_derived_resources_is_applied_postorder(backend):
+    input_qref = {
+        "name": "parent",
+        "type": None,
+        "children": [
+            {
+                "name": "child",
+                "type": None,
+                "resources": [{"name": "x", "type": "additive", "value": 2}],
+            }
+        ],
+        "resources": [{"name": "x", "type": "additive", "value": "child.x"}],
+    }
+    parent = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
+
+    def _double_x(compiled_routine, symbolic_backend):
+        return 2 * symbolic_backend.as_expression(compiled_routine.resource_values["x"])
+
+    result = add_derived_resources(
+        parent,
+        [{"name": "double_x", "type": "additive", "calculate": _double_x}],
+        backend=backend,
+    )
+
+    assert result.children["child"].resources["double_x"].value == 4
+    assert str(result.resources["double_x"].value) == "2*child.x"

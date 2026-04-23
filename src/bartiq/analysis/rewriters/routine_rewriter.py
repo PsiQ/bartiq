@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Here we provide functionality to allow you to apply rewriters to CompiledRoutine resource expressions."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
