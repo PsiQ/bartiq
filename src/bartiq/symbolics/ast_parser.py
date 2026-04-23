@@ -50,6 +50,7 @@ from parsed informations. This is because we actually construct at most
 binary expressions, and we assume that operators of the constructed
 objects behave like they should with built-in operators.
 """
+
 import ast
 import operator
 import re

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """The bartiq analysis module provides methods to manipulate symbolic expressions."""
+
 from bartiq.analysis.rewriters import rewrite_routine_resources, sympy_rewriter
 
 __all__ = ["sympy_rewriter", "rewrite_routine_resources"]

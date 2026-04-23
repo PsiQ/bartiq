@@ -17,7 +17,11 @@ import sympy
 from qref.schema_v1 import RoutineV1
 
 from bartiq import CompiledRoutine, Resource, ResourceType, Routine
-from bartiq.transform import add_aggregated_resources, add_circuit_volume, add_derived_resources
+from bartiq.transform import (
+    add_aggregated_resources,
+    add_circuit_volume,
+    add_derived_resources,
+)
 
 ccry_gate = {
     "name": "ccry_gate",
