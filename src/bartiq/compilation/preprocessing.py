@@ -44,6 +44,7 @@ def propagate_child_resources(routine: Routine[T], backend: SymbolicBackend[T]) 
     warnings.warn(
         "Usage of propagate_child_resources has been deprecated, as this is now handled" "directly in the compilation.",
         DeprecationWarning,
+        stacklevel=2,
     )
     child_additive_resources_map: defaultdict[str, set[str]] = defaultdict(set)
     child_multiplicative_resources_map: defaultdict[str, set[str]] = defaultdict(set)
