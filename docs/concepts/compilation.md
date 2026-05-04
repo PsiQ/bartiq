@@ -111,8 +111,12 @@ In the example we discussed previously, this allows us to skip the definition of
 
 #### Step 2.6: Repetitions
 
-In case a routine is repeated (i.e. has a non-empty `repetition` field), its local resource definitions get updated according 
-to the repetition rules; the repetition specification itself gets updated using the parameter map.
+In case a routine is repeated (i.e. has a non-empty `repetition` field), its local resource definitions get updated according to the repetition rules; the repetition specification itself gets updated using the parameter map.
+
+Qubit-type resources are handled differently from additive or multiplicative resources during this step:
+
+- additive and multiplicative resources are aggregated across iterations according to the repetition sequence
+- qubit resources describe how many qubits are needed at the peak moment of one run, so they are not added up across sequential iterations. In the current implementation, qubit resources also can't depend on the iterator symbol.
 
 #### Step 2.7: Resource compilation
 

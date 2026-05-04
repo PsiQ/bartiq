@@ -267,6 +267,16 @@ def _process_repeated_resources(
 
     new_resources = {}
     for resource in child_resources.values():
+        iterator_symbol = getattr(repetition.sequence, "iterator_symbol", None)
+        if (
+            resource.type == ResourceType.qubits
+            and iterator_symbol is not None
+            and backend.serialize(iterator_symbol) in backend.free_symbols(resource.value)
+        ):
+            raise BartiqCompilationError(
+                f'Cannot process qubit resource "{resource.name}" in repetitive structure when it depends '
+                f'on iterator symbol "{backend.serialize(iterator_symbol)}".'
+            )
         replacement_value = backend.as_expression(f"{children[0].name}.{resource.name}")
         first_pass_value_stub = backend.as_expression(f"{children[0].name}.__fp__{resource.name}")
         use_default_first_pass_value = resource.name not in children[0].first_pass_resources
@@ -276,10 +286,13 @@ def _process_repeated_resources(
         elif resource.type == ResourceType.multiplicative:
             first_pass_value = 1 if use_default_first_pass_value else first_pass_value_stub
             new_value = repetition.sequence_prod(replacement_value / first_pass_value, backend) * first_pass_value
-        elif resource.type == ResourceType.qubits and repetition.sequence.type == "constant":
+        elif resource.type == ResourceType.qubits:
             # NOTE: Actually this could also be `new_value = resource.value`.
-            # The reason it's not, is that in such case local_ancillae are counted twice
-            # in calculate_highwater.
+            # The reason it's not, is that in such case qubit resources such as local_ancillae
+            # are counted twice in calculate_highwater.
+            #
+            # Qubit resources track peak concurrent usage, so sequential repetition should not
+            # aggregate them regardless of repetition sequence type.
             continue
         elif ast.literal_eval(os.environ.get(REPETITION_ALLOW_ARBITRARY_RESOURCES_ENV, "False")):
             new_value = replacement_value
