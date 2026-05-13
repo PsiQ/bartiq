@@ -14,18 +14,22 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Iterable
 from dataclasses import replace
 from functools import wraps
 from graphlib import TopologicalSorter
-from typing import Any, Callable, Concatenate, ParamSpec, overload
+from typing import TYPE_CHECKING, Any, Callable, Concatenate, ParamSpec, overload
 
-from bartiq import CompiledRoutine, Resource, ResourceType, Routine
-from bartiq.compilation._evaluate import evaluate
-from bartiq.symbolics import sympy_backend
-from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
+from ._routine import CompiledRoutine, Resource, ResourceType, Routine
+from .compilation._evaluate import evaluate
+from .symbolics import sympy_backend
+from .symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
 BACKEND = sympy_backend
+
+if TYPE_CHECKING:
+    from .compilation._compile import DerivedResources
 
 
 RoutineTransform = Callable[Concatenate[Routine[T], SymbolicBackend[T], P], Routine[T]]
@@ -88,6 +92,38 @@ def postorder_transform(transform):
 
 
 AggregationDict = dict[str, dict[str, TExpr[T]]]
+
+
+def add_derived_resources(
+    routine: CompiledRoutine[T],
+    derived_resources: Iterable["DerivedResources[T]"] | None = None,
+    backend: SymbolicBackend[T] = BACKEND,
+) -> CompiledRoutine[T]:
+    """Add derived resources to an already compiled routine.
+
+    Args:
+        routine: The compiled routine to which the resources should be added.
+        derived_resources: Resource specifications matching the ``derived_resources`` argument
+            accepted by ``compile_routine``.
+        backend: Backend instance to use for handling expressions.
+
+    Returns:
+        The routine with derived resources added to each subroutine in postorder.
+    """
+    if not derived_resources:
+        return routine
+    from .compilation._compile import _add_derived_resources
+
+    derived_resources = tuple(derived_resources)
+
+    @postorder_transform
+    def _apply(
+        subroutine: CompiledRoutine[T],
+        subroutine_backend: SymbolicBackend[T],
+    ) -> CompiledRoutine[T]:
+        return _add_derived_resources(subroutine, subroutine_backend, derived_resources)
+
+    return _apply(routine, backend)
 
 
 def add_aggregated_resources(

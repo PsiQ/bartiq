@@ -21,8 +21,9 @@ from ._routine import (
     Routine,
     routine_to_qref,
 )
-from .compilation import compile_routine, evaluate
+from .compilation import DerivedResources, compile_routine, evaluate
 from .symbolics import sympy_backend
+from .transform import add_derived_resources
 
 __all__ = [
     "Port",
@@ -32,7 +33,9 @@ __all__ = [
     "Resource",
     "CompiledRoutine",
     "routine_to_qref",
+    "DerivedResources",
     "compile_routine",
     "evaluate",
     "sympy_backend",
+    "add_derived_resources",
 ]
