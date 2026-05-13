@@ -21,6 +21,7 @@ from qref.schema_v1 import ResourceV1, RoutineV1
 
 from bartiq import compile_routine, evaluate
 from bartiq.compilation import CompilationFlags
+from bartiq.compilation.derived_resources import calculate_highwater
 from bartiq.errors import BartiqCompilationError
 
 
@@ -37,6 +38,36 @@ def _routine_with_repetition(repetition_dict: dict) -> RoutineV1:
                         {"name": "success_rate", "type": "multiplicative", "value": "unit_prob"},
                     ],
                 }
+            ],
+            "repetition": repetition_dict,
+        },
+        version="v1",
+    )
+
+
+def _routine_with_qubit_repetition(repetition_dict: dict) -> RoutineV1:
+    return SchemaV1(
+        program={
+            "name": "root",
+            "input_params": ["N"],
+            "ports": [
+                {"name": "in_0", "direction": "input", "size": "N"},
+                {"name": "out_0", "direction": "output", "size": "N"},
+            ],
+            "children": [
+                {
+                    "name": "child",
+                    "ports": [
+                        {"name": "thru_0", "direction": "through", "size": "N"},
+                    ],
+                    "resources": [
+                        {"name": "local_ancillae", "type": "qubits", "value": 2},
+                    ],
+                }
+            ],
+            "connections": [
+                "in_0 -> child.thru_0",
+                "child.thru_0 -> out_0",
             ],
             "repetition": repetition_dict,
         },
@@ -394,3 +425,63 @@ def test_evaluate_repetitions_with_custom_function():
     functions_map = {"my_fun": lambda x: x**2}
     evaluated_routine = evaluate(compiled_routine, assignments, functions_map=functions_map).routine
     assert evaluated_routine.repetition.count == 100
+
+@pytest.mark.parametrize(
+    "repetition_dict",
+    [
+        {"count": 5, "sequence": {"type": "constant", "multiplier": 1}},
+        {"count": 5, "sequence": {"type": "arithmetic", "initial_term": 1, "difference": 1}},
+        {"count": 5, "sequence": {"type": "geometric", "ratio": 2}},
+        {"count": 5, "sequence": {"type": "closed_form", "sum": "N", "prod": "1", "num_terms_symbol": "N"}},
+        {"count": 5, "sequence": {"type": "custom", "term_expression": "1", "iterator_symbol": "i"}},
+    ],
+)
+def test_qubit_resources_are_supported_when_independent_of_iterator(repetition_dict):
+    routine = _routine_with_qubit_repetition(repetition_dict)
+    derived_resources = [{"name": "qubit_highwater", "type": "qubits", "calculate": calculate_highwater}]
+
+    compiled_routine = compile_routine(routine, derived_resources=derived_resources).routine
+    evaluated_routine = evaluate(compiled_routine, {"N": 4}).routine
+
+    assert "qubit_highwater" in evaluated_routine.resources
+    assert evaluated_routine.resources["qubit_highwater"].value == 6
+
+
+def test_qubit_resources_depending_on_iterator_raise_for_custom_repetition():
+    routine = SchemaV1(
+        program={
+            "name": "root",
+            "input_params": ["N"],
+            "ports": [
+                {"name": "in_0", "direction": "input", "size": "N"},
+                {"name": "out_0", "direction": "output", "size": "N"},
+            ],
+            "children": [
+                {
+                    "name": "child",
+                    "ports": [
+                        {"name": "thru_0", "direction": "through", "size": "N"},
+                    ],
+                    "resources": [
+                        {"name": "local_ancillae", "type": "qubits", "value": "i + 1"},
+                    ],
+                }
+            ],
+            "connections": [
+                "in_0 -> child.thru_0",
+                "child.thru_0 -> out_0",
+            ],
+            "repetition": {
+                "count": 4,
+                "sequence": {"type": "custom", "term_expression": "1", "iterator_symbol": "i"},
+            },
+        },
+        version="v1",
+    )
+    derived_resources = [{"name": "qubit_highwater", "type": "qubits", "calculate": calculate_highwater}]
+
+    with pytest.raises(
+        BartiqCompilationError,
+        match='Cannot process qubit resource "local_ancillae" in repetitive structure when it depends on iterator symbol "i"',
+    ):
+        compile_routine(routine, derived_resources=derived_resources)
