@@ -23,7 +23,6 @@ from ._routine import (
 )
 from .compilation import DerivedResources, compile_routine, evaluate
 from .symbolics import sympy_backend
-from .transform import add_derived_resources
 
 __all__ = [
     "Port",
@@ -37,5 +36,4 @@ __all__ = [
     "compile_routine",
     "evaluate",
     "sympy_backend",
-    "add_derived_resources",
 ]
