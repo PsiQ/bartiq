@@ -76,6 +76,9 @@ def evaluate(
             expressions understood by backend, or via strings, e.g. `{"N": 2, "M": "k+3"}.
         backend: a backend used for manipulating symbolic expressions.
         functions_map: a dictionary mapping function names to their concrete implementations.
+        derived_resources: iterable with dictionaries describing how to calculate derived resources.
+            Each dictionary should contain the derived resource's name, type
+            and the function mapping a routine to the value of resource.
 
     Returns:
         A new instance of CompiledRoutine with appropriate substitutions made.
