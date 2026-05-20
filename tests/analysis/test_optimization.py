@@ -172,7 +172,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "L-BFGS-B",
                 "tol": 1e-6,
-                "options": {"disp": False},
+                "options": {"maxls": 20},
             },
             math.pi,
             -1.0,
@@ -189,7 +189,7 @@ def test_minimize_gradient_descent(
             {
                 "method": "Nelder-Mead",
                 "tol": 1e-6,
-                "options": {"disp": False},
+                "options": {"adaptive": False},
             },
             0.0,
             0.0,
@@ -266,7 +266,7 @@ def test_minimize_df_active_volume_scipy(lamda_initial, lamda_bounds, expected_r
     scipy_kwargs = {
         "method": "L-BFGS-B",
         "tol": 1e-6,
-        "options": {"disp": False},
+        "options": {"maxls": 30},
     }
 
     result = minimize(
