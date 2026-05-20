@@ -166,7 +166,7 @@ class CalculateWithName(Protocol[T]):
         pass
 
 
-def _add_derived_resources(
+def add_derived_resources(
     routine: CompiledRoutine[T],
     backend: SymbolicBackend[T],
     derived_resources: Iterable[DerivedResources[T]] = (),

@@ -43,7 +43,7 @@ from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
     DerivedResources,
-    _add_derived_resources,
+    add_derived_resources,
     collect_children_variables,
     evaluate_constraints,
     evaluate_ports,
@@ -411,7 +411,7 @@ def _compile(
         if CompilationFlags.EXPAND_RESOURCES in compilation_flags
         else _introduce_placeholder_child_resources(compiled_routine, backend)
     )
-    tmp_routine = _add_derived_resources(tmp_routine, backend, derived_resources)
+    tmp_routine = add_derived_resources(tmp_routine, backend, derived_resources)
 
     return replace(compiled_routine, resources=tmp_routine.resources)
 

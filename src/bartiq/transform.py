@@ -21,7 +21,7 @@ from graphlib import TopologicalSorter
 from typing import TYPE_CHECKING, Any, Callable, Concatenate, ParamSpec, overload
 
 from ._routine import CompiledRoutine, Resource, ResourceType, Routine
-from .compilation._common import _add_derived_resources
+from .compilation._common import add_derived_resources as _add_derived_resources
 from .compilation._evaluate import evaluate
 from .symbolics import sympy_backend
 from .symbolics.backend import SymbolicBackend, T, TExpr
