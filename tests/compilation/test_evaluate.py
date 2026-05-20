@@ -203,3 +203,59 @@ def test_compile_and_evaluate_double_factorization_routine(backend):
 
     for resource_name in expected_resources:
         assert expected_resources[resource_name] == evaluated_routine.resources[resource_name].value
+
+
+def test_add_derived_resources_to_compiled_routine(backend):
+    input_qref = {
+        "name": "root",
+        "type": None,
+        "input_params": ["n"],
+        "resources": [
+            {"name": "a", "type": "additive", "value": "n"},
+            {"name": "b", "type": "additive", "value": "2*n"},
+        ],
+    }
+    routine = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
+
+    def _sum_resources(compiled_routine, symbolic_backend):
+        return symbolic_backend.as_expression(compiled_routine.resource_values["a"]) + symbolic_backend.as_expression(
+            compiled_routine.resource_values["b"]
+        )
+
+    result = evaluate(
+        routine,
+        {},
+        derived_resources=[{"name": "c", "type": "additive", "calculate": _sum_resources}],
+        backend=backend,
+    ).routine
+
+    assert result.resources["c"].value == backend.as_expression("3*n")
+
+
+def test_add_derived_resources_is_applied_postorder(backend):
+    input_qref = {
+        "name": "parent",
+        "type": None,
+        "children": [
+            {
+                "name": "child",
+                "type": None,
+                "resources": [{"name": "x", "type": "additive", "value": 2}],
+            }
+        ],
+        "resources": [{"name": "x", "type": "additive", "value": "M"}],
+    }
+    parent = CompiledRoutine.from_qref(RoutineV1(**input_qref), backend)
+
+    def _double_x(compiled_routine, symbolic_backend):
+        return 2 * symbolic_backend.as_expression(compiled_routine.resource_values["x"])
+
+    result = evaluate(
+        parent,
+        {},
+        derived_resources=[{"name": "double_x", "type": "additive", "calculate": _double_x}],
+        backend=backend,
+    ).routine
+
+    assert result.children["child"].resources["double_x"].value == 4
+    assert result.resources["double_x"].value == backend.as_expression("2*M")
