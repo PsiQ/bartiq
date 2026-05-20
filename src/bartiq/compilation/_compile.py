@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import ast
-import inspect
 import operator
 import os
 import warnings
@@ -24,13 +23,12 @@ from dataclasses import dataclass, replace
 from enum import Flag, auto
 from functools import reduce
 from graphlib import TopologicalSorter
-from typing import Generic, Protocol
+from typing import Generic
 
 from qref import SchemaV1
 from qref.functools import ensure_routine
 from qref.schema_v1 import RoutineV1
 from qref.verification import verify_topology
-from typing_extensions import TypedDict, TypeIs
 
 from bartiq._routine import (
     CompiledRoutine,
@@ -44,6 +42,8 @@ from bartiq._routine import (
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
+    DerivedResources,
+    _add_derived_resources,
     collect_children_variables,
     evaluate_constraints,
     evaluate_ports,
@@ -90,26 +90,6 @@ class CompilationFlags(Flag):
 
     SKIP_VERIFICATION = auto()
     """Skip the verification step on the routine."""
-
-
-class Calculate(Protocol[T]):
-
-    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T] | None:
-        pass
-
-
-class CalculateWithName(Protocol[T]):
-
-    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str) -> TExpr[T] | None:
-        pass
-
-
-class DerivedResources(TypedDict, Generic[T]):
-    """Contains information needed to calculate derived resources."""
-
-    name: str
-    type: str
-    calculate: Calculate[T] | CalculateWithName[T]
 
 
 @dataclass
@@ -436,10 +416,6 @@ def _compile(
     return replace(compiled_routine, resources=tmp_routine.resources)
 
 
-def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
-    return "resource_name" in inspect.signature(func).parameters
-
-
 def _introduce_placeholder_resources(
     compiled_routine: CompiledRoutine[T], backend: SymbolicBackend[T]
 ) -> CompiledRoutine[T]:
@@ -466,34 +442,6 @@ def _introduce_placeholder_child_resources(
             for cname, child in compiled_routine.children.items()
         },
     )
-
-
-def _add_derived_resources(
-    routine: CompiledRoutine[T],
-    backend: SymbolicBackend[T],
-    derived_resources: Iterable[DerivedResources[T]] = (),
-) -> CompiledRoutine[T]:
-    for specs in derived_resources:
-        name = specs["name"]
-        type = specs["type"]
-        calculate = specs["calculate"]
-
-        value = (
-            calculate(routine, backend, resource_name=name)
-            if _accepts_resource_name(calculate)
-            else calculate(routine, backend)
-        )
-
-        if value is not None:
-            resource = Resource(name, type=ResourceType(type), value=value)
-            routine = replace(
-                routine,
-                resources={
-                    **routine.resources,
-                    name: resource,
-                },
-            )
-    return routine
 
 
 def _generate_arithmetic_resources(

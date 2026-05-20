@@ -21,6 +21,7 @@ from graphlib import TopologicalSorter
 from typing import TYPE_CHECKING, Any, Callable, Concatenate, ParamSpec, overload
 
 from ._routine import CompiledRoutine, Resource, ResourceType, Routine
+from .compilation._common import _add_derived_resources
 from .compilation._evaluate import evaluate
 from .symbolics import sympy_backend
 from .symbolics.backend import SymbolicBackend, T, TExpr
@@ -112,7 +113,6 @@ def add_derived_resources(
     """
     if not derived_resources:
         return routine
-    from .compilation._compile import _add_derived_resources
 
     derived_resources = tuple(derived_resources)
 

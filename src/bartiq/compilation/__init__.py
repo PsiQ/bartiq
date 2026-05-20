@@ -13,12 +13,8 @@
 # limitations under the License.
 """The compilation submodule contains routine compilation functionality."""
 
-from ._compile import (
-    CompilationFlags,
-    CompilationResult,
-    DerivedResources,
-    compile_routine,
-)
+from ._common import DerivedResources
+from ._compile import CompilationFlags, CompilationResult, compile_routine
 from ._evaluate import EvaluationResult, evaluate
 
 __all__ = [

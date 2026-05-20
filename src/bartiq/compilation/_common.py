@@ -13,11 +13,21 @@
 # limitations under the License.
 from __future__ import annotations
 
+import inspect
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
-from typing import Callable
+from typing import Callable, Generic, Protocol
 
-from .._routine import CompiledRoutine, Constraint, ConstraintStatus, Port, Resource
+from typing_extensions import TypedDict, TypeIs
+
+from .._routine import (
+    CompiledRoutine,
+    Constraint,
+    ConstraintStatus,
+    Port,
+    Resource,
+    ResourceType,
+)
 from ..repetitions import Repetition
 from ..symbolics.backend import ComparisonResult, SymbolicBackend, T, TExpr
 
@@ -37,6 +47,14 @@ class ConstraintValidationError(ValueError):
 
     def __init__(self, original_constraint: Constraint[T], compiled_constraint: Constraint[T]):
         super().__init__(original_constraint, compiled_constraint)
+
+
+class DerivedResources(TypedDict, Generic[T]):
+    """Contains information needed to calculate derived resources."""
+
+    name: str
+    type: str
+    calculate: Calculate[T] | CalculateWithName[T]
 
 
 def evaluate_ports(
@@ -130,3 +148,47 @@ def _collect_first_pass_resource_variables(children: dict[str, CompiledRoutine[T
 
 def collect_children_variables(children: dict[str, CompiledRoutine[T]]) -> dict[str, TExpr[T]]:
     return _collect_resource_variables(children) | _collect_first_pass_resource_variables(children)
+
+
+def _accepts_resource_name(func: Calculate[T] | CalculateWithName[T]) -> TypeIs[CalculateWithName[T]]:
+    return "resource_name" in inspect.signature(func).parameters
+
+
+class Calculate(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T]) -> TExpr[T] | None:
+        pass
+
+
+class CalculateWithName(Protocol[T]):
+
+    def __call__(self, routine: CompiledRoutine[T], backend: SymbolicBackend[T], resource_name: str) -> TExpr[T] | None:
+        pass
+
+
+def _add_derived_resources(
+    routine: CompiledRoutine[T],
+    backend: SymbolicBackend[T],
+    derived_resources: Iterable[DerivedResources[T]] = (),
+) -> CompiledRoutine[T]:
+    for specs in derived_resources:
+        name = specs["name"]
+        type = specs["type"]
+        calculate = specs["calculate"]
+
+        value = (
+            calculate(routine, backend, resource_name=name)
+            if _accepts_resource_name(calculate)
+            else calculate(routine, backend)
+        )
+
+        if value is not None:
+            resource = Resource(name, type=ResourceType(type), value=value)
+            routine = replace(
+                routine,
+                resources={
+                    **routine.resources,
+                    name: resource,
+                },
+            )
+    return routine
