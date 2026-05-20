@@ -49,7 +49,7 @@ class ConstraintValidationError(ValueError):
         super().__init__(original_constraint, compiled_constraint)
 
 
-class DerivedResources(TypedDict, Generic[T]):
+class DerivedResource(TypedDict, Generic[T]):
     """Contains information needed to calculate derived resources."""
 
     name: str
@@ -169,7 +169,7 @@ class CalculateWithName(Protocol[T]):
 def add_derived_resources(
     routine: CompiledRoutine[T],
     backend: SymbolicBackend[T],
-    derived_resources: Iterable[DerivedResources[T]] = (),
+    derived_resources: Iterable[DerivedResource[T]] = (),
 ) -> CompiledRoutine[T]:
     for specs in derived_resources:
         name = specs["name"]

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, replace
 from typing import Callable, Generic, TypeVar
 
@@ -22,7 +22,7 @@ from bartiq._routine import CompiledRoutine, routine_to_qref
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
-    DerivedResources,
+    DerivedResource,
     add_derived_resources,
     collect_children_variables,
     evaluate_constraints,
@@ -65,7 +65,7 @@ def evaluate(
     *,
     backend: SymbolicBackend[T] = sympy_backend,
     functions_map: FunctionsMap[T] | None = None,
-    derived_resources: DerivedResources[T] = (),
+    derived_resources: Iterable[DerivedResource[T]] = (),
 ) -> EvaluationResult[T]:
     """Substitutes variables into compiled routine.
 
@@ -96,7 +96,7 @@ def _evaluate_internal(
     inputs: dict[str, TExpr[T]],
     backend: SymbolicBackend[T],
     functions_map: FunctionsMap[T],
-    derived_resources: DerivedResources[T],
+    derived_resources: Iterable[DerivedResource[T]],
     context: Context,
 ) -> CompiledRoutine[T]:
     try:

@@ -42,7 +42,7 @@ from bartiq._routine import (
 from bartiq.compilation._common import (
     ConstraintValidationError,
     Context,
-    DerivedResources,
+    DerivedResource,
     add_derived_resources,
     collect_children_variables,
     evaluate_constraints,
@@ -117,7 +117,7 @@ def compile_routine(
     backend: SymbolicBackend[T] = sympy_backend,
     preprocessing_stages: Iterable[PreprocessingStage[T]] = DEFAULT_PREPROCESSING_STAGES,
     postprocessing_stages: Iterable[PostprocessingStage[T]] = DEFAULT_POSTPROCESSING_STAGES,
-    derived_resources: Iterable[DerivedResources] = (),
+    derived_resources: Iterable[DerivedResource] = (),
     compilation_flags: CompilationFlags | None = None,
 ) -> CompilationResult[T]:
     """Performs symbolic compilation of a given routine.
@@ -309,7 +309,7 @@ def _compile(
     backend: SymbolicBackend[T],
     inputs: dict[str, TExpr[T]],
     context: Context,
-    derived_resources: Iterable[DerivedResources] = (),
+    derived_resources: Iterable[DerivedResource] = (),
     compilation_flags: CompilationFlags = CompilationFlags(0),  # CompilationsFlags(0) corresponds to no flags
 ) -> CompiledRoutine[T]:
     try:
