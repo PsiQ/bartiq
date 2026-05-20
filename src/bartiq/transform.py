@@ -19,10 +19,10 @@ from functools import wraps
 from graphlib import TopologicalSorter
 from typing import Any, Callable, Concatenate, ParamSpec, overload
 
-from ._routine import CompiledRoutine, Resource, ResourceType, Routine
-from .compilation._evaluate import evaluate
-from .symbolics import sympy_backend
-from .symbolics.backend import SymbolicBackend, T, TExpr
+from bartiq import CompiledRoutine, Resource, ResourceType, Routine
+from bartiq.compilation._evaluate import evaluate
+from bartiq.symbolics import sympy_backend
+from bartiq.symbolics.backend import SymbolicBackend, T, TExpr
 
 P = ParamSpec("P")
 BACKEND = sympy_backend
