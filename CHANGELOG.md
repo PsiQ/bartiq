@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.17.0](https://github.com/PsiQ/bartiq/compare/v0.16.1...v0.17.0) (2026-05-20)
+
+
+### Features
+
+* allow computing derived resources via evaluate function ([#288](https://github.com/PsiQ/bartiq/issues/288)) ([d66f2a3](https://github.com/PsiQ/bartiq/commit/d66f2a35c0704f9dfc3e4a5ce595b3f1150ad67d))
+
+
+### Documentation
+
+* add agent guidance ([#285](https://github.com/PsiQ/bartiq/issues/285)) ([4183c56](https://github.com/PsiQ/bartiq/commit/4183c56272d87ddf2f372ce0319f320859903161))
+* remove unitary hack docs ([#290](https://github.com/PsiQ/bartiq/issues/290)) ([0bac3cc](https://github.com/PsiQ/bartiq/commit/0bac3cc6abeedd7d27d58993712b0a8f2451ab43))
+
 ## [0.16.1](https://github.com/PsiQ/bartiq/compare/v0.16.0...v0.16.1) (2026-02-03)
 
 
