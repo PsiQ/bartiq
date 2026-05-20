@@ -21,7 +21,7 @@ from ._routine import (
     Routine,
     routine_to_qref,
 )
-from .compilation import DerivedResources, compile_routine, evaluate
+from .compilation import DerivedResource, compile_routine, evaluate
 from .symbolics import sympy_backend
 
 __all__ = [
@@ -32,7 +32,7 @@ __all__ = [
     "Resource",
     "CompiledRoutine",
     "routine_to_qref",
-    "DerivedResources",
+    "DerivedResource",
     "compile_routine",
     "evaluate",
     "sympy_backend",
