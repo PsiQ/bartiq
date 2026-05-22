@@ -35,9 +35,6 @@ nav:
   - Concepts:
     - concepts/compilation.md
     - concepts/rewriters.md
-  - Unitary Hack:
-      - unitary_hack/blogpost.md
-      - unitary_hack/issues.md
   - troubleshooting.md
   - limitations.md
   - reference.md
