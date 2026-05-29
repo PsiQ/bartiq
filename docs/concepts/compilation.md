@@ -12,13 +12,11 @@ Quantum programs are often deeply nested structures. A program can call multiple
 Here's an example to illustrate what we're talking about. Below we show a routine with
 two children, each of them having some example resource defined in terms of their local parameters.
 
-
 ```yaml
 --8<-- "docs/data/compilation_example.yaml"
 ```
 
 ![example routine](../images/compilation_example.png)
-
 
 As we can see, both `a` and `b` have a resource `x` defined relatively to their input port size `L`. However, when
 looked globally, those resources would have a different value. Indeed, let's see how the port sizes propagate.
@@ -34,7 +32,6 @@ Looking at the resources of `a` and `b` we see that `x` is defined as square of 
 This is what the compilation process is all about. Given a routine with all its components defined in terms of local symbols
 and parameters, `bartiq` produces a *compiled routine* in which all port sizes and resources are defined in terms
 of the global input symbols of top-level routine.
-
 
 ## Compilation in details
 
@@ -53,12 +50,11 @@ violation of some of its assumptions, and preprocesses the routine so that all t
 As an example, suppose some port `in_0` has size `1`. `bartiq` replaces this size with `#in_0`, and then adds a
 constraint saying that `#in_0 = 1`.
 
+Currently, the following preprocessing stages take place prior to compilation:
 
-Currently, the  following preprocessing stages take place prior to compilation:
-
-1. Propagation of linked params. In this stage all linked parameters reaching further than a direct
+1. Propagation of linked parameters. In this stage all linked parameters reaching further than a direct
    descendant are converted into a series of direct parameter links. This is useful because you can, for example,
-   link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This is will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
+   link a parameter from the top-level routine to a parameter arbitrarily deep in the program structure. This will compile correctly, despite `bartiq`'s compilation engine requirement on having only direct links.
 2. Promotion of unlinked inputs. Compilation cannot handle parameters that are not linked or passed through
    connections. To avoid unnecessary compilation errors, `bartiq` will promote such parameters by linking it to newly introduced input in the parent routine.
 3. Introduction of port variables. As discussed above, this step converts all ports so that they have sizes
@@ -71,7 +67,7 @@ ensuring that strict requirements of the compilation engine are met.
 ### Step 2: Recursive compilation of routines
 
 As already mentioned, the compilation process is recursive. During compilation `bartiq`
-maintains a parameter map for all of the routine's children. This map gets populated whenever a new piece of
+maintains a parameter map for all the routine's children. This map gets populated whenever a new piece of
 information is obtained, and then passed to the recursive call when each child is being compiled.
 
 What follows is a high-level, ordered overview of the main compilation process, where information is passed along edges of the routine graph.
@@ -95,7 +91,6 @@ corresponding entry in parameter map is added. For instance suppose that port `i
 size `N`. If this port is connected to port `in_1` of child `a`, a parameter map for `a` will contain entry
 mapping `#in_1` to `N`.
 
-
 #### Step 2.4: Child traversal
 
 The children are traversed in topological order, which ensures all required entries in the parameter maps are
@@ -104,33 +99,38 @@ populated before other children are compiled.
 Once this step is completed, we can be sure that all resources and ports of each child are expressed in terms
 of global variables, which is a requirement for the next step.
 
-#### Step 2.5 Propagating children resources
+#### Step 2.5: Propagating children resources
 
 Introduces default additive and multiplicative resources. In case these resources are defined for a child or children, but not a parent, this step will add the same resource to each of the higher-level routines, by defining it as a sum (or product) of the resource over all children that define it.
 In the example we discussed previously, this allows us to skip the definition of `x` resource in `root` and instead have it automatically defined by `bartiq`.
 
 #### Step 2.6: Repetitions
 
-In case a routine is repeated (i.e. has a non-empty `repetition` field), its local resource definitions get updated according 
+In case a routine is repeated (i.e. has a non-empty `repetition` field), its local resource definitions get updated according
 to the repetition rules; the repetition specification itself gets updated using the parameter map.
 
 #### Step 2.7: Resource compilation
 
 At this stage each child should have input and through ports defined in terms of global variables, and we can now compile the resources. Parents have their resources updated from the compiled resources of their children.
 
-By default, we compile resources *transitively* such that the resources of a particular routine are defined only in terms of the relevant contributions from their immedite children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
+By default, we compile resources *transitively* such that the resources of a particular routine are defined only in terms of the relevant contributions from their immediate children, and any expressions defined locally. For instance, an additive resource `X` in a routine `Parent` might have the following value _after_ compilation:
+
 ```python
 Parent.resources['X'].value = Child_a.X + Child_b.X + Child_c.X
 ```
-This provides a performance boost when routines have multiple routines and subroutines, and expressions become unweildy. 
+
+This provides a performance boost when routines have multiple routines and subroutines, and expressions become unwieldy.
 
 To override this, we can pass in a _compilation flag_ into the [`compile_routine`][bartiq.compile_routine] function call:
+
 ```python
 from bartiq.compilation import CompilationFlags
 
 compile_routine(..., compilation_flags=CompilationFlags.EXPAND_RESOURCES)
 ```
+
 Alternatively, we can call [`evaluate`][bartiq.evaluate] on the resultant compiled routine with no variable assignments to expand the resources:
+
 ```python
 expanded_resources_routine = evaluate(routine_compiled_transitively, {})
 ```
@@ -139,9 +139,9 @@ expanded_resources_routine = evaluate(routine_compiled_transitively, {})
 
 The output ports are compiled, and the new object representing compiled routine is created.
 
-#### Step 2.9 Adding derived resources
+#### Step 2.9: Adding derived resources
 
-Finally, derived resources (provided through `derived_resources` field) are calculated and added to the routine. These resources are not provided in the initial routine (or at least not for all of the subroutines) and need to be calculated based on the existing information.
+Finally, derived resources (provided through `derived_resources` field) are calculated and added to the routine. These resources are not provided in the initial routine (or at least not for all the subroutines) and need to be calculated based on the existing information.
 
 ### Step 3: Postprocessing
 
