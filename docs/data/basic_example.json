@@ -70,18 +70,9 @@
             }
         ],
         "connections": [
-            {
-                "source": "in",
-                "target": "a.in"
-            },
-            {
-                "source": "a.out",
-                "target": "b.in"
-            },
-            {
-                "source": "b.out",
-                "target": "out"
-            }
+            "in -> a.in",
+            "a.out -> b.in",
+            "b.out -> out"
         ],
         "input_params" : [
             "N"

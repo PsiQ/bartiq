@@ -87,12 +87,9 @@ program:
       value: 4*mu-4
     type: null
   - connections:
-    - source: In_control
-      target: out_control
-    - source: In_target_0
-      target: out_target_0
-    - source: In_target_1
-      target: out_target_1
+    - In_control -> out_control
+    - In_target_0 -> out_target_0
+    - In_target_1 -> out_target_1
     input_params:
     - X
     name: swap
@@ -121,38 +118,22 @@ program:
       value: O(log2(X))
     type: null
   connections:
-  - source: In_0
-    target: usp.in
-  - source: In_1
-    target: had.in
-  - source: In_2
-    target: qrom.In_alt
-  - source: In_3
-    target: qrom.In_keep
-  - source: In_4
-    target: compare.In_flag
-  - source: compare.out_flag
-    target: swap.In_control
-  - source: compare.out_keep
-    target: temp_2
-  - source: compare.out_sigma
-    target: temp_0
-  - source: had.out
-    target: compare.In_sigma
-  - source: qrom.out_alt
-    target: swap.In_target_1
-  - source: qrom.out_keep
-    target: compare.In_keep
-  - source: qrom.out_l
-    target: swap.In_target_0
-  - source: swap.out_control
-    target: temp_3
-  - source: swap.out_target_0
-    target: out_0
-  - source: swap.out_target_1
-    target: temp_1
-  - source: usp.out
-    target: qrom.In_l
+  - In_0 -> usp.in
+  - In_1 -> had.in
+  - In_2 -> qrom.In_alt
+  - In_3 -> qrom.In_keep
+  - In_4 -> compare.In_flag
+  - compare.out_flag -> swap.In_control
+  - compare.out_keep -> temp_2
+  - compare.out_sigma -> temp_0
+  - had.out -> compare.In_sigma
+  - qrom.out_alt -> swap.In_target_1
+  - qrom.out_keep -> compare.In_keep
+  - qrom.out_l -> swap.In_target_0
+  - swap.out_control -> temp_3
+  - swap.out_target_0 -> out_0
+  - swap.out_target_1 -> temp_1
+  - usp.out -> qrom.In_l
   input_params:
   - mu
   - L
