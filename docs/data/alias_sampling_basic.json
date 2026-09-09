@@ -192,18 +192,9 @@
                     }
                 ],
                 "connections": [
-                    {
-                        "source": "in_control",
-                        "target": "out_control"
-                    },
-                    {
-                        "source": "in_target_0",
-                        "target": "out_target_0"
-                    },
-                    {
-                        "source": "in_target_1",
-                        "target": "out_target_1"
-                    }
+                    "in_control -> out_control",
+                    "in_target_0 -> out_target_0",
+                    "in_target_1 -> out_target_1"
                 ],
                 "input_params": [
                     "X"
@@ -264,70 +255,22 @@
             }
         ],
         "connections": [
-            {
-                "source": "in_0",
-                "target": "usp.in"
-            },
-            {
-                "source": "in_1",
-                "target": "had.in"
-            },
-            {
-                "source": "in_2",
-                "target": "qrom.in_alt"
-            },
-            {
-                "source": "in_3",
-                "target": "qrom.in_keep"
-            },
-            {
-                "source": "in_4",
-                "target": "compare.in_flag"
-            },
-            {
-                "source": "usp.out",
-                "target": "qrom.in_l"
-            },
-            {
-                "source": "had.out",
-                "target": "compare.in_sigma"
-            },
-            {
-                "source": "qrom.out_l",
-                "target": "swap.in_target_0"
-            },
-            {
-                "source": "qrom.out_alt",
-                "target": "swap.in_target_1"
-            },
-            {
-                "source": "qrom.out_keep",
-                "target": "compare.in_keep"
-            },
-            {
-                "source": "compare.out_flag",
-                "target": "swap.in_control"
-            },
-            {
-                "source": "swap.out_target_0",
-                "target": "out_0"
-            },
-            {
-                "source": "compare.out_sigma",
-                "target": "temp_0"
-            },
-            {
-                "source": "swap.out_target_1",
-                "target": "temp_1"
-            },
-            {
-                "source": "compare.out_keep",
-                "target": "temp_2"
-            },
-            {
-                "source": "swap.out_control",
-                "target": "temp_3"
-            }
+            "in_0 -> usp.in",
+            "in_1 -> had.in",
+            "in_2 -> qrom.in_alt",
+            "in_3 -> qrom.in_keep",
+            "in_4 -> compare.in_flag",
+            "usp.out -> qrom.in_l",
+            "had.out -> compare.in_sigma",
+            "qrom.out_l -> swap.in_target_0",
+            "qrom.out_alt -> swap.in_target_1",
+            "qrom.out_keep -> compare.in_keep",
+            "compare.out_flag -> swap.in_control",
+            "swap.out_target_0 -> out_0",
+            "compare.out_sigma -> temp_0",
+            "swap.out_target_1 -> temp_1",
+            "compare.out_keep -> temp_2",
+            "swap.out_control -> temp_3"
         ],
         "input_params": [
             "mu",
