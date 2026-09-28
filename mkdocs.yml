@@ -24,16 +24,16 @@ extra_css:
   - psidocs.css
 
 nav:
-  - index.md
+  - What is Bartiq?: index.md
   - installation.md
   - Tutorials:
-      - tutorials/index.md
+      - Introduction: tutorials/index.md
       - tutorials/01_basic_example.ipynb
       - tutorials/02_alias_sampling_basic.ipynb
       - tutorials/03_advanced_examples.ipynb
       - tutorials/04_rewriters.ipynb
   - Concepts:
-    - concepts/compilation.md
+    - Compilation: concepts/compilation.md
     - concepts/rewriters.md
   - troubleshooting.md
   - limitations.md

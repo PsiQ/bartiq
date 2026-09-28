@@ -14,7 +14,7 @@ pip install bartiq
 
 ## Documentation
 
-Complete documentation for `bartiq` can be found [here](https://psiq.github.io/bartiq/).
+Complete documentation for `bartiq` can be found [here](https://docs.construct.psiquantum.com/bartiq).
 
 
 ## Quick start
