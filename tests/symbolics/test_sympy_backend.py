@@ -268,3 +268,38 @@ def test_functions_defined_using_substitute_work_after_lambdification():
     lambdified = lambdify(["x", "y"], expr)
 
     assert lambdified(4, 5) == foo(4, 5) + bar(4 + 5)
+
+
+@pytest.mark.parametrize("value", [9007199254740993, 3**40, 2**100, -(3**40)])
+def test_native_conversion_preserves_exact_large_integers(value):
+    expression = sympify(str(value))
+    assert sympy_backend.ensure_native_number(expression) == value
+    assert sympy_backend.as_native(expression) == value
+
+
+@pytest.mark.parametrize("value", ["9007199254740993", "3**40", "2**100"])
+def test_compile_and_export_preserve_exact_large_integer_costs(value):
+    from bartiq import compile_routine
+
+    result = compile_routine(
+        {
+            "name": "root",
+            "resources": [{"name": "gates", "type": "additive", "value": value}],
+        }
+    )
+    expected = int(sympify(value))
+    assert result.routine.resource_values["gates"] == expected
+    assert result.to_qref().program.resources[0].value == expected
+
+
+def test_evaluation_preserves_exact_large_integer_arithmetic():
+    from bartiq import compile_routine, evaluate
+
+    routine = compile_routine(
+        {
+            "name": "root",
+            "input_params": ["N"],
+            "resources": [{"name": "gates", "type": "additive", "value": "N+1"}],
+        }
+    ).routine
+    assert evaluate(routine, {"N": 3**40}).routine.resource_values["gates"] == 3**40 + 1
