@@ -279,3 +279,43 @@ def test_compilation_works_as_expected_in_presence_of_large_number_of_children(
         and backend.serialize(compilation_result.resources["t_count"].value) == expected_t_count
         and backend.serialize(compilation_result.resources["foo"].value) == expected_foo
     )
+
+
+@pytest.mark.parametrize("reverse_links", [False, True])
+@pytest.mark.parametrize("compilation_flags", [None, CompilationFlags.EXPAND_RESOURCES])
+def test_crossed_parameter_links_preserve_parent_symbols(backend, reverse_links, compilation_flags):
+    links = [
+        {"source": "y", "targets": ["child.x"]},
+        {"source": "x", "targets": ["child.y"]},
+    ]
+    if reverse_links:
+        links.reverse()
+    result = compile_routine(
+        {
+            "name": "root",
+            "input_params": ["x", "y"],
+            "children": [
+                {
+                    "name": "child",
+                    "input_params": ["x", "y"],
+                    "resources": [{"name": "gates", "type": "additive", "value": "x+2*y"}],
+                }
+            ],
+            "linked_params": links,
+        },
+        compilation_flags=compilation_flags,
+    ).routine
+    assert result.children["child"].resource_values["gates"] == backend.as_expression("2*x+y")
+
+
+def test_evaluation_preserves_bound_symbols_that_are_also_inputs():
+    from bartiq import evaluate
+
+    routine = compile_routine(
+        {
+            "name": "root",
+            "input_params": ["i", "n"],
+            "resources": [{"name": "gates", "type": "additive", "value": "i*sum_over(i,i,1,n)"}],
+        }
+    ).routine
+    assert evaluate(routine, {"i": 7, "n": 3}).routine.resource_values["gates"] == 42

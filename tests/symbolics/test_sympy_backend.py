@@ -268,3 +268,34 @@ def test_functions_defined_using_substitute_work_after_lambdification():
     lambdified = lambdify(["x", "y"], expr)
 
     assert lambdified(4, 5) == foo(4, 5) + bar(4 + 5)
+
+
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_substitution_does_not_capture_inserted_symbols(reverse_order):
+    x, y = symbols("x y")
+    replacements = {"x": y, "y": 1}
+    if reverse_order:
+        replacements = dict(reversed(list(replacements.items())))
+    assert sympy_backend.substitute(x + y, replacements) == y + 1
+
+
+def test_substitution_preserves_bound_sequence_iterators():
+    from sympy import Sum
+
+    i, n = symbols("i n")
+    expression = Sum(i * n, (i, 1, n))
+    assert sympy_backend.substitute(expression, {"n": 3, "i": 7}) == 18
+
+
+def test_substitution_preserves_bound_symbols_that_are_also_free():
+    from sympy import Sum
+
+    i, n = symbols("i n")
+    expression = i * Sum(i, (i, 1, n))
+    assert sympy_backend.substitute(expression, {"i": 7, "n": 3}) == 42
+    assert sympy_backend.substitute(expression, {"i": 7}) == 7 * Sum(i, (i, 1, n))
+
+
+def test_simultaneous_substitution_accepts_string_values():
+    x, y = symbols("x y")
+    assert sympy_backend.substitute(x + y, {"x": "y", "y": 1}) == y + 1
