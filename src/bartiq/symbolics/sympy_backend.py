@@ -265,7 +265,13 @@ class SympyBackend:
             (existing_symbols[old], new) for old, new in replacements.items() if old in existing_symbols
         ]
 
-        expr = expr.subs(restricted_replacements)
+        # Independent replacements can use the faster sequential path without
+        # rewriting symbols inserted by another replacement.
+        replaced_symbols = {old for old, _ in restricted_replacements}
+        simultaneous = len(restricted_replacements) > 1 and any(
+            replaced_symbols.intersection(sympy.sympify(new).free_symbols) for _, new in restricted_replacements
+        )
+        expr = expr.subs(restricted_replacements, simultaneous=simultaneous)
         if functions_map is None:
             functions_map = {}
         for func_name, func in functions_map.items():
