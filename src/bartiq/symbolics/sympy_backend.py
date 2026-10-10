@@ -142,6 +142,8 @@ def _attempt_numeric_evaluation(expr: Expr) -> TExpr[Expr]:
     Raises:
         TypeError: If the expression cannot be rounded.
     """
+    if isinstance(expr, sympy.Integer):
+        return int(expr)
     try:
         value = N(expr).round(n=NUM_DIGITS_PRECISION)
     except TypeError as e:
