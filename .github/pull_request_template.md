@@ -18,8 +18,8 @@ Describe the existing behaviour that motivates this change.
 
 Describe the behaviour introduced by this pull request.
 
-- For bug fixes, show the corrected output or behaviour using the MRE from the previous section.
-- For new features, briefly describe the intended behaviour and provide an example where useful.
+- For bug fixes, show the corrected output or behaviour using the MRE from the previous section. A test must be added to demonstrate the fixed bug.
+- For new features, briefly describe the intended behaviour and provide an example where useful. New tests must also be written.
 
 ## Testing and verification
 
